@@ -1,0 +1,18 @@
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+*.o
+Build/
+
+# Visual Studio 2015 cache/options directory
+.vs/
+
+# Visual C++ cache files
+*.aps
+
+# Test Project
+/Test/
