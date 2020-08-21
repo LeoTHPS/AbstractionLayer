@@ -215,7 +215,7 @@ namespace AL::FileSystem
 			
 			for (auto pathLength = path.GetLength(); fileNameEndIndex < pathLength; ++fileNameEndIndex)
 			{
-				if (path[fileNameStartIndex] == '.')
+				if (path[fileNameEndIndex] == '.')
 				{
 
 					break;
