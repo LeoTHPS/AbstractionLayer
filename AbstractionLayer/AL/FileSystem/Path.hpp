@@ -144,14 +144,6 @@ namespace AL::FileSystem
 #endif
 		}
 
-		template<typename ... CHUNK_TYPES>
-		static Path Combine(CHUNK_TYPES ... chunks)
-		{
-			return String::Combine<CHUNK_TYPES ...>(
-				chunks ...
-			);
-		}
-
 		Path(String&& path)
 			: string(
 				Move(path)
@@ -194,63 +186,149 @@ namespace AL::FileSystem
 			return string;
 		}
 
-		auto GetRootPath() const;
+		auto GetRootPath() const
+		{
+			auto& path = GetString();
+			auto pathLength = path.GetLength();
+
+			size_t rootPathEnd = 0;
+
+			for (size_t i = 0; i < pathLength; ++i)
+			{
+				auto c = path[i];
+
+				if ((c == '/') || (c == '\\'))
+				{
+					if ((rootPathEnd = i) > 0)
+					{
+
+						--rootPathEnd;
+					}
+				}
+			}
+
+			size_t rootPathBegin = 0;
+
+			for (size_t i = rootPathEnd; i >= 0; --i)
+			{
+				auto c = path[i];
+
+				if ((c == '/') || (c == '\\'))
+				{
+
+					rootPathBegin = i + 1;
+				}
+			}
+
+			auto rootPath = path.SubString(
+				rootPathBegin,
+				rootPathEnd
+			);
+
+			return Path(
+				Move(rootPath)
+			);
+		}
 
 		auto GetFileName() const
 		{
 			auto& path = GetString();
+			auto pathLength = path.GetLength();
 
-			size_t fileNameStartIndex;
+			size_t fileNameStartIndex = 0;
 
-			if ((fileNameStartIndex = path.IndexOfLast('/')) == String::NPOS)
+			for (size_t i = 0; i < pathLength; ++i)
 			{
-				if ((fileNameStartIndex = path.IndexOfLast('\\')) == String::NPOS)
+				auto c = path[i];
+
+				if ((c == '/') || (c == '\\'))
 				{
 
-					fileNameStartIndex = 0;
+					fileNameStartIndex = i + 1;
 				}
 			}
 
-			size_t fileNameEndIndex = 0;
-			
-			for (auto pathLength = path.GetLength(); fileNameEndIndex < pathLength; ++fileNameEndIndex)
+			size_t fileNameEndIndex = pathLength;
+
+			for (size_t i = fileNameStartIndex; i < pathLength; ++i)
 			{
-				if (path[fileNameEndIndex] == '.')
+				if (path[i] == '.')
 				{
+					fileNameEndIndex = i - 1;
+
+					break;
+				}
+			}
+
+			if (fileNameEndIndex < fileNameStartIndex)
+			{
+
+				fileNameEndIndex = fileNameStartIndex;
+			}
+			
+			return path.SubString(
+				fileNameStartIndex,
+				fileNameEndIndex
+			);
+		}
+
+		auto GetFileExtension() const
+		{
+			auto& path = GetString();
+			auto pathLength = path.GetLength();
+
+			size_t fileNameStartIndex = 0;
+
+			for (size_t i = 0; i < pathLength; ++i)
+			{
+				auto c = path[i];
+
+				if ((c == '/') || (c == '\\'))
+				{
+
+					fileNameStartIndex = i + 1;
+				}
+			}
+
+			size_t fileExtensionStartIndex = 0;
+
+			for (size_t i = fileNameStartIndex; i < pathLength; ++i)
+			{
+				if (path[i] == '.')
+				{
+					fileExtensionStartIndex = i;
 
 					break;
 				}
 			}
 
 			return path.SubString(
-				++fileNameStartIndex,
-				fileNameEndIndex
+				fileExtensionStartIndex
 			);
 		}
-
-		auto GetFileNameExtension() const
+		
+		auto GetFileOrDirectoryName() const
 		{
 			auto& path = GetString();
+			auto pathLength = path.GetLength();
 
-			size_t fileNameStartIndex;
-			
-			if ((fileNameStartIndex = path.IndexOfLast('/')) == String::NPOS)
+			size_t nameIndexStart = 0;
+
+			for (size_t i = 0; i < pathLength; ++i)
 			{
-				if ((fileNameStartIndex = path.IndexOfLast('\\')) == String::NPOS)
+				auto c = path[i];
+
+				if ((c == '/') || (c == '\\'))
 				{
 
-					fileNameStartIndex = 0;
+					nameIndexStart = i + 1;
 				}
 			}
 
 			return path.SubString(
-				++fileNameStartIndex
+				nameIndexStart
 			);
 		}
-
-		auto GetFileExtension() const;
-
-		auto GetDirectoryName() const;
 
 		// @throw AL::Exceptions::Exception
 		bool Exists() const
