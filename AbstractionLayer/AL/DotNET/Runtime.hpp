@@ -54,7 +54,7 @@ namespace AL::DotNET
 			return version;
 		}
 
-		// @throw AL::Exception
+		// @throw AL::Exceptions::Exception
 		void Start()
 		{
 			AL_ASSERT(!IsRunning(), "Runtime already started");
@@ -205,7 +205,7 @@ namespace AL::DotNET
 			}
 		}
 
-		// @throw AL::Exception
+		// @throw AL::Exceptions::Exception
 		int32 Execute(const FileSystem::File& file, const String& type, const String& method)
 		{
 			return Execute(
@@ -215,7 +215,7 @@ namespace AL::DotNET
 				""
 			);
 		}
-		// @throw AL::Exception
+		// @throw AL::Exceptions::Exception
 		int32 Execute(const FileSystem::File& file, const String& type, const String& method, const String& arg)
 		{
 			AL_ASSERT(IsRunning(), "Runtime not started");
@@ -254,7 +254,7 @@ namespace AL::DotNET
 			);
 		}
 
-		// @throw AL::Exception
+		// @throw AL::Exceptions::Exception
 		static void EnumerateInstalledVersions(const RuntimeEnumCallback& callback)
 		{
 			ICLRMetaHost* lpHost;
