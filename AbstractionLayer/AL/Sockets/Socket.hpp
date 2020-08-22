@@ -3,6 +3,8 @@
 
 #include "IPEndPoint.hpp"
 
+#include "AL/Exceptions/SocketException.hpp"
+
 namespace AL::Sockets
 {
 	class Socket;
