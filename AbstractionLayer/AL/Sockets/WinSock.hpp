@@ -15,7 +15,83 @@ namespace AL::Sockets
 {
 	class WinSock
 	{
-	public:
+		WSADATA data;
+		
+		bool isLoaded = false;
 
+		WinSock(const WinSock&) = delete;
+
+	public:
+		WinSock()
+		{
+		}
+
+		WinSock(WinSock&& winsock)
+			: data(
+				Move(winsock.data)
+			),
+			isLoaded(
+				winsock.isLoaded
+			)
+		{
+			winsock.isLoaded = false;
+		}
+
+		virtual ~WinSock()
+		{
+			if (IsLoaded())
+			{
+				Unload();
+			}
+		}
+
+		bool IsLoaded() const
+		{
+			return isLoaded;
+		}
+
+		// @throw AL::Exceptions::Exception
+		void Load()
+		{
+			if (IsLoaded())
+			{
+				
+				throw Exceptions::Exception(
+					"WinSock already loaded"
+				);
+			}
+
+			if (WSAStartup(MAKEWORD(2, 2), &data) != NO_ERROR)
+			{
+
+				throw Exceptions::SocketException(
+					"WSAStartup"
+				);
+			}
+
+			isLoaded = true;
+		}
+
+		void Unload()
+		{
+			if (IsLoaded())
+			{
+				WSACleanup();
+
+				isLoaded = false;
+			}
+		}
+
+		auto& operator = (WinSock&& winsock)
+		{
+			data = Move(
+				winsock.data
+			);
+
+			isLoaded = winsock.isLoaded;
+			winsock.isLoaded = false;
+
+			return *this;
+		}
 	};
 }
