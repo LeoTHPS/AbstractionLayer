@@ -10,9 +10,9 @@
 namespace AL::OS
 {
 #if defined(AL_PLATFORM_LINUX)
-	typedef typename Get_Integer_Base<decltype(errno)>::Type ErrorCode;
+	typedef typename Get_Integer_Base<typename Remove_Modifiers<decltype(errno)>::Type>::Type ErrorCode;
 #elif defined(AL_PLATFORM_WINDOWS)
-	typedef typename Get_Integer_Base<decltype(::GetLastError())>::Type ErrorCode;
+	typedef typename Get_Integer_Base<typename Remove_Modifiers<decltype(::GetLastError())>::Type>::Type ErrorCode;
 #endif
 
 	inline ErrorCode GetLastError()
