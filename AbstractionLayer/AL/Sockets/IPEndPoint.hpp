@@ -50,6 +50,14 @@ namespace AL::Sockets
 			);
 		}
 
+		IPEndPoint()
+			: IPEndPoint(
+				IPAddress(),
+				0
+			)
+		{
+		}
+
 		IPEndPoint(IPAddress&& address, uint16 port)
 			: Address(
 				Move(address)

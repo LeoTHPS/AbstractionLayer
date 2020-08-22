@@ -186,6 +186,13 @@ namespace AL::Sockets
 			}
 		}
 
+		IPAddress()
+			: IPAddress(
+				0
+			)
+		{
+		}
+
 		IPAddress(uint32 address)
 			: family(
 				AddressFamilies::IPv4
