@@ -92,6 +92,9 @@ namespace AL::Sockets
 		static const IPAddress Loopback;
 		static const IPAddress Loopback6;
 
+		typedef typename _IPAddress_Helper<AddressFamilies::IPv4>::Type Address;
+		typedef typename _IPAddress_Helper<AddressFamilies::IPv6>::Type Address6;
+
 		// @throw AL::Exceptions::Exception
 		// @return false if not found
 		static bool Resolve(IPAddress& address, const String& hostname)
