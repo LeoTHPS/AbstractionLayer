@@ -71,7 +71,7 @@ namespace AL::FileSystem
 				length
 			);
 
-			size_t bytesRead;
+			uint64 bytesRead;
 
 			if ((bytesRead = File::Read(&value[0], length)) == 0)
 			{
@@ -86,8 +86,8 @@ namespace AL::FileSystem
 		// @return false if end of file
 		bool ReadLine(String& value, size_t chunkSize = 128)
 		{
-			size_t bytesRead;
-			size_t totalBytesRead = 0;
+			uint64 bytesRead;
+			uint64 totalBytesRead = 0;
 			
 			String lineChunkBuffer(
 				'\0',
@@ -103,7 +103,7 @@ namespace AL::FileSystem
 			while (bytesRead = File::Read(&lineChunkBuffer[0], chunkSize * sizeof(String::Char)))
 			{
 				totalBytesRead += bytesRead;
-				lineChunkBuffer[bytesRead / sizeof(String::Char)] = String::END;
+				lineChunkBuffer[static_cast<size_t>(bytesRead / sizeof(String::Char))] = String::END;
 
 				auto endOfLineChunk = lineChunkBuffer.IndexOf(
 					LINE_TERMINATOR[0]
@@ -157,14 +157,14 @@ namespace AL::FileSystem
 		// @throw AL::Exceptions::Exception
 		void Write(const String& value)
 		{
-			size_t start = 0;
-			size_t length = value.GetLength();
+			uint64 start = 0;
+			uint64 length = value.GetLength();
 
 			do
 			{
 				start += File::Write(
-					&value[start],
-					length - start
+					&value[static_cast<size_t>(start)],
+					static_cast<size_t>(length - start)
 				);
 			} while (length - start);
 		}
