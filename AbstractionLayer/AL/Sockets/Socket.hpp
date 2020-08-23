@@ -210,14 +210,6 @@ namespace AL::Sockets
 
 	class Socket
 	{
-		enum class Flags
-		{
-			Open      = 0x1,
-			Blocking  = 0x2,
-			Listening = 0x4,
-			Connected = 0x8
-		};
-
 #if defined(AL_PLATFORM_LINUX)
 		typedef int HSOCKET;
 
