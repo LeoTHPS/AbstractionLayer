@@ -29,10 +29,14 @@
 	#error Could not detect platform
 #endif
 
-#if defined(AL_PLATFORM_WIN32) || defined(AL_PLATFORM_LINUX32) || defined(AL_PLATFORM_LINUX_ARM)
+#if defined(AL_PLATFORM_WIN32) || defined(AL_PLATFORM_LINUX32)
 	#define AL_X86
-#elif defined(AL_PLATFORM_WIN64) || defined(AL_PLATFORM_LINUX64) || defined(AL_PLATFORM_LINUX_ARM64)
+#elif defined(AL_PLATFORM_WIN64) || defined(AL_PLATFORM_LINUX64)
 	#define AL_X86_64
+#elif defined(AL_PLATFORM_LINUX_ARM)
+	#define AL_ARM
+#elif defined(AL_PLATFORM_LINUX_ARM64)
+	#define AL_ARM64
 #endif
 
 #define AL_DEPRECATED(__text__) [[deprecated(__text__)]]
