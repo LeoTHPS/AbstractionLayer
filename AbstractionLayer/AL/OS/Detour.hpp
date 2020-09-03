@@ -12,6 +12,11 @@ namespace AL::OS
 		template<typename F>
 		static void HookFunction(F* lpSource, F* lpDestination)
 		{
+#if defined(AL_PLATFORM_WIN32) || \
+	defined(AL_PLATFORM_WIN64) || \
+	defined(AL_PLATFORM_LINUX32) || \
+	defined(AL_PLATFORM_LINUX64)
+
 #pragma pack(push, 1)
 			struct Jump
 			{
@@ -49,6 +54,9 @@ namespace AL::OS
 					"VirtualProtect"
 				);
 			}
+#endif
+#else
+			throw Exceptions::NotImplementedException();
 #endif
 		}
 	};
