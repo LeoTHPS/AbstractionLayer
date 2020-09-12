@@ -371,6 +371,7 @@ namespace AL::GPIO
 		void ReadWrite(void* lpReadBuffer, const void* lpWriteBuffer, size_t size)
 		{
 			spi_ioc_transfer transfer = { 0 };
+			transfer.cs_change = csPin.IsExported() ? 0 : 1;
 			transfer.len = static_cast<decltype(transfer.len)>(size);
 			transfer.speed_hz = static_cast<decltype(transfer.speed_hz)>(GetSpeed());
 			transfer.bits_per_word = static_cast<decltype(transfer.bits_per_word)>(GetBitCount());
