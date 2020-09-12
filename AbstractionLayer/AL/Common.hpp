@@ -132,9 +132,9 @@ namespace AL
 	typedef uint32_t	uint32;
 	typedef uint64_t	uint64;
 
-#if defined(AL_X86)
+#if defined(AL_X86) || defined(AL_ARM)
 	typedef uint32		size_t;
-#elif defined(AL_X86_64)
+#elif defined(AL_X86_64) || defined(AL_ARM64)
 	typedef uint64		size_t;
 #endif
 
