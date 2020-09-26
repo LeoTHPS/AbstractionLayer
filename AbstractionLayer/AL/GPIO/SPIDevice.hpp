@@ -52,6 +52,8 @@ namespace AL::GPIO
 		SPISpeed deviceSpeed;
 		SPIBitCount deviceBitCount;
 
+		bool isCsChangeEnabled = false;
+
 		SPIDevice(const SPIDevice&) = delete;
 
 		SPIDevice(int fd, SPIBusId busId, SPIDeviceId deviceId, SPIModes mode, SPISpeed speed, SPIBitCount bitCount)
@@ -132,7 +134,8 @@ namespace AL::GPIO
 				);
 			}
 
-			if (ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &bitCount) == -1)
+			if ((ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &bitCount) == -1) ||
+				(ioctl(fd, SPI_IOC_RD_BITS_PER_WORD, &bitCount) == -1))
 			{
 				close(fd);
 
@@ -144,7 +147,8 @@ namespace AL::GPIO
 				);
 			}
 
-			if (ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed) == -1)
+			if ((ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed) == -1) ||
+				(ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed) == -1))
 			{
 				close(fd);
 
@@ -203,7 +207,8 @@ namespace AL::GPIO
 				);
 			}
 
-			if (ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &bitCount) == -1)
+			if ((ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &bitCount) == -1) ||
+				(ioctl(fd, SPI_IOC_RD_BITS_PER_WORD, &bitCount) == -1))
 			{
 				close(fd);
 
@@ -215,7 +220,8 @@ namespace AL::GPIO
 				);
 			}
 
-			if (ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed) == -1)
+			if ((ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed) == -1) ||
+				(ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed) == -1))
 			{
 				close(fd);
 
@@ -276,9 +282,13 @@ namespace AL::GPIO
 			),
 			deviceBitCount(
 				device.deviceBitCount
+			),
+			isCsChangeEnabled(
+				device.isCsChangeEnabled
 			)
 		{
 			device.fd = -1;
+			device.isCsChangeEnabled = false;
 		}
 
 		virtual ~SPIDevice()
@@ -289,6 +299,11 @@ namespace AL::GPIO
 		bool IsOpen() const
 		{
 			return fd != -1;
+		}
+
+		bool IsCSChangeEnabled() const
+		{
+			return isCsChangeEnabled;
 		}
 
 		auto GetId() const
@@ -314,6 +329,13 @@ namespace AL::GPIO
 		auto GetBitCount() const
 		{
 			return deviceBitCount;
+		}
+
+		// Set true to deselect CS pin between each transfer
+		// This is only supported when using native CS pins, not GPIO
+		void SetCSChange(bool set = true)
+		{
+			isCsChangeEnabled = set;
 		}
 
 		// @throw AL::Exceptions::Exception
@@ -371,7 +393,7 @@ namespace AL::GPIO
 		void ReadWrite(void* lpReadBuffer, const void* lpWriteBuffer, size_t size)
 		{
 			spi_ioc_transfer transfer = { 0 };
-			//transfer.cs_change = csPin.IsExported() ? 0 : 1;
+			transfer.cs_change = IsCSChangeEnabled() ? 1 : 0;
 			transfer.len = static_cast<decltype(transfer.len)>(size);
 			transfer.speed_hz = static_cast<decltype(transfer.speed_hz)>(GetSpeed());
 			transfer.bits_per_word = static_cast<decltype(transfer.bits_per_word)>(GetBitCount());
@@ -440,6 +462,9 @@ namespace AL::GPIO
 			deviceId = device.deviceId;
 			deviceSpeed = device.deviceSpeed;
 			deviceBitCount = device.deviceBitCount;
+
+			isCsChangeEnabled = device.isCsChangeEnabled;
+			device.isCsChangeEnabled = false;
 
 			return *this;
 		}
