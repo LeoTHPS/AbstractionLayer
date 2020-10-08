@@ -6,11 +6,14 @@
 
 # Visual Studio solution/project files
 *.sln
+*.csproj
 *.vcxproj
 *.vcxproj.filters
 
 # Build results
 *.o
+bin/
+obj/
 Build/
 
 # Visual Studio cache/options
