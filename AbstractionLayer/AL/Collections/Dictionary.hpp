@@ -34,6 +34,10 @@ namespace AL::Collections
 		{
 		}
 
+		virtual ~Dictionary()
+		{
+		}
+
 		auto GetSize() const
 		{
 			return container.size();

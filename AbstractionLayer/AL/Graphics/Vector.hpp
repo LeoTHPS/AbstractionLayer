@@ -29,6 +29,10 @@ namespace AL::Graphics
 		{
 		}
 
+		virtual ~_Vector()
+		{
+		}
+
 		bool IsParallel(T x, T y) const
 		{
 			return (X == x) ^ (Y == y);

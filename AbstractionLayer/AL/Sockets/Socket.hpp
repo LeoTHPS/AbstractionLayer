@@ -565,6 +565,12 @@ namespace AL::Sockets
 		// @return number of bytes received
 		size_t Read(void* lpBuffer, size_t size);
 
+#if defined(AL_PLATFORM_WINDOWS)
+		// @throw AL::Exceptions::Exception
+		// @return false on connection closed
+		bool ReadAsync(void* lpBuffer, size_t size, SocketAsyncCallback&& callback);
+#endif
+
 		// @throw AL::Exceptions::Exception
 		// @return -1 if would block
 		// @return 0 on connection closed
@@ -573,16 +579,8 @@ namespace AL::Sockets
 
 #if defined(AL_PLATFORM_WINDOWS)
 		// @throw AL::Exceptions::Exception
-		// @return -1 if would block
-		// @return 0 on connection closed
-		// @return number of bytes enqueued
-		size_t ReadAsync(void* lpBuffer, size_t size, SocketAsyncCallback&& callback);
-
-		// @throw AL::Exceptions::Exception
-		// @return -1 if would block
-		// @return 0 on connection closed
-		// @return number of bytes enqueued
-		size_t WriteAsync(const void* lpBuffer, size_t size, SocketAsyncCallback&& callback);
+		// @return false on connection closed
+		bool WriteAsync(const void* lpBuffer, size_t size, SocketAsyncCallback&& callback);
 #endif
 
 		auto& operator = (Socket&& socket)

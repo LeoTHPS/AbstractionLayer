@@ -5,6 +5,8 @@ namespace AL::OS
 {
 	class Debug
 	{
+		Debug() = delete;
+
 	public:
 		static constexpr bool IsDebug()
 		{

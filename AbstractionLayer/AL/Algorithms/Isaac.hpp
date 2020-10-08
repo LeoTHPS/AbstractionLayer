@@ -116,6 +116,10 @@ namespace AL::Algorithms
 			Next();
 		}
 
+		virtual ~Isaac()
+		{
+		}
+
 		uint32 Next()
 		{
 			cc += 1; bb += cc;

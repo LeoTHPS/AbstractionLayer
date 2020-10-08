@@ -45,6 +45,10 @@ namespace AL::OS
 		}
 #endif
 
+		virtual ~Timer()
+		{
+		}
+
 		auto GetElapsed() const
 		{
 #if defined(AL_PLATFORM_LINUX)

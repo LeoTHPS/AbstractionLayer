@@ -63,6 +63,10 @@ namespace AL::Collections
 		{
 		}
 
+		virtual ~Tuple()
+		{
+		}
+
 		template<size_t I>
 		auto& Get()
 		{
@@ -115,6 +119,10 @@ namespace AL::Collections
 	{
 	public:
 		Tuple()
+		{
+		}
+
+		virtual ~Tuple()
 		{
 		}
 

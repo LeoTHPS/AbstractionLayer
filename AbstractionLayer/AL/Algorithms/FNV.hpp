@@ -24,6 +24,10 @@ namespace AL::Algorithms
 	public:
 		typedef T Hash;
 
+		virtual ~FNV()
+		{
+		}
+
 		template<typename _T>
 		static constexpr T Calculate(const _T& value)
 		{

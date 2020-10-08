@@ -16,6 +16,10 @@ namespace AL::Collections
 	public:
 		typedef T Type;
 
+		virtual ~MPMCQueue()
+		{
+		}
+
 		auto GetSize() const
 		{
 			std::lock_guard<std::mutex> lock(

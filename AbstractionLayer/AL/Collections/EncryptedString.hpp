@@ -47,6 +47,10 @@ namespace AL::Collections
 		{
 		}
 
+		virtual ~_EncryptedString()
+		{
+		}
+
 		String Decrypt() const
 		{
 			String string(

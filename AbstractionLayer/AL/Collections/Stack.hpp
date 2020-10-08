@@ -13,6 +13,10 @@ namespace AL::Collections
 	public:
 		typedef T Type;
 
+		virtual ~Stack()
+		{
+		}
+
 		auto GetSize() const
 		{
 			return container.size();

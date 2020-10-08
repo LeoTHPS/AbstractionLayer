@@ -71,6 +71,10 @@ namespace AL::Graphics
 		{
 		}
 
+		virtual ~Color()
+		{
+		}
+
 		operator uint32&()
 		{
 			return ARGB;

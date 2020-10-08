@@ -643,6 +643,10 @@ namespace AL
 		{
 		}
 
+		virtual ~_Regex()
+		{
+		}
+
 		bool IsMatch(const String& buffer) const
 		{
 			MatchResults matches;
@@ -2681,7 +2685,6 @@ namespace AL
 			if (lpLambda)
 			{
 				ILambda::Destroy(lpLambda);
-				(lpLambda);
 			}
 		}
 
@@ -2871,6 +2874,10 @@ namespace AL
 	public:
 		typedef EventCallback<T(TArgs ...)> Callback;
 
+		virtual ~Event()
+		{
+		}
+
 		auto GetSize() const
 		{
 			return callbacks.GetSize();
@@ -2969,6 +2976,10 @@ namespace AL
 
 		TimeSpan(uint64 microseconds)
 			: value(microseconds)
+		{
+		}
+
+		virtual ~TimeSpan()
 		{
 		}
 
@@ -3144,6 +3155,10 @@ namespace AL
 			: value(
 				microseconds
 			)
+		{
+		}
+
+		virtual ~Timestamp()
 		{
 		}
 

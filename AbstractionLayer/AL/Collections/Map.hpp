@@ -32,6 +32,10 @@ namespace AL::Collections
 		{
 		}
 
+		virtual ~Map()
+		{
+		}
+
 		auto GetSize() const
 		{
 			return container.size();

@@ -66,6 +66,10 @@ namespace AL::Collections
 		{
 		}
 
+		virtual ~ByteBuffer()
+		{
+		}
+
 		auto GetSize() const
 		{
 			return writePosition;

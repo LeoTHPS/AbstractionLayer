@@ -76,6 +76,10 @@ namespace AL::Sockets
 		{
 		}
 
+		virtual ~IPEndPoint()
+		{
+		}
+
 		bool Cast(IPEndPoint& ep, AddressFamilies family) const
 		{
 			if (!Address.Cast(ep.Address, family))

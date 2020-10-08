@@ -15,6 +15,10 @@ namespace AL::Collections
 	public:
 		typedef T Type;
 
+		virtual ~Queue()
+		{
+		}
+
 		auto GetSize() const
 		{
 			return container.size();

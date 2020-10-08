@@ -31,6 +31,10 @@ namespace AL::Collections
 		{
 		}
 
+		virtual ~Set()
+		{
+		}
+
 		auto GetSize() const
 		{
 			return container.size();

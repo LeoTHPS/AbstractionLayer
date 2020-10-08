@@ -53,6 +53,10 @@ namespace AL::Algorithms
 	public:
 		typedef T Hash;
 
+		virtual ~CRC()
+		{
+		}
+
 		template<typename _T>
 		static constexpr T Calculate(const _T& value, T crc = _CRC_Constants<T>::CRC)
 		{

@@ -29,6 +29,10 @@ namespace AL::Algorithms
 			Reset();
 		}
 
+		virtual ~Sha1()
+		{
+		}
+
 		void Reset()
 		{
 			computed = 0;

@@ -85,6 +85,10 @@ namespace AL::Collections
 			}
 		}
 
+		virtual ~Array()
+		{
+		}
+
 		auto GetSize() const
 		{
 			return container.size();
@@ -304,6 +308,10 @@ namespace AL::Collections
 			}
 		}
 		
+		virtual ~Array()
+		{
+		}
+
 		static constexpr auto GetSize()
 		{
 			return SIZE;

@@ -57,6 +57,10 @@ namespace AL::Collections
 		{
 		}
 
+		virtual ~CircularQueue()
+		{
+		}
+
 		auto GetSize() const
 		{
 			return size;

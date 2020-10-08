@@ -44,6 +44,10 @@ namespace AL::DotNET
 		{
 		}
 
+		virtual ~Runtime()
+		{
+		}
+
 		bool IsRunning() const
 		{
 			return lpHost != nullptr;

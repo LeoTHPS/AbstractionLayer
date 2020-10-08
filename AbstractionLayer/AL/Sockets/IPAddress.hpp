@@ -221,6 +221,10 @@ namespace AL::Sockets
 		{
 		}
 
+		virtual ~IPAddress()
+		{
+		}
+
 		bool IsV4() const
 		{
 			return family == AddressFamilies::IPv4;

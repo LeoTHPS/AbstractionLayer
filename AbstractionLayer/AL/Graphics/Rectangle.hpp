@@ -40,6 +40,10 @@ namespace AL::Graphics
 		{
 		}
 
+		virtual ~Rectangle()
+		{
+		}
+
 		T GetWidth() const
 		{
 			return Right - Left;

@@ -202,6 +202,10 @@ namespace AL::Collections
 		{
 		}
 
+		virtual ~_String()
+		{
+		}
+
 		auto GetSize() const
 		{
 			return container.size();
