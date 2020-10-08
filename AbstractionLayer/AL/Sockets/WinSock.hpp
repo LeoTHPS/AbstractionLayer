@@ -52,6 +52,11 @@ namespace AL::Sockets
 			return isLoaded;
 		}
 
+		auto& GetData() const
+		{
+			return data;
+		}
+
 		// @throw AL::Exceptions::Exception
 		void Load()
 		{
