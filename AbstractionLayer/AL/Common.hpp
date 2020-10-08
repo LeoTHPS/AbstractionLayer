@@ -177,6 +177,16 @@ namespace AL
 	{
 		typedef TYPE Type;
 	};
+	template<size_t I, typename TYPE, typename ... TYPES>
+	struct Get_Type_Sequence<I, Type_Sequence<TYPE, TYPES ...>>
+		: public Get_Type_Sequence<I - 1, Type_Sequence<TYPES ...>>
+	{
+	};
+	template<typename TYPE, typename ... TYPES>
+	struct Get_Type_Sequence<0, Type_Sequence<TYPE, TYPES ...>>
+	{
+		typedef TYPE Type;
+	};
 
 	template<size_t ...>
 	struct Index_Sequence
@@ -2530,6 +2540,9 @@ namespace AL
 
 		static constexpr bool IsMember = true;
 	};
+
+	template<typename F, size_t ARG_INDEX>
+	using Get_Function_Arg_Type = Get_Type_Sequence<ARG_INDEX, typename Get_Function_Traits<F>::Arguments>;
 
 	template<typename F>
 	class Function;
