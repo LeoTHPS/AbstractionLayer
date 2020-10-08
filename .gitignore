@@ -20,5 +20,6 @@ Build/
 .vs/
 *.aps
 
-# Test Project
+# Test Projects
 /Test/
+/Test.DotNET/
