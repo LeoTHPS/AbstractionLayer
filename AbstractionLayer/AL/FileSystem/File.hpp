@@ -472,46 +472,23 @@ namespace AL::FileSystem
 				);
 			}
 #elif defined(AL_PLATFORM_WINDOWS)
-			DWORD _mode = OPEN_EXISTING;
-
-			if (mode.IsSet(FileOpenModes::Binary))
-			{
-
-				_mode = OPEN_ALWAYS;
-			}
-			else if (!mode.IsSet(FileOpenModes::Truncate))
-			{
-
-				_mode = TRUNCATE_EXISTING;
-			}
-
 			BitMask<DWORD> accessMask;
-
-			if (mode.IsSet(FileOpenModes::Read))
-			{
-
-				accessMask.Add(GENERIC_READ);
-			}
-
-			if (mode.IsSet(FileOpenModes::Write))
-			{
-
-				accessMask.Add(GENERIC_WRITE);
-			}
+			accessMask.Set(GENERIC_READ, mode.IsSet(FileOpenModes::Read));
+			accessMask.Set(GENERIC_WRITE, mode.IsSet(FileOpenModes::Write));
 
 			if ((hFile = CreateFileA(
 				GetPath().GetString().GetCString(),
 				accessMask.Mask,
 				FILE_SHARE_READ,
 				nullptr,
-				_mode,
+				(mode.IsSet(FileOpenModes::Truncate) ? CREATE_ALWAYS : OPEN_EXISTING),
 				FILE_ATTRIBUTE_NORMAL,
 				nullptr
 			)) == INVALID_HANDLE_VALUE)
 			{
 				auto lastErrorCode = GetLastError();
 
-				if (!(!mode.IsSet(FileOpenModes::Binary) && (lastErrorCode == ERROR_ALREADY_EXISTS)))
+				if (lastErrorCode != ERROR_ALREADY_EXISTS)
 				{
 
 					throw Exceptions::SystemException(
