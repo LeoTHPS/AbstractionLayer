@@ -39,10 +39,6 @@ namespace AL::OS
 #endif
 	};
 
-	typedef Function<void()> ConsoleOnBreakCallback;
-
-	typedef Function<void()> ConsoleOnCloseCallback;
-
 	class Console
 	{
 		enum class Flags
@@ -64,12 +60,6 @@ namespace AL::OS
 		Console() = delete;
 
 	public:
-#if defined(AL_PLATFORM_WINDOWS)
-		inline static Event<ConsoleOnBreakCallback> OnBreak;
-
-		inline static Event<ConsoleOnCloseCallback> OnClose;
-#endif
-
 		static bool IsCreated()
 		{
 			return flags.IsSet(
@@ -483,13 +473,11 @@ namespace AL::OS
 			{
 				case CTRL_C_EVENT:
 				case CTRL_BREAK_EVENT:
-					OnBreak.Execute();
 					return TRUE;
 
 				case CTRL_CLOSE_EVENT:
 				case CTRL_LOGOFF_EVENT:
 				case CTRL_SHUTDOWN_EVENT:
-					OnClose.Execute();
 					Destroy();
 					return TRUE;
 			}
