@@ -132,7 +132,7 @@ namespace AL::FileSystem
 				return true;
 			}
 
-			else if (GetLastError() != ERROR_PATH_NOT_FOUND)
+			else if (auto lastErrorCode = GetLastError(); (lastErrorCode != ERROR_FILE_NOT_FOUND) && (lastErrorCode != ERROR_PATH_NOT_FOUND))
 			{
 
 				throw Exceptions::SystemException(
