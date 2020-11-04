@@ -13,6 +13,9 @@ namespace AL::OS
 
 		std::thread thread;
 
+		Thread(Thread&&) = delete;
+		Thread(const Thread&) = delete;
+
 	public:
 		Thread()
 		{
