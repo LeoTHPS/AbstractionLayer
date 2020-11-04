@@ -643,7 +643,6 @@ namespace AL
 	typedef Collections::String String;
 	typedef Collections::WString WString;
 
-#if !defined(AL_PLATFORM_LINUX)
 	template<typename T>
 	class _Regex
 	{
@@ -654,10 +653,10 @@ namespace AL
 		Regex regex;
 
 	public:
-		typedef Collections::Array<String> MatchCollection;
-
 		typedef T String;
 		typedef typename String::Char Char;
+
+		typedef Collections::Array<String> MatchCollection;
 
 		_Regex(const String& pattern)
 			: regex(
@@ -761,10 +760,9 @@ namespace AL
 			return !operator==(regex);
 		}
 	};
-	
+
 	typedef _Regex<String> Regex;
 	typedef _Regex<WString> RegexW;
-#endif
 
 	template<char VALUE>
 	struct Char_To_WChar
@@ -772,7 +770,6 @@ namespace AL
 		static constexpr wchar_t Value = L'\0' + static_cast<uint8>(VALUE);
 	};
 
-#if !defined(AL_PLATFORM_LINUX)
 	template<typename>
 	union _Integer;
 	template<>
@@ -785,18 +782,6 @@ namespace AL
 		static constexpr int8 Maximum = 0x7F;
 
 		int8 Value;
-
-		_Integer()
-			: _Integer(0)
-		{
-		}
-
-		_Integer(int8 value)
-			: Value(
-				value
-			)
-		{
-		}
 
 		static String ToString(int8 value)
 		{
@@ -835,15 +820,6 @@ namespace AL
 				)
 			);
 		}
-
-		operator int8&()
-		{
-			return Value;
-		}
-		operator int8() const
-		{
-			return Value;
-		}
 	};
 	template<>
 	union _Integer<uint8>
@@ -855,18 +831,6 @@ namespace AL
 		static constexpr uint16 Maximum = 0xFF;
 
 		uint8 Value;
-
-		_Integer()
-			: _Integer(0)
-		{
-		}
-
-		_Integer(uint8 value)
-			: Value(
-				value
-			)
-		{
-		}
 
 		static String ToString(uint8 value)
 		{
@@ -905,15 +869,6 @@ namespace AL
 				)
 			);
 		}
-
-		operator uint8&()
-		{
-			return Value;
-		}
-		operator uint8() const
-		{
-			return Value;
-		}
 	};
 	template<>
 	union _Integer<int16>
@@ -931,18 +886,6 @@ namespace AL
 		};
 
 		int16 Value;
-
-		_Integer()
-			: _Integer(0)
-		{
-		}
-
-		_Integer(int16 value)
-			: Value(
-				value
-			)
-		{
-		}
 
 		static String ToString(int16 value)
 		{
@@ -981,15 +924,6 @@ namespace AL
 				)
 			);
 		}
-
-		operator int16&()
-		{
-			return Value;
-		}
-		operator int16() const
-		{
-			return Value;
-		}
 	};
 	template<>
 	union _Integer<uint16>
@@ -1007,18 +941,6 @@ namespace AL
 		};
 
 		uint16 Value;
-
-		_Integer()
-			: _Integer(0)
-		{
-		}
-
-		_Integer(uint16 value)
-			: Value(
-				value
-			)
-		{
-		}
 
 		static String ToString(uint16 value)
 		{
@@ -1057,15 +979,6 @@ namespace AL
 				)
 			);
 		}
-
-		operator uint16&()
-		{
-			return Value;
-		}
-		operator uint16() const
-		{
-			return Value;
-		}
 	};
 	template<>
 	union _Integer<int32>
@@ -1083,18 +996,6 @@ namespace AL
 		};
 
 		int32 Value;
-
-		_Integer()
-			: _Integer(0)
-		{
-		}
-
-		_Integer(int32 value)
-			: Value(
-				value
-			)
-		{
-		}
 
 		static String ToString(int32 value)
 		{
@@ -1133,15 +1034,6 @@ namespace AL
 				)
 			);
 		}
-
-		operator int32&()
-		{
-			return Value;
-		}
-		operator int32() const
-		{
-			return Value;
-		}
 	};
 	template<>
 	union _Integer<uint32>
@@ -1159,18 +1051,6 @@ namespace AL
 		};
 
 		uint32 Value;
-
-		_Integer()
-			: _Integer(0)
-		{
-		}
-
-		_Integer(uint32 value)
-			: Value(
-				value
-			)
-		{
-		}
 
 		static String ToString(uint32 value)
 		{
@@ -1209,15 +1089,6 @@ namespace AL
 				)
 			);
 		}
-
-		operator uint32&()
-		{
-			return Value;
-		}
-		operator uint32() const
-		{
-			return Value;
-		}
 	};
 	template<>
 	union _Integer<int64>
@@ -1235,18 +1106,6 @@ namespace AL
 		};
 
 		int64 Value;
-
-		_Integer()
-			: _Integer(0)
-		{
-		}
-
-		_Integer(int64 value)
-			: Value(
-				value
-			)
-		{
-		}
 
 		static String ToString(int64 value)
 		{
@@ -1285,15 +1144,6 @@ namespace AL
 				)
 			);
 		}
-
-		operator int64&()
-		{
-			return Value;
-		}
-		operator int64() const
-		{
-			return Value;
-		}
 	};
 	template<>
 	union _Integer<uint64>
@@ -1311,18 +1161,6 @@ namespace AL
 		};
 
 		uint64 Value;
-
-		_Integer()
-			: _Integer(0)
-		{
-		}
-
-		_Integer(uint64 value)
-			: Value(
-				value
-			)
-		{
-		}
 
 		static String ToString(uint64 value)
 		{
@@ -1361,20 +1199,10 @@ namespace AL
 				)
 			);
 		}
-
-		operator uint64&()
-		{
-			return Value;
-		}
-		operator uint64() const
-		{
-			return Value;
-		}
 	};
 
 	template<typename T>
 	using Integer = _Integer<typename Get_Enum_Or_Integer_Base<T>::Type>;
-#endif
 
 	template<typename C, size_t ... DIGITS>
 	struct _Integer_To_String_To_Chars;
@@ -2862,7 +2690,6 @@ namespace AL
 		}
 	};
 
-#if !defined(AL_PLATFORM_LINUX)
 	template<typename F>
 	class Event;
 
@@ -2872,40 +2699,8 @@ namespace AL
 	template<typename T, typename ... TArgs>
 	class Event<T(TArgs ...)>
 	{
-		template<typename T, typename ... TArgs>
-		struct Callback_Executor;
-		template<typename ... TArgs>
-		struct Callback_Executor<void(TArgs ...)>
-		{
-			static constexpr void Execute(const Event& event, TArgs ... args)
-			{
-				for (auto it = event.callbacks.cbegin(); it != event.callbacks.cend(); ++it)
-				{
-					(**it)(
-						Forward<TArgs>(args) ...
-					);
-				}
-			}
-		};
-		template<typename ... TArgs>
-		struct Callback_Executor<bool(TArgs ...)>
-		{
-			static constexpr bool Execute(const Event& event, TArgs ... args)
-			{
-				for (auto it = event.callbacks.cbegin(); it != event.callbacks.cend(); ++it)
-				{
-					if (!(**it)(Forward<TArgs>(args) ...))
-					{
-
-						return false;
-					}
-				}
-
-				return true;
-			}
-		};
-
-		Collections::List<const EventCallback<T(TArgs ...)>*> callbacks;
+		Collections::List<EventCallback<T(TArgs ...)>> callbacks;
+		Collections::List<const EventCallback<T(TArgs ...)>*> callbackRefs;
 
 	public:
 		typedef EventCallback<T(TArgs ...)> Callback;
@@ -2916,19 +2711,29 @@ namespace AL
 
 		auto GetSize() const
 		{
-			return callbacks.GetSize();
+			return callbackRefs.GetSize();
 		}
 
-		void Register(const Callback& callback)
+		void Register(Callback&& callback)
 		{
 			callbacks.PushBack(
+				Move(callback)
+			);
+
+			callbackRefs.PushBack(
+				callbacks.GetBack()
+			);
+		}
+		void Register(const Callback& callback)
+		{
+			callbackRefs.PushBack(
 				&callback
 			);
 		}
 
 		void Unregister(const Callback& callback)
 		{
-			callbacks.Remove(
+			callbackRefs.Remove(
 				&callback
 			);
 		}
@@ -2936,14 +2741,35 @@ namespace AL
 		void Clear()
 		{
 			callbacks.Clear();
+			callbackRefs.Clear();
 		}
 
-		auto Execute(TArgs ... args) const
+		T Execute(TArgs ... args) const
 		{
-			return Callback_Executor<T(TArgs ...)>::Execute(
-				*this,
-				Forward<TArgs>(args) ...
-			);
+			if constexpr (Is_Type<T, void>::Value)
+			{
+				for (auto lpCallback : callbackRefs)
+				{
+					(*lpCallback)(
+						Forward<TArgs>(args) ...
+					);
+				}
+			}
+			else
+			{
+				T result;
+
+				for (auto lpCallback : callbackRefs)
+				{
+					if (!(result = (*lpCallback)(Forward<TArgs>(args) ...)))
+					{
+
+						return result;
+					}
+				}
+
+				return result;
+			}
 		}
 	};
 
@@ -2954,7 +2780,6 @@ namespace AL
 	public:
 		using Event<T(TArgs ...)>::Event;
 	};
-#endif
 
 	class TimeSpan
 	{

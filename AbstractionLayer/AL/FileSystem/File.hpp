@@ -580,8 +580,8 @@ namespace AL::FileSystem
 			Integer<uint64> offset;
 			offset.Value = GetReadPosition();
 
-			overlapped.Offset = offset.Low;
-			overlapped.OffsetHigh = offset.High;
+			overlapped.Offset = offset.Low.Value;
+			overlapped.OffsetHigh = offset.High.Value;
 
 			if (ReadFile(GetHandle(), lpBuffer, static_cast<DWORD>(size), &_bytesRead, &overlapped) == 0)
 			{
