@@ -39,6 +39,27 @@
 	#define AL_ARM64
 #endif
 
+#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_X86)
+	#define AL_CDECL       __attribute__((cdecl))
+	#define AL_FASTCALL    __attribute__((fastcall))
+#endif
+	#define AL_STDCALL     __attribute__((stdcall))
+	#define AL_THISCALL    __attribute__((thiscall))
+#elif defined(AL_PLATFORM_WINDOWS)
+#if defined(AL_X86)
+	#define AL_CDECL       __cdecl
+	#define AL_FASTCALL    __fastcall
+#endif
+	#define AL_STDCALL     __stdcall
+	#define AL_THISCALL    __thiscall
+	#define AL_VECTORCALL  __vectorcall
+
+	#if defined(__cplusplus_cli)
+		#define AL_CLRCALL __clrcall
+	#endif
+#endif
+
 #define AL_DEPRECATED(__text__) [[deprecated(__text__)]]
 
 #define AL_STRINGIFY(__value__)  _AL_STRINGIFY(__value__)
@@ -3324,7 +3345,7 @@ namespace AL
 	inline void Sleep(TimeSpan duration)
 	{
 #if defined(AL_PLATFORM_LINUX)
-		usleep(
+		::usleep(
 			static_cast<useconds_t>(duration.ToMicroseconds())
 		);
 #elif defined(AL_PLATFORM_WINDOWS)
