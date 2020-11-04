@@ -40,17 +40,19 @@
 #endif
 
 #if defined(AL_PLATFORM_LINUX)
-#if defined(AL_X86)
-	#define AL_CDECL       __attribute__((cdecl))
-	#define AL_FASTCALL    __attribute__((fastcall))
-#endif
+	#if defined(AL_X86)
+		#define AL_CDECL       __attribute__((cdecl))
+		#define AL_FASTCALL    __attribute__((fastcall))
+	#endif
+
 	#define AL_STDCALL     __attribute__((stdcall))
 	#define AL_THISCALL    __attribute__((thiscall))
 #elif defined(AL_PLATFORM_WINDOWS)
-#if defined(AL_X86)
-	#define AL_CDECL       __cdecl
-	#define AL_FASTCALL    __fastcall
-#endif
+	#if defined(AL_X86)
+		#define AL_CDECL       __cdecl
+		#define AL_FASTCALL    __fastcall
+	#endif
+
 	#define AL_STDCALL     __stdcall
 	#define AL_THISCALL    __thiscall
 	#define AL_VECTORCALL  __vectorcall
