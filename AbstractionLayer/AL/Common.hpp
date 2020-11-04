@@ -362,17 +362,22 @@ namespace AL
 	typedef uint32 TypeHash;
 
 	template<typename T>
-	class Get_Type_Hash
+	struct Get_Type_Hash
 	{
+		static constexpr TypeHash Value = GetTypeHash();
+
+	private:
+		static constexpr TypeHash GetTypeHash()
+		{
+			return GetStringHash(
+				__FUNCTION__
+			);
+		}
+
 		static constexpr TypeHash GetStringHash(const char* lpString, TypeHash hash = 0x811C9DC5, size_t index = 0)
 		{
 			return lpString[index] ? GetStringHash(lpString, (hash ^ lpString[index]) * 0x1000193llu, ++index) : hash;
 		}
-
-	public:
-		static constexpr TypeHash Value = GetStringHash(
-			__FUNCTION__
-		);
 	};
 
 	template<typename T, size_t SIZE = sizeof(T)>
