@@ -362,11 +362,8 @@ namespace AL
 	typedef uint32 TypeHash;
 
 	template<typename T>
-	struct Get_Type_Hash
+	class Get_Type_Hash
 	{
-		static constexpr TypeHash Value = GetTypeHash();
-
-	private:
 		static constexpr TypeHash GetTypeHash()
 		{
 			return GetStringHash(
@@ -378,6 +375,9 @@ namespace AL
 		{
 			return lpString[index] ? GetStringHash(lpString, (hash ^ lpString[index]) * 0x1000193llu, ++index) : hash;
 		}
+
+	public:
+		static constexpr TypeHash Value = GetTypeHash();
 	};
 
 	template<typename T, size_t SIZE = sizeof(T)>
