@@ -270,6 +270,16 @@ namespace AL::Sockets
 			return family;
 		}
 
+		auto& GetAddress() const
+		{
+			return ipv4;
+		}
+		
+		auto& GetAddress6() const
+		{
+			return ipv6;
+		}
+
 		bool Cast(IPAddress& address, AddressFamilies family) const
 		{
 			if (IsV4())
