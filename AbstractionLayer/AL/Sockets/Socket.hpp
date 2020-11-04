@@ -306,6 +306,9 @@ namespace AL::Sockets
 			: isOpen(
 				socket.isOpen
 			),
+			isBound(
+				socket.isBound
+			),
 			isBlocking(
 				socket.isBlocking
 			),
@@ -337,6 +340,7 @@ namespace AL::Sockets
 			socket.hSocket = INVALID_SOCKET;
 
 			socket.isOpen = false;
+			socket.isBound = false;
 			socket.isBlocking = true;
 			socket.isConnected = false;
 			socket.isListening = false;
