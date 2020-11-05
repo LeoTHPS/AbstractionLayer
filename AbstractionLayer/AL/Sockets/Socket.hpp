@@ -141,7 +141,7 @@ namespace AL::Sockets
 			AL::memcpy(
 				&type.sin6_addr,
 				&address,
-				sizeof(Type)
+				sizeof(in6_addr)
 			);
 		}
 	};
@@ -723,6 +723,9 @@ namespace AL::Sockets
 			socket.isBlocking = IsBlocking();
 #endif
 
+			socket.isOpen = true;
+			socket.isConnected = true;
+
 			return true;
 		}
 
@@ -1000,6 +1003,30 @@ namespace AL::Sockets
 			return static_cast<size_t>(
 				bytesSent
 			);
+		}
+
+		// @throw AL::Exceptions::Exception
+		// @return false on connection closed
+		bool WriteAll(const void* lpBuffer, size_t size)
+		{
+			size_t ret;
+
+			for (size_t i = 0; i < size; )
+			{
+				if ((ret = Write(&reinterpret_cast<const uint8*>(lpBuffer)[i], size - i)) == 0)
+				{
+
+					return false;
+				}
+
+				if (ret > 0)
+				{
+
+					i += ret;
+				}
+			}
+
+			return true;
 		}
 
 		// @throw AL::Exceptions::Exception
