@@ -490,20 +490,20 @@ namespace AL
 	};
 
 	template<typename T>
-	constexpr void Swap(T&& source, T&& destination)
+	constexpr void Swap(T& source, T& destination)
 	{
 		std::swap(
-			Move(source),
-			Move(destination)
+			source,
+			destination
 		);
 	}
 
 	template<typename T, size_t S>
-	constexpr void Swap(T(&&source)[S], T(&&destination)[S])
+	constexpr void Swap(T(&source)[S], T(&destination)[S])
 	{
 		std::swap(
-			Move(source),
-			Move(destination)
+			source,
+			destination
 		);
 	}
 
