@@ -75,17 +75,19 @@ namespace AL::OS
 
 		static Timestamp GetTimestamp()
 		{
+			Timestamp timestamp;
+			Integer<uint64> integer;
+
 #if defined(AL_PLATFORM_LINUX)
 			throw AL::Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
 			FILETIME time;
 			GetSystemTimeAsFileTime(&time);
 
-			Integer<uint64> integer;
 			integer.Low.Value = time.dwLowDateTime;
 			integer.High.Value = time.dwHighDateTime;
 
-			auto timestamp = Timestamp::FromSeconds(
+			timestamp = Timestamp::FromSeconds(
 				(integer.Value - 116444736000000000) / 10000000
 			);
 #endif
