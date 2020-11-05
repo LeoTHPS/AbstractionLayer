@@ -440,7 +440,18 @@ namespace AL::OS
 			}
 #endif
 		}
-		
+		// @throw AL::Exceptions::Exception
+		template<typename ... TArgs>
+		static void Write(const String& value, TArgs ... args)
+		{
+			Write(
+				String::Format(
+					value,
+					Forward<TArgs>(args) ...
+				)
+			);
+		}
+
 		// @throw AL::Exceptions::Exception
 		static void WriteLine(const String& value)
 		{
