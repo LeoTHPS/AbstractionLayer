@@ -562,7 +562,7 @@ namespace AL::Sockets
 					_Socket_SocketAddress<AddressFamilies::IPv4>::SetFamily(address, AddressFamilies::IPv4);
 					_Socket_SocketAddress<AddressFamilies::IPv4>::SetAddress(address, localEP.Address.GetAddress());
 					break;
-
+					
 				case AddressFamilies::IPv6:
 					addressSize = sizeof(address6);
 					_Socket_SocketAddress<AddressFamilies::IPv6>::SetPort(address6, localEP.Port);

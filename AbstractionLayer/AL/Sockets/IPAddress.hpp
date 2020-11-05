@@ -15,8 +15,8 @@ namespace AL::Sockets
 {
 	enum class AddressFamilies
 	{
-		IPv4,
-		IPv6
+		IPv4 = AF_INET,
+		IPv6 = AF_INET6
 	};
 
 	template<AddressFamilies>
