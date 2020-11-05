@@ -761,6 +761,14 @@ namespace AL::Sockets
 					break;
 			}
 
+			auto isBlocking = IsBlocking();
+
+			if (!isBlocking)
+			{
+
+				SetBlocking();
+			}
+
 #if defined(AL_PLATFORM_LINUX)
 			if (connect(GetHandle(), reinterpret_cast<const sockaddr*>(&address), addressSize) == SOCKET_ERROR)
 			{
@@ -822,6 +830,20 @@ namespace AL::Sockets
 					Move(exception),
 					"Error getting end points"
 				);
+			}
+
+			if (!isBlocking)
+			{
+				try
+				{
+					SetBlocking(false);
+				}
+				catch (Exceptions::Exception&)
+				{
+					Close();
+
+					throw;
+				}
 			}
 
 			isConnected = true;
