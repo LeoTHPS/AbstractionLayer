@@ -50,8 +50,8 @@ namespace AL::Sockets
 #endif
 	};
 
-	typedef Function<void(void* lpBuffer, size_t bytesTransferred, Exceptions::Exception* lpException)> SocketAsyncReadCallback;
-	typedef Function<void(const void* lpBuffer, size_t bytesTransferred, Exceptions::Exception* lpException)> SocketAsyncWriteCallback;
+	typedef Function<void(void* lpBuffer, int64 bytesTransferred, Exceptions::Exception* lpException)> SocketAsyncReadCallback;
+	typedef Function<void(const void* lpBuffer, int64 bytesTransferred, Exceptions::Exception* lpException)> SocketAsyncWriteCallback;
 
 	template<AddressFamilies>
 	struct _Socket_SocketAddress;
@@ -858,7 +858,7 @@ namespace AL::Sockets
 		// @return -1 if would block
 		// @return 0 on connection closed
 		// @return number of bytes received
-		size_t Read(void* lpBuffer, size_t size)
+		int64 Read(void* lpBuffer, uint32 size)
 		{
 			AL_ASSERT(IsOpen(), "Socket not open");
 			AL_ASSERT(IsConnected(), "Socket not connected");
@@ -923,7 +923,7 @@ namespace AL::Sockets
 				Close();
 			}
 
-			return static_cast<size_t>(
+			return static_cast<int64>(
 				bytesRead
 			);
 		}
@@ -932,7 +932,7 @@ namespace AL::Sockets
 		// @return -1 if would block
 		// @return 0 on connection closed
 		// @return number of bytes transmitted
-		size_t Write(const void* lpBuffer, size_t size)
+		int64 Write(const void* lpBuffer, uint32 size)
 		{
 			AL_ASSERT(IsOpen(), "Socket not open");
 			AL_ASSERT(IsConnected(), "Socket not connected");
@@ -1000,20 +1000,20 @@ namespace AL::Sockets
 				Close();
 			}
 
-			return static_cast<size_t>(
+			return static_cast<int64>(
 				bytesSent
 			);
 		}
 
 		// @throw AL::Exceptions::Exception
 		// @return false on connection closed
-		bool WriteAll(const void* lpBuffer, size_t size)
+		bool WriteAll(const void* lpBuffer, uint32 size)
 		{
-			size_t ret;
+			int64 ret;
 
-			for (size_t i = 0; i < size; )
+			for (int64 i = 0; i < size; )
 			{
-				if ((ret = Write(&reinterpret_cast<const uint8*>(lpBuffer)[i], size - i)) == 0)
+				if ((ret = Write(&reinterpret_cast<const uint8*>(lpBuffer)[i], static_cast<uint32>(size - i))) == 0)
 				{
 
 					return false;
@@ -1031,7 +1031,7 @@ namespace AL::Sockets
 
 		// @throw AL::Exceptions::Exception
 		// @return false on connection closed
-		bool ReadAsync(void* lpBuffer, size_t size, SocketAsyncReadCallback&& callback, Tasks::TaskThreadPool& threadPool)
+		bool ReadAsync(void* lpBuffer, uint32 size, SocketAsyncReadCallback&& callback, Tasks::TaskThreadPool& threadPool)
 		{
 			AL_ASSERT(IsOpen(), "Socket not open");
 			AL_ASSERT(IsConnected(), "Socket not connected");
@@ -1039,7 +1039,7 @@ namespace AL::Sockets
 			Tasks::Task task(
 				[this, lpBuffer, size, callback = Move(callback)]()
 				{
-					size_t bytesTransferred;
+					int64 bytesTransferred;
 
 					try
 					{
@@ -1067,7 +1067,7 @@ namespace AL::Sockets
 
 		// @throw AL::Exceptions::Exception
 		// @return false on connection closed
-		bool WriteAsync(const void* lpBuffer, size_t size, SocketAsyncWriteCallback&& callback, Tasks::TaskThreadPool& threadPool)
+		bool WriteAsync(const void* lpBuffer, uint32 size, SocketAsyncWriteCallback&& callback, Tasks::TaskThreadPool& threadPool)
 		{
 			AL_ASSERT(IsOpen(), "Socket not open");
 			AL_ASSERT(IsConnected(), "Socket not connected");
@@ -1075,7 +1075,7 @@ namespace AL::Sockets
 			Tasks::Task task(
 				[this, lpBuffer, size, callback = Move(callback)]()
 				{
-					size_t bytesTransferred;
+					int64 bytesTransferred;
 
 					try
 					{
