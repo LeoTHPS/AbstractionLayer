@@ -50,8 +50,8 @@ namespace AL::Sockets
 #endif
 	};
 
-	typedef Function<void(void* lpBuffer, int64 bytesTransferred, Exceptions::Exception* lpException)> SocketAsyncReadCallback;
-	typedef Function<void(const void* lpBuffer, int64 bytesTransferred, Exceptions::Exception* lpException)> SocketAsyncWriteCallback;
+	typedef Function<void(void* lpBuffer, size_t bytesTransferred, Exceptions::Exception* lpException)> SocketAsyncReadCallback;
+	typedef Function<void(const void* lpBuffer, size_t bytesTransferred, Exceptions::Exception* lpException)> SocketAsyncWriteCallback;
 
 	template<AddressFamilies>
 	struct _Socket_SocketAddress;
@@ -302,6 +302,9 @@ namespace AL::Sockets
 		Socket(const Socket&) = delete;
 
 	public:
+		static constexpr size_t WOULD_BLOCK = -1;
+		static constexpr size_t CONNECTION_CLOSED = 0;
+
 		Socket(Socket&& socket)
 			: isOpen(
 				socket.isOpen
@@ -855,10 +858,10 @@ namespace AL::Sockets
 		}
 
 		// @throw AL::Exceptions::Exception
-		// @return -1 if would block
-		// @return 0 on connection closed
+		// @return WOULD_BLOCK if would block
+		// @return CONNECTION_CLOSED on connection closed
 		// @return number of bytes received
-		int64 Read(void* lpBuffer, uint32 size)
+		size_t Read(void* lpBuffer, uint32 size)
 		{
 			AL_ASSERT(IsOpen(), "Socket not open");
 			AL_ASSERT(IsConnected(), "Socket not connected");
@@ -883,7 +886,7 @@ namespace AL::Sockets
 						case EHOSTDOWN:
 						case EHOSTUNREACH:
 							Close();
-							return 0;
+							return CONNECTION_CLOSED;
 					}
 
 					throw Exceptions::SocketException(
@@ -892,12 +895,12 @@ namespace AL::Sockets
 					);
 				}
 
-				bytesRead = -1;
+				bytesRead = WOULD_BLOCK;
 #elif defined(AL_PLATFORM_WINDOWS)
 				switch (auto errorCode = GetLastError())
 				{
 					case WSAEWOULDBLOCK:
-						bytesRead = -1;
+						bytesRead = WOULD_BLOCK;
 						break;
 
 					case WSAENETDOWN:
@@ -919,20 +922,21 @@ namespace AL::Sockets
 
 			else if (bytesRead == 0)
 			{
-
 				Close();
+
+				bytesRead = CONNECTION_CLOSED;
 			}
 
-			return static_cast<int64>(
+			return static_cast<size_t>(
 				bytesRead
 			);
 		}
 
 		// @throw AL::Exceptions::Exception
-		// @return -1 if would block
-		// @return 0 on connection closed
+		// @return WOULD_BLOCK if would block
+		// @return CONNECTION_CLOSED on connection closed
 		// @return number of bytes transmitted
-		int64 Write(const void* lpBuffer, uint32 size)
+		size_t Write(const void* lpBuffer, uint32 size)
 		{
 			AL_ASSERT(IsOpen(), "Socket not open");
 			AL_ASSERT(IsConnected(), "Socket not connected");
@@ -957,7 +961,7 @@ namespace AL::Sockets
 						case EHOSTDOWN:
 						case EHOSTUNREACH:
 							Close();
-							return 0;
+							return CONNECTION_CLOSED;
 					}
 
 					throw Exceptions::SocketException(
@@ -966,12 +970,12 @@ namespace AL::Sockets
 					);
 				}
 
-				bytesSent = -1;
+				bytesSent = WOULD_BLOCK;
 #elif defined(AL_PLATFORM_WINDOWS)
 				switch (auto errorCode = GetLastError())
 				{
 					case WSAEWOULDBLOCK:
-						bytesSent = -1;
+						bytesSent = WOULD_BLOCK;
 						break;
 
 					case WSAENETDOWN:
@@ -981,7 +985,7 @@ namespace AL::Sockets
 					case WSAECONNABORTED:
 					case WSAEHOSTUNREACH:
 						Close();
-						bytesSent = 0;
+						bytesSent = CONNECTION_CLOSED;
 						break;
 
 					default:
@@ -996,24 +1000,25 @@ namespace AL::Sockets
 
 			else if (bytesSent == 0)
 			{
-
 				Close();
+
+				bytesSent = CONNECTION_CLOSED;
 			}
 
-			return static_cast<int64>(
+			return static_cast<size_t>(
 				bytesSent
 			);
 		}
 
 		// @throw AL::Exceptions::Exception
 		// @return false on connection closed
-		bool WriteAll(const void* lpBuffer, uint32 size)
+		bool WriteAll(const void* lpBuffer, size_t size)
 		{
-			int64 ret;
+			size_t ret;
 
-			for (int64 i = 0; i < size; )
+			for (size_t i = 0; i < size; )
 			{
-				if ((ret = Write(&reinterpret_cast<const uint8*>(lpBuffer)[i], static_cast<uint32>(size - i))) == 0)
+				if ((ret = Write(&reinterpret_cast<const uint8*>(lpBuffer)[i], size - i)) == 0)
 				{
 
 					return false;
@@ -1031,7 +1036,7 @@ namespace AL::Sockets
 
 		// @throw AL::Exceptions::Exception
 		// @return false on connection closed
-		bool ReadAsync(void* lpBuffer, uint32 size, SocketAsyncReadCallback&& callback, Tasks::TaskThreadPool& threadPool)
+		bool ReadAsync(void* lpBuffer, size_t size, SocketAsyncReadCallback&& callback, Tasks::TaskThreadPool& threadPool)
 		{
 			AL_ASSERT(IsOpen(), "Socket not open");
 			AL_ASSERT(IsConnected(), "Socket not connected");
@@ -1039,7 +1044,7 @@ namespace AL::Sockets
 			Tasks::Task task(
 				[this, lpBuffer, size, callback = Move(callback)]()
 				{
-					int64 bytesTransferred;
+					size_t bytesTransferred;
 
 					try
 					{
@@ -1075,7 +1080,7 @@ namespace AL::Sockets
 			Tasks::Task task(
 				[this, lpBuffer, size, callback = Move(callback)]()
 				{
-					int64 bytesTransferred;
+					size_t bytesTransferred;
 
 					try
 					{
