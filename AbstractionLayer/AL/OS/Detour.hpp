@@ -17,15 +17,15 @@ namespace AL::OS
 	defined(AL_PLATFORM_LINUX32) || \
 	defined(AL_PLATFORM_LINUX64)
 
-#pragma pack(push, 1)
+	#pragma pack(push, 1)
 			struct Jump
 			{
 				uint8 OPCode;
 				uint32 Offset;
 			};
-#pragma pack(pop)
+	#pragma pack(pop)
 
-#if defined(AL_PLATFORM_WINDOWS)
+	#if defined(AL_PLATFORM_WINDOWS)
 			DWORD protection;
 
 			if (!VirtualProtect(lpSource, sizeof(Jump), PAGE_EXECUTE_READWRITE, &protection))
@@ -35,7 +35,7 @@ namespace AL::OS
 					"VirtualProtect"
 				);
 			}
-#endif
+	#endif
 
 			auto lpJump = reinterpret_cast<Jump*>(
 				lpSource
@@ -46,7 +46,7 @@ namespace AL::OS
 				reinterpret_cast<uint64>(lpDestination) - (reinterpret_cast<uint64>(lpSource) + sizeof(Jump))
 			);
 
-#if defined(AL_PLATFORM_WINDOWS)
+	#if defined(AL_PLATFORM_WINDOWS)
 			if (!VirtualProtect(lpSource, sizeof(Jump), protection, &protection))
 			{
 
@@ -54,7 +54,7 @@ namespace AL::OS
 					"VirtualProtect"
 				);
 			}
-#endif
+	#endif
 #else
 			throw Exceptions::NotImplementedException();
 #endif
