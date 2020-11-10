@@ -119,6 +119,8 @@ namespace AL::Tasks
 		// @return false if time elapsed and threads are still running
 		bool Join(TimeSpan maxWaitTime = TimeSpan::Infinite)
 		{
+			AL_ASSERT(IsRunning(), "TaskThreadPool not running");
+
 			OS::Timer timer;
 
 			for (auto lpThread : threads)
@@ -135,6 +137,8 @@ namespace AL::Tasks
 
 		void Post(Task&& task)
 		{
+			AL_ASSERT(IsRunning(), "TaskThreadPool not running");
+
 			TaskThread* lpSelectedThread = nullptr;
 
 			for (auto lpThread : threads)

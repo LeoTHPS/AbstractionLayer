@@ -93,6 +93,8 @@ namespace AL::Tasks
 
 		void Post(Task&& task)
 		{
+			AL_ASSERT(IsRunning(), "TaskThread not running");
+
 			queue.Enqueue(
 				Move(task)
 			);
@@ -102,6 +104,8 @@ namespace AL::Tasks
 		// @return false if time elapsed and thread is still running
 		bool Join(TimeSpan maxWaitTime = TimeSpan::Infinite)
 		{
+			AL_ASSERT(IsRunning(), "TaskThread not running");
+
 			return thread.Join(
 				maxWaitTime
 			);
