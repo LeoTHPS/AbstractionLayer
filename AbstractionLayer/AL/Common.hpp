@@ -637,6 +637,8 @@ namespace AL
 	#include <winternl.h>
 
 	#undef GetMessage
+	#undef LoadLibrary
+	#undef CreateProcess
 #endif
 
 #if defined(AL_PLATFORM_LINUX)
