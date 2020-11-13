@@ -46,52 +46,184 @@ namespace AL::Algorithms
 			0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94, 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 		};
 	};
+	template<>
+	struct _CRC_Constants<uint16>
+	{
+		static constexpr uint16 CRC = 0xFFFF;
+		static constexpr uint16 POLYNOMIAL = 0x1021;
+	};
 
 	template<typename T>
 	class CRC
 	{
+		CRC() = delete;
+
 	public:
 		typedef T Hash;
 
-		virtual ~CRC()
-		{
-		}
-
 		template<typename _T>
-		static constexpr T Calculate(const _T& value, T crc = _CRC_Constants<T>::CRC)
+		static Hash Calculate(const _T& value, size_t index = 0, T crc = _CRC_Constants<T>::CRC)
 		{
 			return Calculate(
 				&value,
 				sizeof(_T),
+				index,
 				crc
 			);
 		}
 
 		template<size_t S>
-		static constexpr T Calculate(const char(&string)[S], T crc = _CRC_Constants<T>::CRC)
+		static constexpr Hash Calculate(const char(&string)[S], size_t index = 0, T crc = _CRC_Constants<T>::CRC)
 		{
-			for (size_t i = 0; i < S; i++)
+			for (; index < (S - 1); ++index)
 			{
-				crc = _CRC_Constants<T>::Table[
-					(crc ^ static_cast<T>(string[i])) & 0xFF
-				] ^ (crc >> 8);
+				crc = _CRC_Constants<T>::Table[(crc ^ static_cast<T>(string[index])) & 0xFF] ^ (crc >> 8);
 			}
 
 			return ~crc;
 		}
 
-		static constexpr T Calculate(const void* lpBuffer, size_t size, T crc = _CRC_Constants<T>::CRC)
+		static Hash Calculate(const void* lpBuffer, size_t size, size_t index = 0, T crc = _CRC_Constants<T>::CRC)
 		{
-			for (size_t i = 0; i < size; i++)
+			for (; index < size; ++index)
 			{
-				crc = _CRC_Constants<T>::Table[
-					(crc ^ static_cast<T>(static_cast<const uint8*>(lpBuffer)[i])) & 0xFF
-				] ^ (crc >> 8);
+				crc = _CRC_Constants<T>::Table[(crc ^ static_cast<T>(static_cast<const uint8*>(lpBuffer)[index])) & 0xFF] ^ (crc >> 8);
 			}
 
 			return ~crc;
 		}
 	};
 
+	template<>
+	class CRC<uint16>
+	{
+		CRC() = delete;
+
+	public:
+		typedef uint16 Hash;
+
+		template<typename _T>
+		static Hash Calculate(const _T& value, size_t index = 0, uint16 crc = _CRC_Constants<uint16>::CRC)
+		{
+			return Calculate(
+				&value,
+				sizeof(_T),
+				index,
+				crc
+			);
+		}
+
+		template<size_t S>
+		static constexpr Hash Calculate(const char(&string)[S], size_t index = 0, uint16 crc = _CRC_Constants<uint16>::CRC)
+		{
+			for (index = 0; index < (S - 1); ++index)
+			{
+				if (((static_cast<uint8>(string[index]) >> 7 & 1) == 1) ^ ((crc >> 15 & 1) == 1))
+				{
+					crc <<= 1;
+					crc ^= _CRC_Constants<uint16>::POLYNOMIAL;
+				}
+				else
+				{
+					crc <<= 1;
+				}
+				
+				if (((static_cast<uint8>(string[index]) >> 6 & 1) == 1) ^ ((crc >> 15 & 1) == 1))
+				{
+					crc <<= 1;
+					crc ^= _CRC_Constants<uint16>::POLYNOMIAL;
+				}
+				else
+				{
+					crc <<= 1;
+				}
+				
+				if (((static_cast<uint8>(string[index]) >> 5 & 1) == 1) ^ ((crc >> 15 & 1) == 1))
+				{
+					crc <<= 1;
+					crc ^= _CRC_Constants<uint16>::POLYNOMIAL;
+				}
+				else
+				{
+					crc <<= 1;
+				}
+				
+				if (((static_cast<uint8>(string[index]) >> 4 & 1) == 1) ^ ((crc >> 15 & 1) == 1))
+				{
+					crc <<= 1;
+					crc ^= _CRC_Constants<uint16>::POLYNOMIAL;
+				}
+				else
+				{
+					crc <<= 1;
+				}
+				
+				if (((static_cast<uint8>(string[index]) >> 3 & 1) == 1) ^ ((crc >> 15 & 1) == 1))
+				{
+					crc <<= 1;
+					crc ^= _CRC_Constants<uint16>::POLYNOMIAL;
+				}
+				else
+				{
+					crc <<= 1;
+				}
+				
+				if (((static_cast<uint8>(string[index]) >> 2 & 1) == 1) ^ ((crc >> 15 & 1) == 1))
+				{
+					crc <<= 1;
+					crc ^= _CRC_Constants<uint16>::POLYNOMIAL;
+				}
+				else
+				{
+					crc <<= 1;
+				}
+				
+				if (((static_cast<uint8>(string[index]) >> 1 & 1) == 1) ^ ((crc >> 15 & 1) == 1))
+				{
+					crc <<= 1;
+					crc ^= _CRC_Constants<uint16>::POLYNOMIAL;
+				}
+				else
+				{
+					crc <<= 1;
+				}
+				
+				if (((static_cast<uint8>(string[index]) >> 0 & 1) == 1) ^ ((crc >> 15 & 1) == 1))
+				{
+					crc <<= 1;
+					crc ^= _CRC_Constants<uint16>::POLYNOMIAL;
+				}
+				else
+				{
+					crc <<= 1;
+				}
+			}
+
+			return crc & 0xFFFF;
+		}
+
+		static Hash Calculate(const void* lpBuffer, size_t size, size_t index = 0, uint16 crc = _CRC_Constants<uint16>::CRC)
+		{
+			for (index = 0; index < size; ++index)
+			{
+				for (size_t b = 0; b < 8; ++b)
+				{
+					if (((reinterpret_cast<const uint8*>(lpBuffer)[index] >> (7 - b) & 1) == 1) ^ ((crc >> 15 & 1) == 1))
+					{
+						crc <<= 1;
+						crc ^= _CRC_Constants<uint16>::POLYNOMIAL;
+					}
+					else
+					{
+						crc <<= 1;
+					}
+				}
+			}
+
+			return crc & 0xFFFF;
+		}
+	};
+
+	typedef CRC<uint16> CRC16;
 	typedef CRC<uint32> CRC32;
 }
