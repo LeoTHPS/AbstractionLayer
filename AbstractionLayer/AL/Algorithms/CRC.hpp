@@ -97,6 +97,8 @@ namespace AL::Algorithms
 	template<>
 	class CRC<uint16>
 	{
+		// Algorithm based on https://introcs.cs.princeton.edu/java/61data/CRC16CCITT.java
+
 		CRC() = delete;
 
 	public:
