@@ -21,31 +21,29 @@ namespace AL::Algorithms
 	template<typename T>
 	class FNV
 	{
+		FNV() = delete;
+
 	public:
 		typedef T Hash;
 
-		virtual ~FNV()
-		{
-		}
-
 		template<typename _T>
-		static constexpr T Calculate(const _T& value)
+		static Hash Calculate(const _T& value, size_t index = 0, Hash hash = _FNV_Constants<T>::Offset)
 		{
 			return Calculate(
 				&value,
-				sizeof(_T)
+				sizeof(_T),
+				index,
+				hash
 			);
 		}
 
 		template<size_t S>
-		static constexpr T Calculate(const char(&string)[S])
+		static constexpr Hash Calculate(const char(&string)[S], size_t index = 0, Hash hash = _FNV_Constants<T>::Offset)
 		{
-			Hash hash = _FNV_Constants<T>::Offset;
-
-			for (size_t i = 0; i < S; i++)
+			for (index = 0; index < (S - 1); ++index)
 			{
 				hash ^= static_cast<T>(
-					string[i]
+					static_cast<uint8>(string[index])
 				);
 
 				hash *= _FNV_Constants<T>::Prime;
@@ -54,14 +52,12 @@ namespace AL::Algorithms
 			return hash;
 		}
 
-		static constexpr T Calculate(const void* lpBuffer, size_t size)
+		static Hash Calculate(const void* lpBuffer, size_t size, size_t index = 0, Hash hash = _FNV_Constants<T>::Offset)
 		{
-			Hash hash = _FNV_Constants<T>::Offset;
-
-			for (size_t i = 0; i < size; i++)
+			for (index = 0; index < size; ++index)
 			{
 				hash ^= static_cast<T>(
-					static_cast<const uint8*>(lpBuffer)[i]
+					static_cast<const uint8*>(lpBuffer)[index]
 				);
 
 				hash *= _FNV_Constants<T>::Prime;
