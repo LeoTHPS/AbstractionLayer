@@ -1,6 +1,8 @@
 #pragma once
 #include "AL/Common.hpp"
 
+// AL::Algorithms::CRC<AL::uint16> algorithm based on https://introcs.cs.princeton.edu/java/61data/CRC16CCITT.java
+
 namespace AL::Algorithms
 {
 	template<typename>
@@ -97,8 +99,6 @@ namespace AL::Algorithms
 	template<>
 	class CRC<uint16>
 	{
-		// Algorithm based on https://introcs.cs.princeton.edu/java/61data/CRC16CCITT.java
-
 		CRC() = delete;
 
 	public:
