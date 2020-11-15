@@ -1,8 +1,12 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#include <gl/GL.h>
-#include <gl/GLU.h>
+#if __has_include(<gl/GL.h>)
+	#include <gl/GL.h>
+	#include <gl/GLU.h>
+
+	#define AL_DEPENDENCY_OPENGL
+#endif
 
 namespace AL::OpenGL
 {
