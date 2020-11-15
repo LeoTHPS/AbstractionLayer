@@ -5,7 +5,11 @@
 	#error Platform not supported
 #endif
 
-#include <gpiod.hpp>
+#if __has_include(<gpiod.hpp>)
+	#include <gpiod.hpp>
+
+	#define AL_DEPENDENCY_GPIOD
+#endif
 
 #include <sys/stat.h>
 
@@ -39,6 +43,11 @@ namespace AL::GPIO
 
 	class Pin
 	{
+#if !defined(AL_DEPENDENCY_GPIOD)
+		class gpiod_chip;
+		class gpiod_line;
+#endif
+
 		gpiod_chip* lpChip;
 		gpiod_line* lpLine;
 
@@ -68,6 +77,7 @@ namespace AL::GPIO
 		// @return false if already exported
 		static bool Export(Pin& pin, DeviceId deviceId, PinNumber number, PinDirection direction, PinValue value)
 		{
+#if defined(AL_DEPENDENCY_GPIOD)
 			char device[32];
 			sprintf(device, "%u", deviceId);
 			
@@ -129,6 +139,11 @@ namespace AL::GPIO
 				"GPIO device #%u not found",
 				deviceId
 			);
+#else
+			throw Exceptions::DependencyMissingException(
+				"gpiod"
+			);
+#endif
 		}
 		// @throw AL::Exceptions::Exception
 		// @return false if already exported
@@ -195,11 +210,17 @@ namespace AL::GPIO
 		{
 			AL_ASSERT(IsExported(), "Pin not exported");
 
+#if defined(AL_DEPENDENCY_GPIOD)
 			return static_cast<PinDirection>(
 				gpiod_line_direction(
 					lpLine
 				)
 			);
+#else
+			throw Exceptions::DependencyMissingException(
+				"gpiod"
+			);
+#endif
 		}
 
 		// @throw AL::Exceptions::Exception
@@ -207,6 +228,7 @@ namespace AL::GPIO
 		{
 			AL_ASSERT(IsExported(), "Pin not exported");
 
+#if defined(AL_DEPENDENCY_GPIOD)
 			int value;
 
 			if ((value = gpiod_line_get_value(lpLine)) == -1)
@@ -220,6 +242,11 @@ namespace AL::GPIO
 			return static_cast<PinValue>(
 				value
 			);
+#else
+			throw Exceptions::DependencyMissingException(
+				"gpiod"
+			);
+#endif
 		}
 
 		// @throw AL::Exceptions::Exception
@@ -227,6 +254,7 @@ namespace AL::GPIO
 		{
 			AL_ASSERT(IsExported(), "Pin not exported");
 
+#if defined(AL_DEPENDENCY_GPIOD)
 			if (gpiod_line_set_value(lpLine, static_cast<int>(value)) == -1)
 			{
 
@@ -234,6 +262,11 @@ namespace AL::GPIO
 					"gpiod_line_set_value"
 				);
 			}
+#else
+			throw Exceptions::DependencyMissingException(
+				"gpiod"
+			);
+#endif
 		}
 		// @throw AL::Exceptions::Exception
 		void Write(PinValues value)
@@ -248,6 +281,7 @@ namespace AL::GPIO
 		{
 			AL_ASSERT(IsExported(), "Pin not exported");
 
+#if defined(AL_DEPENDENCY_GPIOD)
 			gpiod_line_release(
 				lpLine
 			);
@@ -273,6 +307,11 @@ namespace AL::GPIO
 					"gpiod_line_request"
 				);
 			}
+#else
+			throw Exceptions::DependencyMissingException(
+				"gpiod"
+			);
+#endif
 		}
 		// @throw AL::Exceptions::Exception
 		void SetDirection(PinDirection direction, PinValues value = PinValues::Low)
@@ -288,6 +327,7 @@ namespace AL::GPIO
 		{
 			AL_ASSERT(IsExported(), "Pin not exported");
 
+#if defined(AL_DEPENDENCY_GPIOD)
 			gpiod_line_release(
 				lpLine
 			);
@@ -318,16 +358,23 @@ namespace AL::GPIO
 					"gpiod_line_request"
 				);
 			}
+#else
+			throw Exceptions::DependencyMissingException(
+				"gpiod"
+			);
+#endif
 		}
 
 		void Unexport()
 		{
 			if (IsExported())
 			{
+#if defined(AL_DEPENDENCY_GPIOD)
 				gpiod_line_release(lpLine);
-				lpLine = nullptr;
-
 				gpiod_chip_close(lpChip);
+#endif
+
+				lpLine = nullptr;
 				lpChip = nullptr;
 			}
 		}
