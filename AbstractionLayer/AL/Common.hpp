@@ -3203,6 +3203,7 @@ namespace AL
 #include "Exceptions/Exception.hpp"
 #include "Exceptions/SystemException.hpp"
 #include "Exceptions/NotImplementedException.hpp"
+#include "Exceptions/DependencyMissingException.hpp"
 
 #include "OS/Debug.hpp"
 #include "OS/Console.hpp"
