@@ -15,9 +15,9 @@ namespace AL::OS
 	typedef uint32 ProcessId;
 	typedef uint32 ProcessExitCode;
 
-#if defined(AL_X86)
+#if defined(AL_X86) || defined(AL_ARM)
 	typedef uint32 ProcessAddress;
-#elif defined(AL_X86_64)
+#elif defined(AL_X86_64) || defined(AL_ARM64)
 	typedef uint64 ProcessAddress;
 #endif
 
