@@ -3,8 +3,12 @@
 
 #if defined(AL_PLATFORM_LINUX)
 	#include <libusb-1.0/libusb.h>
+
+	#if __has_include(<libusb-1.0/libusb.h>)
+		#define AL_DEPENDENCY_LIBUSB
+	#endif
 #elif defined(AL_PLATFORM_WINDOWS)
-	#error Platform not supported
+	#include <winusb.h>
 #endif
 
 namespace AL::USB
@@ -18,6 +22,8 @@ namespace AL::USB
 
 	class Device
 	{
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_LIBUSB)
 		class LibUSB final
 		{
 		public:
@@ -37,22 +43,34 @@ namespace AL::USB
 
 		libusb_device_handle* lpHandle = nullptr;
 		libusb_device_descriptor descriptor;
+	#endif
+#elif defined(AL_PLATFORM_WINDOWS)
+
+#endif
 
 		Device(Device&&) = delete;
 		Device(const Device&) = delete;
 
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_LIBUSB)
 		explicit Device(libusb_device_descriptor&& descriptor)
 			: descriptor(
 				Move(descriptor)
 			)
 		{
 		}
+	#endif
+#elif defined(AL_PLATFORM_WINDOWS)
+
+#endif
 
 	public:
 		// @throw AL::Exceptions::Exception
 		// @return false if device is not found
 		static bool FindDevice(Device& device, VendorId vendorId, ProductId productId)
 		{
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_LIBUSB)
 			LibUSB libUSB;
 
 			libusb_device** deviceList;
@@ -118,6 +136,14 @@ namespace AL::USB
 			new (&device) Device(
 				Move(deviceDescriptor)
 			);
+	#else
+			throw Exceptions::DependencyMissingException(
+				"libusb"
+			);
+	#endif
+#elif defined(AL_PLATFORM_WINDOWS)
+
+#endif
 
 			return true;
 		}
@@ -125,6 +151,8 @@ namespace AL::USB
 		// @throw AL::Exceptions::Exception
 		static void EnumerateDevices(const DeviceEnumCallback& callback)
 		{
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_LIBUSB)
 			LibUSB libUSB;
 
 			libusb_device** deviceList;
@@ -177,6 +205,14 @@ namespace AL::USB
 				deviceList,
 				1
 			);
+	#else
+			throw Exceptions::DependencyMissingException(
+				"libusb"
+			);
+	#endif
+#elif defined(AL_PLATFORM_WINDOWS)
+
+#endif
 		}
 
 		Device()
@@ -190,21 +226,45 @@ namespace AL::USB
 
 		bool IsOpen() const
 		{
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_LIBUSB)
 			return lpHandle != nullptr;
+	#else
+			return false;
+	#endif
+#elif defined(AL_PLATFORM_WINDOWS)
+			return false;
+#endif
 		}
 
 		auto GetVendorId() const
 		{
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_LIBUSB)
 			return VendorId(
 				descriptor.idVendor
 			);
+	#else
+			return VendorId(0);
+	#endif
+#elif defined(AL_PLATFORM_WINDOWS)
+			return VendorId(0);
+#endif
 		}
 
 		auto GetProductId() const
 		{
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_LIBUSB)
 			return ProductId(
 				descriptor.idProduct
 			);
+	#else
+			return ProductId(0);
+	#endif
+#elif defined(AL_PLATFORM_WINDOWS)
+			return ProductId(0);
+#endif
 		}
 
 		// @throw AL::Exceptions::Exception
@@ -212,6 +272,8 @@ namespace AL::USB
 		{
 			AL_ASSERT(!IsOpen(), "Device already open");
 
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_LIBUSB)
 			if (!(lpHandle = libusb_open_device_with_vid_pid(nullptr, GetVendorId(), GetProductId())))
 			{
 
@@ -234,12 +296,22 @@ namespace AL::USB
 			}
 
 			this->interface = interface;
+	#else
+			throw Exceptions::DependencyMissingException(
+				"libusb"
+			);
+	#endif
+#elif defined(AL_PLATFORM_WINDOWS)
+			throw Exceptions::NotImplementedException();
+#endif
 		}
 
 		void Close()
 		{
 			if (IsOpen())
 			{
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_LIBUSB)
 				libusb_release_interface(
 					lpHandle,
 					interface
@@ -250,6 +322,10 @@ namespace AL::USB
 				);
 
 				lpHandle = nullptr;
+	#endif
+#elif defined(AL_PLATFORM_WINDOWS)
+
+#endif
 			}
 		}
 
@@ -259,6 +335,8 @@ namespace AL::USB
 		{
 			AL_ASSERT(IsOpen(), "Device not open");
 
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_LIBUSB)
 			int bytesRead;
 
 			if (libusb_bulk_transfer(lpHandle, static_cast<unsigned char>(endPoint) | LIBUSB_ENDPOINT_IN, reinterpret_cast<unsigned char*>(lpBuffer), static_cast<int>(size), &bytesRead, 0) != 0)
@@ -272,6 +350,15 @@ namespace AL::USB
 			return static_cast<size_t>(
 				bytesRead
 			);
+			
+	#else
+			throw Exceptions::DependencyMissingException(
+				"libusb"
+			);
+	#endif
+#elif defined(AL_PLATFORM_WINDOWS)
+			throw Exceptions::NotImplementedException();
+#endif
 		}
 
 		// @throw AL::Exceptions::Exception
@@ -280,6 +367,8 @@ namespace AL::USB
 		{
 			AL_ASSERT(IsOpen(), "Device not open");
 
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_LIBUSB)
 			int bytesWritten;
 
 			if (libusb_bulk_transfer(lpHandle, static_cast<unsigned char>(endPoint) | LIBUSB_ENDPOINT_OUT, const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(lpBuffer)), static_cast<int>(size), &bytesWritten, 0) != 0)
@@ -293,6 +382,15 @@ namespace AL::USB
 			return static_cast<size_t>(
 				bytesWritten
 			);
+			
+	#else
+			throw Exceptions::DependencyMissingException(
+				"libusb"
+			);
+	#endif
+#elif defined(AL_PLATFORM_WINDOWS)
+			throw Exceptions::NotImplementedException();
+#endif
 		}
 	};
 }
