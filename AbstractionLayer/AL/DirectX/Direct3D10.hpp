@@ -1,7 +1,7 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#include "IResource.hpp"
+#include "Resource.hpp"
 
 #if __has_include(<d3d10_1.h>)
 	#include <d3d10_1.h>
