@@ -220,7 +220,7 @@ namespace AL::DirectX
 				lpSwapChain->Release();
 				lpDeviceContext->Release();
 
-				throw Exception(
+				throw Exceptions::Exception(
 					"Error getting IDXGIDevice*"
 				);
 			}
