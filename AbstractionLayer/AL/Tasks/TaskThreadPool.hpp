@@ -135,7 +135,8 @@ namespace AL::Tasks
 			return true;
 		}
 
-		void Post(Task&& task)
+		// @return false if no available thread
+		bool Post(Task&& task)
 		{
 			AL_ASSERT(IsRunning(), "TaskThreadPool not running");
 
@@ -149,12 +150,17 @@ namespace AL::Tasks
 				}
 			}
 
-			if (lpSelectedThread)
+			if (!lpSelectedThread)
 			{
-				lpSelectedThread->Post(
-					Move(task)
-				);
+				
+				return false;
 			}
+
+			lpSelectedThread->Post(
+				Move(task)
+			);
+
+			return true;
 		}
 	};
 }
