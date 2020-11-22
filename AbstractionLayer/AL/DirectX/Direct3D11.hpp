@@ -74,7 +74,7 @@ namespace AL::DirectX
 	typedef Graphics::Color Color;
 	typedef Graphics::Colors Colors;
 
-	class Direct3D
+	class Direct3D11
 	{
 		typedef Direct3DResource<ID3D11Device> Device;
 		typedef Direct3DResource<ID3D11DeviceContext> DeviceContext;
@@ -89,7 +89,19 @@ namespace AL::DirectX
 
 		TargetView targetView;
 
+		Direct3D11(Direct3D11&&) = delete;
+		Direct3D11(const Direct3D11&) = delete;
+
 	public:
+		Direct3D11()
+		{
+		}
+
+		virtual ~Direct3D11()
+		{
+			Destroy();
+		}
+
 		bool IsCreated() const
 		{
 			return device.IsCreated();
@@ -120,7 +132,7 @@ namespace AL::DirectX
 			return targetView;
 		}
 
-		// @throw AL::Exception
+		// @throw AL::Exceptions::Exception
 		void SetClientSize(uint32 width, uint32 height)
 		{
 			AL_ASSERT(IsCreated(), "Direct3D11 not created");
@@ -141,7 +153,7 @@ namespace AL::DirectX
 			}
 		}
 
-		// @throw AL::Exception
+		// @throw AL::Exceptions::Exception
 		void Create(HWND hWnd, AntiAliasing antiAliasing = AntiAliasing::None, uint32 msaaLevel = 1, bool multithreaded = false, FeatureLevels featureLevel = FeatureLevels::DX11)
 		{
 			AL_ASSERT(!IsCreated(), "Direct3D11 already created");
@@ -292,7 +304,7 @@ namespace AL::DirectX
 			}
 		}
 
-		// @throw AL::Exception
+		// @throw AL::Exceptions::Exception
 		void CreateTarget()
 		{
 			AL_ASSERT(IsCreated(), "Direct3D11 not created");
@@ -344,7 +356,6 @@ namespace AL::DirectX
 			}
 		}
 
-		// @throw AL::Exception
 		void Clear(Color color)
 		{
 			AL_ASSERT(IsCreated(), "Direct3D11 not created");
@@ -362,7 +373,7 @@ namespace AL::DirectX
 			);
 		}
 
-		// @throw AL::Exception
+		// @throw AL::Exceptions::Exception
 		void Present(bool vsync = false)
 		{
 			AL_ASSERT(IsCreated(), "Direct3D11 not created");

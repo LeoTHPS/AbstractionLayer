@@ -3,6 +3,10 @@
 
 #include "Resource.hpp"
 
+#include "AL/Graphics/Color.hpp"
+#include "AL/Graphics/Vector.hpp"
+#include "AL/Graphics/Rectangle.hpp"
+
 #if __has_include(<d3d10_1.h>)
 	#include <d3d10_1.h>
 
@@ -19,5 +23,18 @@
 
 namespace AL::DirectX
 {
-	class Direct3D10;
+	class Direct3D10
+	{
+		Direct3D10(Direct3D10&&) = delete;
+		Direct3D10(const Direct3D10&) = delete;
+
+	public:
+		Direct3D10()
+		{
+		}
+
+		virtual ~Direct3D10()
+		{
+		}
+	};
 }
