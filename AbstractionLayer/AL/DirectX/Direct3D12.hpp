@@ -3,16 +3,15 @@
 
 #include "IResource.hpp"
 
-#include "Direct3D.hpp"
+#if __has_include(<d3d12.h>)
+	#include <d3d12.h>
+
+	#define AL_DEPENDENCY_DIRECT3D_12
+
+	#define AL_DEPENDENCY_DIRECT3D_12_VERSION 12.0
+#endif
 
 namespace AL::DirectX
 {
 	class Direct3D12;
-
-	template<>
-	class Direct3D<Direct3D12>
-	{
-	public:
-
-	};
 }
