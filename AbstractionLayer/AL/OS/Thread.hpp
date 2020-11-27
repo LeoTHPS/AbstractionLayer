@@ -17,6 +17,49 @@ namespace AL::OS
 		Thread(const Thread&) = delete;
 
 	public:
+		// @throw AL::Exceptions::Exception
+		template<typename F>
+		static void StartAndDetach(F&& function)
+		{
+			try
+			{
+				std::thread thread(
+					Move(function)
+				);
+
+				thread.detach();
+			}
+			catch (const std::exception& exception)
+			{
+
+				throw Exceptions::Exception(
+					"Error starting std::thread: %s",
+					exception.what()
+				);
+			}
+		}
+		// @throw AL::Exceptions::Exception
+		static void StartAndDetach(void(*lpFunction)())
+		{
+			StartAndDetach(
+				[lpFunction]()
+				{
+					(*lpFunction)();
+				}
+			);
+		}
+		// @throw AL::Exceptions::Exception
+		template<typename C>
+		static void StartAndDetach(void(C::*lpFunction)(), C* lpInstance)
+		{
+			StartAndDetach(
+				[lpInstance, lpFunction]()
+				{
+					(lpFunction->*lpInstance)();
+				}
+			);
+		}
+
 		Thread()
 		{
 		}
@@ -43,9 +86,20 @@ namespace AL::OS
 				isRunning = false;
 			};
 
-			thread = std::thread(
-				Move(detour)
-			);
+			try
+			{
+				thread = std::thread(
+					Move(detour)
+				);
+			}
+			catch (const std::exception& exception)
+			{
+
+				throw Exceptions::Exception(
+					"Error starting std::thread: %s",
+					exception.what()
+				);
+			}
 
 			isRunning = true;
 		}
