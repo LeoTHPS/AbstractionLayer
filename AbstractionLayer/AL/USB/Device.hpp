@@ -142,7 +142,7 @@ namespace AL::USB
 			);
 	#endif
 #elif defined(AL_PLATFORM_WINDOWS)
-
+			throw Exceptions::NotImplementedException();
 #endif
 
 			return true;
@@ -211,7 +211,7 @@ namespace AL::USB
 			);
 	#endif
 #elif defined(AL_PLATFORM_WINDOWS)
-
+			throw Exceptions::NotImplementedException();
 #endif
 		}
 
