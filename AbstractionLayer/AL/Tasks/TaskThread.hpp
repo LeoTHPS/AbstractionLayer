@@ -112,3 +112,11 @@ namespace AL::Tasks
 		}
 	};
 }
+
+// @throw AL::Exceptions::Exception
+inline void AL::Tasks::Task::Execute(TaskThread& thread, Task&& task)
+{
+	thread.Post(
+		Move(task)
+	);
+}

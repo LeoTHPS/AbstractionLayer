@@ -164,3 +164,11 @@ namespace AL::Tasks
 		}
 	};
 }
+
+// @throw AL::Exceptions::Exception
+inline void AL::Tasks::Task::Execute(TaskThreadPool& threadPool, Task&& task)
+{
+	threadPool.Post(
+		Move(task)
+	);
+}
