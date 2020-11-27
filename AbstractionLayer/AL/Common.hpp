@@ -636,6 +636,7 @@ namespace AL
 	#include <winnt.h>
 	#include <winternl.h>
 
+	#undef GetObject
 	#undef GetMessage
 	#undef LoadLibrary
 	#undef CreateProcess
