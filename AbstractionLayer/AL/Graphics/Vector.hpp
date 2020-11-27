@@ -161,7 +161,7 @@ namespace AL::Graphics
 			if (Z != vector.Z)
 				return false;
 
-			return _Vector2<T>::operator==(vector);
+			return _Vector2<T, CAST>::operator==(vector);
 		}
 		bool operator !=(const _Vector& vector) const
 		{
