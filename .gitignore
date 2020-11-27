@@ -22,4 +22,5 @@ Build/
 
 # Test Projects
 /Test/
+/Test.Linux/
 /Test.DotNET/
