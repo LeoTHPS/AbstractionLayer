@@ -55,14 +55,16 @@ namespace AL::OS
 
 		// @throw AL::Exceptions::Exception
 		// @return false if duration elapsed
-		bool Sleep(Mutex& mutex, TimeSpan duration = TimeSpan::Infinite)
+		bool Sleep(TimeSpan duration = TimeSpan::Infinite)
 		{
-			Timer timer;
+			Mutex mutex;
 
 #if defined(AL_PLATFORM_LINUX)
 			std::unique_lock<std::mutex> lock(
 				mutex
 			);
+
+			Timer timer;
 
 			try
 			{
@@ -81,9 +83,9 @@ namespace AL::OS
 				);
 			}
 #elif defined(AL_PLATFORM_WINDOWS)
-			CRITICAL_SECTION& criticalSection = mutex;
+			Timer timer;
 
-			if (SleepConditionVariableCS(&condition, &criticalSection, static_cast<DWORD>(duration.ToMilliseconds())) != 0)
+			if (SleepConditionVariableCS(&condition, &(mutex.operator CRITICAL_SECTION &()), static_cast<DWORD>(duration.ToMilliseconds())) == 0)
 			{
 
 				throw Exceptions::SystemException(
