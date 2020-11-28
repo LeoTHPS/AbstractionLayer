@@ -156,4 +156,11 @@ namespace AL::OS
 			return !IsRunning();
 		}
 	};
+
+	inline uint32 GetCurrentThreadId()
+	{
+		return static_cast<uint32>(
+			::GetCurrentThreadId()
+		);
+	}
 }
