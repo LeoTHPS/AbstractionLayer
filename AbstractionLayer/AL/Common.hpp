@@ -3215,10 +3215,13 @@ namespace AL
 #include "OS/Process.hpp"
 #include "OS/System.hpp"
 
-#include "OS/Mutex.hpp"
-#include "OS/Thread.hpp"
-
 #include "OS/Timer.hpp"
+
+#include "OS/Mutex.hpp"
+#include "OS/MutexCondition.hpp"
+#include "OS/MutexEvent.hpp"
+
+#include "OS/Thread.hpp"
 
 #include "OS/Dialog.hpp"
 #include "OS/OpenFileDialog.hpp"
