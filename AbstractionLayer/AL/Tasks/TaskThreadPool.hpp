@@ -12,6 +12,8 @@ namespace AL::Tasks
 		bool isRunning = false;
 		bool isStopping = false;
 
+		OS::MutexCondition stopCondition;
+
 		Collections::Array<TaskThread*> threads;
 
 		TaskThreadPool(TaskThreadPool&&) = delete;
@@ -92,47 +94,24 @@ namespace AL::Tasks
 				{
 					isStopping = true;
 
-					for (auto& lpThread : threads)
+					for (auto lpThread : threads)
 					{
 						lpThread->Stop();
 
 						delete lpThread;
-						lpThread = nullptr;
 					}
 
 					isRunning = false;
 					isStopping = false;
 
 					threads.Clear();
+					stopCondition.WakeAll();
 				}
 				else
 				{
-					for (auto lpThread : threads)
-					{
-						lpThread->Join();
-					}
+					stopCondition.Sleep();
 				}
 			}
-		}
-
-		// @throw AL::Exceptions::Exception
-		// @return false if time elapsed and threads are still running
-		bool Join(TimeSpan maxWaitTime = TimeSpan::Infinite)
-		{
-			AL_ASSERT(IsRunning(), "TaskThreadPool not running");
-
-			OS::Timer timer;
-
-			for (auto lpThread : threads)
-			{
-				if (lpThread && !lpThread->Join(maxWaitTime - timer.GetElapsed()))
-				{
-
-					return false;
-				}
-			}
-
-			return true;
 		}
 
 		// @return false if no available thread
@@ -152,13 +131,33 @@ namespace AL::Tasks
 
 			if (!lpSelectedThread)
 			{
-				
+
 				return false;
 			}
 
 			lpSelectedThread->Post(
 				Move(task)
 			);
+
+			return true;
+		}
+
+		// @throw AL::Exceptions::Exception
+		// @return false if time elapsed and threads are still running
+		bool Join(TimeSpan maxWaitTime = TimeSpan::Infinite)
+		{
+			AL_ASSERT(IsRunning(), "TaskThreadPool not running");
+
+			OS::Timer timer;
+
+			for (auto lpThread : threads)
+			{
+				if (!lpThread->Join(maxWaitTime - timer.GetElapsed()))
+				{
+
+					return false;
+				}
+			}
 
 			return true;
 		}
