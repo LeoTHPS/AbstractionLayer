@@ -144,7 +144,7 @@ namespace AL::Tasks
 
 			for (auto lpThread : threads)
 			{
-				if (!lpSelectedThread || (lpThread && (lpThread->GetQueueSize() > lpSelectedThread->GetQueueSize())))
+				if (!lpSelectedThread || (lpThread->GetQueueSize() < lpSelectedThread->GetQueueSize()))
 				{
 					lpSelectedThread = lpThread;
 				}
