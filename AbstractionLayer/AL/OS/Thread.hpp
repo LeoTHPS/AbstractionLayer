@@ -133,20 +133,23 @@ namespace AL::OS
 
 			while (timer.GetElapsed() < maxWaitTime)
 			{
-				if (thread.joinable())
+				if (!thread.joinable())
 				{
-					try
-					{
-						thread.join();
-					}
-					catch (const std::exception& exception)
-					{
+					
+					break;
+				}
 
-						throw Exceptions::Exception(
-							"%s",
-							exception.what()
-						);
-					}
+				try
+				{
+					thread.join();
+				}
+				catch (const std::exception& exception)
+				{
+
+					throw Exceptions::Exception(
+						"%s",
+						exception.what()
+					);
 				}
 			}
 
