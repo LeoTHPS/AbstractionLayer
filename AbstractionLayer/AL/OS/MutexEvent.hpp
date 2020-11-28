@@ -17,9 +17,6 @@ namespace AL::OS
 
 	public:
 		MutexEvent()
-			: condition(
-				mutex
-			)
 		{
 		}
 
@@ -41,7 +38,7 @@ namespace AL::OS
 		{
 			auto isSet = IsSet();
 
-			if (isSet && set)
+			if (!isSet && set)
 			{
 				MutexGuard lock(
 					isSetMutex
@@ -67,7 +64,7 @@ namespace AL::OS
 		// @return false if duration elapsed
 		bool Sleep(TimeSpan duration = TimeSpan::Infinite)
 		{
-			if (IsSet() && !condition.Sleep(duration))
+			if (IsSet() && !condition.Sleep(mutex, duration))
 			{
 
 				return false;

@@ -11,8 +11,6 @@ namespace AL::OS
 {
 	class MutexCondition
 	{
-		Mutex* const lpMutex;
-
 #if defined(AL_PLATFORM_LINUX)
 		std::condition_variable condition;
 #elif defined(AL_PLATFORM_WINDOWS)
@@ -20,10 +18,7 @@ namespace AL::OS
 #endif
 
 	public:
-		explicit MutexCondition(Mutex& mutex)
-			: lpMutex(
-				&mutex
-			)
+		MutexCondition()
 		{
 #if defined(AL_PLATFORM_WINDOWS)
 			InitializeConditionVariable(
@@ -34,15 +29,6 @@ namespace AL::OS
 
 		virtual ~MutexCondition()
 		{
-		}
-
-		auto& GetMutex()
-		{
-			return *lpMutex;
-		}
-		auto& GetMutex() const
-		{
-			return *lpMutex;
 		}
 
 		void WakeAll()
@@ -69,13 +55,13 @@ namespace AL::OS
 
 		// @throw AL::Exceptions::Exception
 		// @return false if duration elapsed
-		bool Sleep(TimeSpan duration = TimeSpan::Infinite)
+		bool Sleep(Mutex& mutex, TimeSpan duration = TimeSpan::Infinite)
 		{
 			Timer timer;
 
 #if defined(AL_PLATFORM_LINUX)
 			std::unique_lock<std::mutex> lock(
-				GetMutex()
+				mutex
 			);
 
 			try
@@ -95,7 +81,7 @@ namespace AL::OS
 				);
 			}
 #elif defined(AL_PLATFORM_WINDOWS)
-			CRITICAL_SECTION& criticalSection = GetMutex();
+			CRITICAL_SECTION& criticalSection = mutex;
 
 			if (SleepConditionVariableCS(&condition, &criticalSection, static_cast<DWORD>(duration.ToMilliseconds())) != 0)
 			{
