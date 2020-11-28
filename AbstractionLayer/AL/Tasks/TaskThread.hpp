@@ -72,7 +72,7 @@ namespace AL::Tasks
 						}
 
 						Sleep(
-							TimeSpan::FromMilliseconds(10)
+							TimeSpan::FromMilliseconds(100)
 						);
 					} while (!doStop || queue.GetSize());
 
