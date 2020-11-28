@@ -3,8 +3,6 @@
 
 #if defined(AL_PLATFORM_LINUX)
 	#include <errno.h>
-#elif defined(AL_PLATFORM_WINDOWS)
-	#include <Windows.h>
 #endif
 
 namespace AL::OS
