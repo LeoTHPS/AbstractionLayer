@@ -59,7 +59,11 @@ namespace AL::OS
 			);
 
 			string.RemoveLast(
-				"\r\n"
+				"\n"
+			);
+			
+			string.RemoveLast(
+				"\r"
 			);
 
 			LocalFree(lpBuffer);
