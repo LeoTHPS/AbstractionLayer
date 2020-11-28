@@ -10,15 +10,15 @@ namespace AL::OS
 	{
 		bool isSet = false;
 
-		mutable Mutex mutex;
+		mutable Mutex isSetMutex;
 
-		Mutex mutex2;
+		Mutex mutex;
 		MutexCondition condition;
 
 	public:
 		MutexEvent()
 			: condition(
-				mutex2
+				mutex
 			)
 		{
 		}
@@ -30,7 +30,7 @@ namespace AL::OS
 		bool IsSet() const
 		{
 			MutexGuard lock(
-				mutex
+				isSetMutex
 			);
 
 			return isSet;
@@ -39,17 +39,25 @@ namespace AL::OS
 		// @throw AL::Exceptions::Exception
 		void Set(bool set = true)
 		{
-			MutexGuard lock(
-				mutex
-			);
+			auto isSet = IsSet();
 
-			if (!IsSet() && set)
+			if (isSet && set)
 			{
-				isSet = true;
+				MutexGuard lock(
+					isSetMutex
+				);
+
+				this->isSet = true;
 			}
-			else if (IsSet() && !set)
+			else if (isSet && !set)
 			{
-				isSet = false;
+				{
+					MutexGuard lock(
+						isSetMutex
+					);
+
+					this->isSet = false;
+				}
 
 				condition.WakeAll();
 			}
