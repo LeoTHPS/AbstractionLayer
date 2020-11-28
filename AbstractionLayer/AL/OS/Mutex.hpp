@@ -47,6 +47,26 @@ namespace AL::OS
 			LeaveCriticalSection(&section);
 #endif
 		}
+
+#if defined(AL_PLATFORM_LINUX)
+		operator std::mutex& ()
+		{
+			return mutex;
+		}
+		operator const std::mutex& () const
+		{
+			return mutex;
+		}
+#elif defined(AL_PLATFORM_WINDOWS)
+		operator CRITICAL_SECTION& ()
+		{
+			return section;
+		}
+		operator const CRITICAL_SECTION& () const
+		{
+			return section;
+		}
+#endif
 	};
 
 	class MutexGuard
@@ -65,6 +85,15 @@ namespace AL::OS
 		virtual ~MutexGuard()
 		{
 			lpMutex->Unlock();
+		}
+
+		auto& GetMutex()
+		{
+			return *lpMutex;
+		}
+		auto& GetMutex() const
+		{
+			return *lpMutex;
 		}
 	};
 }
