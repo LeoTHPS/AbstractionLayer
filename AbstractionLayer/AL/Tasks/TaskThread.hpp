@@ -3,8 +3,6 @@
 
 #include "Task.hpp"
 
-#include "AL/OS/Thread.hpp"
-
 #include "AL/Collections/MPSCQueue.hpp"
 
 namespace AL::Tasks
@@ -16,6 +14,7 @@ namespace AL::Tasks
 		volatile bool doStop = false;
 
 		OS::Thread thread;
+		OS::MutexCondition threadIdleCondition;
 
 		Collections::MPSCQueue<Task> queue;
 		TaskThreadExceptionHandler exceptionHandler;
@@ -71,9 +70,11 @@ namespace AL::Tasks
 							}
 						}
 
-						Sleep(
-							TimeSpan::FromMilliseconds(100)
-						);
+						if (!doStop)
+						{
+
+							threadIdleCondition.Sleep();
+						}
 					} while (!doStop || queue.GetSize());
 
 					doStop = false;
@@ -87,6 +88,8 @@ namespace AL::Tasks
 			{
 				doStop = true;
 
+				threadIdleCondition.WakeOne();
+
 				thread.Join();
 			}
 		}
@@ -98,6 +101,8 @@ namespace AL::Tasks
 			queue.Enqueue(
 				Move(task)
 			);
+
+			threadIdleCondition.WakeOne();
 		}
 
 		// @throw AL::Exceptions::Exception

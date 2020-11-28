@@ -1462,7 +1462,9 @@ namespace AL
 		};
 
 		BitMask()
-			: Value(0)
+			: Value(
+				0
+			)
 		{
 		}
 		
@@ -2839,12 +2841,16 @@ namespace AL
 		}
 
 		TimeSpan()
-			: TimeSpan(0)
+			: TimeSpan(
+				0
+			)
 		{
 		}
 
 		TimeSpan(uint64 microseconds)
-			: value(microseconds)
+			: value(
+				microseconds
+			)
 		{
 		}
 
@@ -3219,7 +3225,6 @@ namespace AL
 
 #include "OS/Mutex.hpp"
 #include "OS/MutexCondition.hpp"
-#include "OS/MutexEvent.hpp"
 
 #include "OS/Thread.hpp"
 
