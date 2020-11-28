@@ -59,10 +59,6 @@ namespace AL::OS
 		// @return false if duration elapsed
 		bool Sleep(TimeSpan duration = TimeSpan::Infinite)
 		{
-			MutexGuard lock(
-				mutex
-			);
-
 			if (IsSet() && !condition.Sleep(duration))
 			{
 
