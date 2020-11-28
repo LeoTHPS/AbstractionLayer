@@ -68,8 +68,11 @@ namespace AL::OS
 		}
 
 		// @throw AL::Exceptions::Exception
-		void Sleep(TimeSpan duration = TimeSpan::Infinite)
+		// @return false if duration elapsed
+		bool Sleep(TimeSpan duration = TimeSpan::Infinite)
 		{
+			Timer timer;
+
 #if defined(AL_PLATFORM_LINUX)
 			std::unique_lock<std::mutex> lock(
 				GetMutex()
@@ -90,7 +93,7 @@ namespace AL::OS
 				throw Exceptions::Exception(
 					exception.what()
 				);
-		}
+			}
 #elif defined(AL_PLATFORM_WINDOWS)
 			CRITICAL_SECTION& criticalSection = GetMutex();
 
@@ -102,6 +105,8 @@ namespace AL::OS
 				);
 			}
 #endif
+
+			return timer.GetElapsed() < duration;
 		}
 
 #if defined(AL_PLATFORM_LINUX)
