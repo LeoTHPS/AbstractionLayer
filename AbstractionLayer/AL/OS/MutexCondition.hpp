@@ -103,5 +103,25 @@ namespace AL::OS
 			}
 #endif
 		}
+
+#if defined(AL_PLATFORM_LINUX)
+		operator std::condition_variable& ()
+		{
+			return condition;
+		}
+		operator const std::condition_variable& () const
+		{
+			return condition;
+		}
+#elif defined(AL_PLATFORM_WINDOWS)
+		operator CONDITION_VARIABLE& ()
+		{
+			return condition;
+		}
+		operator const CONDITION_VARIABLE& () const
+		{
+			return condition;
+		}
+#endif
 	};
 }
