@@ -3228,6 +3228,10 @@ namespace AL
 
 #include "OS/Thread.hpp"
 
+#if defined(AL_PLATFORM_WINDOWS)
+	#include "OS/NamedPipe.hpp"
+#endif
+
 #include "OS/Dialog.hpp"
 #include "OS/OpenFileDialog.hpp"
 #include "OS/SaveFileDialog.hpp"
