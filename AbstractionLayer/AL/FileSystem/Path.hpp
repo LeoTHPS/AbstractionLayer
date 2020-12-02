@@ -19,7 +19,101 @@ namespace AL::FileSystem
 	{
 		String string;
 
+		template<typename T_DELIMITER>
+		static bool String_StartsWith(const String& string, T_DELIMITER delimiter)
+		{
+			return string.StartsWith(delimiter);
+		}
+		static bool String_StartsWith(const String::Char* string, String::Char delimiter)
+		{
+			return String_StartsWith(
+				string,
+				{ delimiter, Collections::__String_Constants<String::Char>::END }
+			);
+		}
+		static bool String_StartsWith(const String::Char* string, const String::Char* delimiter)
+		{
+			size_t delimiterLength;
+
+			if (String::GetLength(string) < (delimiterLength = String::GetLength(delimiter)))
+			{
+
+				return false;
+			}
+			
+			for (size_t i = 0; i < delimiterLength; ++i)
+			{
+				if (string[i] != delimiter[i])
+				{
+
+					return false;
+				}
+			}
+
+			return true;
+		}
+		template<size_t S_DELIMITER>
+		static bool String_StartsWith(const String::Char* string, const String::Char(&delimiter)[S_DELIMITER])
+		{
+			return String_StartsWith(
+				string,
+				&delimiter[0]
+			);
+		}
+		template<size_t S_STRING, typename T_DELIMITER>
+		static bool String_StartsWith(const String::Char(&string)[S_STRING], T_DELIMITER delimiter)
+		{
+			return String_StartsWith(
+				&string[0],
+				delimiter
+			);
+		}
+
+		template<typename T_DELIMITER>
+		static String Combine2(String& buffer, T_DELIMITER delimiter)
+		{
+			return String(
+				Move(buffer)
+			);
+		}
+		template<typename T_DELIMITER, typename T_CHUNK, typename ... T_CHUNKS>
+		static String Combine2(String& buffer, T_DELIMITER delimiter, const T_CHUNK& chunk, const T_CHUNKS& ... chunks)
+		{
+			if (!buffer.EndsWith(delimiter) &&
+				!String_StartsWith(chunk, delimiter))
+			{
+
+				buffer.Append(
+					delimiter
+				);
+			}
+
+			buffer.Append(
+				chunk
+			);
+
+			return Combine2(
+				buffer,
+				delimiter,
+				chunks ...
+			);
+		}
+
 	public:
+		template<typename T_CHUNK, typename ... T_CHUNKS>
+		static Path Combine(const T_CHUNK& chunk, const T_CHUNKS& ... chunks)
+		{
+			String buffer(
+				chunk
+			);
+
+			return Combine2(
+				buffer,
+				'/',
+				chunks ...
+			);
+		}
+
 		static bool IsValid(const String& path)
 		{
 			size_t length = 0;
