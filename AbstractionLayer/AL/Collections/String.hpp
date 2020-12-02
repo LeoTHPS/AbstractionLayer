@@ -632,7 +632,7 @@ namespace AL::Collections
 		{
 			size_t stringLength;
 
-			if (GetLength() < (stringLength = String::GetLength(string)))
+			if (GetLength() < (stringLength = GetLength(string)))
 			{
 
 				return false;
@@ -696,7 +696,7 @@ namespace AL::Collections
 			size_t length;
 			size_t stringLength;
 
-			if ((length = GetLength()) < (stringLength = String::GetLength(string)))
+			if ((length = GetLength()) < (stringLength = GetLength(string)))
 			{
 
 				return false;
