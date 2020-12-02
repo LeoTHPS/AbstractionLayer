@@ -157,7 +157,7 @@ namespace AL::Collections
 			{
 			}
 
-			return length;
+			return length - 1;
 		}
 		static size_t GetLength(const _String& string)
 		{
@@ -679,9 +679,9 @@ namespace AL::Collections
 				return false;
 			}
 
-			for (size_t i = length, j = stringLength; stringLength != 0; --i, --j)
+			for (size_t i = length, j = stringLength; stringLength != 0; )
 			{
-				if (container[i] != string[j])
+				if (container[--i] != string[--j])
 				{
 
 					return false;
@@ -702,9 +702,9 @@ namespace AL::Collections
 				return false;
 			}
 
-			for (size_t i = length, j = stringLength; stringLength != 0; --i, --j)
+			for (size_t i = length, j = stringLength; stringLength != 0; )
 			{
-				if (container[i] != string[j])
+				if (container[--i] != string[--j])
 				{
 
 					return false;
