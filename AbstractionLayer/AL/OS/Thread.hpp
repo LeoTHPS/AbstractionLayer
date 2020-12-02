@@ -5,6 +5,12 @@
 
 #include <thread>
 
+#if defined(AL_PLATFORM_LINUX)
+	#include <unistd.h>
+
+	#include <sys/syscall.h>
+#endif
+
 namespace AL::OS
 {
 	class Thread
@@ -159,8 +165,16 @@ namespace AL::OS
 
 	inline uint32 GetCurrentThreadId()
 	{
+#if defined(AL_PLATFORM_LINUX)
+		return static_cast<uint32>(
+			::syscall(SYS_gettid)
+		);
+#elif defined(AL_PLATFORM_WINDOWS)
 		return static_cast<uint32>(
 			::GetCurrentThreadId()
 		);
+#else
+		throw Exceptions::NotImplementedException();
+#endif
 	}
 }
