@@ -69,22 +69,21 @@ namespace AL::FileSystem
 			);
 		}
 
-		template<typename T_DELIMITER>
-		static String Combine2(String& buffer, T_DELIMITER delimiter)
+		static String Combine2(String& buffer)
 		{
 			return String(
 				Move(buffer)
 			);
 		}
-		template<typename T_DELIMITER, typename T_CHUNK, typename ... T_CHUNKS>
-		static String Combine2(String& buffer, T_DELIMITER delimiter, const T_CHUNK& chunk, const T_CHUNKS& ... chunks)
+		template<typename T_CHUNK, typename ... T_CHUNKS>
+		static String Combine2(String& buffer, const T_CHUNK& chunk, const T_CHUNKS& ... chunks)
 		{
-			if (!buffer.EndsWith(delimiter) &&
-				!String_StartsWith(chunk, delimiter))
+			if (!buffer.EndsWith('/') && !buffer.EndsWith('\\') &&
+				!String_StartsWith(chunk, '/') && !String_StartsWith(chunk, '\\'))
 			{
 
 				buffer.Append(
-					delimiter
+					'/'
 				);
 			}
 
@@ -94,7 +93,6 @@ namespace AL::FileSystem
 
 			return Combine2(
 				buffer,
-				delimiter,
 				chunks ...
 			);
 		}
@@ -109,7 +107,6 @@ namespace AL::FileSystem
 
 			return Combine2(
 				buffer,
-				'/',
 				chunks ...
 			);
 		}
