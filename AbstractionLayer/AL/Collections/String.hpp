@@ -149,6 +149,28 @@ namespace AL::Collections
 
 		static constexpr size_t NPOS = Container::npos;
 
+		static size_t GetLength(const Char* string)
+		{
+			size_t length = 0;
+
+			while (string[length++] != __String_Constants<Char>::END)
+			{
+			}
+
+			return length;
+		}
+		static size_t GetLength(const _String& string)
+		{
+			return string.GetLength();
+		}
+		template<size_t SIZE>
+		static size_t GetLength(const Char(&string)[SIZE])
+		{
+			return GetLength(
+				&string[0]
+			);
+		}
+
 		template<typename ... CHUNK_TYPES>
 		static _String<Char> Combine(CHUNK_TYPES ... chunks)
 		{
@@ -567,6 +589,48 @@ namespace AL::Collections
 
 			return true;
 		}
+
+		bool StartsWith(Char c) const
+		{
+			if (!GetLength())
+			{
+
+				return false;
+			}
+
+			if (container[0] != c)
+			{
+
+				return false;
+			}
+
+			return true;
+		}
+		bool StartsWith(const _String& string) const;
+		template<size_t SIZE>
+		bool StartsWith(const Char(&string)[SIZE]) const;
+		
+		bool EndsWith(Char c) const
+		{
+			size_t length;
+
+			if ((length = GetLength()) == 0)
+			{
+				
+				return false;
+			}
+
+			if (container[length - 1] != c)
+			{
+
+				return false;
+			}
+
+			return true;
+		}
+		bool EndsWith(const _String& string) const;
+		template<size_t SIZE>
+		bool EndsWith(const Char(&string)[SIZE]) const;
 
 		void Clear()
 		{
