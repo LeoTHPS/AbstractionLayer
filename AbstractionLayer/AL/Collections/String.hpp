@@ -606,9 +606,49 @@ namespace AL::Collections
 
 			return true;
 		}
-		bool StartsWith(const _String& string) const;
+		bool StartsWith(const _String& string) const
+		{
+			size_t stringLength;
+
+			if (GetLength() < (stringLength = string.GetLength()))
+			{
+
+				return false;
+			}
+
+			for (size_t i = 0; i < stringLength; ++i)
+			{
+				if (container[i] != string[i])
+				{
+
+					return false;
+				}
+			}
+
+			return true;
+		}
 		template<size_t SIZE>
-		bool StartsWith(const Char(&string)[SIZE]) const;
+		bool StartsWith(const Char(&string)[SIZE]) const
+		{
+			size_t stringLength;
+
+			if (GetLength() < (stringLength = String::GetLength(string)))
+			{
+
+				return false;
+			}
+
+			for (size_t i = 0; i < stringLength; ++i)
+			{
+				if (container[i] != string[i])
+				{
+
+					return false;
+				}
+			}
+
+			return true;
+		}
 		
 		bool EndsWith(Char c) const
 		{
@@ -628,9 +668,51 @@ namespace AL::Collections
 
 			return true;
 		}
-		bool EndsWith(const _String& string) const;
+		bool EndsWith(const _String& string) const
+		{
+			size_t length;
+			size_t stringLength;
+
+			if ((length = GetLength()) < (stringLength = string.GetLength()))
+			{
+
+				return false;
+			}
+
+			for (size_t i = length, j = stringLength; stringLength != 0; --i, --j)
+			{
+				if (container[i] != string[j])
+				{
+
+					return false;
+				}
+			}
+
+			return true;
+		}
 		template<size_t SIZE>
-		bool EndsWith(const Char(&string)[SIZE]) const;
+		bool EndsWith(const Char(&string)[SIZE]) const
+		{
+			size_t length;
+			size_t stringLength;
+
+			if ((length = GetLength()) < (stringLength = String::GetLength(string)))
+			{
+
+				return false;
+			}
+
+			for (size_t i = length, j = stringLength; stringLength != 0; --i, --j)
+			{
+				if (container[i] != string[j])
+				{
+
+					return false;
+				}
+			}
+
+			return true;
+		}
 
 		void Clear()
 		{
