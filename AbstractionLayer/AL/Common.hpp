@@ -3212,6 +3212,10 @@ namespace AL
 #include "Exceptions/NotImplementedException.hpp"
 #include "Exceptions/DependencyMissingException.hpp"
 
+#if defined(AL_CLRCALL)
+	#include "Exceptions/DotNETException.hpp"
+#endif
+
 #include "OS/Debug.hpp"
 #include "OS/Console.hpp"
 
@@ -3239,3 +3243,7 @@ namespace AL
 #include "OS/Window.hpp"
 
 #include "OS/Detour.hpp"
+
+#if defined(AL_CLRCALL)
+	#include "DotNET/Marshal.hpp"
+#endif
