@@ -13,5 +13,7 @@ namespace AL::DirectX
 	typedef Direct3D11 Direct3D;
 #elif false && defined(AL_DEPENDENCY_DIRECT3D_10_VERSION)
 	typedef Direct3D10 Direct3D;
+#else
+	class Direct3D;
 #endif
 }
