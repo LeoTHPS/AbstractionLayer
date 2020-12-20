@@ -215,7 +215,7 @@ namespace AL::OS
 				);
 			}
 
-			return static_cast<T*>(
+			return reinterpret_cast<T*>(
 				lpExport
 			);
 #endif
@@ -239,7 +239,7 @@ namespace AL::OS
 				);
 			}
 
-			return static_cast<T*>(
+			return reinterpret_cast<T*>(
 				lpExport
 			);
 #endif
