@@ -10,6 +10,12 @@
 
 #include "AL/Collections/Array.hpp"
 
+#if defined(AL_PLATFORM_LINUX)
+
+#elif defined(AL_PLATFORM_WINDOWS)
+	#include <shellapi.h>
+#endif
+
 namespace AL::OS
 {
 	enum class WindowIcons
@@ -44,7 +50,9 @@ namespace AL::OS
 	{
 		bool isOpen = false;
 		bool isCreated = false;
+		bool isCreating = false;
 		bool isClosing = false;
+		bool isForceClosing = false;
 		bool isCloseCancelled = false;
 
 		bool isMovable = true;
@@ -62,15 +70,20 @@ namespace AL::OS
 		bool isMaximized = false;
 		bool isDefaultPosition = true;
 
+		// this variable is set true by Close(true)
+		// if Close(false) is called then Destroy() will be invoked on the last window update
+		// in windows builds this last update is from WM_CLOSE, linux isn't implemented
+		bool destroyOnClose = false;
+		
 #if defined(AL_PLATFORM_LINUX)
 
 #elif defined(AL_PLATFORM_WINDOWS)
 		HWND handle;
-		String wClassName;
 		WNDCLASSEXA wClass;
 #endif
 
 		String title;
+		String className;
 		WindowCursors cursor = WindowCursors::Arrow;
 
 		WindowPosition position;
@@ -88,8 +101,42 @@ namespace AL::OS
 		Window(const Window&) = delete;
 
 	public:
-		Window()
+		Window(String&& title, String&& className)
+			: title(
+				Move(title)
+			),
+			className(
+				Move(className)
+			),
+			resolution(
+				1366,
+				768
+			)
 		{
+#if defined(AL_PLATFORM_LINUX)
+
+#elif defined(AL_PLATFORM_WINDOWS)
+			ZeroMemory(&wClass, sizeof(wClass));
+			wClass.cbSize = sizeof(wClass);
+			wClass.hIcon = LoadNativeIcon(WindowIcons::Default);
+			wClass.hIconSm = LoadNativeIcon(WindowIcons::Default);
+			//wClass.hCursor = LoadNativeCursor(WindowCursors::Arrow);
+			wClass.hInstance = GetModuleHandle(nullptr);
+			wClass.lpfnWndProc = &Window::NativeWindowProc;
+			wClass.lpszClassName = this->className.GetCString();
+#endif
+
+			SetIcon(
+				WindowIcons::Default
+			);
+
+			SetCursor(
+				WindowCursors::Arrow
+			);
+
+			SetBackgroundColor(
+				Graphics::Colors::White
+			);
 		}
 
 		virtual ~Window()
@@ -98,6 +145,15 @@ namespace AL::OS
 			{
 				Close();
 			}
+
+#if defined(AL_PLATFORM_WINDOWS)
+			if (auto hBackground = wClass.hbrBackground)
+			{
+				DeleteObject(
+					hBackground
+				);
+			}
+#endif
 		}
 
 		bool IsOpen() const
@@ -212,12 +268,18 @@ namespace AL::OS
 		// @throw AL::Exceptions::Exception
 		void SetTitle(String&& value)
 		{
-			if (IsCreated())
+			if (IsCreated() || isCreating)
 			{
 #if defined(AL_PLATFORM_LINUX)
 				throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
+				if (!SetWindowTextA(GetHandle(), value.GetCString()))
+				{
 
+					throw Exceptions::SystemException(
+						"SetWindowTextA"
+					);
+				}
 #endif
 			}
 			else
@@ -239,7 +301,7 @@ namespace AL::OS
 		// @throw AL::Exceptions::Exception
 		void SetIcon(HICON hIcon)
 		{
-			if (IsCreated())
+			if (IsCreated() || isCreating)
 			{
 				PostNativeMessage(
 					WM_SETICON,
@@ -272,29 +334,17 @@ namespace AL::OS
 #elif defined(AL_PLATFORM_WINDOWS)
 			switch (value)
 			{
-				case WindowIcons::None:
-					return SetIcon(nullptr);
-
 				case WindowIcons::Custom:
 					throw Exceptions::NotImplementedException();
 
+				case WindowIcons::None:
 				case WindowIcons::Default:
-					return SetIcon(LoadIcon(NULL, IDI_APPLICATION));
-
 				case WindowIcons::Asterisk:
-					return SetIcon(LoadIcon(NULL, IDI_ASTERISK));
-
 				case WindowIcons::Error:
-					return SetIcon(LoadIcon(NULL, IDI_ERROR));
-
 				case WindowIcons::Question:
-					return SetIcon(LoadIcon(NULL, IDI_QUESTION));
-
 				case WindowIcons::Shield:
-					return SetIcon(LoadIcon(NULL, IDI_SHIELD));
-
 				case WindowIcons::Warning:
-					return SetIcon(LoadIcon(NULL, IDI_WARNING));
+					return SetIcon(LoadNativeIcon(value));
 			}
 #endif
 		}
@@ -302,16 +352,45 @@ namespace AL::OS
 		// @throw AL::Exceptions::Exception
 		void SetCursor(WindowCursors value)
 		{
-			if (IsCreated())
+			if (IsCreated() || isCreating)
 			{
 #if defined(AL_PLATFORM_LINUX)
 				throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
+				wClass.hCursor = LoadNativeCursor(
+					value
+				);
 
+				::SetCursor(
+					wClass.hCursor
+				);
 #endif
 			}
 
 			cursor = value;
+		}
+
+		// @throw AL::Exceptions::Exception
+		void SetTopMost(bool set = true)
+		{
+			if (IsCreated() || isCreating)
+			{
+#if defined(AL_PLATFORM_LINUX)
+				throw Exceptions::NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
+				if (!SetWindowPos(GetHandle(), set ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE))
+				{
+
+					throw Exceptions::SystemException(
+						"SetWindowPos"
+					);
+				}
+#endif
+			}
+			else
+			{
+				isTopMost = set;
+			}
 		}
 
 		// @throw AL::Exceptions::Exception
@@ -324,12 +403,30 @@ namespace AL::OS
 				return false;
 			}
 
-			if (IsCreated())
+			isDefaultPosition = false;
+
+			if (IsCreated() || isCreating)
 			{
 #if defined(AL_PLATFORM_LINUX)
 				throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
+				RECT rect;
 
+				if (!GetWindowRect(GetHandle(), &rect))
+				{
+
+					throw Exceptions::SystemException(
+						"GetWindowRect"
+					);
+				}
+
+				if (!MoveWindow(GetHandle(), static_cast<int>(x), static_cast<int>(y), static_cast<int>(rect.right - rect.left), static_cast<int>(rect.bottom - rect.top), TRUE))
+				{
+
+					throw Exceptions::SystemException(
+						"MoveWindow"
+					);
+				}
 #endif
 			}
 			else
@@ -359,12 +456,34 @@ namespace AL::OS
 				return false;
 			}
 
-			if (IsCreated())
+			if (IsCreated() || isCreating)
 			{
 #if defined(AL_PLATFORM_LINUX)
 				throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
+				RECT currentRect;
 
+				if (!GetWindowRect(GetHandle(), &currentRect))
+				{
+
+					throw Exceptions::SystemException(
+						"GetWindowRect"
+					);
+				}
+
+				RECT rect;
+				rect.left = currentRect.left;
+				rect.right = rect.left + static_cast<LONG>(width);
+				rect.top = currentRect.top;
+				rect.bottom = rect.top + static_cast<LONG>(height);
+
+				if (!MoveWindow(GetHandle(), static_cast<int>(rect.left), static_cast<int>(rect.top), static_cast<int>(rect.right - rect.left), static_cast<int>(rect.bottom - rect.top), TRUE))
+				{
+
+					throw Exceptions::SystemException(
+						"MoveWindow"
+					);
+				}
 #endif
 			}
 			else
@@ -413,14 +532,40 @@ namespace AL::OS
 		}
 
 		// @throw AL::Exceptions::Exception
-		void EnableResize(bool set = true)
+		void EnableClose(bool set = true)
 		{
-			if (IsCreated())
+			if (IsCreated() || isCreating)
 			{
 #if defined(AL_PLATFORM_LINUX)
 				throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
+				if (EnableMenuItem(GetSystemMenu(GetHandle(), FALSE), SC_CLOSE, set ? MF_ENABLED : MF_GRAYED) == -1)
+				{
 
+					throw Exceptions::SystemException(
+						"EnableMenuItem"
+					);
+				}
+#endif
+			}
+
+			isClosable = set;
+		}
+
+		// @throw AL::Exceptions::Exception
+		void EnableResize(bool set = true)
+		{
+			if (IsCreated() || isCreating)
+			{
+#if defined(AL_PLATFORM_LINUX)
+				throw Exceptions::NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
+				SetNativeWindowLongPtr(
+					GetHandle(),
+					GWL_STYLE,
+					WS_THICKFRAME,
+					set
+				);
 #endif
 			}
 
@@ -430,12 +575,17 @@ namespace AL::OS
 		// @throw AL::Exceptions::Exception
 		void EnableMinimize(bool set = true)
 		{
-			if (IsCreated())
+			if (IsCreated() || isCreating)
 			{
 #if defined(AL_PLATFORM_LINUX)
 				throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
-
+				SetNativeWindowLongPtr(
+					GetHandle(),
+					GWL_STYLE,
+					WS_MINIMIZEBOX,
+					set
+				);
 #endif
 			}
 
@@ -445,12 +595,17 @@ namespace AL::OS
 		// @throw AL::Exceptions::Exception
 		void EnableMaximize(bool set = true)
 		{
-			if (IsCreated())
+			if (IsCreated() || isCreating)
 			{
 #if defined(AL_PLATFORM_LINUX)
 				throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
-
+				SetNativeWindowLongPtr(
+					GetHandle(),
+					GWL_STYLE,
+					WS_MAXIMIZEBOX,
+					set
+				);
 #endif
 			}
 
@@ -460,12 +615,15 @@ namespace AL::OS
 		// @throw AL::Exceptions::Exception
 		void EnableFileDrop(bool set = true)
 		{
-			if (IsCreated())
+			if (IsCreated() || isCreating)
 			{
 #if defined(AL_PLATFORM_LINUX)
 				throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
-
+				DragAcceptFiles(
+					GetHandle(),
+					set ? TRUE : FALSE
+				);
 #endif
 			}
 
@@ -481,32 +639,27 @@ namespace AL::OS
 			{
 				Create();
 			}
-			catch (Exceptions::Exception&)
+			catch (Exceptions::Exception& exception)
 			{
 
-				throw;
+				throw Exceptions::Exception(
+					Move(exception),
+					"Error creating Window"
+				);
 			}
-
-			isOpen = true;
 
 			try
 			{
-				Run(
-					tickRate
-				);
+				OnOpen();
 			}
 			catch (Exceptions::Exception&)
 			{
 				Destroy();
 
-				isOpen = false;
-
 				throw;
 			}
 
-			Destroy();
-
-			isOpen = false;
+			isOpen = true;
 		}
 
 		// @return false if block && !OnClosing()
@@ -515,11 +668,31 @@ namespace AL::OS
 			if (IsOpen())
 			{
 				bool wasClosing;
+				bool doDestroyOnClose = false;
 
 				if (!(wasClosing = IsClosing()))
 				{
 					isClosing = true;
 					isCloseCancelled = false;
+
+					doDestroyOnClose = block;
+
+#if defined(AL_PLATFORM_LINUX)
+
+#elif defined(AL_PLATFORM_WINDOWS)
+					try
+					{
+						PostNativeMessage(
+							WM_CLOSE,
+							0,
+							0
+						);
+					}
+					catch (const Exceptions::Exception&)
+					{
+						isForceClosing = true;
+					}
+#endif
 				}
 
 				if (block)
@@ -537,6 +710,13 @@ namespace AL::OS
 						}
 
 						Sleep(time);
+					}
+
+					if (doDestroyOnClose)
+					{
+						Destroy();
+
+						destroyOnClose = false;
 					}
 				}
 			}
@@ -600,7 +780,10 @@ namespace AL::OS
 #if defined(AL_PLATFORM_LINUX)
 			throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
-
+			ShowWindow(
+				GetHandle(),
+				set ? SW_SHOW : SW_HIDE
+			);
 #endif
 		}
 
@@ -620,7 +803,10 @@ namespace AL::OS
 #if defined(AL_PLATFORM_LINUX)
 			throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
-
+			ShowWindow(
+				GetHandle(),
+				set ? SW_MINIMIZE : SW_RESTORE
+			);
 #endif
 
 			return true;
@@ -641,7 +827,10 @@ namespace AL::OS
 #if defined(AL_PLATFORM_LINUX)
 			throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
-
+			ShowWindow(
+				GetHandle(),
+				set ? SW_MAXIMIZE : SW_RESTORE
+			);
 #endif
 
 			return true;
@@ -671,6 +860,32 @@ namespace AL::OS
 		}
 #endif
 
+		// @throw AL::Exceptions::Exception
+		void Draw(float delta)
+		{
+			AL_ASSERT(IsOpen(), "Window not open");
+			AL_ASSERT(IsCreated(), "Window not created");
+
+			OnDraw(
+				delta
+			);
+
+			OnEndDraw(
+				delta
+			);
+		}
+
+		// @throw AL::Exceptions::Exception
+		void Update(TimeSpan delta)
+		{
+			AL_ASSERT(IsOpen(), "Window not open");
+			AL_ASSERT(IsCreated(), "Window not created");
+
+			OnUpdate(
+				delta
+			);
+		}
+
 	protected:
 		// @throw AL::Exceptions::Exception
 		virtual void OnCreate()
@@ -678,7 +893,54 @@ namespace AL::OS
 #if defined(AL_PLATFORM_LINUX)
 
 #elif defined(AL_PLATFORM_WINDOWS)
+			if (!RegisterClassExA(&wClass))
+			{
 
+				throw Exceptions::SystemException(
+					"RegisterClassExA"
+				);
+			}
+
+			BitMask<DWORD> style(
+				WS_BORDER | WS_CAPTION | WS_SYSMENU
+			);
+
+			if (IsResizable())   style.Add(WS_THICKFRAME);
+			if (IsMinimized())   style.Add(WS_MINIMIZE);
+			if (IsMinimizable()) style.Add(WS_MINIMIZEBOX);
+			if (IsMaximized())   style.Add(WS_MAXIMIZE);
+			if (IsMaximizable()) style.Add(WS_MAXIMIZEBOX);
+
+			auto& position = GetPosition();
+			auto& resolution = GetResolution();
+
+			RECT rect;
+			rect.left = static_cast<LONG>(position.X);
+			rect.right = rect.left + static_cast<LONG>(resolution.X);
+			rect.top = static_cast<LONG>(position.Y);
+			rect.bottom = rect.top + static_cast<LONG>(resolution.Y);
+
+			if (!AdjustWindowRectEx(&rect, style.Mask, FALSE, WS_EX_OVERLAPPEDWINDOW))
+			{
+
+				throw Exceptions::SystemException(
+					"AdjustWindowRectEx"
+				);
+			}
+
+			auto useDefaultPosition = isDefaultPosition;
+
+			if ((handle = CreateWindowExA(WS_EX_OVERLAPPEDWINDOW, wClass.lpszClassName, GetTitle().GetCString(), style.Mask, static_cast<int>(useDefaultPosition ? CW_USEDEFAULT : rect.left), static_cast<int>(useDefaultPosition ? CW_USEDEFAULT : rect.top), static_cast<int>(rect.right - rect.left), static_cast<int>(rect.bottom - rect.top), NULL, NULL, wClass.hInstance, this)) == NULL)
+			{
+				UnregisterClassA(
+					wClass.lpszClassName,
+					wClass.hInstance
+				);
+
+				throw Exceptions::SystemException(
+					"CreateWindowExA"
+				);
+			}
 #endif
 		}
 
@@ -687,13 +949,98 @@ namespace AL::OS
 #if defined(AL_PLATFORM_LINUX)
 
 #elif defined(AL_PLATFORM_WINDOWS)
+			UnregisterClassA(
+				wClass.lpszClassName,
+				wClass.hInstance
+			);
 
+			handle = NULL;
 #endif
 		}
 
 		// @throw AL::Exceptions::Exception
 		virtual void OnOpen()
 		{
+#if defined(AL_PLATFORM_LINUX)
+
+#elif defined(AL_PLATFORM_WINDOWS)
+			ShowWindow(
+				GetHandle(),
+				SW_SHOW
+			);
+#endif
+			
+			try
+			{
+				SetIcon(
+					wClass.hIcon
+				);
+
+				SetTitle(
+					GetTitle()
+				);
+
+				SetResolution(
+					GetResolution().X,
+					GetResolution().Y
+				);
+
+				SetPosition(
+					GetPosition().X,
+					GetPosition().Y
+				);
+
+				SetTopMost(
+					IsTopMost()
+				);
+
+				EnableClose(
+					IsClosable()
+				);
+
+				EnableResize(
+					IsResizable()
+				);
+
+				EnableMinimize(
+					IsMinimizable()
+				);
+
+				EnableMaximize(
+					IsMaximizable()
+				);
+
+				EnableFileDrop(
+					IsFileDropEnabled()
+				);
+
+				Minimize(
+					IsMinimized()
+				);
+
+				Maximize(
+					IsMaximized()
+				);
+			}
+			catch (Exceptions::Exception& exception)
+			{
+
+				throw Exceptions::Exception(
+					Move(exception),
+					"Error applying state"
+				);
+			}
+
+#if defined(AL_PLATFORM_LINUX)
+
+#elif defined(AL_PLATFORM_WINDOWS)
+			if (auto hCursor = wClass.hCursor)
+			{
+				::SetCursor(
+					hCursor
+				);
+			}
+#endif
 		}
 
 		virtual void OnClose()
@@ -703,8 +1050,13 @@ namespace AL::OS
 		// @return false to cancel
 		virtual bool OnClosing()
 		{
+			if (!IsClosable())
+			{
 
-			return IsClosable();
+				return false;
+			}
+
+			return true;
 		}
 
 		// @throw AL::Exceptions::Exception
@@ -720,6 +1072,28 @@ namespace AL::OS
 		// @throw AL::Exceptions::Exception
 		virtual void OnUpdate(TimeSpan delta)
 		{
+			MSG msg;
+			msg.message = WM_NULL;
+
+			while (PeekMessageA(&msg, NULL, 0, 0, PM_REMOVE))
+			{
+				TranslateMessage(&msg);
+
+				if (msg.message == WM_QUIT)
+				{
+					isOpen = false;
+
+					if (!destroyOnClose)
+					{
+
+						Destroy();
+					}
+
+					break;
+				}
+
+				DispatchMessageA(&msg);
+			}
 		}
 
 		// @throw AL::Exceptions::Exception
@@ -731,8 +1105,13 @@ namespace AL::OS
 		// @return false to prevent move
 		virtual bool OnPositionChanging()
 		{
+			if (!IsMovable())
+			{
 
-			return IsMovable();
+				return false;
+			}
+
+			return true;
 		}
 		
 		// @throw AL::Exceptions::Exception
@@ -744,8 +1123,13 @@ namespace AL::OS
 		// @return false to prevent resize
 		virtual bool OnResolutionChanging()
 		{
+			if (!IsResizable())
+			{
 
-			return IsResizable();
+				return false;
+			}
+
+			return true;
 		}
 
 		// @throw AL::Exceptions::Exception
@@ -1057,6 +1441,23 @@ namespace AL::OS
 					}
 				}
 				break;
+
+				case WM_CLOSE:
+				{
+					if (OnClosing())
+					{
+						OnClose();
+
+						DestroyWindow(
+							GetHandle()
+						);
+					}
+				}
+				break;
+
+				case WM_DESTROY:
+					PostQuitMessage(0);
+					break;
 			}
 
 			return DefWindowProc(
@@ -1074,9 +1475,21 @@ namespace AL::OS
 		{
 			AL_ASSERT(!IsCreated(), "Window already created");
 
-			OnCreate();
+			isCreating = true;
+
+			try
+			{
+				OnCreate();
+			}
+			catch (Exceptions::Exception&)
+			{
+				isCreating = false;
+
+				throw;
+			}
 
 			isCreated = true;
+			isCreating = false;
 		}
 
 		void Destroy()
@@ -1089,42 +1502,134 @@ namespace AL::OS
 			}
 		}
 
-		// @throw AL::Exceptions::Exception
-		void Run(uint32 tickRate)
+		static HICON LoadNativeIcon(WindowIcons icon)
 		{
-			AL_ASSERT(IsCreated(), "Window not created");
-			AL_ASSERT(IsOpen(), "Window not open");
+			switch (icon)
+			{
+				case WindowIcons::None:
+					return nullptr;
 
-			do
+				case WindowIcons::Custom:
+					throw Exceptions::NotImplementedException();
+
+				case WindowIcons::Default:
+					return LoadIcon(NULL, IDI_APPLICATION);;
+
+				case WindowIcons::Asterisk:
+					return LoadIcon(NULL, IDI_ASTERISK);
+
+				case WindowIcons::Error:
+					return LoadIcon(NULL, IDI_ERROR);
+
+				case WindowIcons::Question:
+					return LoadIcon(NULL, IDI_QUESTION);
+
+				case WindowIcons::Shield:
+					return LoadIcon(NULL, IDI_SHIELD);
+
+				case WindowIcons::Warning:
+					return LoadIcon(NULL, IDI_WARNING);
+			}
+
+			return nullptr;
+		}
+
+		static HCURSOR LoadNativeCursor(WindowCursors cursor)
+		{
+			switch (cursor)
+			{
+				case WindowCursors::None:
+					return nullptr;
+
+				case WindowCursors::Arrow:
+					return LoadCursor(NULL, IDC_ARROW);
+
+				case WindowCursors::Beam:
+					return LoadCursor(NULL, IDC_IBEAM);
+
+				case WindowCursors::Wait:
+					return LoadCursor(NULL, IDC_WAIT);
+
+				case WindowCursors::Hand:
+					return LoadCursor(NULL, IDC_HAND);
+
+				case WindowCursors::Help:
+					return LoadCursor(NULL, IDC_HELP);
+			}
+
+			return nullptr;
+		}
+
+		// @throw AL::Exceptions::Exception
+		static void SetNativeWindowLongPtr(HWND hWnd, int index, LONG_PTR value, bool set = true)
+		{
+			BitMask<LONG_PTR> mask;
+
+			if (!(mask.Mask = GetWindowLongPtr(hWnd, index)))
 			{
 
-			} while (IsOpen());
+				throw Exceptions::SystemException(
+					"GetWindowLongPtr"
+				);
+			}
+
+			mask.Set(
+				value,
+				set
+			);
+
+			if (!SetWindowLongPtr(hWnd, index, mask.Mask))
+			{
+
+				throw Exceptions::SystemException(
+					"SetWindowLongPtr"
+				);
+			}
 		}
 
-		// @throw AL::Exceptions::Exception
-		void Draw(float delta)
+#if defined(AL_PLATFORM_WINDOWS)
+		static LRESULT CALLBACK NativeWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
-			AL_ASSERT(IsOpen(), "Window not open");
-			AL_ASSERT(IsCreated(), "Window not created");
+#if defined(AL_X86)
+			static constexpr int USER_DATA_INDEX = GWL_USERDATA;
+#elif defined(AL_X86_64)
+			static constexpr int USER_DATA_INDEX = GWLP_USERDATA;
+#endif
 
-			OnDraw(
-				delta
-			);
+			if (message == WM_CREATE)
+			{
+				auto lpWindow = reinterpret_cast<Window*>(
+					reinterpret_cast<CREATESTRUCT*>(
+						lParam
+					)->lpCreateParams
+				);
 
-			OnEndDraw(
-				delta
+				SetWindowLongPtr(
+					hWnd,
+					USER_DATA_INDEX,
+					reinterpret_cast<LONG_PTR>(
+						lpWindow
+					)
+				);
+			}
+
+			else if (auto lpWindow = reinterpret_cast<Window*>(GetWindowLongPtr(hWnd, USER_DATA_INDEX)))
+			{
+
+				return lpWindow->HandleNativeMessage(
+					message,
+					wParam,
+					lParam
+				);
+			}
+
+			return DefWindowProc(
+				hWnd,
+				message,
+				wParam,
+				lParam
 			);
 		}
-
-		// @throw AL::Exceptions::Exception
-		void Update(TimeSpan delta)
-		{
-			AL_ASSERT(IsOpen(), "Window not open");
-			AL_ASSERT(IsCreated(), "Window not created");
-
-			OnUpdate(
-				delta
-			);
-		}
+#endif
 	};
 }

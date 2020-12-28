@@ -1,6 +1,11 @@
 #pragma once
 #include "AL/Common.hpp"
 
+#include "Color.hpp"
+#include "Colors.hpp"
+#include "Vector.hpp"
+#include "Rectangle.hpp"
+
 #if defined(AL_PLATFORM_LINUX)
 	#include "AL/OpenGL/Device.hpp"
 #elif defined(AL_PLATFORM_WINDOWS)
@@ -15,11 +20,20 @@ namespace AL::Graphics
 	class RenderTarget
 	{
 		bool isCreated = false;
+		bool isTargetCreated = false;
+
+		bool isVSyncEnabled = true;
+
+		Color backgroundColor;
 
 		RenderWindow* const lpWindow;
 
+#if defined(AL_PLATFORM_LINUX)
+		OpenGL::Device openGL;
+#elif defined(AL_PLATFORM_WINDOWS)
 		DirectX::Direct2D direct2D;
 		DirectX::Direct3D direct3D;
+#endif
 
 		RenderTarget(RenderTarget&&) = delete;
 		RenderTarget(const RenderTarget&) = delete;
@@ -28,6 +42,9 @@ namespace AL::Graphics
 		explicit RenderTarget(RenderWindow& window)
 			: lpWindow(
 				&window
+			),
+			backgroundColor(
+				Colors::CornflowerBlue
 			)
 		{
 		}
@@ -42,6 +59,16 @@ namespace AL::Graphics
 			return isCreated;
 		}
 
+		bool IsTargetCreated() const
+		{
+			return isTargetCreated;
+		}
+
+		bool IsVSyncEnabled() const
+		{
+			return isVSyncEnabled;
+		}
+
 		auto& GetWindow()
 		{
 			return *lpWindow;
@@ -51,6 +78,16 @@ namespace AL::Graphics
 			return *lpWindow;
 		}
 
+#if defined(AL_PLATFORM_LINUX)
+		auto& GetOpenGL()
+		{
+			return openGL;
+		}
+		auto& GetOpenGL() const
+		{
+			return openGL;
+		}
+#elif defined(AL_PLATFORM_WINDOWS)
 		auto& GetDirect2D()
 		{
 			return direct2D;
@@ -68,41 +105,116 @@ namespace AL::Graphics
 		{
 			return direct3D;
 		}
+#endif
 
-		// @throw AL::Exceptions::Exception
-		void Create()
+		auto GetBackgroundColor() const
 		{
-			AL_ASSERT(!IsCreated(), "RenderTarget already created");
-
-
-
-			isCreated = true;
+			return backgroundColor;
 		}
 
-		void Destroy()
+		void EnableVSync(bool set = true)
 		{
-			if (IsCreated())
+			isVSyncEnabled = set;
+		}
+
+		void SetBackgroundColor(Color value)
+		{
+			backgroundColor = value;
+		}
+
+		// @throw AL::Exceptions::Exception
+		void Create();
+
+		void Destroy();
+
+		// @throw AL::Exceptions::Exception
+		void CreateTarget();
+
+		void DestroyTarget();
+
+		// @throw AL::Exceptions::Exception
+		void Clear()
+		{
+			AL_ASSERT(IsCreated(), "RenderTarget not created");
+			AL_ASSERT(IsTargetCreated(), "RenderTarget target not created");
+
+#if defined(AL_PLATFORM_LINUX)
+
+#elif defined(AL_PLATFORM_WINDOWS)
+			try
+			{
+				GetDirect3D().Clear(
+					GetBackgroundColor()
+				);
+			}
+			catch (Exceptions::Exception& exception)
 			{
 
-
-				isCreated = false;
+				throw Exceptions::Exception(
+					Move(exception),
+					"Error clearing DirectX::Direct3D"
+				);
 			}
+
+			try
+			{
+				GetDirect2D().BeginDraw();
+			}
+			catch (Exceptions::Exception& exception)
+			{
+
+				throw Exceptions::Exception(
+					Move(exception),
+					"Error beginning DirectX::Direct2D draw"
+				);
+			}
+#endif
 		}
 
 		// @throw AL::Exceptions::Exception
-		void Clear(Color color)
+		// @return false if target needs recreated
+		bool Present()
 		{
 			AL_ASSERT(IsCreated(), "RenderTarget not created");
+			AL_ASSERT(IsTargetCreated(), "RenderTarget target not created");
 
+#if defined(AL_PLATFORM_LINUX)
 
-		}
+#elif defined(AL_PLATFORM_WINDOWS)
+			try
+			{
+				if (!GetDirect2D().EndDraw())
+				{
 
-		// @throw AL::Exceptions::Exception
-		void Present(bool vsync)
-		{
-			AL_ASSERT(IsCreated(), "RenderTarget not created");
+					return false;
+				}
+			}
+			catch (Exceptions::Exception& exception)
+			{
 
+				throw Exceptions::Exception(
+					Move(exception),
+					"Error ending DirectX::Direct2D draw"
+				);
+			}
 
+			try
+			{
+				GetDirect3D().Present(
+					IsVSyncEnabled()
+				);
+			}
+			catch (Exceptions::Exception& exception)
+			{
+
+				throw Exceptions::Exception(
+					Move(exception),
+					"Error presenting DirectX::Direct3D"
+				);
+			}
+#endif
+
+			return true;
 		}
 	};
 }
