@@ -972,9 +972,11 @@ namespace AL::OS
 			
 			try
 			{
+#if defined(AL_PLATFORM_WINDOWS)
 				SetIcon(
 					wClass.hIcon
 				);
+#endif
 
 				SetTitle(
 					GetTitle()
@@ -1072,6 +1074,7 @@ namespace AL::OS
 		// @throw AL::Exceptions::Exception
 		virtual void OnUpdate(TimeSpan delta)
 		{
+#if defined(AL_PLATFORM_WINDOWS)
 			MSG msg;
 			msg.message = WM_NULL;
 
@@ -1094,6 +1097,7 @@ namespace AL::OS
 
 				DispatchMessageA(&msg);
 			}
+#endif
 		}
 
 		// @throw AL::Exceptions::Exception
@@ -1502,6 +1506,7 @@ namespace AL::OS
 			}
 		}
 
+#if defined(AL_PLATFORM_WINDOWS)
 		static HICON LoadNativeIcon(WindowIcons icon)
 		{
 			switch (icon)
@@ -1587,7 +1592,6 @@ namespace AL::OS
 			}
 		}
 
-#if defined(AL_PLATFORM_WINDOWS)
 		static LRESULT CALLBACK NativeWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 #if defined(AL_X86)
