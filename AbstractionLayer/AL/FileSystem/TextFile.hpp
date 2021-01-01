@@ -100,7 +100,7 @@ namespace AL::FileSystem
 				value.Clear();
 			}
 
-			while (bytesRead = File::Read(&lineChunkBuffer[0], chunkSize * sizeof(String::Char)))
+			while ((bytesRead = File::Read(&lineChunkBuffer[0], chunkSize * sizeof(String::Char))) != 0)
 			{
 				totalBytesRead += bytesRead;
 				lineChunkBuffer[static_cast<size_t>(bytesRead / sizeof(String::Char))] = String::END;
