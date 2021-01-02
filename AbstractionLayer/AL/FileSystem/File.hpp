@@ -611,7 +611,7 @@ namespace AL::FileSystem
 			size_t bytesWritten = 0;
 
 #if defined(AL_PLATFORM_LINUX)
-			if ((bytesWritten = fwrite(lpBuffer, size, 1, GetHandle())) == 0)
+			if ((bytesWritten = fwrite(lpBuffer, 1, size, GetHandle())) == 0)
 			{
 
 				throw Exceptions::SystemException(
