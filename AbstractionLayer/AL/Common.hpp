@@ -2427,6 +2427,10 @@ namespace AL
 				delete lpLambda;
 			}
 
+			virtual ~ILambda()
+			{
+			}
+
 			virtual uint32 GetHash() const = 0;
 			
 			virtual ILambda* Copy() const = 0;
