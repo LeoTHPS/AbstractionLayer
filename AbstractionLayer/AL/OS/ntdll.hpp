@@ -5,6 +5,8 @@
 	#error Platform not supported
 #endif
 
+#pragma comment(lib, "ntdll.lib")
+
 extern "C"
 {
 	NTSTATUS NTAPI RtlAdjustPrivilege(ULONG ulPrivilege, BOOLEAN bEnable, BOOLEAN bCurrentThread, PBOOLEAN pbOldValue);
