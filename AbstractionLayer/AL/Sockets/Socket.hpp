@@ -641,7 +641,7 @@ namespace AL::Sockets
 #if defined(AL_PLATFORM_LINUX)
 			if ((socket.hSocket = accept(GetHandle(), nullptr, nullptr)) == INVALID_SOCKET)
 			{
-				auto lastError = GetLastError();
+				auto lastError = OS::GetLastError();
 
 				if ((lastError != EAGAIN) && (lastError != EWOULDBLOCK))
 				{
@@ -657,7 +657,7 @@ namespace AL::Sockets
 #elif defined(AL_PLATFORM_WINDOWS)
 			if ((socket.hSocket = WSAAccept(GetHandle(), nullptr, nullptr, nullptr, 0)) == INVALID_SOCKET)
 			{
-				auto lastError = GetLastError();
+				auto lastError = OS::GetLastError();
 
 				if (lastError != WSAEWOULDBLOCK)
 				{
@@ -778,7 +778,7 @@ namespace AL::Sockets
 #if defined(AL_PLATFORM_LINUX)
 			if (connect(GetHandle(), reinterpret_cast<const sockaddr*>(&address), addressSize) == SOCKET_ERROR)
 			{
-				auto lastError = GetLastError();
+				auto lastError = OS::GetLastError();
 
 				switch (lastError)
 				{
@@ -797,7 +797,7 @@ namespace AL::Sockets
 #elif defined(AL_PLATFORM_WINDOWS)
 			if (connect(GetHandle(), reinterpret_cast<const sockaddr*>(&address), addressSize) == SOCKET_ERROR)
 			{
-				auto lastError = GetLastError();
+				auto lastError = OS::GetLastError();
 
 				switch (lastError)
 				{
@@ -876,7 +876,7 @@ namespace AL::Sockets
 			if (bytesRead == SOCKET_ERROR)
 			{
 #if defined(AL_PLATFORM_LINUX)
-				auto errorCode = GetLastError();
+				auto errorCode = OS::GetLastError();
 
 				if ((errorCode != EAGAIN) && (errorCode != EWOULDBLOCK))
 				{
@@ -897,7 +897,7 @@ namespace AL::Sockets
 
 				bytesRead = WOULD_BLOCK;
 #elif defined(AL_PLATFORM_WINDOWS)
-				switch (auto errorCode = GetLastError())
+				switch (auto errorCode = OS::GetLastError())
 				{
 					case WSAEWOULDBLOCK:
 						bytesRead = WOULD_BLOCK;
@@ -951,7 +951,7 @@ namespace AL::Sockets
 			if (bytesSent == SOCKET_ERROR)
 			{
 #if defined(AL_PLATFORM_LINUX)
-				auto errorCode = GetLastError();
+				auto errorCode = OS::GetLastError();
 
 				if ((errorCode != EAGAIN) && (errorCode != EWOULDBLOCK))
 				{
@@ -972,7 +972,7 @@ namespace AL::Sockets
 
 				bytesSent = WOULD_BLOCK;
 #elif defined(AL_PLATFORM_WINDOWS)
-				switch (auto errorCode = GetLastError())
+				switch (auto errorCode = OS::GetLastError())
 				{
 					case WSAEWOULDBLOCK:
 						bytesSent = WOULD_BLOCK;
