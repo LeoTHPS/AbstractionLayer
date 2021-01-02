@@ -3216,6 +3216,10 @@ namespace AL
 	#include "Exceptions/DotNETException.hpp"
 #endif
 
+#if defined(AL_PLATFORM_WINDOWS)
+	#include "OS/ntdll.hpp"
+#endif
+
 #include "OS/Debug.hpp"
 #include "OS/Console.hpp"
 
