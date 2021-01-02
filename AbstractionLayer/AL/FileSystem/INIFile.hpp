@@ -321,7 +321,7 @@ namespace AL::FileSystem
 
 			fields.EmplaceBack(
 				String(fieldName),
-				String("")
+				String("\"\"")
 			);
 
 			return *fields.GetBack();
