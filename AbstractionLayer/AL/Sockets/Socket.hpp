@@ -1150,7 +1150,11 @@ namespace AL::Sockets
 		{
 			typename _Socket_SocketAddress<ADDRESS_FAMILY>::Type address;
 
+#if !defined(AL_PLATFORM_WINDOWS)
+			socklen_t addressSize = sizeof(address);
+#else
 			int addressSize = sizeof(address);
+#endif
 
 			if (getsockname(socket, reinterpret_cast<sockaddr*>(&address), &addressSize) == SOCKET_ERROR)
 			{
@@ -1172,7 +1176,11 @@ namespace AL::Sockets
 		{
 			typename _Socket_SocketAddress<ADDRESS_FAMILY>::Type address;
 
+#if !defined(AL_PLATFORM_WINDOWS)
+			socklen_t addressSize = sizeof(address);
+#else
 			int addressSize = sizeof(address);
+#endif
 
 			if (getpeername(socket, reinterpret_cast<sockaddr*>(&address), &addressSize) == SOCKET_ERROR)
 			{
