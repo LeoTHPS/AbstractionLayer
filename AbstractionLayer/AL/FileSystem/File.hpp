@@ -426,23 +426,8 @@ namespace AL::FileSystem
 #if defined(AL_PLATFORM_LINUX)
 			char _mode[3] = { 0 };
 
-			// r/r+
-			if (!mode.IsSet(FileOpenModes::Binary))
-			{
-				if (mode.IsSet(FileOpenModes::Read))
-				{
-
-					_mode[0] = 'r';
-				}
-
-				if (mode.IsSet(FileOpenModes::Write))
-				{
-
-					_mode[1] = '+';
-				}
-			}
 			// w/w+
-			else if(mode.IsSet(FileOpenModes::Truncate))
+			if(mode.IsSet(FileOpenModes::Truncate))
 			{
 				_mode[0] = 'w';
 
@@ -458,6 +443,21 @@ namespace AL::FileSystem
 				_mode[0] = 'a';
 
 				if (mode.IsSet(FileOpenModes::Read))
+				{
+
+					_mode[1] = '+';
+				}
+			}
+			// r/r+
+			else if (!mode.IsSet(FileOpenModes::Binary))
+			{
+				if (mode.IsSet(FileOpenModes::Read))
+				{
+
+					_mode[0] = 'r';
+				}
+
+				if (mode.IsSet(FileOpenModes::Write))
 				{
 
 					_mode[1] = '+';
