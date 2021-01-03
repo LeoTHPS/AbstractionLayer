@@ -50,8 +50,8 @@ namespace AL::Sockets
 #endif
 	};
 
-	typedef Function<void(void* lpBuffer, size_t bytesTransferred, Exceptions::Exception* lpException)> SocketAsyncReadCallback;
-	typedef Function<void(const void* lpBuffer, size_t bytesTransferred, Exceptions::Exception* lpException)> SocketAsyncWriteCallback;
+	typedef Function<void(void* lpBuffer, uint32 bytesTransferred, Exceptions::Exception* lpException)> SocketAsyncReadCallback;
+	typedef Function<void(const void* lpBuffer, uint32 bytesTransferred, Exceptions::Exception* lpException)> SocketAsyncWriteCallback;
 
 	template<AddressFamilies>
 	struct _Socket_SocketAddress;
@@ -302,8 +302,8 @@ namespace AL::Sockets
 		Socket(const Socket&) = delete;
 
 	public:
-		static constexpr size_t WOULD_BLOCK = -1;
-		static constexpr size_t CONNECTION_CLOSED = 0;
+		static constexpr uint32 WOULD_BLOCK = ~0;
+		static constexpr uint32 CONNECTION_CLOSED = 0;
 
 		Socket(Socket&& socket)
 			: isOpen(
@@ -861,12 +861,12 @@ namespace AL::Sockets
 		// @return WOULD_BLOCK if would block
 		// @return CONNECTION_CLOSED on connection closed
 		// @return number of bytes received
-		size_t Read(void* lpBuffer, uint32 size)
+		uint32 Read(void* lpBuffer, uint32 size)
 		{
 			AL_ASSERT(IsOpen(), "Socket not open");
 			AL_ASSERT(IsConnected(), "Socket not connected");
 
-			int bytesRead = recv(
+			auto bytesRead = recv(
 				GetHandle(),
 				static_cast<char*>(lpBuffer),
 				static_cast<int>(size),
@@ -895,13 +895,12 @@ namespace AL::Sockets
 					);
 				}
 
-				bytesRead = WOULD_BLOCK;
+				return WOULD_BLOCK;
 #elif defined(AL_PLATFORM_WINDOWS)
 				switch (auto errorCode = OS::GetLastError())
 				{
 					case WSAEWOULDBLOCK:
-						bytesRead = WOULD_BLOCK;
-						break;
+						return WOULD_BLOCK;
 
 					case WSAENETDOWN:
 					case WSAENETRESET:
@@ -909,7 +908,7 @@ namespace AL::Sockets
 					case WSAECONNRESET:
 					case WSAECONNABORTED:
 						Close();
-						break;
+						return CONNECTION_CLOSED;
 
 					default:
 						throw Exceptions::SocketException(
@@ -924,10 +923,10 @@ namespace AL::Sockets
 			{
 				Close();
 
-				bytesRead = CONNECTION_CLOSED;
+				return CONNECTION_CLOSED;
 			}
 
-			return static_cast<size_t>(
+			return static_cast<uint32>(
 				bytesRead
 			);
 		}
@@ -936,12 +935,12 @@ namespace AL::Sockets
 		// @return WOULD_BLOCK if would block
 		// @return CONNECTION_CLOSED on connection closed
 		// @return number of bytes transmitted
-		size_t Write(const void* lpBuffer, uint32 size)
+		uint32 Write(const void* lpBuffer, uint32 size)
 		{
 			AL_ASSERT(IsOpen(), "Socket not open");
 			AL_ASSERT(IsConnected(), "Socket not connected");
 
-			int bytesSent = send(
+			auto bytesSent = send(
 				GetHandle(),
 				static_cast<const char*>(lpBuffer),
 				static_cast<int>(size),
@@ -970,13 +969,12 @@ namespace AL::Sockets
 					);
 				}
 
-				bytesSent = WOULD_BLOCK;
+				return WOULD_BLOCK;
 #elif defined(AL_PLATFORM_WINDOWS)
 				switch (auto errorCode = OS::GetLastError())
 				{
 					case WSAEWOULDBLOCK:
-						bytesSent = WOULD_BLOCK;
-						break;
+						return WOULD_BLOCK;
 
 					case WSAENETDOWN:
 					case WSAENETRESET:
@@ -985,8 +983,7 @@ namespace AL::Sockets
 					case WSAECONNABORTED:
 					case WSAEHOSTUNREACH:
 						Close();
-						bytesSent = CONNECTION_CLOSED;
-						break;
+						return CONNECTION_CLOSED;
 
 					default:
 						throw Exceptions::SocketException(
@@ -995,39 +992,37 @@ namespace AL::Sockets
 						);
 				}
 #endif
-
 			}
 
 			else if (bytesSent == 0)
 			{
 				Close();
 
-				bytesSent = CONNECTION_CLOSED;
+				return CONNECTION_CLOSED;
 			}
 
-			return static_cast<size_t>(
+			return static_cast<uint32>(
 				bytesSent
 			);
 		}
 
 		// @throw AL::Exceptions::Exception
 		// @return false on connection closed
-		bool WriteAll(const void* lpBuffer, size_t size)
+		bool WriteAll(const void* lpBuffer, uint32 size)
 		{
-			size_t ret;
-
-			for (size_t i = 0; i < size; )
+			for (uint32 totalBytesSent = 0; totalBytesSent < size; )
 			{
-				if ((ret = Write(&reinterpret_cast<const uint8*>(lpBuffer)[i], size - i)) == 0)
+				switch (auto bytesSent = Write(&reinterpret_cast<const uint8*>(lpBuffer)[totalBytesSent], size - totalBytesSent))
 				{
+					case WOULD_BLOCK:
+						break;
 
-					return false;
-				}
+					case CONNECTION_CLOSED:
+						return false;
 
-				if (ret > 0)
-				{
-
-					i += ret;
+					default:
+						totalBytesSent += bytesSent;
+						break;
 				}
 			}
 
@@ -1036,7 +1031,7 @@ namespace AL::Sockets
 
 		// @throw AL::Exceptions::Exception
 		// @return false on connection closed
-		bool ReadAsync(void* lpBuffer, size_t size, SocketAsyncReadCallback&& callback, Tasks::TaskThreadPool& threadPool)
+		bool ReadAsync(void* lpBuffer, uint32 size, SocketAsyncReadCallback&& callback, Tasks::TaskThreadPool& threadPool)
 		{
 			AL_ASSERT(IsOpen(), "Socket not open");
 			AL_ASSERT(IsConnected(), "Socket not connected");
@@ -1044,21 +1039,27 @@ namespace AL::Sockets
 			Tasks::Task task(
 				[this, lpBuffer, size, callback = Move(callback)]()
 				{
-					size_t bytesTransferred;
-
 					try
 					{
-						bytesTransferred = Read(
+						auto bytesTransferred = Read(
 							lpBuffer,
 							size
 						);
 
-						callback(lpBuffer, bytesTransferred, nullptr);
+						callback(
+							lpBuffer,
+							bytesTransferred,
+							nullptr
+						);
 					}
 					catch (Exceptions::Exception& exception)
 					{
 
-						callback(lpBuffer, 0, &exception);
+						callback(
+							lpBuffer,
+							0,
+							&exception
+						);
 					}
 				}
 			);
@@ -1080,28 +1081,35 @@ namespace AL::Sockets
 			Tasks::Task task(
 				[this, lpBuffer, size, callback = Move(callback)]()
 				{
-					size_t bytesTransferred;
-
 					try
 					{
-						bytesTransferred = Write(
+						auto bytesTransferred = Write(
 							lpBuffer,
 							size
 						);
 
-						callback(lpBuffer, bytesTransferred, nullptr);
+						callback(
+							lpBuffer,
+							bytesTransferred,
+							nullptr
+						);
 					}
 					catch (Exceptions::Exception& exception)
 					{
 
-						callback(lpBuffer, 0, &exception);
+						callback(
+							lpBuffer,
+							0,
+							&exception
+						);
 					}
 				}
 			);
 
-			threadPool.Post(
-				Move(task)
-			);
+			if (!threadPool.Post(Move(task)))
+			{
+				// TODO: handle no available thread
+			}
 
 			return true;
 		}
