@@ -3200,6 +3200,92 @@ namespace AL
 #endif
 	}
 
+	template<typename T>
+	class Pointer
+	{
+		struct Context
+		{
+			T*     lpValue;
+			size_t RefCount;
+		};
+
+		mutable Context* lpContext;
+
+	public:
+		Pointer()
+			: Pointer(
+				nullptr
+			)
+		{
+		}
+
+		Pointer(T* lpValue)
+			: lpContext(
+				(lpValue != nullptr) ? new Context() : nullptr
+			)
+		{
+			if (lpValue != nullptr)
+			{
+				lpContext->lpValue = lpValue;
+				lpContext->RefCount = 1;
+			}
+		}
+
+		Pointer(Pointer&& pointer)
+			: lpContext(
+				pointer.lpContext
+			)
+		{
+			pointer.lpContext = nullptr;
+		}
+
+		Pointer(const Pointer& pointer)
+			: lpContext(
+				pointer.lpContext
+			)
+		{
+			++lpContext->RefCount;
+		}
+
+		virtual ~Pointer()
+		{
+			if (lpContext != nullptr)
+			{
+				if (--lpContext->RefCount == 0)
+				{
+					delete lpContext->lpValue;
+					delete lpContext;
+				}
+			}
+		}
+
+		operator bool () const
+		{
+			if (lpContext == nullptr)
+			{
+
+				return false;
+			}
+
+			if (lpContext->lpValue == nullptr)
+			{
+
+				return false;
+			}
+
+			return true;
+		}
+
+		T* operator -> ()
+		{
+			return (lpContext != nullptr) ? lpContext->lpValue : nullptr;
+		}
+		const T* operator -> () const
+		{
+			return (lpContext != nullptr) ? lpContext->lpValue : nullptr;
+		}
+	};
+
 #if defined(AL_PLATFORM_LINUX)
 	typedef int(Main)(int argc, char* argv[]);
 #elif defined(AL_PLATFORM_WINDOWS)
