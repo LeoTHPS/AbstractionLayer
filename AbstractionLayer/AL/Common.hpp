@@ -3244,7 +3244,10 @@ namespace AL
 				pointer.lpContext
 			)
 		{
-			++lpContext->RefCount;
+			if (lpContext != nullptr)
+			{
+				++lpContext->RefCount;
+			}
 		}
 
 		virtual ~Pointer()
