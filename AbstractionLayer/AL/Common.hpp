@@ -3252,6 +3252,19 @@ namespace AL
 
 		virtual ~Pointer()
 		{
+			Release();
+		}
+
+		void AddReference()
+		{
+			if (lpContext != nullptr)
+			{
+				++lpContext->RefCount;
+			}
+		}
+		
+		void Release()
+		{
 			if (lpContext != nullptr)
 			{
 				if (--lpContext->RefCount == 0)
@@ -3259,6 +3272,8 @@ namespace AL
 					delete lpContext->lpValue;
 					delete lpContext;
 				}
+
+				lpContext = nullptr;
 			}
 		}
 
@@ -3286,6 +3301,39 @@ namespace AL
 		const T* operator -> () const
 		{
 			return (lpContext != nullptr) ? lpContext->lpValue : nullptr;
+		}
+
+		Pointer& operator = (T* lpValue)
+		{
+			Release();
+
+			if ((lpContext = (lpValue ? new Context() : nullptr)) != nullptr)
+			{
+				lpContext->lpValue = lpValue;
+				lpContext->RefCount = 1;
+			}
+
+			return *this;
+		}
+		Pointer& operator = (Pointer&& pointer)
+		{
+			Release();
+
+			lpContext = pointer.lpContext;
+			pointer.lpContext = nullptr;
+
+			return *this;
+		}
+		Pointer& operator = (const Pointer& pointer)
+		{
+			Release();
+
+			if ((lpContext = pointer.lpContext) != nullptr)
+			{
+				++lpContext->RefCount;
+			}
+
+			return *this;
 		}
 	};
 
