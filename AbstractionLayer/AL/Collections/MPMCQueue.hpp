@@ -3,15 +3,13 @@
 
 #include "Queue.hpp"
 
-#include <mutex>
-
 namespace AL::Collections
 {
 	template<typename T>
 	class MPMCQueue
 	{
 		Queue<T> container;
-		std::mutex containerMutex;
+		OS::Mutex containerMutex;
 
 	public:
 		typedef T Type;
@@ -22,7 +20,7 @@ namespace AL::Collections
 
 		auto GetSize() const
 		{
-			std::lock_guard<std::mutex> lock(
+			OS::MutexGuard lock(
 				containerMutex
 			);
 
@@ -31,7 +29,7 @@ namespace AL::Collections
 
 		auto GetBack()
 		{
-			std::lock_guard<std::mutex> lock(
+			OS::MutexGuard lock(
 				containerMutex
 			);
 
@@ -39,7 +37,7 @@ namespace AL::Collections
 		}
 		auto GetBack() const
 		{
-			std::lock_guard<std::mutex> lock(
+			OS::MutexGuard lock(
 				containerMutex
 			);
 
@@ -48,7 +46,7 @@ namespace AL::Collections
 
 		auto GetFront()
 		{
-			std::lock_guard<std::mutex> lock(
+			OS::MutexGuard lock(
 				containerMutex
 			);
 
@@ -56,7 +54,7 @@ namespace AL::Collections
 		}
 		auto GetFront() const
 		{
-			std::lock_guard<std::mutex> lock(
+			OS::MutexGuard lock(
 				containerMutex
 			);
 
@@ -65,7 +63,7 @@ namespace AL::Collections
 
 		void Clear()
 		{
-			std::lock_guard<std::mutex> lock(
+			OS::MutexGuard lock(
 				containerMutex
 			);
 
@@ -74,7 +72,7 @@ namespace AL::Collections
 
 		void Swap(MPMCQueue& queue)
 		{
-			std::lock_guard<std::mutex> lock(
+			OS::MutexGuard lock(
 				containerMutex
 			);
 
@@ -85,7 +83,7 @@ namespace AL::Collections
 
 		void Enqueue(Type&& value)
 		{
-			std::lock_guard<std::mutex> lock(
+			OS::MutexGuard lock(
 				containerMutex
 			);
 
@@ -95,7 +93,7 @@ namespace AL::Collections
 		}
 		void Enqueue(const Type& value)
 		{
-			std::lock_guard<std::mutex> lock(
+			OS::MutexGuard lock(
 				containerMutex
 			);
 
@@ -107,7 +105,7 @@ namespace AL::Collections
 		template<typename ... TArgs>
 		void Emplace(TArgs ... args)
 		{
-			std::lock_guard<std::mutex> lock(
+			OS::MutexGuard lock(
 				containerMutex
 			);
 
@@ -118,7 +116,7 @@ namespace AL::Collections
 
 		bool Dequeue()
 		{
-			std::lock_guard<std::mutex> lock(
+			OS::MutexGuard lock(
 				containerMutex
 			);
 
@@ -126,7 +124,7 @@ namespace AL::Collections
 		}
 		bool Dequeue(Type& value)
 		{
-			std::lock_guard<std::mutex> lock(
+			OS::MutexGuard lock(
 				containerMutex
 			);
 
