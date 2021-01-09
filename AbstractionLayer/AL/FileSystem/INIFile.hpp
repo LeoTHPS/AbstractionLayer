@@ -330,6 +330,24 @@ namespace AL::FileSystem
 			return fields.cend();
 		}
 
+		auto& operator [] (String&& fieldName)
+		{
+			for (auto& field : fields)
+			{
+				if (field.GetName().Compare(fieldName))
+				{
+
+					return field;
+				}
+			}
+
+			fields.EmplaceBack(
+				Move(fieldName),
+				String("\"\"")
+			);
+
+			return *fields.GetBack();
+		}
 		auto& operator [] (const String& fieldName)
 		{
 			for (auto& field : fields)
@@ -558,6 +576,23 @@ namespace AL::FileSystem
 			return sections.cend();
 		}
 
+		auto& operator [] (String&& sectionName)
+		{
+			for (auto& section : sections)
+			{
+				if (section.GetName().Compare(sectionName))
+				{
+
+					return section;
+				}
+			}
+
+			sections.EmplaceBack(
+				Move(sectionName)
+			);
+
+			return *sections.GetBack();
+		}
 		auto& operator [] (const String& sectionName)
 		{
 			for (auto& section : sections)
