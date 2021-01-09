@@ -92,6 +92,65 @@ namespace AL::DotNET
 				ToNativeString(string)
 			);
 		}
+
+		generic<typename T>
+		static array<System::Byte>^ ToArray(T value)
+		{
+			auto hBuffer = System::Runtime::InteropServices::Marshal::AllocHGlobal(
+				sizeof(T)
+			);
+
+			System::Runtime::InteropServices::Marshal::StructureToPtr(
+				value,
+				hBuffer,
+				false
+			);
+
+			auto buffer = gcnew array<System::Byte>(
+				sizeof(T)
+			);
+
+			System::Runtime::InteropServices::Marshal::Copy(
+				hBuffer,
+				buffer,
+				0,
+				sizeof(T)
+			);
+
+			System::Runtime::InteropServices::Marshal::FreeHGlobal(
+				hBuffer
+			);
+
+			return buffer;
+		}
+
+		generic<typename T>
+		static T FromArray(array<System::Byte>^ buffer, System::UInt32 offset, System::UInt32 count)
+		{
+			auto hBuffer = System::Runtime::InteropServices::Marshal::AllocHGlobal(
+				buffer->Length
+			);
+
+			System::Runtime::InteropServices::Marshal::Copy(
+				buffer,
+				offset,
+				hBuffer,
+				count
+			);
+
+			auto obj = System::Runtime::InteropServices::Marshal::PtrToStructure(
+				hBuffer,
+				T::typeid
+			);
+
+			System::Runtime::InteropServices::Marshal::FreeHGlobal(
+				hBuffer
+			);
+
+			return static_cast<T>(
+				obj
+			);
+		}
 	};
 #endif
 }
