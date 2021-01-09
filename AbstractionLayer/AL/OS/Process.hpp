@@ -2,6 +2,7 @@
 #include "AL/Common.hpp"
 
 #include "AL/Collections/List.hpp"
+#include "AL/Collections/Array.hpp"
 
 #if defined(AL_PLATFORM_LINUX)
 	#include <signal.h>
@@ -21,22 +22,42 @@ namespace AL::OS
 	typedef uint64 ProcessAddress;
 #endif
 
-	template<size_t SIZE>
-	struct ProcessMemoryPattern
+	struct ProcessMemoryPatternEntry
 	{
-		char  Mask[SIZE];
-		uint8 Pattern[SIZE];
+		uint8 Value    = 0x00;
+		bool  Required = true;
+	};
 
+	class ProcessMemoryPattern
+	{
+		Collections::Array<ProcessMemoryPatternEntry> pattern;
+
+	public:
+		template<size_t SIZE>
 		ProcessMemoryPattern(const uint8(&pattern)[SIZE])
+			: pattern(
+				SIZE
+			)
 		{
-			memcpy(Pattern, pattern);
-			memset(Mask, 'x', SIZE);
+			ProcessMemoryPatternEntry* lpEntry;
+
+			for (size_t i = 0, lpEntry = &pattern[i]; i < SIZE; ++i, ++lpEntry)
+			{
+				lpEntry->Value = pattern[i];
+				lpEntry->Required = true;
+			}
 		}
-		
-		ProcessMemoryPattern(const uint8(&pattern)[SIZE], const char(&mask)[SIZE])
+
+		template<size_t SIZE>
+		ProcessMemoryPattern(const ProcessMemoryPatternEntry(&pattern)[SIZE])
+			: pattern(
+				SIZE
+			)
 		{
-			memcpy(Mask, mask);
-			memcpy(Pattern, pattern);
+			for (size_t i = 0; i < SIZE; ++i)
+			{
+				this->pattern[i] = pattern[i];
+			}
 		}
 	};
 
@@ -325,6 +346,11 @@ namespace AL::OS
 			return id;
 		}
 
+		auto GetInteropType() const
+		{
+			return interopType;
+		}
+
 #if defined(AL_PLATFORM_WINDOWS)
 		// @throw AL::Exceptions::Exception
 		ProcessExitCode GetExitCode() const
@@ -492,7 +518,7 @@ namespace AL::OS
 		// @throw AL::Exceptions::Exception
 		// @return false if not found
 		template<size_t SIZE>
-		bool SearchMemory(ProcessAddress& address, const ProcessMemoryPattern<SIZE>& pattern) const
+		bool SearchMemory(ProcessAddress& address, const ProcessMemoryPattern& pattern) const
 		{
 			bool found = false;
 
@@ -530,7 +556,7 @@ namespace AL::OS
 		// @throw AL::Exceptions::Exception
 		// @return false if not found
 		template<size_t SIZE>
-		bool SearchMemory(ProcessAddress& address, const ProcessMemoryPattern<SIZE>& pattern, ProcessAddress offset, ProcessAddress length) const;
+		bool SearchMemory(ProcessAddress& address, const ProcessMemoryPattern& pattern, ProcessAddress offset, ProcessAddress length) const;
 
 		// @throw AL::Exceptions::Exception
 		void EnumerateMemoryRegions(const ProcessEnumMemoryRegionsCallback& callback) const;
