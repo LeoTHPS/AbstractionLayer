@@ -221,7 +221,7 @@ namespace AL::FileSystem
 		{
 			this->value = String::Format(
 				"\"%s\"",
-				HexConverter::Encode(value).GetCString()
+				HexConverter::Encode(lpBuffer, size).GetCString()
 			);
 
 			attributes.Mask = INIFileFieldAttributes::Struct;
