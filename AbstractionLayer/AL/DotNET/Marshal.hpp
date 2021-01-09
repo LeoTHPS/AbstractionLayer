@@ -178,6 +178,14 @@ namespace AL::DotNET
 				static_cast<int>(count)
 			);
 		}
+
+		generic<typename T>
+		static System::UInt32 SizeOf()
+		{
+			return System::Runtime::InteropServices::Marshal::SizeOf(
+				T::typeid
+			);
+		}
 	};
 #endif
 }
