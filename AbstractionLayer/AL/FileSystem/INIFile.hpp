@@ -5,6 +5,7 @@
 
 #include "AL/Collections/Map.hpp"
 #include "AL/Collections/List.hpp"
+#include "AL/Collections/Array.hpp"
 
 namespace AL::FileSystem
 {
@@ -144,7 +145,20 @@ namespace AL::FileSystem
 			);
 		}
 
-		auto GetString() const
+		auto GetStructAsBuffer() const
+		{
+			AL_ASSERT(
+				IsStruct(),
+				"INIFileField type is not struct"
+			);
+
+			BaseConverterBuffer buffer;
+			HexConverter::Decode(buffer, GetString());
+
+			return buffer;
+		}
+
+		String GetString() const
 		{
 			AL_ASSERT(
 				IsString(),
@@ -196,6 +210,14 @@ namespace AL::FileSystem
 
 		template<typename T>
 		void SetStruct(const T& value)
+		{
+			SetStructAsBuffer(
+				&value,
+				sizeof(T)
+			);
+		}
+
+		void SetStructAsBuffer(const void* lpBuffer, size_t size)
 		{
 			this->value = String::Format(
 				"\"%s\"",
