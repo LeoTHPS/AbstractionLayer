@@ -97,7 +97,7 @@ namespace AL::DotNET
 		static array<System::Byte>^ ToArray(T value)
 		{
 			auto hBuffer = System::Runtime::InteropServices::Marshal::AllocHGlobal(
-				sizeof(T)
+				SizeOf<T>()
 			);
 
 			System::Runtime::InteropServices::Marshal::StructureToPtr(
@@ -107,14 +107,14 @@ namespace AL::DotNET
 			);
 
 			auto buffer = gcnew array<System::Byte>(
-				sizeof(T)
+				SizeOf<T>()
 			);
 
 			System::Runtime::InteropServices::Marshal::Copy(
 				hBuffer,
 				buffer,
 				0,
-				sizeof(T)
+				SizeOf<T>()
 			);
 
 			System::Runtime::InteropServices::Marshal::FreeHGlobal(
