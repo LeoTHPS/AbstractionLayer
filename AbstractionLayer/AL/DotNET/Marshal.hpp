@@ -151,6 +151,33 @@ namespace AL::DotNET
 				obj
 			);
 		}
+
+		static void Copy(void* source, array<System::Byte>^% destination, System::UInt32 offset, System::UInt32 count)
+		{
+			Copy(System::IntPtr(source), destination, offset, count);
+		}
+		static void Copy(System::IntPtr source, array<System::Byte>^% destination, System::UInt32 offset, System::UInt32 count)
+		{
+			System::Runtime::InteropServices::Marshal::Copy(
+				source,
+				destination,
+				static_cast<int>(offset),
+				static_cast<int>(count)
+			);
+		}
+		static void Copy(array<System::Byte>^ source, void* destination, System::UInt32 offset, System::UInt32 count)
+		{
+			Copy(source, System::IntPtr(destination), offset, count);
+		}
+		static void Copy(array<System::Byte>^ source, System::IntPtr destination, System::UInt32 offset, System::UInt32 count)
+		{
+			System::Runtime::InteropServices::Marshal::Copy(
+				source,
+				static_cast<int>(offset),
+				destination,
+				static_cast<int>(count)
+			);
+		}
 	};
 #endif
 }
