@@ -572,42 +572,46 @@ namespace AL::OS
 		{
 			AL_ASSERT(IsOpen(), "Process not open");
 
-			Collections::Array<uint8> buffer(
-				length
-			);
+			auto patternLength = pattern.GetLength();
 
-			ReadMemory(
-				offset,
-				&buffer[0],
-				length
-			);
-
-			auto pattern_Compare = [](const Collections::Array<uint8>& _buffer, const ProcessMemoryPattern& _pattern, size_t _offset)
+			if (patternLength <= length)
 			{
-				auto patternLength = _pattern.GetLength();
+				Collections::Array<uint8> buffer(
+					length
+				);
 
-				if ((_offset + patternLength) <= _buffer.GetSize())
+				ReadMemory(
+					offset,
+					&buffer[0],
+					length
+				);
+
+				for (size_t i = 0; i < length; ++i)
 				{
-					for (size_t i = 0, j = _offset; i < patternLength; ++i, ++j)
-					{
-						if (_pattern[i].Required && (_pattern[i].Value != _buffer[j]))
-						{
+					bool isMatch = true;
 
-							return false;
+					for (size_t j = 0; j < patternLength; ++j)
+					{
+						if (pattern[j].Required && (pattern[j].Value != buffer[i + j]))
+						{
+							isMatch = false;
+
+							break;
 						}
 					}
-				}
 
-				return true;
-			};
+					if (isMatch)
+					{
+						address = i;
 
-			for (size_t i = 0; i < length; ++i)
-			{
-				if (pattern_Compare(buffer, pattern, i))
-				{
-					address = offset + i;
+						return true;
+					}
+					
+					if ((i + patternLength) > length)
+					{
 
-					return true;
+						break;
+					}
 				}
 			}
 
