@@ -59,6 +59,20 @@ namespace AL::OS
 				this->pattern[i] = pattern[i];
 			}
 		}
+
+		auto GetLength() const
+		{
+			return pattern.GetSize();
+		}
+
+		auto& operator [] (size_t index)
+		{
+			return pattern[index];
+		}
+		auto& operator [] (size_t index) const
+		{
+			return pattern[index];
+		}
 	};
 
 	enum class ProcessInteropTypes
@@ -517,7 +531,6 @@ namespace AL::OS
 
 		// @throw AL::Exceptions::Exception
 		// @return false if not found
-		template<size_t SIZE>
 		bool SearchMemory(ProcessAddress& address, const ProcessMemoryPattern& pattern) const
 		{
 			bool found = false;
@@ -555,8 +568,51 @@ namespace AL::OS
 		}
 		// @throw AL::Exceptions::Exception
 		// @return false if not found
-		template<size_t SIZE>
-		bool SearchMemory(ProcessAddress& address, const ProcessMemoryPattern& pattern, ProcessAddress offset, ProcessAddress length) const;
+		bool SearchMemory(ProcessAddress& address, const ProcessMemoryPattern& pattern, ProcessAddress offset, ProcessAddress length) const
+		{
+			AL_ASSERT(IsOpen(), "Process not open");
+
+			Collections::Array<uint8> buffer(
+				length
+			);
+
+			ReadMemory(
+				offset,
+				&buffer[0],
+				length
+			);
+
+			auto pattern_Compare = [](const Collections::Array<uint8>& _buffer, const ProcessMemoryPattern& _pattern, size_t _offset)
+			{
+				auto patternLength = _pattern.GetLength();
+
+				if ((_offset + patternLength) <= _buffer.GetSize())
+				{
+					for (size_t i = 0, j = _offset; i < patternLength; ++i, ++j)
+					{
+						if (_pattern[i].Required && (_pattern[i].Value != _buffer[j]))
+						{
+
+							return false;
+						}
+					}
+				}
+
+				return true;
+			};
+
+			for (size_t i = 0; i < length; ++i)
+			{
+				if (pattern_Compare(buffer, pattern, i))
+				{
+					address = offset + i;
+
+					return true;
+				}
+			}
+
+			return false;
+		}
 
 		// @throw AL::Exceptions::Exception
 		void EnumerateMemoryRegions(const ProcessEnumMemoryRegionsCallback& callback) const;
