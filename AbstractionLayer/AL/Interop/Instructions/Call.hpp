@@ -88,7 +88,20 @@ namespace AL::Interop::Instructions
 				case Types::CallMemory:
 				{
 #if defined(AL_X86)
-					throw Exceptions::NotImplementedException();
+					buffer.SetSize(
+						sizeof(uint16) + sizeof(uint32)
+					);
+
+					auto lpOPCode = reinterpret_cast<uint16*>(
+						&buffer[0]
+					);
+					
+					auto lpAddress = reinterpret_cast<uint32*>(
+						&buffer[sizeof(uint16)]
+					);
+
+					*lpOPCode = 0xFF15;
+					*lpAddress = address;
 #elif defined(AL_X86_64)
 					throw Exceptions::NotImplementedException();
 #elif defined(AL_ARM) || defined(AL_ARM64)
@@ -100,7 +113,20 @@ namespace AL::Interop::Instructions
 				case Types::CallAddress:
 				{
 #if defined(AL_X86)
-					throw Exceptions::NotImplementedException();
+					buffer.SetSize(
+						sizeof(uint8) + sizeof(uint32)
+					);
+
+					auto lpOPCode = reinterpret_cast<uint8*>(
+						&buffer[0]
+					);
+
+					auto lpAddress = reinterpret_cast<uint32*>(
+						&buffer[sizeof(uint8)]
+					);
+
+					*lpOPCode = 0xE8;
+					*lpAddress = address;
 #elif defined(AL_X86_64)
 					throw Exceptions::NotImplementedException();
 #elif defined(AL_ARM) || defined(AL_ARM64)
