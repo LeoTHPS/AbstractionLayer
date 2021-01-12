@@ -39,7 +39,7 @@ namespace AL::USB
 		};
 
 		LibUSB libUSB;
-		uint32 interface;
+		uint32 _interface;
 
 		libusb_device_handle* lpHandle = nullptr;
 		libusb_device_descriptor descriptor;
@@ -268,7 +268,7 @@ namespace AL::USB
 		}
 
 		// @throw AL::Exceptions::Exception
-		void Open(uint32 interface)
+		void Open(uint32 _interface)
 		{
 			AL_ASSERT(!IsOpen(), "Device already open");
 
@@ -282,7 +282,7 @@ namespace AL::USB
 				);
 			}
 
-			if (libusb_claim_interface(lpHandle, static_cast<int>(interface)) != 0)
+			if (libusb_claim_interface(lpHandle, static_cast<int>(_interface)) != 0)
 			{
 				libusb_close(
 					lpHandle
@@ -295,7 +295,7 @@ namespace AL::USB
 				);
 			}
 
-			this->interface = interface;
+			this->_interface = _interface;
 	#else
 			throw Exceptions::DependencyMissingException(
 				"libusb"
@@ -314,7 +314,7 @@ namespace AL::USB
 	#if defined(AL_DEPENDENCY_LIBUSB)
 				libusb_release_interface(
 					lpHandle,
-					interface
+					_interface
 				);
 
 				libusb_close(
