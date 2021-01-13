@@ -1,6 +1,8 @@
 #pragma once
 #include "AL/Common.hpp"
 
+#include "AL/Collections/UnorderedSet.hpp"
+
 #if defined(AL_PLATFORM_LINUX)
 	#include <time.h>
 
@@ -142,6 +144,48 @@ namespace AL::OS
 #endif
 		}
 
+		static auto GetPageSize()
+		{
+#if defined(AL_PLATFORM_LINUX)
+
+#elif defined(AL_PLATFORM_WINDOWS)
+			SYSTEM_INFO systemInfo;
+			GetSystemInfo(&systemInfo);
+
+			return static_cast<size_t>(
+				systemInfo.dwPageSize
+			);
+#endif
+		}
+
+		static auto GetMinimumAddress()
+		{
+#if defined(AL_PLATFORM_LINUX)
+
+#elif defined(AL_PLATFORM_WINDOWS)
+			SYSTEM_INFO systemInfo;
+			GetSystemInfo(&systemInfo);
+
+			return reinterpret_cast<size_t>(
+				systemInfo.lpMinimumApplicationAddress
+			);
+#endif
+		}
+
+		static auto GetMaximumAddress()
+		{
+#if defined(AL_PLATFORM_LINUX)
+
+#elif defined(AL_PLATFORM_WINDOWS)
+			SYSTEM_INFO systemInfo;
+			GetSystemInfo(&systemInfo);
+
+			return reinterpret_cast<size_t>(
+				systemInfo.lpMaximumApplicationAddress
+			);
+#endif
+		}
+
 		static auto GetProcessorCount()
 		{
 #if defined(AL_PLATFORM_LINUX)
@@ -157,5 +201,144 @@ namespace AL::OS
 			);
 #endif
 		}
+
+		// @throw AL::Exceptions::Exception
+		static auto GetProcessorCacheCount()
+		{
+			size_t count = 0;
+
+#if defined(AL_PLATFORM_LINUX)
+			throw Exceptions::NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
+			Collections::UnorderedSet<size_t> levels;
+
+			EnumerateLogicalProcessorInformation(
+				[&count, &levels](const SYSTEM_LOGICAL_PROCESSOR_INFORMATION& _info)
+				{
+					if (_info.Relationship == LOGICAL_PROCESSOR_RELATIONSHIP::RelationCache)
+					{
+						if (!levels.Contains(_info.Cache.Level))
+						{
+							++count;
+
+							levels.Add(
+								_info.Cache.Level
+							);
+						}
+					}
+
+					return true;
+				}
+			);
+#endif
+
+			return count;
+		}
+
+		// @throw AL::Exceptions::Exception
+		static auto GetProcessorCacheSize(size_t cacheLevel)
+		{
+			size_t size = 0;
+
+#if defined(AL_PLATFORM_LINUX)
+			throw Exceptions::NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
+
+			EnumerateLogicalProcessorInformation(
+				[&size, cacheLevel](const SYSTEM_LOGICAL_PROCESSOR_INFORMATION& _info)
+				{
+					if (_info.Relationship == LOGICAL_PROCESSOR_RELATIONSHIP::RelationCache)
+					{
+						if (_info.Cache.Level == static_cast<BYTE>(cacheLevel))
+						{
+							size = _info.Cache.Size;
+
+							return false;
+						}
+					}
+
+					return true;
+				}
+			);
+#endif
+
+			return size;
+		}
+
+		// @throw AL::Exceptions::Exception
+		static auto GetProcessorCacheLineSize(size_t cacheLevel)
+		{
+			size_t lineSize = 0;
+
+#if defined(AL_PLATFORM_LINUX)
+			throw Exceptions::NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
+
+			EnumerateLogicalProcessorInformation(
+				[&lineSize, cacheLevel](const SYSTEM_LOGICAL_PROCESSOR_INFORMATION& _info)
+				{
+					if (_info.Relationship == LOGICAL_PROCESSOR_RELATIONSHIP::RelationCache)
+					{
+						if (_info.Cache.Level == static_cast<BYTE>(cacheLevel))
+						{
+							lineSize = _info.Cache.LineSize;
+							
+							return false;
+						}
+					}
+
+					return true;
+				}
+			);
+#endif
+
+			return lineSize;
+		}
+
+	private:
+#if defined(AL_PLATFORM_WINDOWS)
+		// @throw AL::Exceptions::Exception
+		template<typename F = bool(*)(const SYSTEM_LOGICAL_PROCESSOR_INFORMATION&)>
+		static void EnumerateLogicalProcessorInformation(F&& callback)
+		{
+			DWORD bufferSize = 0;
+
+			if (!GetLogicalProcessorInformation(nullptr, &bufferSize))
+			{
+				switch (auto lastErrorCode = GetLastError())
+				{
+					case ERROR_INSUFFICIENT_BUFFER:
+						break;
+
+					default:
+						throw Exceptions::SystemException(
+							"GetLogicalProcessorInformation",
+							lastErrorCode
+						);
+				}
+			}
+
+			Collections::Array<SYSTEM_LOGICAL_PROCESSOR_INFORMATION> buffer(
+				bufferSize
+			);
+
+			if (!GetLogicalProcessorInformation(&buffer[0], &bufferSize))
+			{
+
+				throw Exceptions::SystemException(
+					"GetLogicalProcessorInformation"
+				);
+			}
+			
+			for (size_t i = 0; i < bufferSize; ++i)
+			{
+				if (!callback(buffer[i]))
+				{
+
+					break;
+				}
+			}
+		}
+#endif
 	};
 }
