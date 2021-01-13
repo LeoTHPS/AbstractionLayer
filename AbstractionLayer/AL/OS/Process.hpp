@@ -619,7 +619,39 @@ namespace AL::OS
 		}
 
 		// @throw AL::Exceptions::Exception
-		void EnumerateMemoryRegions(const ProcessEnumMemoryRegionsCallback& callback) const;
+		void EnumerateMemoryRegions(const ProcessEnumMemoryRegionsCallback& callback) const
+		{
+			AL_ASSERT(IsOpen(), "Process not open");
+
+#if defined(AL_PLATFORM_LINUX)
+			throw Exceptions::NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
+			ProcessAddress address = System::GetMinimumAddress();
+			ProcessAddress addressEnd = System::GetMaximumAddress();
+
+			MEMORY_BASIC_INFORMATION mbi;
+
+			do
+			{
+				if (VirtualQueryEx(hProcess, reinterpret_cast<LPCVOID>(address), &mbi, sizeof(mbi)) == 0)
+				{
+
+					throw Exceptions::SystemException(
+						"VirtualQuery"
+					);
+				}
+
+				if (mbi.State & MEM_COMMIT)
+				{
+					if (!callback(reinterpret_cast<ProcessAddress>(mbi.BaseAddress), static_cast<ProcessAddress>(mbi.RegionSize)))
+					{
+
+						break;
+					}
+				}
+			} while ((address = (reinterpret_cast<size_t>(mbi.BaseAddress) + mbi.RegionSize)) < addressEnd);
+#endif
+		}
 
 		void Close()
 		{
