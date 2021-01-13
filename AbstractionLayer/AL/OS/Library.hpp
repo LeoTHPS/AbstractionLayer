@@ -196,6 +196,17 @@ namespace AL::OS
 #endif
 		}
 
+		auto GetBaseAddress() const
+		{
+#if defined(AL_PLATFORM_LINUX)
+
+#elif defined(AL_PLATFORM_WINDOWS)
+			return reinterpret_cast<void*>(
+				hModule
+			);
+#endif
+		}
+
 		// @throw AL::Exceptions::Exception
 		template<typename T>
 		auto Import(uint16 ordinal) const
