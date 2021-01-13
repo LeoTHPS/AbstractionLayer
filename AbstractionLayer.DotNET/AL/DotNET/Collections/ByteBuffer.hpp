@@ -973,3 +973,17 @@ namespace AL::DotNET::Collections
 		}
 	};
 }
+
+inline array<System::Byte>^ AL::DotNET::Extensions::ToArray(Collections::ByteBuffer^ buffer)
+{
+	auto _array = gcnew array<System::Byte>(
+		buffer->GetSize()
+	);
+
+	for (System::UInt32 i = 0; i < buffer->GetSize(); ++i)
+	{
+		_array[i] = buffer[i];
+	}
+
+	return _array;
+}

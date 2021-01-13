@@ -3,6 +3,11 @@
 
 #include <AL/DotNET/Marshal.hpp>
 
+namespace AL::DotNET::Collections
+{
+	ref class ByteBuffer;
+}
+
 namespace AL::DotNET
 {
 	public enum class Endians
@@ -103,6 +108,8 @@ namespace AL::DotNET
 				value
 			);
         }
+
+		static array<System::Byte>^ ToArray(Collections::ByteBuffer^ buffer);
 	};
 }
 
