@@ -39,12 +39,10 @@ namespace AL::OS
 				SIZE
 			)
 		{
-			ProcessMemoryPatternEntry* lpEntry;
-
-			for (size_t i = 0, lpEntry = &pattern[i]; i < SIZE; ++i, ++lpEntry)
+			for (size_t i = 0; i < SIZE; ++i)
 			{
-				lpEntry->Value = pattern[i];
-				lpEntry->Required = true;
+				this->pattern[i].Value = pattern[i];
+				this->pattern[i].Required = true;
 			}
 		}
 
