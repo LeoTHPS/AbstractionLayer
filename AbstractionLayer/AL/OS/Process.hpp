@@ -435,7 +435,41 @@ namespace AL::OS
 
 		// @throw AL::Exceptions::Exception
 		// @return address of library
-		ProcessAddress LoadLibrary(const String& path);
+		ProcessAddress LoadLibrary(const String& path)
+		{
+			AL_ASSERT(IsOpen(), "Process not open");
+
+			if (IsCurrentProcess() && (GetInteropType() == ProcessInteropTypes::SysAPI))
+			{
+				Library library;
+
+				Library::LoadLibrary(
+					library,
+					path
+				);
+
+				return reinterpret_cast<ProcessAddress>(
+					library.GetBaseAddress()
+				);
+			}
+
+			switch (GetInteropType())
+			{
+				case ProcessInteropTypes::SysAPI:
+				{
+
+				}
+				break;
+
+				case ProcessInteropTypes::Injection:
+				{
+
+				}
+				break;
+			}
+
+			throw Exceptions::NotImplementedException();
+		}
 		// @throw AL::Exceptions::Exception
 		// @return address of library
 		ProcessAddress LoadLibrary(const void* lpBuffer, size_t size);
