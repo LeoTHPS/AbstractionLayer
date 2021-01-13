@@ -3380,9 +3380,10 @@ namespace AL
 
 #include "OS/ErrorCode.hpp"
 
+#include "OS/System.hpp"
+
 #include "OS/Library.hpp"
 #include "OS/Process.hpp"
-#include "OS/System.hpp"
 
 #include "OS/Timer.hpp"
 
