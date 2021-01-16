@@ -538,23 +538,33 @@ namespace AL::Collections
 		{
 			if (!ignoreCase)
 			{
-				for (size_t i = 0; i < string.GetSize(); i++)
-				{
-					if (container[i] != string[i])
-					{
+				auto stringLength = string.GetLength();
 
-						return false;
+				if (stringLength == GetLength())
+				{
+					for (size_t i = 0; i < stringLength; i++)
+					{
+						if (container[i] != string[i])
+						{
+
+							return false;
+						}
 					}
 				}
 			}
 			else
 			{
-				for (size_t i = 0; i < string.GetSize(); i++)
-				{
-					if (__String_Constants<Char>::ToLower(container[i]) != __String_Constants<Char>::ToLower(string[i]))
-					{
+				auto stringLength = string.GetLength();
 
-						return false;
+				if (stringLength == GetLength())
+				{
+					for (size_t i = 0; i < stringLength; i++)
+					{
+						if (__String_Constants<Char>::ToLower(container[i]) != __String_Constants<Char>::ToLower(string[i]))
+						{
+
+							return false;
+						}
 					}
 				}
 			}
@@ -566,23 +576,37 @@ namespace AL::Collections
 		{
 			if (!ignoreCase)
 			{
-				for (size_t i = 0; i < SIZE; i++)
-				{
-					if (container[i] != string[i])
-					{
+				auto stringLength = GetLength(
+					string
+				);
 
-						return false;
+				if (stringLength == GetLength())
+				{
+					for (size_t i = 0; i < stringLength; i++)
+					{
+						if (container[i] != string[i])
+						{
+
+							return false;
+						}
 					}
 				}
 			}
 			else
 			{
-				for (size_t i = 0; i < SIZE; i++)
-				{
-					if (__String_Constants<Char>::ToLower(container[i]) != __String_Constants<Char>::ToLower(string[i]))
-					{
+				auto stringLength = GetLength(
+					string
+				);
 
-						return false;
+				if (stringLength == GetLength())
+				{
+					for (size_t i = 0; i < stringLength; i++)
+					{
+						if (__String_Constants<Char>::ToLower(container[i]) != __String_Constants<Char>::ToLower(string[i]))
+						{
+
+							return false;
+						}
 					}
 				}
 			}
