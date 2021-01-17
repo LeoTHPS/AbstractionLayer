@@ -159,7 +159,7 @@ namespace AL::Collections
 
 			return length - 1;
 		}
-		static size_t GetLength(const _String& string)
+		static size_t GetLength(const _String<Char>& string)
 		{
 			return string.GetLength();
 		}
@@ -552,39 +552,36 @@ namespace AL::Collections
 			);
 		}
 		
-		bool Contains(const _String& string) const
-		{
-			return IndexOf(string) != NPOS;
-		}
-		template<size_t SIZE>
-		bool Contains(const Char(&string)[SIZE]) const
+		template<typename T>
+		bool Contains(T string) const
 		{
 			return IndexOf(string) != NPOS;
 		}
 
-		bool Compare(const _String& string, bool ignoreCase = false) const
+		template<typename T>
+		bool Compare(T string, bool ignoreCase = false) const
 		{
 			if (!ignoreCase)
 			{
-				auto stringLength = string.GetLength();
+				auto stringLength = GetLength(
+					string
+				);
 
 				if (stringLength == GetLength())
 				{
-					for (size_t i = 0; i < stringLength; i++)
-					{
-						if (container[i] != string[i])
-						{
 
-							return false;
-						}
-					}
-
-					return true;
+					return memcmp(
+						&container[0],
+						&string[0],
+						stringLength * sizeof(Char)
+					);
 				}
 			}
 			else
 			{
-				auto stringLength = string.GetLength();
+				auto stringLength = GetLength(
+					string
+				);
 
 				if (stringLength == GetLength())
 				{
@@ -602,48 +599,6 @@ namespace AL::Collections
 			}
 
 			return false;
-		}
-		template<size_t SIZE>
-		bool Compare(const Char(&string)[SIZE], bool ignoreCase = false) const
-		{
-			if (!ignoreCase)
-			{
-				auto stringLength = GetLength(
-					string
-				);
-
-				if (stringLength == GetLength())
-				{
-					for (size_t i = 0; i < stringLength; i++)
-					{
-						if (container[i] != string[i])
-						{
-
-							return false;
-						}
-					}
-				}
-			}
-			else
-			{
-				auto stringLength = GetLength(
-					string
-				);
-
-				if (stringLength == GetLength())
-				{
-					for (size_t i = 0; i < stringLength; i++)
-					{
-						if (__String_Constants<Char>::ToLower(container[i]) != __String_Constants<Char>::ToLower(string[i]))
-						{
-
-							return false;
-						}
-					}
-				}
-			}
-
-			return true;
 		}
 
 		bool StartsWith(Char c) const
