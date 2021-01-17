@@ -358,6 +358,7 @@ namespace AL::Sockets
 			return false;
 		}
 
+		// @throw AL::Exceptions::Exception
 		String ToString() const
 		{
 			auto stringLength = IsV4() ?
