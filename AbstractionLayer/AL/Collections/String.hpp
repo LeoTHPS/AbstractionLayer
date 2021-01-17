@@ -1001,13 +1001,19 @@ namespace AL::Collections
 			return fnv32_hash(*this) < fnv32_hash(string);
 		}
 
-		bool operator == (const _String& string) const
+		template<typename T>
+		bool operator == (T string) const
 		{
-			return container == string.container;
+			return Compare(
+				string
+			);
 		}
-		bool operator != (const _String& string) const
+		template<typename T>
+		bool operator != (T string) const
 		{
-			return !operator==(string);
+			return !operator==<T>(
+				string
+			);
 		}
 	};
 
