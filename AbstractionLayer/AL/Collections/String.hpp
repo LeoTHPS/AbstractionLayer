@@ -179,6 +179,34 @@ namespace AL::Collections
 			);
 		}
 
+		template<typename T, bool IS_SAME_STRING_TYPE = Is_Type<T, _String<Char>>::Value, bool IS_ANY_STRING_TYPE = Is_Type<T, _String<char>>::Value || Is_Type<T, _String<wchar_t>>::Value>
+		static typename Conditional<IS_SAME_STRING_TYPE, const _String<Char>&, _String<Char>>::Type ToString(const T& value)
+		{
+			if constexpr (IS_SAME_STRING_TYPE)
+			{
+				return value;
+			}
+			else if constexpr (IS_ANY_STRING_TYPE && Is_Type<Char, wchar_t>::Value)
+			{
+				return _String<Char>(
+					value.container.begin(),
+					value.container.end()
+				);
+			}
+			else if constexpr (Is_Type<Char, char>::Value)
+			{
+				return _String<Char>(
+					std::to_string(value)
+				);
+			}
+			else if constexpr (Is_Type<Char, wchar_t>::Value)
+			{
+				return _String<Char>(
+					std::to_wstring(value)
+				);
+			}
+		}
+
 		_String()
 		{
 		}
