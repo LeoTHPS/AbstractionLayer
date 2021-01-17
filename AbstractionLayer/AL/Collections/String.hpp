@@ -578,6 +578,8 @@ namespace AL::Collections
 							return false;
 						}
 					}
+
+					return true;
 				}
 			}
 			else
@@ -594,10 +596,12 @@ namespace AL::Collections
 							return false;
 						}
 					}
+
+					return true;
 				}
 			}
 
-			return true;
+			return false;
 		}
 		template<size_t SIZE>
 		bool Compare(const Char(&string)[SIZE], bool ignoreCase = false) const
