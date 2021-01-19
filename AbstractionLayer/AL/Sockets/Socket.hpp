@@ -1020,6 +1020,29 @@ namespace AL::Sockets
 
 		// @throw AL::Exceptions::Exception
 		// @return false on connection closed
+		bool ReadAll(void* lpBuffer, uint32 size)
+		{
+			for (uint32 totalBytesRead = 0; totalBytesRead < size; )
+			{
+				switch (auto bytesRead = Read(&reinterpret_cast<uint8*>(lpBuffer)[totalBytesRead], size - totalBytesRead))
+				{
+					case WOULD_BLOCK:
+						break;
+
+					case CONNECTION_CLOSED:
+						return false;
+
+					default:
+						totalBytesRead += bytesRead;
+						break;
+				}
+			}
+
+			return true;
+		}
+
+		// @throw AL::Exceptions::Exception
+		// @return false on connection closed
 		bool WriteAll(const void* lpBuffer, uint32 size)
 		{
 			for (uint32 totalBytesSent = 0; totalBytesSent < size; )
