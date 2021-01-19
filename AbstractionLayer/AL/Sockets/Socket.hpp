@@ -1065,6 +1065,45 @@ namespace AL::Sockets
 		}
 
 		// @throw AL::Exceptions::Exception
+		// @return -1 if would block
+		// @return 0 on connection closed
+		int TryReadAll(void* lpBuffer, uint32 size)
+		{
+			uint32 totalBytesRead = 0;
+
+			switch (auto bytesRead = Read(lpBuffer, size))
+			{
+				case WOULD_BLOCK:
+					return -1;
+
+				case CONNECTION_CLOSED:
+					return 0;
+
+				default:
+					totalBytesRead = bytesRead;
+					break;
+			}
+
+			while (totalBytesRead < size)
+			{
+				switch (auto bytesRead = Read(&reinterpret_cast<uint8*>(lpBuffer)[totalBytesRead], size - totalBytesRead))
+				{
+					case WOULD_BLOCK:
+						break;
+
+					case CONNECTION_CLOSED:
+						return 0;
+
+					default:
+						totalBytesRead += bytesRead;
+						break;
+				}
+			}
+
+			return 1;
+		}
+
+		// @throw AL::Exceptions::Exception
 		// @return false on connection closed
 		bool ReadAsync(void* lpBuffer, uint32 size, SocketAsyncReadCallback&& callback, Tasks::TaskThreadPool& threadPool)
 		{
