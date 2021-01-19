@@ -1065,19 +1065,19 @@ namespace AL::Sockets
 		}
 
 		// @throw AL::Exceptions::Exception
-		// @return -1 if would block
-		// @return 0 on connection closed
-		int TryReadAll(void* lpBuffer, uint32 size)
+		// @return WOULD_BLOCK if would block
+		// @return CONNECTION_CLOSED on connection closed
+		uint32 TryReadAll(void* lpBuffer, uint32 size)
 		{
 			uint32 totalBytesRead = 0;
 
 			switch (auto bytesRead = Read(lpBuffer, size))
 			{
 				case WOULD_BLOCK:
-					return -1;
+					return WOULD_BLOCK;
 
 				case CONNECTION_CLOSED:
-					return 0;
+					return CONNECTION_CLOSED;
 
 				default:
 					totalBytesRead = bytesRead;
@@ -1092,7 +1092,7 @@ namespace AL::Sockets
 						break;
 
 					case CONNECTION_CLOSED:
-						return 0;
+						return CONNECTION_CLOSED;
 
 					default:
 						totalBytesRead += bytesRead;
