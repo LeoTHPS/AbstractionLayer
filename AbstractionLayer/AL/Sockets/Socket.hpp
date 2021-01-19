@@ -866,6 +866,12 @@ namespace AL::Sockets
 			AL_ASSERT(IsOpen(), "Socket not open");
 			AL_ASSERT(IsConnected(), "Socket not connected");
 
+			if (size > Integer<int>::Maximum)
+			{
+
+				size = Integer<int>::Maximum;
+			}
+
 			auto bytesRead = recv(
 				GetHandle(),
 				static_cast<char*>(lpBuffer),
@@ -939,6 +945,12 @@ namespace AL::Sockets
 		{
 			AL_ASSERT(IsOpen(), "Socket not open");
 			AL_ASSERT(IsConnected(), "Socket not connected");
+
+			if (size > Integer<int>::Maximum)
+			{
+
+				size = Integer<int>::Maximum;
+			}
 
 			auto bytesSent = send(
 				GetHandle(),
