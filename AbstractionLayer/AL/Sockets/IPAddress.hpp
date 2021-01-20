@@ -1,6 +1,8 @@
 #pragma once
 #include "AL/Common.hpp"
 
+#include "AL/Exceptions/SocketException.hpp"
+
 #if defined(AL_PLATFORM_LINUX)
 	#include <netdb.h>
 
@@ -8,8 +10,6 @@
 #elif defined(AL_PLATFORM_WINDOWS)
 	#include "WinSock.hpp"
 #endif
-
-#include "AL/Exceptions/SocketException.hpp"
 
 namespace AL::Sockets
 {
@@ -27,6 +27,8 @@ namespace AL::Sockets
 		typedef in_addr Type;
 
 		static constexpr int Family = AF_INET;
+
+		static constexpr size_t Size = sizeof(Type);
 
 		static constexpr size_t StringLength = INET_ADDRSTRLEN;
 
@@ -48,6 +50,8 @@ namespace AL::Sockets
 		typedef in6_addr Type;
 
 		static constexpr int Family = AF_INET6;
+
+		static constexpr size_t Size = sizeof(Type);
 
 		static constexpr size_t StringLength = INET6_ADDRSTRLEN;
 
@@ -361,15 +365,6 @@ namespace AL::Sockets
 		// @throw AL::Exceptions::Exception
 		String ToString() const
 		{
-			auto stringLength = IsV4() ?
-				_IPAddress_Helper<AddressFamilies::IPv4>::StringLength :
-				_IPAddress_Helper<AddressFamilies::IPv6>::StringLength;
-
-			String string(
-				'\0',
-				stringLength
-			);
-
 			auto lpAddress = IsV4() ?
 				static_cast<const void*>(&ipv4) :
 				static_cast<const void*>(&ipv6);
@@ -378,7 +373,16 @@ namespace AL::Sockets
 				_IPAddress_Helper<AddressFamilies::IPv4>::Family :
 				_IPAddress_Helper<AddressFamilies::IPv6>::Family;
 
-			if (!inet_ntop(addressFamily, lpAddress, &string[0], stringLength))
+			auto addressStringLength = IsV4() ?
+				_IPAddress_Helper<AddressFamilies::IPv4>::StringLength :
+				_IPAddress_Helper<AddressFamilies::IPv6>::StringLength;
+
+			String string(
+				'\0',
+				addressStringLength
+			);
+
+			if (!inet_ntop(addressFamily, lpAddress, &string[0], addressStringLength))
 			{
 
 				throw Exceptions::SocketException(
@@ -393,7 +397,7 @@ namespace AL::Sockets
 
 inline const AL::Sockets::IPAddress AL::Sockets::IPAddress::Any(
 #if defined(AL_PLATFORM_LINUX)
-	in_addr{ INADDR_ANY }
+	in_addr{ AL::BitConverter::HostToNetwork(INADDR_ANY) }
 #elif defined(AL_PLATFORM_WINDOWS)
 	in4addr_any
 #endif
@@ -404,7 +408,7 @@ inline const AL::Sockets::IPAddress AL::Sockets::IPAddress::Any6(
 
 inline const AL::Sockets::IPAddress AL::Sockets::IPAddress::Loopback(
 #if defined(AL_PLATFORM_LINUX)
-	in_addr{ INADDR_LOOPBACK }
+	in_addr{ AL::BitConverter::HostToNetwork(INADDR_LOOPBACK) }
 #elif defined(AL_PLATFORM_WINDOWS)
 	in4addr_loopback
 #endif
