@@ -185,20 +185,6 @@ namespace AL
 #endif
 	};
 
-#if defined(AL_PLATFORM_WIN32)
-	constexpr Platforms Platform = Platforms::Win32;
-#elif defined(AL_PLATFORM_WIN64)
-	constexpr Platforms Platform = Platforms::Win64;
-#elif defined(AL_PLATFORM_LINUX32)
-	constexpr Platforms Platform = Platforms::Linux32;
-#elif defined(AL_PLATFORM_LINUX64)
-	constexpr Platforms Platform = Platforms::Linux64;
-#elif defined(AL_PLATFORM_LINUX_ARM)
-	constexpr Platforms Platform = Platforms::LinuxARM;
-#elif defined(AL_PLATFORM_LINUX_ARM64)
-	constexpr Platforms Platform = Platforms::LinuxARM64;
-#endif
-
 	template<typename ...>
 	struct Type_Sequence;
 
