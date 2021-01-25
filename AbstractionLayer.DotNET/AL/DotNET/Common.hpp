@@ -29,7 +29,7 @@ namespace AL::DotNET
 		LinuxARM   = static_cast<typename Get_Enum_Base<AL::Platforms>::Type>(AL::Platforms::LinuxARM),
 		LinuxARM64 = static_cast<typename Get_Enum_Base<AL::Platforms>::Type>(AL::Platforms::LinuxARM64),
 
-		Machine    = static_cast<typename Get_Enum_Base<AL::Platforms>::Type>(AL::Platforms::Current)
+		Machine    = static_cast<typename Get_Enum_Base<AL::Platforms>::Type>(AL::Platforms::Machine)
 	};
 
 	[System::Runtime::CompilerServices::Extension]

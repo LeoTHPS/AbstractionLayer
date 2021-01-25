@@ -171,17 +171,17 @@ namespace AL
 		LinuxARM64,
 
 #if defined(AL_PLATFORM_WIN32)
-		Current = Win32
+		Machine = Win32
 #elif defined(AL_PLATFORM_WIN64)
-		Current = Win64
+		Machine = Win64
 #elif defined(AL_PLATFORM_LINUX32)
-		Current = Linux32
+		Machine = Linux32
 #elif defined(AL_PLATFORM_LINUX64)
-		Current = Linux64
+		Machine = Linux64
 #elif defined(AL_PLATFORM_LINUX_ARM)
-		Current = LinuxARM
+		Machine = LinuxARM
 #elif defined(AL_PLATFORM_LINUX_ARM64)
-		Current = LinuxARM64
+		Machine = LinuxARM64
 #endif
 	};
 
