@@ -354,6 +354,30 @@ namespace AL
 	};
 
 	template<typename T>
+	struct Is_Copy_Constructible
+	{
+		static constexpr bool Value = std::is_copy_constructible<T>::value;
+	};
+
+	template<typename T>
+	struct Is_Copy_Assignable
+	{
+		static constexpr bool Value = std::is_copy_assignable<T>::value;
+	};
+	
+	template<typename T>
+	struct Is_Move_Constructible
+	{
+		static constexpr bool Value = std::is_move_constructible<T>::value;
+	};
+
+	template<typename T>
+	struct Is_Move_Assignable
+	{
+		static constexpr bool Value = std::is_move_assignable<T>::value;
+	};
+
+	template<typename T>
 	struct Get_Type_Name
 	{
 		inline static const char* Value = typeid(T).name();
