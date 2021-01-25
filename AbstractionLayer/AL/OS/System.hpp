@@ -245,7 +245,7 @@ namespace AL::OS
 #elif defined(AL_PLATFORM_WINDOWS)
 
 			EnumerateLogicalProcessorInformation(
-				[&size, cacheLevel](const SYSTEM_LOGICAL_PROCESSOR_INFORMATION& _info)
+				[&size, cacheLevel = cacheLevel + 1](const SYSTEM_LOGICAL_PROCESSOR_INFORMATION& _info)
 				{
 					if (_info.Relationship == LOGICAL_PROCESSOR_RELATIONSHIP::RelationCache)
 					{
@@ -275,7 +275,7 @@ namespace AL::OS
 #elif defined(AL_PLATFORM_WINDOWS)
 
 			EnumerateLogicalProcessorInformation(
-				[&lineSize, cacheLevel](const SYSTEM_LOGICAL_PROCESSOR_INFORMATION& _info)
+				[&lineSize, cacheLevel = cacheLevel + 1](const SYSTEM_LOGICAL_PROCESSOR_INFORMATION& _info)
 				{
 					if (_info.Relationship == LOGICAL_PROCESSOR_RELATIONSHIP::RelationCache)
 					{
