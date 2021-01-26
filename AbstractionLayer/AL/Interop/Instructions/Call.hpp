@@ -27,7 +27,7 @@ namespace AL::Interop::Instructions
 			);
 		}
 		
-		Call(Address address, bool dereference)
+		Call(Interop::Address address, bool dereference)
 		{
 			BuildBuffer(
 				dereference ? Types::CallMemory : Types::CallAddress,
@@ -38,7 +38,7 @@ namespace AL::Interop::Instructions
 		}
 
 	public:
-		static Call Memory(Address address)
+		static Call Memory(Interop::Address address)
 		{
 			return Call(
 				address,
@@ -46,7 +46,7 @@ namespace AL::Interop::Instructions
 			);
 		}
 
-		static Call Address(Address address)
+		static Call Address(Interop::Address address)
 		{
 			return Call(
 				address,

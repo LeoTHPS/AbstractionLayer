@@ -22,8 +22,8 @@ namespace AL::Interop::Instructions
 
 		union Context
 		{
-			typename Address::Type Address;
-			Registers              Register;
+			typename Interop::Address::Type Address;
+			Registers                       Register;
 		};
 
 		Buffer buffer;

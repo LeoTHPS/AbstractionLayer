@@ -19,6 +19,16 @@ namespace AL::Interop
 		{
 		}
 
+		template<typename T>
+		Address(T* value)
+			: Address(
+				reinterpret_cast<Type>(
+					value
+				)
+			)
+		{
+		}
+
 		Address(Type value)
 			: value(
 				value
@@ -26,11 +36,9 @@ namespace AL::Interop
 		{
 		}
 
-		Address(void* value)
+		Address(std::nullptr_t)
 			: Address(
-				reinterpret_cast<Type>(
-					value
-				)
+				Type(0)
 			)
 		{
 		}
