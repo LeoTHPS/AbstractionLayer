@@ -90,11 +90,39 @@ namespace AL::Sockets
 		};
 
 	public:
-		static const IPAddress Any;
-		static const IPAddress Any6;
+		static IPAddress Any()
+		{
+			return IPAddress(
+#if defined(AL_PLATFORM_LINUX)
+				in_addr{ AL::BitConverter::HostToNetwork(INADDR_ANY) }
+#elif defined(AL_PLATFORM_WINDOWS)
+				in4addr_any
+#endif
+			);
+		}
+		static IPAddress Any6()
+		{
+			return IPAddress(
+				in6addr_any
+			);
+		}
 		
-		static const IPAddress Loopback;
-		static const IPAddress Loopback6;
+		static IPAddress Loopback()
+		{
+			return IPAddress(
+#if defined(AL_PLATFORM_LINUX)
+				in_addr{ AL::BitConverter::HostToNetwork(INADDR_LOOPBACK) }
+#elif defined(AL_PLATFORM_WINDOWS)
+				in4addr_loopback
+#endif
+			);
+		}
+		static IPAddress Loopback6()
+		{
+			return IPAddress(
+				in6addr_loopback
+			);
+		}
 
 		typedef typename _IPAddress_Helper<AddressFamilies::IPv4>::Type Address;
 		typedef typename _IPAddress_Helper<AddressFamilies::IPv6>::Type Address6;
@@ -394,25 +422,3 @@ namespace AL::Sockets
 		}
 	};
 }
-
-inline const AL::Sockets::IPAddress AL::Sockets::IPAddress::Any(
-#if defined(AL_PLATFORM_LINUX)
-	in_addr{ AL::BitConverter::HostToNetwork(INADDR_ANY) }
-#elif defined(AL_PLATFORM_WINDOWS)
-	in4addr_any
-#endif
-);
-inline const AL::Sockets::IPAddress AL::Sockets::IPAddress::Any6(
-	in6addr_any
-);
-
-inline const AL::Sockets::IPAddress AL::Sockets::IPAddress::Loopback(
-#if defined(AL_PLATFORM_LINUX)
-	in_addr{ AL::BitConverter::HostToNetwork(INADDR_LOOPBACK) }
-#elif defined(AL_PLATFORM_WINDOWS)
-	in4addr_loopback
-#endif
-);
-inline const AL::Sockets::IPAddress AL::Sockets::IPAddress::Loopback6(
-	in6addr_loopback
-);
