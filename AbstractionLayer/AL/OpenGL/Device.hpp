@@ -10,5 +10,20 @@
 
 namespace AL::OpenGL
 {
-	class Device;
+	class Device
+	{
+		Device(Device&&) = delete;
+		Device(const Device&) = delete;
+
+	public:
+		Device()
+		{
+		}
+
+		virtual ~Device()
+		{
+		}
+
+
+	};
 }
