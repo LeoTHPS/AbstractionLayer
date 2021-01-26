@@ -211,7 +211,29 @@ namespace AL::OS
 			size_t count = 0;
 
 #if defined(AL_PLATFORM_LINUX)
-			throw Exceptions::NotImplementedException();
+			if (sysconf(_SC_LEVEL1_DCACHE_SIZE) != -1)
+			{
+
+				++count;
+			}
+			
+			if (sysconf(_SC_LEVEL2_CACHE_SIZE) != -1)
+			{
+
+				++count;
+			}
+
+			if (sysconf(_SC_LEVEL3_CACHE_SIZE) != -1)
+			{
+
+				++count;
+			}
+
+			if (sysconf(_SC_LEVEL4_CACHE_SIZE) != -1)
+			{
+
+				++count;
+			}
 #elif defined(AL_PLATFORM_WINDOWS)
 			Collections::UnorderedSet<size_t> levels;
 
@@ -244,9 +266,33 @@ namespace AL::OS
 			size_t size = 0;
 
 #if defined(AL_PLATFORM_LINUX)
-			throw Exceptions::NotImplementedException();
-#elif defined(AL_PLATFORM_WINDOWS)
+			switch (cacheLevel)
+			{
+				case 0:
+					size = static_cast<size_t>(sysconf(_SC_LEVEL1_DCACHE_SIZE));
+					break;
 
+				case 1:
+					size = static_cast<size_t>(sysconf(_SC_LEVEL2_CACHE_SIZE));
+					break;
+
+				case 2:
+					size = static_cast<size_t>(sysconf(_SC_LEVEL3_CACHE_SIZE));
+					break;
+
+				case 3:
+					size = static_cast<size_t>(sysconf(_SC_LEVEL4_CACHE_SIZE));
+					break;
+			}
+
+			if (size == static_cast<size_t>(-1))
+			{
+
+				throw Exceptions::SystemException(
+					"sysconf"
+				);
+			}
+#elif defined(AL_PLATFORM_WINDOWS)
 			EnumerateLogicalProcessorInformation(
 				[&size, cacheLevel = cacheLevel + 1](const SYSTEM_LOGICAL_PROCESSOR_INFORMATION& _info)
 				{
@@ -274,9 +320,33 @@ namespace AL::OS
 			size_t lineSize = 0;
 
 #if defined(AL_PLATFORM_LINUX)
-			throw Exceptions::NotImplementedException();
-#elif defined(AL_PLATFORM_WINDOWS)
+			switch (cacheLevel)
+			{
+				case 0:
+					lineSize = static_cast<size_t>(sysconf(_SC_LEVEL1_DCACHE_LINESIZE));
+					break;
 
+				case 1:
+					lineSize = static_cast<size_t>(sysconf(_SC_LEVEL2_CACHE_LINESIZE));
+					break;
+
+				case 2:
+					lineSize = static_cast<size_t>(sysconf(_SC_LEVEL3_CACHE_LINESIZE));
+					break;
+
+				case 3:
+					lineSize = static_cast<size_t>(sysconf(_SC_LEVEL4_CACHE_LINESIZE));
+					break;
+			}
+			
+			if (lineSize == static_cast<size_t>(-1))
+			{
+
+				throw Exceptions::SystemException(
+					"sysconf"
+				);
+			}
+#elif defined(AL_PLATFORM_WINDOWS)
 			EnumerateLogicalProcessorInformation(
 				[&lineSize, cacheLevel = cacheLevel + 1](const SYSTEM_LOGICAL_PROCESSOR_INFORMATION& _info)
 				{
