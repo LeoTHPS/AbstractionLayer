@@ -311,8 +311,6 @@ namespace AL::Web::DOM
 		{
 			String string;
 
-			size_t i = 0;
-
 			for (auto lpChild : children)
 			{
 				string.Append(
