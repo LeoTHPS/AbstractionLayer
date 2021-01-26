@@ -5,6 +5,7 @@
 
 #if defined(AL_PLATFORM_LINUX)
 	#include <time.h>
+	#include <unistd.h>
 
 	#include <sys/sysinfo.h>
 #elif defined(AL_PLATFORM_WINDOWS)
@@ -147,7 +148,9 @@ namespace AL::OS
 		static auto GetPageSize()
 		{
 #if defined(AL_PLATFORM_LINUX)
-
+			return static_cast<size_t>(
+				sysconf(_SC_PAGESIZE)
+			);
 #elif defined(AL_PLATFORM_WINDOWS)
 			SYSTEM_INFO systemInfo;
 			GetSystemInfo(&systemInfo);
