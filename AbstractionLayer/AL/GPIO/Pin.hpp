@@ -1,17 +1,15 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#if !defined(AL_PLATFORM_LINUX)
-	#error Platform not supported
-#endif
-
 #if __has_include(<gpiod.hpp>)
 	#include <gpiod.hpp>
 
+	#if defined(AL_PLATFORM_LINUX)
+		#include <sys/stat.h>
+	#endif
+
 	#define AL_DEPENDENCY_GPIOD
 #endif
-
-#include <sys/stat.h>
 
 namespace AL::GPIO
 {

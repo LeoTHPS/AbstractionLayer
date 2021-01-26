@@ -1,27 +1,36 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#if !defined(AL_PLATFORM_LINUX)
-	#error Platform not supported
-#endif
-
 #include "Pin.hpp"
 
-#include <fcntl.h>
-#include <unistd.h>
+#if __has_include(<linux/spi/spidev.h>)
+	#include <linux/spi/spidev.h>
 
-#include <sys/ioctl.h>
+	#if defined(AL_PLATFORM_LINUX)
+		#include <fcntl.h>
+		#include <unistd.h>
 
-#include <linux/spi/spidev.h>
+		#include <sys/ioctl.h>
+	#endif
+
+	#define AL_DEPENDENCY_SPIDEV
+#endif
 
 namespace AL::GPIO
 {
 	enum class SPIModes : uint8
 	{
+#if defined(AL_DEPENDENCY_SPIDEV)
 		Zero  = SPI_MODE_0,
 		One   = SPI_MODE_1,
 		Two   = SPI_MODE_2,
 		Three = SPI_MODE_3
+#else
+		Zero  = 0,
+		One   = 1,
+		Two   = 2,
+		Three = 3
+#endif
 	};
 
 	typedef uint8 SPIBusId;
@@ -110,6 +119,7 @@ namespace AL::GPIO
 		// @throw AL::Exceptions::Exception
 		static void Open(SPIDevice& device, SPIBusId busId, SPIDeviceId deviceId, SPIModes mode, SPISpeed speed, SPIBitCount bitCount)
 		{
+#if defined(AL_DEPENDENCY_SPIDEV)
 			int fd;
 			char path[255];
 			sprintf(path, "/dev/spidev%u.%u", busId, deviceId);
@@ -168,11 +178,17 @@ namespace AL::GPIO
 				speed,
 				bitCount
 			);
+#else
+			throw Exceptions::DependencyMissingException(
+				"spidev"
+			);
+#endif
 		}
 		// @throw AL::Exceptions::Exception
 		// @return false if CS is already exported
 		static bool Open(SPIDevice& device, SPIBusId busId, DeviceId csPinDeviceId, PinNumber csPinNumber, SPICSModes csPinMode, SPIModes mode, SPISpeed speed, SPIBitCount bitCount)
 		{
+#if defined(AL_DEPENDENCY_SPIDEV)
 			Pin csPin;
 
 			if (!Pin::Export(csPin, csPinDeviceId, csPinNumber, PinDirection::Out, (csPinMode == SPICSModes::ActiveLow) ? PinValues::High : PinValues::Low))
@@ -242,6 +258,11 @@ namespace AL::GPIO
 				speed,
 				bitCount
 			);
+#else
+			throw Exceptions::DependencyMissingException(
+				"spidev"
+			);
+#endif
 
 			return true;
 		}
@@ -392,6 +413,7 @@ namespace AL::GPIO
 		// @throw AL::Exceptions::Exception
 		void ReadWrite(void* lpReadBuffer, const void* lpWriteBuffer, size_t size)
 		{
+#if defined(AL_DEPENDENCY_SPIDEV)
 			spi_ioc_transfer transfer = { 0 };
 			transfer.cs_change = IsCSChangeEnabled() ? 1 : 0;
 			transfer.len = static_cast<decltype(transfer.len)>(size);
@@ -433,16 +455,23 @@ namespace AL::GPIO
 					(csPinMode == SPICSModes::ActiveLow) ? PinValues::High : PinValues::Low
 				);
 			}
+#else
+			throw Exceptions::DependencyMissingException(
+				"spidev"
+			);
+#endif
 		}
 
 		void Close()
 		{
 			if (IsOpen())
 			{
+#if defined(AL_DEPENDENCY_SPIDEV)
 				close(fd);
 				fd = -1;
 
 				csPin.Unexport();
+#endif
 			}
 		}
 

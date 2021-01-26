@@ -1,21 +1,23 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#if !defined(AL_PLATFORM_LINUX)
-	#error Platform not supported
-#endif
-
 #include "Pin.hpp"
 
-#include <fcntl.h>
-#include <unistd.h>
-#include <termios.h>
+#if defined(AL_PLATFORM_LINUX)
+	#include <fcntl.h>
+	#include <unistd.h>
+	#include <termios.h>
 
-#include <sys/ioctl.h>
+	#include <sys/ioctl.h>
+#endif
 
 namespace AL::GPIO
 {
+#if defined(AL_PLATFORM_LINUX)
 	typedef speed_t UARTDeviceSpeed;
+#else
+	typedef uint32 UARTDeviceSpeed;
+#endif
 
 	class UARTDevice
 	{
@@ -42,6 +44,7 @@ namespace AL::GPIO
 		// @throw AL::Exceptions::Exception
 		static void Open(UARTDevice& device, String&& name, UARTDeviceSpeed speed)
 		{
+#if defined(AL_PLATFORM_LINUX)
 			int fd;
 			int status;
 
@@ -97,6 +100,9 @@ namespace AL::GPIO
 				Move(name),
 				speed
 			);
+#else
+			throw Exceptions::NotImplementedException();
+#endif
 		}
 		// @throw AL::Exceptions::Exception
 		static void Open(UARTDevice& device, const String& name, UARTDeviceSpeed speed)
@@ -168,6 +174,7 @@ namespace AL::GPIO
 		// @return number of bytes read
 		size_t Read(void* lpBuffer, size_t size)
 		{
+#if defined(AL_PLATFORM_LINUX)
 			size_t bytesRead;
 
 			if ((bytesRead = read(fd, lpBuffer, size)) == -1)
@@ -179,6 +186,9 @@ namespace AL::GPIO
 			}
 
 			return bytesRead;
+#else
+			throw Exceptions::NotImplementedException();
+#endif
 		}
 
 		// @throw AL::Exceptions::Exception
@@ -186,6 +196,7 @@ namespace AL::GPIO
 		{
 			AL_ASSERT(IsOpen(), "UARTDevice not open");
 
+#if defined(AL_PLATFORM_LINUX)
 			if (write(fd, lpBuffer, size) == -1)
 			{
 
@@ -193,14 +204,19 @@ namespace AL::GPIO
 					"write"
 				);
 			}
+#else
+			throw Exceptions::NotImplementedException();
+#endif
 		}
 
 		void Close()
 		{
 			if (IsOpen())
 			{
+#if defined(AL_PLATFORM_LINUX)
 				close(fd);
 				fd = -1;
+#endif
 			}
 		}
 
@@ -221,6 +237,7 @@ namespace AL::GPIO
 		}
 
 	private:
+#if defined(AL_PLATFORM_LINUX)
 		// @return false on invalid speed
 		static bool SpeedToBaud(speed_t& baud, UARTDeviceSpeed speed)
 		{
@@ -265,5 +282,6 @@ namespace AL::GPIO
 
 			return false;
 		}
+#endif
 	};
 }
