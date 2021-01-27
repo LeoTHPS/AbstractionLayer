@@ -28,7 +28,7 @@ namespace AL::FileSystem
 
 		static constexpr char REGEX_PATTERN[] = "^([^ ]*) = (.*)$";
 
-		static constexpr char REGEX_PATTERN_DATA_TYPE_STRUCT[] = "^\"(([0-9A-Fa-f][0-9A-Fa-f])+)\"$";
+		static constexpr char REGEX_PATTERN_DATA_TYPE_STRUCT[] = "^\"(([0-9A-Fa-f]{2})+)\"$";
 		static constexpr char REGEX_PATTERN_DATA_TYPE_STRING[] = "^\"([^\"]*)\"$";
 		static constexpr char REGEX_PATTERN_DATA_TYPE_INTEGER[] = "^(-?\\d+)$";
 		static constexpr char REGEX_PATTERN_DATA_TYPE_DECIMAL[] = "^(-?\\d+(\\.\\d+)?)$";
