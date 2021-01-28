@@ -415,6 +415,7 @@ namespace AL::FileSystem
 			return sections.GetSize();
 		}
 
+		// @throw AL::Exceptions::Exception
 		bool Exists() const
 		{
 			return file.Exists();

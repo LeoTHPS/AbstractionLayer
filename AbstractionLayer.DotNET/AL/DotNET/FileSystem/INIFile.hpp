@@ -511,9 +511,20 @@ namespace AL::DotNET::FileSystem
 			return lpINIFile->GetSectionCount();
 		}
 
+		// @throw AL::DotNET::Exceptions::Exception
 		bool Exists()
 		{
-			return lpINIFile->Exists();
+			try
+			{
+				return lpINIFile->Exists();
+			}
+			catch (const AL::Exceptions::Exception& exception)
+			{
+
+				throw gcnew Exceptions::Exception(
+					exception
+				);
+			}
 		}
 
 		// @throw AL::DotNET::Exceptions::Exception
