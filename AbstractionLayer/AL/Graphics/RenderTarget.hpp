@@ -24,9 +24,9 @@ namespace AL::Graphics
 
 		bool isVSyncEnabled = true;
 
-		Color backgroundColor;
-
 		RenderWindow* const lpWindow;
+
+		Color backgroundColor;
 
 #if defined(AL_PLATFORM_LINUX)
 		OpenGL::Device openGL;
