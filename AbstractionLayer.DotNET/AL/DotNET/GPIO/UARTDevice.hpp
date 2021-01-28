@@ -115,7 +115,7 @@ namespace AL::DotNET::GPIO
 				buffer,
 				&_buffer[0],
 				offset,
-				_buffer.GetSize()
+				static_cast<System::UInt32>(_buffer.GetSize())
 			);
 
 			try
