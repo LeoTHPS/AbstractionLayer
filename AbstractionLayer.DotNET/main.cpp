@@ -9,3 +9,6 @@
 
 #include "AL/DotNET/FileSystem/INIFile.hpp"
 #include "AL/DotNET/FileSystem/LogFile.hpp"
+
+#include "AL/DotNET/GPIO/UARTDevice.hpp"
+#include "AL/DotNET/GPIO/UARTDeviceSpeed.hpp"
