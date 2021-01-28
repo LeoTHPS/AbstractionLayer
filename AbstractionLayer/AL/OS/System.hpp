@@ -211,6 +211,8 @@ namespace AL::OS
 			size_t count = 0;
 
 #if defined(AL_PLATFORM_LINUX)
+			// TODO: fix. cache 4 is returning != -1 when it doesn't exist
+
 			if (sysconf(_SC_LEVEL1_DCACHE_SIZE) != -1)
 			{
 
