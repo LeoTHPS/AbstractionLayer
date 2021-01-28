@@ -1,7 +1,7 @@
 #pragma once
 #include "AL/DotNET/Common.hpp"
 
-#include "UARTDeviceSpeed.hpp"
+#include "UARTDeviceSpeeds.hpp"
 
 #include <AL/GPIO/UARTDevice.hpp>
 
@@ -15,14 +15,14 @@ namespace AL::DotNET::GPIO
 
 	public:
 		// @throw AL::DotNET::Exceptions::Exception
-		static void Open([System::Runtime::InteropServices::Out] UARTDevice^% device, System::String^ name, UARTDeviceSpeed speed)
+		static void Open([System::Runtime::InteropServices::Out] UARTDevice^% device, System::String^ name, UARTDeviceSpeeds speed)
 		{
 			try
 			{
 				AL::GPIO::UARTDevice::Open(
 					*device->lpDevice,
 					Marshal::ToNativeString(name),
-					static_cast<AL::GPIO::UARTDeviceSpeed>(speed)
+					static_cast<AL::GPIO::UARTDeviceSpeeds>(speed)
 				);
 			}
 			catch (const AL::Exceptions::Exception& exception)
@@ -58,9 +58,9 @@ namespace AL::DotNET::GPIO
 			);
 		}
 
-		UARTDeviceSpeed GetSpeed()
+		UARTDeviceSpeeds GetSpeed()
 		{
-			return static_cast<UARTDeviceSpeed>(
+			return static_cast<UARTDeviceSpeeds>(
 				lpDevice->GetSpeed()
 			);
 		}

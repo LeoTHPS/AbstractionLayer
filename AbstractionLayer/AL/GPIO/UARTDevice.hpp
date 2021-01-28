@@ -3,6 +3,8 @@
 
 #include "Pin.hpp"
 
+#include "UARTDeviceSpeeds.hpp"
+
 #if defined(AL_PLATFORM_LINUX)
 	#include <fcntl.h>
 	#include <unistd.h>
@@ -11,67 +13,8 @@
 	#include <sys/ioctl.h>
 #endif
 
-#if defined(AL_PLATFORM_LINUX)
-	#define AL_GPIO_UART_DEVICE_SPEED_50      B50
-	#define AL_GPIO_UART_DEVICE_SPEED_75      B75
-	#define AL_GPIO_UART_DEVICE_SPEED_110     B110
-	#define AL_GPIO_UART_DEVICE_SPEED_134     B134
-	#define AL_GPIO_UART_DEVICE_SPEED_150     B150
-	#define AL_GPIO_UART_DEVICE_SPEED_200     B200
-	#define AL_GPIO_UART_DEVICE_SPEED_300     B300
-	#define AL_GPIO_UART_DEVICE_SPEED_600     B600
-	#define AL_GPIO_UART_DEVICE_SPEED_1200    B1200
-	#define AL_GPIO_UART_DEVICE_SPEED_1800    B1800
-	#define AL_GPIO_UART_DEVICE_SPEED_2400    B2400
-	#define AL_GPIO_UART_DEVICE_SPEED_4800    B4800
-	#define AL_GPIO_UART_DEVICE_SPEED_9600    B9600
-	#define AL_GPIO_UART_DEVICE_SPEED_14400   B14400
-	#define AL_GPIO_UART_DEVICE_SPEED_19200   B19200
-	#define AL_GPIO_UART_DEVICE_SPEED_38400   B38400
-	#define AL_GPIO_UART_DEVICE_SPEED_56000   B56000
-	#define AL_GPIO_UART_DEVICE_SPEED_57600   B57600
-	#define AL_GPIO_UART_DEVICE_SPEED_115200  B115200
-	#define AL_GPIO_UART_DEVICE_SPEED_128000  B128000
-	#define AL_GPIO_UART_DEVICE_SPEED_230400  B230400
-	#define AL_GPIO_UART_DEVICE_SPEED_256000  B256000
-	#define AL_GPIO_UART_DEVICE_SPEED_460800  B460800
-	#define AL_GPIO_UART_DEVICE_SPEED_500000  B500000
-	#define AL_GPIO_UART_DEVICE_SPEED_576000  B576000
-	#define AL_GPIO_UART_DEVICE_SPEED_921600  B921600
-	#define AL_GPIO_UART_DEVICE_SPEED_1000000 B1000000
-	#define AL_GPIO_UART_DEVICE_SPEED_1152000 B1152000
-	#define AL_GPIO_UART_DEVICE_SPEED_1500000 B1500000
-	#define AL_GPIO_UART_DEVICE_SPEED_2000000 B2000000
-	#define AL_GPIO_UART_DEVICE_SPEED_2500000 B2500000
-	#define AL_GPIO_UART_DEVICE_SPEED_3000000 B3000000
-	#define AL_GPIO_UART_DEVICE_SPEED_3500000 B3500000
-	#define AL_GPIO_UART_DEVICE_SPEED_4000000 B4000000
-#elif defined(AL_PLATFORM_WINDOWS)
-	#define AL_GPIO_UART_DEVICE_SPEED_110     CBR_110
-	#define AL_GPIO_UART_DEVICE_SPEED_300     CBR_300
-	#define AL_GPIO_UART_DEVICE_SPEED_600     CBR_600
-	#define AL_GPIO_UART_DEVICE_SPEED_1200    CBR_1200
-	#define AL_GPIO_UART_DEVICE_SPEED_2400    CBR_2400
-	#define AL_GPIO_UART_DEVICE_SPEED_4800    CBR_4800
-	#define AL_GPIO_UART_DEVICE_SPEED_9600    CBR_9600
-	#define AL_GPIO_UART_DEVICE_SPEED_14400   CBR_14400
-	#define AL_GPIO_UART_DEVICE_SPEED_19200   CBR_19200
-	#define AL_GPIO_UART_DEVICE_SPEED_38400   CBR_38400
-	#define AL_GPIO_UART_DEVICE_SPEED_56000   CBR_56000
-	#define AL_GPIO_UART_DEVICE_SPEED_57600   CBR_57600
-	#define AL_GPIO_UART_DEVICE_SPEED_115200  CBR_115200
-	#define AL_GPIO_UART_DEVICE_SPEED_128000  CBR_128000
-	#define AL_GPIO_UART_DEVICE_SPEED_256000  CBR_256000
-#endif
-
 namespace AL::GPIO
 {
-#if defined(AL_PLATFORM_LINUX)
-	typedef speed_t UARTDeviceSpeed;
-#else
-	typedef uint32 UARTDeviceSpeed;
-#endif
-
 	class UARTDevice
 	{
 #if defined(AL_PLATFORM_LINUX)
@@ -90,11 +33,11 @@ namespace AL::GPIO
 
 		HFILE hFile;
 		String name;
-		UARTDeviceSpeed speed;
+		UARTDeviceSpeeds speed;
 
 		UARTDevice(const UARTDevice&) = delete;
 
-		UARTDevice(HANDLE hFile, String&& name, UARTDeviceSpeed speed)
+		UARTDevice(HFILE hFile, String&& name, UARTDeviceSpeeds speed)
 			: hFile(
 				hFile
 			),
@@ -109,7 +52,7 @@ namespace AL::GPIO
 
 	public:
 		// @throw AL::Exceptions::Exception
-		static void Open(UARTDevice& device, String&& name, UARTDeviceSpeed speed)
+		static void Open(UARTDevice& device, String&& name, UARTDeviceSpeeds speed)
 		{
 #if defined(AL_PLATFORM_LINUX)
 			int fd;
@@ -128,8 +71,8 @@ namespace AL::GPIO
 			termios options;
 			tcgetattr(fd, &options);
 			cfmakeraw(&options);
-			cfsetispeed(&options, speed);
-			cfsetospeed(&options, speed);
+			cfsetispeed(&options, static_cast<typename Get_Enum_Base<UARTDeviceSpeeds>::Type>(speed));
+			cfsetospeed(&options, static_cast<typename Get_Enum_Base<UARTDeviceSpeeds>::Type>(speed));
 
 			options.c_cc[VMIN] = 0;
 			options.c_cc[VTIME] = 0;
@@ -173,10 +116,10 @@ namespace AL::GPIO
 				);
 			}
 
-			dcb.BaudRate = speed;
-			dcb.ByteSize = 8;
 			dcb.Parity = NOPARITY;
 			dcb.fBinary = TRUE;
+			dcb.BaudRate = static_cast<typename Get_Enum_Base<UARTDeviceSpeeds>::Type>(speed);
+			dcb.ByteSize = 8;
 			dcb.StopBits = ONESTOPBIT;
 			
 			if (!SetCommState(hFile, &dcb))
@@ -214,7 +157,7 @@ namespace AL::GPIO
 #endif
 		}
 		// @throw AL::Exceptions::Exception
-		static void Open(UARTDevice& device, const String& name, UARTDeviceSpeed speed)
+		static void Open(UARTDevice& device, const String& name, UARTDeviceSpeeds speed)
 		{
 			Open(
 				device,
@@ -227,7 +170,7 @@ namespace AL::GPIO
 			: UARTDevice(
 				FILE_HANDLE_NULL,
 				"",
-				0
+				UARTDeviceSpeeds::Baud_0
 			)
 		{
 		}
@@ -244,9 +187,10 @@ namespace AL::GPIO
 			)
 		{
 			device.hFile = FILE_HANDLE_NULL;
+			device.speed = UARTDeviceSpeeds::Baud_0;
 		}
 
-		UARTDevice(String&& name, UARTDeviceSpeed speed)
+		UARTDevice(String&& name, UARTDeviceSpeeds speed)
 			: hFile(
 				FILE_HANDLE_NULL
 			),
@@ -283,9 +227,8 @@ namespace AL::GPIO
 		// @return number of bytes read
 		size_t Read(void* lpBuffer, size_t size)
 		{
-
 #if defined(AL_PLATFORM_LINUX)
-			size_t bytesRead;
+			int bytesRead;
 
 			if ((bytesRead = read(hFile, lpBuffer, size)) == -1)
 			{
@@ -295,7 +238,9 @@ namespace AL::GPIO
 				);
 			}
 
-			return bytesRead;
+			return static_cast<size_t>(
+				bytesRead
+			);
 #elif defined(AL_PLATFORM_WINDOWS)
 			DWORD bytesRead;
 
@@ -307,7 +252,9 @@ namespace AL::GPIO
 				);
 			}
 
-			return bytesRead;
+			return static_cast<size_t>(
+				bytesRead
+			);
 #else
 			throw Exceptions::NotImplementedException();
 #endif
@@ -319,7 +266,7 @@ namespace AL::GPIO
 			AL_ASSERT(IsOpen(), "UARTDevice not open");
 
 #if defined(AL_PLATFORM_LINUX)
-			if (write(fd, lpBuffer, size) == -1)
+			if (write(hFile, lpBuffer, size) == -1)
 			{
 
 				throw Exceptions::SystemException(
@@ -367,7 +314,7 @@ namespace AL::GPIO
 			);
 
 			speed = device.speed;
-			device.speed = 0;
+			device.speed = UARTDeviceSpeeds::Baud_0;
 
 			return *this;
 		}
