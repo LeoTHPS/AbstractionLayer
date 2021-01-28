@@ -288,6 +288,10 @@ namespace AL::OS
 				"\033]0;%s\007",
 				value.GetCString()
 			);
+
+			fflush(
+				stdout
+			);
 #elif defined(AL_PLATFORM_WINDOWS)
 			AL_ASSERT(IsCreated(), "Console not created");
 
@@ -305,7 +309,13 @@ namespace AL::OS
 		static void Clear()
 		{
 #if defined(AL_PLATFORM_LINUX)
-			printf("\033[H\033[J");
+			printf(
+				"\033[H\033[J"
+			);
+
+			fflush(
+				stdout
+			);
 #elif defined(AL_PLATFORM_WINDOWS)
 			AL_ASSERT(IsCreated(), "Console not created");
 
@@ -412,7 +422,13 @@ namespace AL::OS
 		static void Write(const String& value)
 		{
 #if defined(AL_PLATFORM_LINUX)
-			printf(value.GetCString());
+			printf(
+				value.GetCString()
+			);
+
+			fflush(
+				stdout
+			);
 #elif defined(AL_PLATFORM_WINDOWS)
 			AL_ASSERT(IsCreated(), "Console not created");
 
