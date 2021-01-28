@@ -101,7 +101,7 @@ namespace AL::DotNET::FileSystem
 			);
 		}
 
-		// @throw AL::DotNET::Exceptions::Exception
+		/// <exception cref="AL::Exceptions::Exception" />
 		generic<typename T>
 		auto GetStruct()
 		{
@@ -135,7 +135,7 @@ namespace AL::DotNET::FileSystem
 			);
 		}
 
-		// @throw AL::DotNET::Exceptions::Exception
+		/// <exception cref="AL::Exceptions::Exception" />
 		auto GetStructAsBuffer()
 		{
 			if (!IsStruct())
@@ -164,7 +164,7 @@ namespace AL::DotNET::FileSystem
 			return buffer;
 		}
 
-		// @throw AL::DotNET::Exceptions::Exception
+		/// <exception cref="AL::Exceptions::Exception" />
 		auto GetString()
 		{
 			if (!IsString())
@@ -182,7 +182,7 @@ namespace AL::DotNET::FileSystem
 			);
 		}
 
-		// @throw AL::DotNET::Exceptions::Exception
+		/// <exception cref="AL::Exceptions::Exception" />
 		generic<typename T>
 		T GetInteger()
 		{
@@ -234,7 +234,7 @@ namespace AL::DotNET::FileSystem
 			);
 		}
 
-		// @throw AL::DotNET::Exceptions::Exception
+		/// <exception cref="AL::Exceptions::Exception" />
 		generic<typename T>
 		auto GetDecimal()
 		{
@@ -511,7 +511,7 @@ namespace AL::DotNET::FileSystem
 			return lpINIFile->GetSectionCount();
 		}
 
-		// @throw AL::DotNET::Exceptions::Exception
+		/// <exception cref="AL::Exceptions::Exception" />
 		bool Exists()
 		{
 			try
@@ -527,8 +527,10 @@ namespace AL::DotNET::FileSystem
 			}
 		}
 
-		// @throw AL::DotNET::Exceptions::Exception
-		// @return false if not found
+		/// <summary>
+		/// Returns false if not found
+		/// </summary>
+		/// <exception cref="AL::Exceptions::Exception" />
 		bool Read()
 		{
 			try
@@ -544,7 +546,7 @@ namespace AL::DotNET::FileSystem
 			}
 		}
 
-		// @throw AL::DotNET::Exceptions::Exception
+		/// <exception cref="AL::Exceptions::Exception" />
 		void Write()
 		{
 			try
@@ -565,7 +567,7 @@ namespace AL::DotNET::FileSystem
 			lpINIFile->Clear();
 		}
 
-		// @throw AL::DotNET::Exceptions::Exception
+		/// <exception cref="AL::Exceptions::Exception" />
 		void Delete()
 		{
 			try

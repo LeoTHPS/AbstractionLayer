@@ -39,7 +39,6 @@ namespace AL::DotNET::FileSystem
 			return path;
 		}
 
-		// @throw AL::DotNET::Exceptions::Exception
 		void Open()
 		{
 			try
@@ -60,7 +59,7 @@ namespace AL::DotNET::FileSystem
 			lpLogFile->Close();
 		}
 
-		// @throw AL::DotNET::Exceptions::Exception
+		/// <exception cref="AL::Exceptions::Exception" />
 		void WriteLine(System::String^ format, ... array<System::Object^>^ args)
 		{
 			auto line = System::String::Format(
