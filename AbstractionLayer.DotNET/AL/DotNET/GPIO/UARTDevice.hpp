@@ -72,7 +72,7 @@ namespace AL::DotNET::GPIO
 			size_t bytesReceived = 0;
 
 			AL::Collections::Array<uint8> _buffer(
-				static_cast<size_t>(buffer->Length)
+				static_cast<size_t>(buffer->Length - offset)
 			);
 
 			try
@@ -93,7 +93,7 @@ namespace AL::DotNET::GPIO
 			Marshal::Copy(
 				&_buffer[0],
 				buffer,
-				0,
+				offset,
 				static_cast<System::UInt32>(bytesReceived)
 			);
 
@@ -106,13 +106,13 @@ namespace AL::DotNET::GPIO
 		void Write(array<System::Byte>^ buffer, System::UInt32 offset, System::UInt32 count)
 		{
 			AL::Collections::Array<uint8> _buffer(
-				static_cast<size_t>(buffer->Length)
+				static_cast<size_t>(buffer->Length - offset)
 			);
 
 			Marshal::Copy(
 				buffer,
 				&_buffer[0],
-				0,
+				offset,
 				_buffer.GetSize()
 			);
 
