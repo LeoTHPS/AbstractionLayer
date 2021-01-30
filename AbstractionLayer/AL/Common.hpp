@@ -624,8 +624,8 @@ namespace AL
 
 #include <regex>
 
-#include <math.h>
-#include <float.h>
+#include <cmath>
+#include <cfloat>
 
 #if defined(AL_PLATFORM_WINDOWS)
 	#define VC_EXTRALEAN
@@ -664,9 +664,7 @@ namespace AL
 	#undef GetMessage
 	#undef LoadLibrary
 	#undef CreateProcess
-#endif
-
-#if defined(AL_PLATFORM_LINUX)
+#elif defined(AL_PLATFORM_LINUX)
 	#include <unistd.h>
 #endif
 
