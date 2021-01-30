@@ -25,8 +25,6 @@ namespace AL::OS
 			: start(
 				Clock::now()
 			)
-		{
-		}
 #elif defined(AL_PLATFORM_WINDOWS)
 			: frequency(
 				[this]()
@@ -40,10 +38,12 @@ namespace AL::OS
 					) / 1000000;
 				}()
 			)
-		{
-			Reset();
-		}
 #endif
+		{
+#if defined(AL_PLATFORM_WINDOWS)
+			Reset();
+#endif
+		}
 
 		virtual ~Timer()
 		{
@@ -52,13 +52,11 @@ namespace AL::OS
 		auto GetElapsed() const
 		{
 #if defined(AL_PLATFORM_LINUX)
-			auto now = Clock::now();
-			
 			auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
-				now - start
+				Clock::now() - start
 			).count();
 
-			return TimeSpan(
+			return TimeSpan::FromMicroseconds(
 				static_cast<uint64>(
 					elapsed
 				)
@@ -68,7 +66,7 @@ namespace AL::OS
 				&integer
 			);
 
-			return TimeSpan(
+			return TimeSpan::FromMicroseconds(
 				static_cast<uint64>(
 					(integer.QuadPart - start) / frequency
 				)
