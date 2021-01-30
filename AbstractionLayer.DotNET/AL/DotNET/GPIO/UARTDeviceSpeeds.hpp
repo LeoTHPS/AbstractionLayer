@@ -8,7 +8,8 @@ namespace AL::DotNET::GPIO
 	public enum class UARTDeviceSpeeds
 		: typename Get_Enum_Base<AL::GPIO::UARTDeviceSpeeds>::Type
 	{
-		Baud_0             = static_cast<typename Get_Enum_Base<AL::GPIO::UARTDeviceSpeeds>::Type>(AL::GPIO::UARTDeviceSpeeds::Baud_0),
+		Default            = static_cast<typename Get_Enum_Base<AL::GPIO::UARTDeviceSpeeds>::Type>(AL::GPIO::UARTDeviceSpeeds::Default),
+
 		Baud_110           = static_cast<typename Get_Enum_Base<AL::GPIO::UARTDeviceSpeeds>::Type>(AL::GPIO::UARTDeviceSpeeds::Baud_110),
 		Baud_300           = static_cast<typename Get_Enum_Base<AL::GPIO::UARTDeviceSpeeds>::Type>(AL::GPIO::UARTDeviceSpeeds::Baud_300),
 		Baud_600           = static_cast<typename Get_Enum_Base<AL::GPIO::UARTDeviceSpeeds>::Type>(AL::GPIO::UARTDeviceSpeeds::Baud_600),
@@ -23,18 +24,6 @@ namespace AL::DotNET::GPIO
 		Baud_57600         = static_cast<typename Get_Enum_Base<AL::GPIO::UARTDeviceSpeeds>::Type>(AL::GPIO::UARTDeviceSpeeds::Baud_57600),
 		Baud_115200        = static_cast<typename Get_Enum_Base<AL::GPIO::UARTDeviceSpeeds>::Type>(AL::GPIO::UARTDeviceSpeeds::Baud_115200),
 		Baud_128000        = static_cast<typename Get_Enum_Base<AL::GPIO::UARTDeviceSpeeds>::Type>(AL::GPIO::UARTDeviceSpeeds::Baud_128000),
-		Baud_256000        = static_cast<typename Get_Enum_Base<AL::GPIO::UARTDeviceSpeeds>::Type>(AL::GPIO::UARTDeviceSpeeds::Baud_256000),
-
-		Common_Baud_110    = static_cast<typename Get_Enum_Base<AL::GPIO::UARTDeviceSpeeds>::Type>(AL::GPIO::UARTDeviceSpeeds::Baud_110),
-		Common_Baud_300    = static_cast<typename Get_Enum_Base<AL::GPIO::UARTDeviceSpeeds>::Type>(AL::GPIO::UARTDeviceSpeeds::Baud_300),
-		Common_Baud_600    = static_cast<typename Get_Enum_Base<AL::GPIO::UARTDeviceSpeeds>::Type>(AL::GPIO::UARTDeviceSpeeds::Baud_600),
-		Common_Baud_1200   = static_cast<typename Get_Enum_Base<AL::GPIO::UARTDeviceSpeeds>::Type>(AL::GPIO::UARTDeviceSpeeds::Baud_1200),
-		Common_Baud_2400   = static_cast<typename Get_Enum_Base<AL::GPIO::UARTDeviceSpeeds>::Type>(AL::GPIO::UARTDeviceSpeeds::Baud_2400),
-		Common_Baud_4800   = static_cast<typename Get_Enum_Base<AL::GPIO::UARTDeviceSpeeds>::Type>(AL::GPIO::UARTDeviceSpeeds::Baud_4800),
-		Common_Baud_9600   = static_cast<typename Get_Enum_Base<AL::GPIO::UARTDeviceSpeeds>::Type>(AL::GPIO::UARTDeviceSpeeds::Baud_9600),
-		Common_Baud_19200  = static_cast<typename Get_Enum_Base<AL::GPIO::UARTDeviceSpeeds>::Type>(AL::GPIO::UARTDeviceSpeeds::Baud_19200),
-		Common_Baud_38400  = static_cast<typename Get_Enum_Base<AL::GPIO::UARTDeviceSpeeds>::Type>(AL::GPIO::UARTDeviceSpeeds::Baud_38400),
-		Common_Baud_57600  = static_cast<typename Get_Enum_Base<AL::GPIO::UARTDeviceSpeeds>::Type>(AL::GPIO::UARTDeviceSpeeds::Baud_57600),
-		Common_Baud_115200 = static_cast<typename Get_Enum_Base<AL::GPIO::UARTDeviceSpeeds>::Type>(AL::GPIO::UARTDeviceSpeeds::Baud_115200)
+		Baud_256000        = static_cast<typename Get_Enum_Base<AL::GPIO::UARTDeviceSpeeds>::Type>(AL::GPIO::UARTDeviceSpeeds::Baud_256000)
 	};
 }
