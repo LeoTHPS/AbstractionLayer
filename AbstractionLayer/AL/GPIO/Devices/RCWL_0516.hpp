@@ -8,7 +8,7 @@
 namespace AL::GPIO::Devices
 {
 	class RCWL_0516
-		: public Device<bool>
+		: public Device<void, bool>
 	{
 		Pin pin;
 		DeviceId deviceId;
@@ -77,7 +77,7 @@ namespace AL::GPIO::Devices
 		}
 
 		// @throw AL::Exceptions::Exception
-		virtual void OnRead(bool& value, DeviceChannel /*channel*/) override
+		virtual void OnRead(bool& value) override
 		{
 			value = (pin.Read() == 1);
 		}

@@ -6,7 +6,7 @@
 namespace AL::GPIO::Devices
 {
 	class MCP3008
-		: public SPIDevice<uint16>
+		: public SPIDevice<uint8, uint16>
 	{
 		static constexpr SPIModes    DEVICE_MODE      = SPIModes::Zero;
 		static constexpr SPISpeed    DEVICE_SPEED     = 1350000;
@@ -48,7 +48,7 @@ namespace AL::GPIO::Devices
 
 	protected:
 		// @throw AL::Exceptions::Exception
-		virtual void OnRead(uint16& value, DeviceChannel channel) override
+		virtual void OnRead(Channel channel, Data& value) override
 		{
 			uint8 rx[3];
 
