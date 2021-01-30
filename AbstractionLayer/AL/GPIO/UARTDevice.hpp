@@ -190,19 +190,6 @@ namespace AL::GPIO
 			device.speed = UARTDeviceSpeeds::Default;
 		}
 
-		UARTDevice(String&& name, UARTDeviceSpeeds speed)
-			: hFile(
-				FILE_HANDLE_NULL
-			),
-			name(
-				Move(name)
-			),
-			speed(
-				speed
-			)
-		{
-		}
-
 		virtual ~UARTDevice()
 		{
 			Close();
