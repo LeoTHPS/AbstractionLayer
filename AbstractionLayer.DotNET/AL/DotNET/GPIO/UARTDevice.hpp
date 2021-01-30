@@ -17,6 +17,8 @@ namespace AL::DotNET::GPIO
 		/// <exception cref="AL::Exceptions::Exception" />
 		static void Open([System::Runtime::InteropServices::Out] UARTDevice^% device, System::String^ name, UARTDeviceSpeeds speed)
 		{
+			device = gcnew UARTDevice();
+
 			try
 			{
 				AL::GPIO::UARTDevice::Open(
@@ -27,6 +29,7 @@ namespace AL::DotNET::GPIO
 			}
 			catch (const AL::Exceptions::Exception& exception)
 			{
+				delete device;
 
 				throw gcnew Exceptions::Exception(
 					exception
