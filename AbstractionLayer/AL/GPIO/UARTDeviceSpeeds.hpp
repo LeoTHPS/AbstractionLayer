@@ -14,7 +14,6 @@ namespace AL::GPIO
 		: DWORD
 #endif
 	{
-		Baud_0             = 0,
 #if defined(AL_PLATFORM_LINUX)
 		Baud_50            = B50,
 		Baud_75            = B75,
@@ -64,16 +63,6 @@ namespace AL::GPIO
 		Baud_256000        = CBR_256000,
 #endif
 
-		Common_Baud_110    = Baud_110,
-		Common_Baud_300    = Baud_300,
-		Common_Baud_600    = Baud_600,
-		Common_Baud_1200   = Baud_1200,
-		Common_Baud_2400   = Baud_2400,
-		Common_Baud_4800   = Baud_4800,
-		Common_Baud_9600   = Baud_9600,
-		Common_Baud_19200  = Baud_19200,
-		Common_Baud_38400  = Baud_38400,
-		Common_Baud_57600  = Baud_57600,
-		Common_Baud_115200 = Baud_115200
+		Default            = Baud_9600
 	};
 }

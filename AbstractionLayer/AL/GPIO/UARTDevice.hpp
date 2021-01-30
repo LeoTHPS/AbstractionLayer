@@ -170,7 +170,7 @@ namespace AL::GPIO
 			: UARTDevice(
 				FILE_HANDLE_NULL,
 				"",
-				UARTDeviceSpeeds::Baud_0
+				UARTDeviceSpeeds::Default
 			)
 		{
 		}
@@ -187,7 +187,7 @@ namespace AL::GPIO
 			)
 		{
 			device.hFile = FILE_HANDLE_NULL;
-			device.speed = UARTDeviceSpeeds::Baud_0;
+			device.speed = UARTDeviceSpeeds::Default;
 		}
 
 		UARTDevice(String&& name, UARTDeviceSpeeds speed)
@@ -314,7 +314,7 @@ namespace AL::GPIO
 			);
 
 			speed = device.speed;
-			device.speed = UARTDeviceSpeeds::Baud_0;
+			device.speed = UARTDeviceSpeeds::Default;
 
 			return *this;
 		}
