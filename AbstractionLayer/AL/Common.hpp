@@ -3216,6 +3216,22 @@ namespace AL
 		uint32 Seconds;
 		uint32 Milliseconds;
 
+		Time()
+			: Hours(
+				0
+			),
+			Minutes(
+				0
+			),
+			Seconds(
+				0
+			),
+			Milliseconds(
+				0
+			)
+		{
+		}
+
 		Time(const DateTime& dateTime)
 			: Hours(
 				dateTime.Hour
