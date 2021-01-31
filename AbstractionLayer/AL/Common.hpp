@@ -3209,6 +3209,30 @@ namespace AL
 		}
 	};
 
+	struct Time
+	{
+		uint32 Hours;
+		uint32 Minutes;
+		uint32 Seconds;
+		uint32 Milliseconds;
+
+		Time(const DateTime& dateTime)
+			: Hours(
+				dateTime.Hour
+			),
+			Minutes(
+				dateTime.Minutes
+			),
+			Seconds(
+				dateTime.Seconds
+			),
+			Milliseconds(
+				dateTime.Milliseconds
+			)
+		{
+		}
+	};
+
 	inline void Sleep(TimeSpan duration)
 	{
 #if defined(AL_PLATFORM_LINUX)
