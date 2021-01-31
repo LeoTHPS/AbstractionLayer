@@ -1,6 +1,10 @@
 #pragma once
 #include "AL/Common.hpp"
 
+#if defined(AL_PLATFORM_WINDOWS)
+	#pragma warning(disable: 4307)
+#endif
+
 namespace AL::Algorithms
 {
 	template<typename>
