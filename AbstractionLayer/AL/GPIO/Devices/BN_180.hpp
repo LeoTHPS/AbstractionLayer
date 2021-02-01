@@ -48,7 +48,7 @@ namespace AL::GPIO::Devices
 
 			bool nmeaStarted = false;
 
-			for (size_t i = 0; GetDevice().IsOpen(); ++i)
+			for (size_t i = 0; GetDevice().IsOpen(); )
 			{
 				if (!GetDevice().Read(&c, sizeof(Data::Char)))
 				{
@@ -73,6 +73,8 @@ namespace AL::GPIO::Devices
 
 						break;
 					}
+
+					++i;
 				}
 			}
 		}
