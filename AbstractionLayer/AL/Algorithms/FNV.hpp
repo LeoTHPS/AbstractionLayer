@@ -30,17 +30,6 @@ namespace AL::Algorithms
 	public:
 		typedef T Hash;
 
-		template<typename _T>
-		static Hash Calculate(const _T& value, size_t index = 0, Hash hash = _FNV_Constants<T>::Offset)
-		{
-			return Calculate(
-				&value,
-				sizeof(_T),
-				index,
-				hash
-			);
-		}
-
 		template<size_t S>
 		static constexpr Hash Calculate(const char(&string)[S], size_t index = 0, Hash hash = _FNV_Constants<T>::Offset)
 		{

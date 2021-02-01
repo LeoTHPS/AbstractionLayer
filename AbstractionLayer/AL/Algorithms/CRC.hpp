@@ -63,17 +63,6 @@ namespace AL::Algorithms
 	public:
 		typedef T Hash;
 
-		template<typename _T>
-		static Hash Calculate(const _T& value, size_t index = 0, T crc = _CRC_Constants<T>::CRC)
-		{
-			return Calculate(
-				&value,
-				sizeof(_T),
-				index,
-				crc
-			);
-		}
-
 		template<size_t S>
 		static constexpr Hash Calculate(const char(&string)[S], size_t index = 0, T crc = _CRC_Constants<T>::CRC)
 		{
@@ -103,17 +92,6 @@ namespace AL::Algorithms
 
 	public:
 		typedef uint16 Hash;
-
-		template<typename _T>
-		static Hash Calculate(const _T& value, size_t index = 0, uint16 crc = _CRC_Constants<uint16>::CRC)
-		{
-			return Calculate(
-				&value,
-				sizeof(_T),
-				index,
-				crc
-			);
-		}
 
 		template<size_t S>
 		static constexpr Hash Calculate(const char(&string)[S], size_t index = 0, uint16 crc = _CRC_Constants<uint16>::CRC)
