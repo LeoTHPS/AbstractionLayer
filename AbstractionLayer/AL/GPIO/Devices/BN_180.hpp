@@ -46,6 +46,8 @@ namespace AL::GPIO::Devices
 				);
 			}
 
+			bool nmeaStarted = false;
+
 			for (size_t i = 0; GetDevice().IsOpen(); ++i)
 			{
 				if (!GetDevice().Read(&c, sizeof(Data::Char)))
@@ -54,14 +56,23 @@ namespace AL::GPIO::Devices
 					continue;
 				}
 
-				value.Append(
-					c
-				);
-
-				if (i && (value[i - 1] == '\r') && (value[i] == '\n'))
+				if (!nmeaStarted && (c == '$'))
 				{
 
-					break;
+					nmeaStarted = true;
+				}
+
+				if (nmeaStarted)
+				{
+					value.Append(
+						c
+					);
+
+					if (i && (value[i - 1] == '\r') && (value[i] == '\n'))
+					{
+
+						break;
+					}
 				}
 			}
 		}
