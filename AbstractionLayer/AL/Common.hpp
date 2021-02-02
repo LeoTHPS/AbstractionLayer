@@ -330,6 +330,12 @@ namespace AL
 	};
 
 	template<typename T>
+	struct Is_Const
+	{
+		static constexpr bool Value = std::is_const<T>::value;
+	};
+
+	template<typename T>
 	struct Is_Pointer
 	{
 		static constexpr bool Value = std::is_pointer<T>::value;
