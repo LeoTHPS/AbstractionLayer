@@ -42,8 +42,8 @@ namespace AL::GPIO
 	class Pin
 	{
 #if !defined(AL_DEPENDENCY_GPIOD)
-		class gpiod_chip;
-		class gpiod_line;
+		struct gpiod_chip {};
+		struct gpiod_line {};
 #endif
 
 		gpiod_chip* lpChip;
