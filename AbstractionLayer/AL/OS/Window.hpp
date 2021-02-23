@@ -12,15 +12,11 @@
 
 #if defined(AL_PLATFORM_LINUX)
 	#if __has_include(<X11/Xlib.h>)
-		extern "C"
-		{
-			// TODO: why are these headers causing compiler issues?
+		// TODO: why are these headers causing compiler issues?
+//		#include <X11/Xlib.h>
+//		#include <X11/Xlibint.h>
 
-//			#include <X11/Xlib.h>
-//			#include <X11/Xlibint.h>
-
-			typedef struct _XDisplay Display;
-		}
+		typedef struct _XDisplay Display;
 
 		#define AL_DEPENDENCY_X11
 	#endif
