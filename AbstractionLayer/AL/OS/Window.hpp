@@ -11,7 +11,19 @@
 #include "AL/Collections/Array.hpp"
 
 #if defined(AL_PLATFORM_LINUX)
+	#if __has_include(<X11/Xlib.h>)
+		extern "C"
+		{
+			// TODO: why are these headers causing compiler issues?
 
+//			#include <X11/Xlib.h>
+//			#include <X11/Xlibint.h>
+
+			typedef struct _XDisplay Display;
+		}
+
+		#define AL_DEPENDENCY_X11
+	#endif
 #elif defined(AL_PLATFORM_WINDOWS)
 	#include <shellapi.h>
 #endif
@@ -46,6 +58,238 @@ namespace AL::OS
 	typedef Graphics::Vector2<uint32>   WindowPosition;
 	typedef Graphics::Vector2<uint32>   WindowResolution;
 
+	enum class WindowClipboardDataFormats
+	{
+		String,
+		WString,
+		
+		NotSupported
+	};
+
+	template<typename T>
+	struct _WindowClipboard_Get_Data_Format
+	{
+		static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::NotSupported;
+	};
+	template<>
+	struct _WindowClipboard_Get_Data_Format<String>
+	{
+		static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::String;
+	};
+	template<>
+	struct _WindowClipboard_Get_Data_Format<typename String::Char*>
+	{
+		static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::String;
+	};
+	template<>
+	struct _WindowClipboard_Get_Data_Format<const typename String::Char*>
+	{
+		static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::String;
+	};
+	template<size_t S>
+	struct _WindowClipboard_Get_Data_Format<typename String::Char[S]>
+	{
+		static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::String;
+	};
+	template<>
+	struct _WindowClipboard_Get_Data_Format<WString>
+	{
+		static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::WString;
+	};
+	template<>
+	struct _WindowClipboard_Get_Data_Format<typename WString::Char*>
+	{
+		static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::WString;
+	};
+	template<>
+	struct _WindowClipboard_Get_Data_Format<const typename WString::Char*>
+	{
+		static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::WString;
+	};
+	template<size_t S>
+	struct _WindowClipboard_Get_Data_Format<typename WString::Char[S]>
+	{
+		static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::WString;
+	};
+
+	template<typename T>
+	using WindowClipboardDataChangedCallback = Function<void(const T& value)>;
+
+	typedef EventCallback<void(WindowClipboardDataFormats dataFormat)> WindowClipboardDataChangedEventCallback;
+
+	class Window;
+
+	class WindowClipboard
+	{
+		friend Window;
+
+		bool isCreated = false;
+
+		Window* const lpWindow = nullptr;
+
+		explicit WindowClipboard(Window& window)
+			: lpWindow(
+				&window
+			)
+		{
+		}
+
+		WindowClipboard(WindowClipboard&&) = delete;
+		WindowClipboard(const WindowClipboard&) = delete;
+
+	public:
+		virtual ~WindowClipboard()
+		{
+		}
+
+		Event<WindowClipboardDataChangedEventCallback> DataChanged;
+
+		bool IsCreated() const
+		{
+			return isCreated;
+		}
+
+		auto& GetWindow()
+		{
+			return *lpWindow;
+		}
+		auto& GetWindow() const
+		{
+			return *lpWindow;
+		}
+
+		// @throw AL::Exceptions::Exception
+		auto GetDataFormat() const
+		{
+			AL_ASSERT(IsCreated(), "WindowClipboard not created");
+
+#if defined(AL_PLATFORM_LINUX)
+
+#elif defined(AL_PLATFORM_WINDOWS)
+			Collections::Array<UINT[5]> formats(
+				{
+					CF_TEXT,
+					CF_UNICODETEXT,
+					CF_TIFF,
+					CF_BITMAP,
+					CF_METAFILEPICT
+				}
+			);
+
+			switch (GetPriorityClipboardFormat(&formats[0], static_cast<int>(formats.GetSize())))
+			{
+				case CF_TEXT:
+					return WindowClipboardDataFormats::String;
+
+				case CF_UNICODETEXT:
+					return WindowClipboardDataFormats::WString;
+
+				case CF_TIFF:
+					return WindowClipboardDataFormats::NotSupported;
+
+				case CF_BITMAP:
+					return WindowClipboardDataFormats::NotSupported;
+
+				case CF_METAFILEPICT:
+					return WindowClipboardDataFormats::NotSupported;
+
+				default:
+					return WindowClipboardDataFormats::NotSupported;
+			}
+#endif
+		}
+
+		// @throw AL::Exceptions::Exception
+		auto GetSequenceNumber() const
+		{
+#if defined(AL_PLATFORM_LINUX)
+
+#elif defined(AL_PLATFORM_WINDOWS)
+			DWORD sequenceNumber;
+
+			if ((sequenceNumber = GetClipboardSequenceNumber()) == 0)
+			{
+
+				throw Exceptions::SystemException(
+					"GetClipboardSequenceNumber",
+					ERROR_ACCESS_DENIED
+				);
+			}
+
+			return static_cast<uint32>(
+				sequenceNumber
+			);
+#endif
+		}
+
+		// @throw AL::Exceptions::Exception
+		// @return false if empty
+		template<typename T, WindowClipboardDataFormats T_FORMAT = _WindowClipboard_Get_Data_Format<T>::Value>
+		bool Get(T& value) const;
+
+		// @throw AL::Exceptions::Exception
+		template<typename T, WindowClipboardDataFormats T_FORMAT = _WindowClipboard_Get_Data_Format<T>::Value>
+		void Set(const T& value);
+
+		// @throw AL::Exceptions::Exception
+		void Clear();
+
+		// @throw AL::Exceptions::Exception
+		void Create()
+		{
+			AL_ASSERT(!IsCreated(), "WindowClipboard already created");
+
+			OnCreate();
+
+			isCreated = true;
+		}
+
+		void Destroy()
+		{
+			if (IsCreated())
+			{
+				OnDestroy();
+
+				isCreated = false;
+			}
+		}
+
+	protected:
+		// @throw AL::Exceptions::Exception
+		virtual void OnCreate();
+
+		virtual void OnDestroy();
+
+	private: // Window access
+#if defined(AL_PLATFORM_LINUX)
+		// @throw AL::Exceptions::Exception
+		// @return true if handled
+		bool HandleNativeMessage(int message, uint32 arg32, uint64 arg64)
+		{
+
+			return false;
+		}
+#elif defined(AL_PLATFORM_WINDOWS)
+		// @throw AL::Exceptions::Exception
+		// @return true if handled
+		bool HandleNativeMessage(LRESULT& result, UINT message, WPARAM wParam, LPARAM lParam)
+		{
+			if (message == WM_CLIPBOARDUPDATE)
+			{
+				result = 0;
+
+				DataChanged.Execute(
+					GetDataFormat()
+				);
+
+				return true;
+			}
+
+			return false;
+		}
+#endif
+	};
+
 	class Window
 	{
 		bool isOpen = false;
@@ -76,7 +320,9 @@ namespace AL::OS
 		bool destroyOnClose = false;
 		
 #if defined(AL_PLATFORM_LINUX)
-
+	#if defined(AL_DEPENDENCY_X11)
+		Display* lpDisplay;
+	#endif
 #elif defined(AL_PLATFORM_WINDOWS)
 		HWND handle;
 		WNDCLASSEXA wClass;
@@ -97,6 +343,8 @@ namespace AL::OS
 		Input::MouseEvent lastMouseEvent;
 		Input::KeyboardEvent lastKeyboardEvent;
 
+		WindowClipboard clipboard;
+
 		Window(Window&&) = delete;
 		Window(const Window&) = delete;
 
@@ -111,6 +359,9 @@ namespace AL::OS
 			resolution(
 				1366,
 				768
+			),
+			clipboard(
+				*this
 			)
 		{
 #if defined(AL_PLATFORM_LINUX)
@@ -234,7 +485,9 @@ namespace AL::OS
 		auto GetHandle() const
 		{
 #if defined(AL_PLATFORM_LINUX)
-
+	#if defined(AL_DEPENDENCY_X11)
+			return lpDisplay;
+	#endif
 #elif defined(AL_PLATFORM_WINDOWS)
 			return handle;
 #endif
@@ -248,6 +501,15 @@ namespace AL::OS
 		auto GetCursor() const
 		{
 			return cursor;
+		}
+
+		auto& GetClipboard()
+		{
+			return clipboard;
+		}
+		auto& GetClipboard() const
+		{
+			return clipboard;
 		}
 
 		auto& GetPosition() const
@@ -942,10 +1204,33 @@ namespace AL::OS
 				);
 			}
 #endif
+
+			try
+			{
+				GetClipboard().Create();
+			}
+			catch (Exceptions::Exception& exception)
+			{
+#if defined(AL_PLATFORM_LINUX)
+
+#elif defined(AL_PLATFORM_WINDOWS)
+				UnregisterClassA(
+					wClass.lpszClassName,
+					wClass.hInstance
+				);
+#endif
+
+				throw Exceptions::Exception(
+					"Error creating WindowClipboard",
+					Move(exception)
+				);
+			}
 		}
 
 		virtual void OnDestroy()
 		{
+			GetClipboard().Destroy();
+
 #if defined(AL_PLATFORM_LINUX)
 
 #elif defined(AL_PLATFORM_WINDOWS)
@@ -953,8 +1238,6 @@ namespace AL::OS
 				wClass.lpszClassName,
 				wClass.hInstance
 			);
-
-			handle = NULL;
 #endif
 		}
 
@@ -1143,8 +1426,14 @@ namespace AL::OS
 
 #if defined(AL_PLATFORM_LINUX)
 		// @throw AL::Exceptions::Exception
+		// @return true if handled
 		virtual bool HandleNativeMessage(int message, uint32 arg32, uint64 arg64)
 		{
+			if (GetClipboard().HandleNativeMessage(message, arg32, arg64))
+			{
+
+				return true;
+			}
 
 			return true;
 		}
@@ -1152,6 +1441,16 @@ namespace AL::OS
 		// @throw AL::Exceptions::Exception
 		virtual LRESULT HandleNativeMessage(UINT message, WPARAM wParam, LPARAM lParam)
 		{
+			{
+				LRESULT result;
+
+				if (GetClipboard().HandleNativeMessage(result, message, wParam, lParam))
+				{
+
+					return result;
+				}
+			}
+
 			auto UpdateMousePosition = [this](LPARAM _lParam)
 			{
 				auto points = MAKEPOINTS(_lParam);
@@ -1159,7 +1458,7 @@ namespace AL::OS
 				lastMouseEvent.Position.X = points.x;
 				lastMouseEvent.Position.Y = points.y;
 			};
-
+			
 			switch (message)
 			{
 				case WM_CHAR:
@@ -1636,4 +1935,242 @@ namespace AL::OS
 		}
 #endif
 	};
+}
+
+// @throw AL::Exceptions::Exception
+// @return false if empty
+template<typename T, AL::OS::WindowClipboardDataFormats T_FORMAT>
+inline bool AL::OS::WindowClipboard::Get(T& value) const
+{
+	AL_ASSERT(IsCreated(), "WindowClipboard not created");
+	AL_ASSERT(GetDataFormat() == T_FORMAT, "Unexpected T_FORMAT");
+
+#if defined(AL_PLATFORM_LINUX)
+	throw Exceptions::NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
+	if (!OpenClipboard(GetWindow().GetHandle()))
+	{
+
+		throw Exceptions::SystemException(
+			"OpenClipboard"
+		);
+	}
+
+	if constexpr (T_FORMAT == WindowClipboardDataFormats::String)
+	{
+		HANDLE hData;
+
+		if ((hData = GetClipboardData(CF_TEXT)) == NULL)
+		{
+			CloseClipboard();
+
+			throw Exceptions::SystemException(
+				"GetClipboardData"
+			);
+		}
+
+		auto hValue = (const typename String::Char*)GlobalLock(
+			hData
+		);
+
+		auto valueLength = String::GetLength(
+			hValue
+		);
+
+		value = String(
+			hValue,
+			valueLength
+		);
+
+		GlobalUnlock(
+			hData
+		);
+	}
+	else if constexpr (T_FORMAT == WindowClipboardDataFormats::WString)
+	{
+		HANDLE hData;
+
+		if ((hData = GetClipboardData(CF_UNICODETEXT)) == NULL)
+		{
+			CloseClipboard();
+
+			throw Exceptions::SystemException(
+				"GetClipboardData"
+			);
+		}
+
+		auto hValue = (const typename WString::Char*)GlobalLock(
+			hData
+		);
+
+		auto valueLength = WString::GetLength(
+			hValue
+		);
+
+		value = WString(
+			hValue,
+			valueLength
+		);
+
+		GlobalUnlock(
+			hData
+		);
+	}
+
+	CloseClipboard();
+#endif
+
+	return false;
+}
+
+// @throw AL::Exceptions::Exception
+template<typename T, AL::OS::WindowClipboardDataFormats T_FORMAT>
+inline void AL::OS::WindowClipboard::Set(const T& value)
+{
+	AL_ASSERT(IsCreated(), "WindowClipboard not created");
+
+#if defined(AL_PLATFORM_LINUX)
+	throw Exceptions::NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
+	if (!OpenClipboard(GetWindow().GetHandle()))
+	{
+
+		throw Exceptions::SystemException(
+			"OpenClipboard"
+		);
+	}
+
+	if (!EmptyClipboard())
+	{
+		CloseClipboard();
+
+		throw Exceptions::SystemException(
+			"EmptyClipboard"
+		);
+	}
+
+	size_t      dataSize;
+	UINT        dataFormat;
+	const void* lpDataSource;
+
+	if constexpr (T_FORMAT == WindowClipboardDataFormats::String)
+	{
+		dataSize = (String::GetLength(value) + 1) * sizeof(typename String::Char);
+		dataFormat = CF_TEXT;
+		lpDataSource = &value[0];
+	}
+	else if constexpr (T_FORMAT == WindowClipboardDataFormats::WString)
+	{
+		dataSize = (WString::GetLength(value) + 1) * sizeof(typename WString::Char);
+		dataFormat = CF_UNICODETEXT;
+		lpDataSource = &value[0];
+	}
+
+	HANDLE hValue;
+
+	if ((hValue = GlobalAlloc(GMEM_MOVEABLE, dataSize)) == NULL)
+	{
+		CloseClipboard();
+
+		throw Exceptions::SystemException(
+			"GlobalAlloc"
+		);
+	}
+
+	HANDLE hValueLock;
+
+	if ((hValueLock = GlobalLock(hValue)) == NULL)
+	{
+		GlobalFree(
+			hValue
+		);
+
+		CloseClipboard();
+
+		throw Exceptions::SystemException(
+			"GlobalLock"
+		);
+	}
+
+	memcpy(
+		hValueLock,
+		lpDataSource,
+		dataSize
+	);
+
+	GlobalUnlock(
+		hValue
+	);
+
+	if (SetClipboardData(CF_TEXT, hValue) == NULL)
+	{
+		GlobalFree(
+			hValue
+		);
+
+		CloseClipboard();
+
+		throw Exceptions::SystemException(
+			"SetClipboardData"
+		);
+	}
+
+	CloseClipboard();
+#endif
+}
+
+// @throw AL::Exceptions::Exception
+inline void AL::OS::WindowClipboard::Clear()
+{
+	AL_ASSERT(IsCreated(), "WindowClipboard not created");
+
+#if defined(AL_PLATFORM_LINUX)
+	throw Exceptions::NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
+	if (!OpenClipboard(GetWindow().GetHandle()))
+	{
+
+		throw Exceptions::SystemException(
+			"OpenClipboard"
+		);
+	}
+
+	if (!EmptyClipboard())
+	{
+		CloseClipboard();
+
+		throw Exceptions::SystemException(
+			"EmptyClipboard"
+		);
+	}
+
+	CloseClipboard();
+#endif
+}
+
+// @throw AL::Exceptions::Exception
+inline void AL::OS::WindowClipboard::OnCreate()
+{
+#if defined(AL_PLATFORM_LINUX)
+
+#elif defined(AL_PLATFORM_WINDOWS)
+	if (!AddClipboardFormatListener(GetWindow().GetHandle()))
+	{
+
+		throw Exceptions::SystemException(
+			"AddClipboardFormatListener"
+		);
+	}
+#endif
+}
+
+inline void AL::OS::WindowClipboard::OnDestroy()
+{
+#if defined(AL_PLATFORM_LINUX)
+
+#elif defined(AL_PLATFORM_WINDOWS)
+	RemoveClipboardFormatListener(
+		GetWindow().GetHandle()
+	);
+#endif
 }
