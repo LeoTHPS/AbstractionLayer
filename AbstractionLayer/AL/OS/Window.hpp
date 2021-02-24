@@ -58,6 +58,17 @@ namespace AL::OS
 	{
 		String,
 		WString,
+
+		TIFF,
+		Bitmap,
+
+		RIFF,
+		Wave,
+
+		Drop,
+
+		MetaFile,
+		MetaFilePicture,
 		
 		NotSupported
 	};
@@ -117,8 +128,6 @@ namespace AL::OS
 
 	class WindowClipboard
 	{
-		friend Window;
-
 		bool isCreated = false;
 
 		Window* const lpWindow = nullptr;
@@ -162,17 +171,20 @@ namespace AL::OS
 #if defined(AL_PLATFORM_LINUX)
 
 #elif defined(AL_PLATFORM_WINDOWS)
-			Collections::Array<UINT[5]> formats(
-				{
-					CF_TEXT,
-					CF_UNICODETEXT,
-					CF_TIFF,
-					CF_BITMAP,
-					CF_METAFILEPICT
-				}
-			);
+			static UINT DATA_FORMATS[9] =
+			{
+				CF_TEXT,
+				CF_UNICODETEXT,
+				CF_TIFF,
+				CF_BITMAP,
+				CF_RIFF,
+				CF_WAVE,
+				CF_HDROP,
+				CF_ENHMETAFILE,
+				CF_METAFILEPICT
+			};
 
-			switch (GetPriorityClipboardFormat(&formats[0], static_cast<int>(formats.GetSize())))
+			switch (GetPriorityClipboardFormat(&DATA_FORMATS[0], 9))
 			{
 				case CF_TEXT:
 					return WindowClipboardDataFormats::String;
@@ -181,17 +193,28 @@ namespace AL::OS
 					return WindowClipboardDataFormats::WString;
 
 				case CF_TIFF:
-					return WindowClipboardDataFormats::NotSupported;
+					return WindowClipboardDataFormats::TIFF;
 
 				case CF_BITMAP:
-					return WindowClipboardDataFormats::NotSupported;
+					return WindowClipboardDataFormats::Bitmap;
+
+				case CF_RIFF:
+					return WindowClipboardDataFormats::RIFF;
+
+				case CF_WAVE:
+					return WindowClipboardDataFormats::Wave;
+
+				case CF_HDROP:
+					return WindowClipboardDataFormats::Drop;
+
+				case CF_ENHMETAFILE:
+					return WindowClipboardDataFormats::MetaFile;
 
 				case CF_METAFILEPICT:
-					return WindowClipboardDataFormats::NotSupported;
-
-				default:
-					return WindowClipboardDataFormats::NotSupported;
+					return WindowClipboardDataFormats::MetaFilePicture;
 			}
+
+			return WindowClipboardDataFormats::NotSupported;
 #endif
 		}
 
@@ -257,6 +280,8 @@ namespace AL::OS
 		virtual void OnDestroy();
 
 	private: // Window access
+		friend Window;
+
 #if defined(AL_PLATFORM_LINUX)
 		// @throw AL::Exceptions::Exception
 		// @return true if handled
