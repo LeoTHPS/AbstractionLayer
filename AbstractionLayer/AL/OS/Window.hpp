@@ -318,6 +318,7 @@ namespace AL::OS
 		bool isCreating = false;
 		bool isClosing = false;
 		bool isForceClosing = false;
+		bool isContentLoaded = false;
 		bool isCloseCancelled = false;
 
 		bool isMovable = true;
@@ -436,6 +437,11 @@ namespace AL::OS
 		bool IsCreated() const
 		{
 			return isCreated;
+		}
+
+		bool IsContentLoaded() const
+		{
+			return isContentLoaded;
 		}
 
 		bool IsFocus() const
@@ -1148,6 +1154,7 @@ namespace AL::OS
 		{
 			AL_ASSERT(IsOpen(), "Window not open");
 			AL_ASSERT(IsCreated(), "Window not created");
+			AL_ASSERT(IsContentLoaded(), "Window content not loaded");
 
 			OnDraw(
 				delta
@@ -1163,10 +1170,33 @@ namespace AL::OS
 		{
 			AL_ASSERT(IsOpen(), "Window not open");
 			AL_ASSERT(IsCreated(), "Window not created");
+			AL_ASSERT(IsContentLoaded(), "Window content not loaded");
 
 			OnUpdate(
 				delta
 			);
+		}
+
+		// @throw AL::Exceptions::Exception
+		void LoadContent()
+		{
+			AL_ASSERT(IsOpen(), "Window not open");
+			AL_ASSERT(IsCreated(), "Window not created");
+			AL_ASSERT(!IsContentLoaded(), "Window content already loaded");
+
+			OnLoadContent();
+
+			isContentLoaded = true;
+		}
+
+		void UnloadContent()
+		{
+			if (IsContentLoaded())
+			{
+				OnUnloadContent();
+
+				isContentLoaded = false;
+			}
 		}
 
 	protected:
@@ -1260,6 +1290,15 @@ namespace AL::OS
 				wClass.hInstance
 			);
 #endif
+		}
+
+		// @throw AL::Exceptions::Exception
+		virtual void OnLoadContent()
+		{
+		}
+
+		virtual void OnUnloadContent()
+		{
 		}
 
 		// @throw AL::Exceptions::Exception
@@ -1814,12 +1853,32 @@ namespace AL::OS
 
 			isCreated = true;
 			isCreating = false;
+
+			try
+			{
+				LoadContent();
+			}
+			catch (Exceptions::Exception& exception)
+			{
+				Destroy();
+
+				throw Exceptions::Exception(
+					Move(exception),
+					"Error loading Window content"
+				);
+			}
 		}
 
 		void Destroy()
 		{
 			if (IsCreated())
 			{
+				if (IsContentLoaded())
+				{
+
+					UnloadContent();
+				}
+
 				OnDestroy();
 
 				isCreated = false;

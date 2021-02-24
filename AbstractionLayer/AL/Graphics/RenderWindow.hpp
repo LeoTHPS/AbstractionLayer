@@ -10,8 +10,6 @@ namespace AL::Graphics
 	class RenderWindow
 		: public OS::Window
 	{
-		bool isContentLoaded = false;
-
 		bool isResizeInProgress = false;
 
 		RenderTarget target;
@@ -26,11 +24,6 @@ namespace AL::Graphics
 				*this
 			)
 		{
-		}
-
-		bool IsContentLoaded() const
-		{
-			return isContentLoaded;
 		}
 
 		auto& GetTarget()
@@ -77,29 +70,10 @@ namespace AL::Graphics
 					"Error creating RenderTarget target"
 				);
 			}
-
-			try
-			{
-				LoadContent();
-			}
-			catch (Exceptions::Exception& exception)
-			{
-				GetTarget().DestroyTarget();
-				GetTarget().Destroy();
-
-				Window::OnDestroy();
-
-				throw Exceptions::Exception(
-					Move(exception),
-					"Error loading RenderWindow content"
-				);
-			}
 		}
 
 		virtual void OnDestroy() override
 		{
-			UnloadContent();
-
 			GetTarget().DestroyTarget();
 			GetTarget().Destroy();
 
@@ -107,11 +81,11 @@ namespace AL::Graphics
 		}
 
 		// @throw AL::Exceptions::Exception
-		virtual void OnLoadContent()
+		virtual void OnLoadContent() override
 		{
 		}
 
-		virtual void OnUnloadContent()
+		virtual void OnUnloadContent() override
 		{
 		}
 
@@ -247,27 +221,6 @@ namespace AL::Graphics
 					Move(exception),
 					"Error recreating RenderTarget"
 				);
-			}
-		}
-
-	private:
-		// @throw AL::Exceptions::Exception
-		void LoadContent()
-		{
-			AL_ASSERT(!IsContentLoaded(), "RenderWindow content already loaded");
-
-			OnLoadContent();
-
-			isContentLoaded = true;
-		}
-
-		void UnloadContent()
-		{
-			if (IsContentLoaded())
-			{
-				OnUnloadContent();
-
-				isContentLoaded = false;
 			}
 		}
 	};
