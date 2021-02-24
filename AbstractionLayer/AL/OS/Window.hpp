@@ -914,7 +914,7 @@ namespace AL::OS
 		}
 
 		// @throw AL::Exceptions::Exception
-		void Open(uint32 tickRate = 40)
+		void Open()
 		{
 			AL_ASSERT(!IsOpen(), "Window already open");
 
