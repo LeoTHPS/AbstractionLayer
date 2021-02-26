@@ -1152,7 +1152,6 @@ namespace AL::OS
 		// @throw AL::Exceptions::Exception
 		void Draw(float delta)
 		{
-			AL_ASSERT(IsOpen(), "Window not open");
 			AL_ASSERT(IsCreated(), "Window not created");
 			AL_ASSERT(IsContentLoaded(), "Window content not loaded");
 
@@ -1168,7 +1167,6 @@ namespace AL::OS
 		// @throw AL::Exceptions::Exception
 		void Update(TimeSpan delta)
 		{
-			AL_ASSERT(IsOpen(), "Window not open");
 			AL_ASSERT(IsCreated(), "Window not created");
 			AL_ASSERT(IsContentLoaded(), "Window content not loaded");
 
@@ -1180,7 +1178,6 @@ namespace AL::OS
 		// @throw AL::Exceptions::Exception
 		void LoadContent()
 		{
-			AL_ASSERT(IsOpen(), "Window not open");
 			AL_ASSERT(IsCreated(), "Window not created");
 			AL_ASSERT(!IsContentLoaded(), "Window content already loaded");
 
@@ -1484,6 +1481,22 @@ namespace AL::OS
 		{
 		}
 
+		// @throw AL::Exceptions::Exception
+		// @return true if handled
+		virtual bool OnMouseEvent(const Input::MouseEvent& event)
+		{
+
+			return false;
+		}
+		
+		// @throw AL::Exceptions::Exception
+		// @return true if handled
+		virtual bool OnKeyboardEvent(const Input::KeyboardEvent& event)
+		{
+
+			return false;
+		}
+
 #if defined(AL_PLATFORM_LINUX)
 		// @throw AL::Exceptions::Exception
 		// @return true if handled
@@ -1525,8 +1538,12 @@ namespace AL::OS
 				{
 					if (isprint(static_cast<int>(wParam)))
 					{
-						lastKeyboardEvent.Event = Input::KeyboardEvents::Char;
 						lastKeyboardEvent.Char = static_cast<char>(wParam);
+						lastKeyboardEvent.Event = Input::KeyboardEvents::Char;
+
+						OnKeyboardEvent(
+							lastKeyboardEvent
+						);
 					}
 				}
 				break;
@@ -1588,6 +1605,10 @@ namespace AL::OS
 						lastKeyboardEvent.Key,
 						true
 					);
+
+					OnKeyboardEvent(
+						lastKeyboardEvent
+					);
 				}
 				break;
 
@@ -1648,6 +1669,10 @@ namespace AL::OS
 						lastKeyboardEvent.Key,
 						false
 					);
+
+					OnKeyboardEvent(
+						lastKeyboardEvent
+					);
 				}
 				break;
 
@@ -1656,6 +1681,10 @@ namespace AL::OS
 					UpdateMousePosition(lParam);
 
 					lastMouseEvent.Event = Input::MouseEvents::Move;
+
+					OnMouseEvent(
+						lastMouseEvent
+					);
 				}
 				break;
 
@@ -1674,6 +1703,10 @@ namespace AL::OS
 					{
 						lastMouseEvent.Event = Input::MouseEvents::ScrollDown;
 					}
+
+					OnMouseEvent(
+						lastMouseEvent
+					);
 				}
 				break;
 
@@ -1687,6 +1720,10 @@ namespace AL::OS
 
 					lastMouseEvent.Event = Input::MouseEvents::ButtonDown;
 					lastMouseEvent.Button = Input::MouseButtons::Left;
+
+					OnMouseEvent(
+						lastMouseEvent
+					);
 				}
 				break;
 
@@ -1698,6 +1735,10 @@ namespace AL::OS
 
 					lastMouseEvent.Event = Input::MouseEvents::ButtonUp;
 					lastMouseEvent.Button = Input::MouseButtons::Left;
+
+					OnMouseEvent(
+						lastMouseEvent
+					);
 				}
 				break;
 
@@ -1711,6 +1752,10 @@ namespace AL::OS
 
 					lastMouseEvent.Event = Input::MouseEvents::ButtonDown;
 					lastMouseEvent.Button = Input::MouseButtons::Right;
+
+					OnMouseEvent(
+						lastMouseEvent
+					);
 				}
 				break;
 
@@ -1722,6 +1767,10 @@ namespace AL::OS
 
 					lastMouseEvent.Event = Input::MouseEvents::ButtonUp;
 					lastMouseEvent.Button = Input::MouseButtons::Right;
+
+					OnMouseEvent(
+						lastMouseEvent
+					);
 				}
 				break;
 
@@ -1735,6 +1784,10 @@ namespace AL::OS
 
 					lastMouseEvent.Event = Input::MouseEvents::ButtonDown;
 					lastMouseEvent.Button = Input::MouseButtons::Middle;
+
+					OnMouseEvent(
+						lastMouseEvent
+					);
 				}
 				break;
 
@@ -1746,6 +1799,10 @@ namespace AL::OS
 
 					lastMouseEvent.Event = Input::MouseEvents::ButtonUp;
 					lastMouseEvent.Button = Input::MouseButtons::Middle;
+
+					OnMouseEvent(
+						lastMouseEvent
+					);
 				}
 				break;
 
@@ -1763,6 +1820,10 @@ namespace AL::OS
 
 							lastMouseEvent.Event = Input::MouseEvents::ButtonDown;
 							lastMouseEvent.Button = Input::MouseButtons::X1;
+
+							OnMouseEvent(
+								lastMouseEvent
+							);
 						}
 						break;
 
@@ -1772,6 +1833,10 @@ namespace AL::OS
 
 							lastMouseEvent.Event = Input::MouseEvents::ButtonDown;
 							lastMouseEvent.Button = Input::MouseButtons::X2;
+
+							OnMouseEvent(
+								lastMouseEvent
+							);
 						}
 						break;
 					}
@@ -1790,6 +1855,10 @@ namespace AL::OS
 
 							lastMouseEvent.Event = Input::MouseEvents::ButtonUp;
 							lastMouseEvent.Button = Input::MouseButtons::X1;
+
+							OnMouseEvent(
+								lastMouseEvent
+							);
 						}
 						break;
 
@@ -1799,6 +1868,10 @@ namespace AL::OS
 
 							lastMouseEvent.Event = Input::MouseEvents::ButtonUp;
 							lastMouseEvent.Button = Input::MouseButtons::X2;
+
+							OnMouseEvent(
+								lastMouseEvent
+							);
 						}
 						break;
 					}
