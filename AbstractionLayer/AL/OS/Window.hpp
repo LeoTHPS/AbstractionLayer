@@ -1165,12 +1165,13 @@ namespace AL::OS
 		}
 
 		// @throw AL::Exceptions::Exception
-		void Update(TimeSpan delta)
+		// @return false on close
+		bool Update(TimeSpan delta)
 		{
 			AL_ASSERT(IsCreated(), "Window not created");
 			AL_ASSERT(IsContentLoaded(), "Window content not loaded");
 
-			OnUpdate(
+			return OnUpdate(
 				delta
 			);
 		}
@@ -1412,7 +1413,8 @@ namespace AL::OS
 		}
 
 		// @throw AL::Exceptions::Exception
-		virtual void OnUpdate(TimeSpan delta)
+		// @return false on close
+		virtual bool OnUpdate(TimeSpan delta)
 		{
 #if defined(AL_PLATFORM_WINDOWS)
 			MSG msg;
@@ -1432,12 +1434,14 @@ namespace AL::OS
 						Destroy();
 					}
 
-					break;
+					return false;
 				}
 
 				DispatchMessageA(&msg);
 			}
 #endif
+
+			return true;
 		}
 
 		// @throw AL::Exceptions::Exception
