@@ -9,6 +9,8 @@ namespace AL::Graphics
 	template<typename T, template<typename> typename CAST = Rectangle_Cast>
 	struct Rectangle
 	{
+		typedef T Type;
+
 		T Left;
 		T Right;
 		T Top;

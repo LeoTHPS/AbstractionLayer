@@ -12,6 +12,8 @@ namespace AL::Graphics
 	template<typename T, template<typename> typename CAST>
 	struct _Vector<T, 2, CAST>
 	{
+		typedef T Type;
+
 		T X;
 		T Y;
 
@@ -113,6 +115,8 @@ namespace AL::Graphics
 	struct _Vector<T, 3, CAST>
 		: public _Vector2<T, CAST>
 	{
+		typedef T Type;
+
 		T Z;
 
 		_Vector()
@@ -176,6 +180,8 @@ namespace AL::Graphics
 	struct _Vector<T, 4, CAST>
 		: public _Vector3<T, CAST>
 	{
+		typedef T Type;
+
 		T R;
 
 		_Vector()
