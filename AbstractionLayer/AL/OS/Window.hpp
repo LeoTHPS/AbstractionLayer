@@ -785,11 +785,11 @@ namespace AL::OS
 		}
 		// @throw AL::Exceptions::Exception
 		// @return false if not resizable
-		bool SetResolution(const Graphics::Rectangle<uint32>& value)
+		bool SetResolution(const WindowResolution& value)
 		{
 			return SetResolution(
-				value.GetWidth(),
-				value.GetHeight()
+				value.X,
+				value.Y
 			);
 		}
 
