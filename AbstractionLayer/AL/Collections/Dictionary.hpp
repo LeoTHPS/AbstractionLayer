@@ -25,6 +25,20 @@ namespace AL::Collections
 		{
 		}
 
+		Dictionary(Dictionary&& dictionary)
+			: container(
+				Move(dictionary.container)
+			)
+		{
+		}
+
+		Dictionary(const Dictionary& dictionary)
+			: container(
+				dictionary.container
+			)
+		{
+		}
+
 		template<typename ITERATOR>
 		Dictionary(ITERATOR first, ITERATOR last)
 			: container(
@@ -157,6 +171,21 @@ namespace AL::Collections
 		auto& operator [] (const Key& key) const
 		{
 			return container[key];
+		}
+
+		auto& operator = (Dictionary&& dictionary)
+		{
+			container = Move(
+				dictionary.container
+			);
+
+			return *this;
+		}
+		auto& operator = (const Dictionary& dictionary)
+		{
+			container = dictionary.container;
+
+			return *this;
 		}
 
 		bool operator == (const Dictionary& dictionary) const

@@ -29,6 +29,20 @@ namespace AL::Collections
 		{
 		}
 
+		Array(Array&& array)
+			: container(
+				Move(array.container)
+			)
+		{
+		}
+
+		Array(const Array& array)
+			: container(
+				array.container
+			)
+		{
+		}
+
 		explicit Array(size_t capacity)
 			: container(
 				capacity
@@ -260,6 +274,21 @@ namespace AL::Collections
 			return container[index];
 		}
 
+		auto& operator = (Array&& array)
+		{
+			container = Move(
+				array.container
+			);
+
+			return *this;
+		}
+		auto& operator = (const Array& array)
+		{
+			container = array.container;
+
+			return *this;
+		}
+
 		bool operator == (const Array& array) const
 		{
 			return container == array.container;
@@ -287,6 +316,20 @@ namespace AL::Collections
 		typedef typename Container::const_reverse_iterator ConstReverseIterator;
 
 		Array()
+		{
+		}
+
+		Array(Array&& array)
+			: container(
+				Move(array.container)
+			)
+		{
+		}
+
+		Array(const Array& array)
+			: container(
+				array.container
+			)
 		{
 		}
 
@@ -389,6 +432,21 @@ namespace AL::Collections
 		auto& operator [] (size_t index) const
 		{
 			return container[index];
+		}
+
+		auto& operator = (Array&& array)
+		{
+			container = Move(
+				array.container
+			);
+
+			return *this;
+		}
+		auto& operator = (const Array& array)
+		{
+			container = array.container;
+
+			return *this;
 		}
 
 		bool operator == (const Array& array) const

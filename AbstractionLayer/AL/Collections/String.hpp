@@ -211,6 +211,20 @@ namespace AL::Collections
 		{
 		}
 
+		_String(_String<Char>&& string)
+			: container(
+				Move(string.container)
+			)
+		{
+		}
+
+		_String(const _String<Char>& string)
+			: container(
+				string.container
+			)
+		{
+		}
+
 		_String(const Char* lpString)
 			: container(
 				lpString
@@ -977,6 +991,21 @@ namespace AL::Collections
 		auto& operator [] (size_t index) const
 		{
 			return container[index];
+		}
+
+		auto& operator = (_String<Char>&& string)
+		{
+			container = Move(
+				string.container
+			);
+
+			return *this;
+		}
+		auto& operator = (const _String<Char>& string)
+		{
+			container = string.container;
+
+			return *this;
 		}
 
 		bool operator < (const _String& string) const

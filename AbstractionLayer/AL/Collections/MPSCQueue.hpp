@@ -28,6 +28,8 @@ namespace AL::Collections
 		std::atomic<size_t> size;
 		std::atomic<Node*> back;
 		std::atomic<Node*> front;
+
+		MPSCQueue(const MPSCQueue&) = delete;
 		
 	public:
 		typedef T Type;
@@ -45,6 +47,22 @@ namespace AL::Collections
 				)
 			)
 		{
+		}
+
+		MPSCQueue(MPSCQueue&& queue)
+			: size(
+				queue.size
+			),
+			back(
+				queue.back
+			),
+			front(
+				queue.front
+			)
+		{
+			queue.size = 0;
+			queue.back = new Node();
+			queue.front = queue.back;
 		}
 
 		virtual ~MPSCQueue()
@@ -214,6 +232,20 @@ namespace AL::Collections
 			}
 
 			return false;
+		}
+
+		auto& operator = (MPSCQueue&& queue)
+		{
+			size = queue.size;
+			queue.size = 0;
+			
+			back = queue.back;
+			queue.back = new Node();
+
+			front = queue.front;
+			queue.front = queue.back;
+
+			return *this;
 		}
 
 		bool operator == (const MPSCQueue& queue) const

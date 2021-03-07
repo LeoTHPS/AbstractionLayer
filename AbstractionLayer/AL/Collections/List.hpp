@@ -25,6 +25,20 @@ namespace AL::Collections
 		{
 		}
 
+		List(List&& list)
+			: container(
+				Move(list.container)
+			)
+		{
+		}
+
+		List(const List& list)
+			: container(
+				list.container
+			)
+		{
+		}
+
 		template<typename ITERATOR>
 		List(ITERATOR first, ITERATOR last)
 			: container(
@@ -218,6 +232,21 @@ namespace AL::Collections
 		ConstReverseIterator rend() const
 		{
 			return container.crend();
+		}
+
+		auto& operator = (List&& list)
+		{
+			container = Move(
+				list.container
+			);
+
+			return *this;
+		}
+		auto& operator = (const List& list)
+		{
+			container = list.container;
+
+			return *this;
 		}
 
 		bool operator == (const List& list) const

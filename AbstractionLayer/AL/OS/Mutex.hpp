@@ -15,11 +15,16 @@ namespace AL::OS
 		CRITICAL_SECTION section;
 #endif
 
+		Mutex(Mutex&&) = delete;
+		Mutex(const Mutex&) = delete;
+
 	public:
 		Mutex()
 		{
 #if defined(AL_PLATFORM_WINDOWS)
-			InitializeCriticalSection(&section);
+			InitializeCriticalSection(
+				&section
+			);
 #endif
 		}
 
@@ -72,6 +77,9 @@ namespace AL::OS
 	class MutexGuard
 	{
 		Mutex* const lpMutex;
+
+		MutexGuard(MutexGuard&&) = delete;
+		MutexGuard(const MutexGuard&) = delete;
 
 	public:
 		explicit MutexGuard(Mutex& mutex)

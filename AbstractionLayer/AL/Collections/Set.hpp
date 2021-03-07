@@ -22,6 +22,20 @@ namespace AL::Collections
 		{
 		}
 
+		Set(Set&& set)
+			: container(
+				Move(set.container)
+			)
+		{
+		}
+
+		Set(const Set& set)
+			: container(
+				set.container
+			)
+		{
+		}
+
 		template<typename ITERATOR>
 		Set(ITERATOR first, ITERATOR last)
 			: container(
@@ -132,6 +146,21 @@ namespace AL::Collections
 		ConstIterator cend() const
 		{
 			return container.cend();
+		}
+
+		auto& operator = (Set&& set)
+		{
+			container = Move(
+				set.container
+			);
+
+			return *this;
+		}
+		auto& operator = (const Set& set)
+		{
+			container = set.container;
+
+			return *this;
 		}
 
 		bool operator == (const Set& set) const

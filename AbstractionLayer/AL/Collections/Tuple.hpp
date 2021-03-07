@@ -56,6 +56,20 @@ namespace AL::Collections
 		{
 		}
 
+		Tuple(Tuple&& tuple)
+			: entries(
+				Move(tuple.entries)
+			)
+		{
+		}
+
+		Tuple(const Tuple& tuple)
+			: entries(
+				tuple.entries
+			)
+		{
+		}
+
 		explicit Tuple(TYPES&& ... values)
 			: entries(
 				Move(values) ...
@@ -104,6 +118,21 @@ namespace AL::Collections
 			);
 		}
 
+		auto& operator = (Tuple&& tuple)
+		{
+			entries = Move(
+				tuple.entries
+			);
+
+			return *this;
+		}
+		auto& operator = (const Tuple& tuple)
+		{
+			entries = tuple.entries;
+
+			return *this;
+		}
+
 	private:
 		template<typename F, size_t ... I>
 		auto Invoke(const F& func, Index_Sequence<I ...>)
@@ -119,6 +148,14 @@ namespace AL::Collections
 	{
 	public:
 		Tuple()
+		{
+		}
+
+		Tuple(Tuple&& tuple)
+		{
+		}
+
+		Tuple(const Tuple& tuple)
 		{
 		}
 
@@ -140,6 +177,17 @@ namespace AL::Collections
 		auto Invoke(const F& func)
 		{
 			return func();
+		}
+
+		auto& operator = (Tuple&& tuple)
+		{
+
+			return *this;
+		}
+		auto& operator = (const Tuple& tuple)
+		{
+
+			return *this;
 		}
 	};
 }

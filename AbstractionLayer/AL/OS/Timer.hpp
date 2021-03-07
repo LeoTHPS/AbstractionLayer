@@ -19,13 +19,11 @@ namespace AL::OS
 		mutable LARGE_INTEGER integer;
 #endif
 
+		Timer(const Timer&) = delete;
+
 	public:
 		Timer()
-#if defined(AL_PLATFORM_LINUX)
-			: start(
-				Clock::now()
-			)
-#elif defined(AL_PLATFORM_WINDOWS)
+#if defined(AL_PLATFORM_WINDOWS)
 			: frequency(
 				[this]()
 				{
@@ -40,9 +38,27 @@ namespace AL::OS
 			)
 #endif
 		{
-#if defined(AL_PLATFORM_WINDOWS)
 			Reset();
+		}
+
+		Timer(Timer&& timer)
+#if defined(AL_PLATFORM_LINUX)
+			: start(
+				Move(timer.start)
+			)
+#elif defined(AL_PLATFORM_WINDOWS)
+			: start(
+				timer.start
+			),
+			frequency(
+				timer.frequency
+			),
+			integer(
+				Move(timer.integer)
+			)
 #endif
+		{
+			timer.Reset();
 		}
 
 		virtual ~Timer()
@@ -87,6 +103,27 @@ namespace AL::OS
 				integer.QuadPart
 			);
 #endif
+		}
+
+		auto& operator = (Timer&& timer)
+		{
+#if defined(AL_PLATFORM_LINUX)
+			start = Move(
+				timer.start
+			);
+#elif defined(AL_PLATFORM_WINDOWS)
+			start = timer.start;
+			
+			integer = Move(
+				timer.integer
+			);
+
+			frequency = timer.frequency;
+#endif
+
+			timer.Reset();
+
+			return *this;
 		}
 	};
 }

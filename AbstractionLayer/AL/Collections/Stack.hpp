@@ -13,6 +13,24 @@ namespace AL::Collections
 	public:
 		typedef T Type;
 
+		Stack()
+		{
+		}
+
+		Stack(Stack&& stack)
+			: container(
+				Move(stack.container)
+			)
+		{
+		}
+
+		Stack(const Stack& stack)
+			: container(
+				stack.container
+			)
+		{
+		}
+
 		virtual ~Stack()
 		{
 		}
@@ -95,6 +113,21 @@ namespace AL::Collections
 			}
 
 			return false;
+		}
+
+		auto& operator = (Stack&& stack)
+		{
+			container = Move(
+				stack.container
+			);
+
+			return *this;
+		}
+		auto& operator = (const Stack& stack)
+		{
+			container = stack.container;
+
+			return *this;
 		}
 	};
 }

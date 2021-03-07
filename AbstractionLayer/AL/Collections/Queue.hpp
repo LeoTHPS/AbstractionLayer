@@ -15,6 +15,24 @@ namespace AL::Collections
 	public:
 		typedef T Type;
 
+		Queue()
+		{
+		}
+
+		Queue(Queue&& queue)
+			: container(
+				Move(queue.container)
+			)
+		{
+		}
+
+		Queue(const Queue& queue)
+			: container(
+				queue.container
+			)
+		{
+		}
+
 		virtual ~Queue()
 		{
 		}
@@ -103,6 +121,21 @@ namespace AL::Collections
 			}
 
 			return false;
+		}
+
+		auto& operator = (Queue&& queue)
+		{
+			container = Move(
+				queue.container
+			);
+
+			return *this;
+		}
+		auto& operator = (const Queue& queue)
+		{
+			container = queue.container;
+
+			return *this;
 		}
 
 		bool operator == (const Queue& queue) const

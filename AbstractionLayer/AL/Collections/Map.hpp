@@ -23,6 +23,20 @@ namespace AL::Collections
 		{
 		}
 
+		Map(Map&& map)
+			: container(
+				Move(map.container)
+			)
+		{
+		}
+
+		Map(const Map& map)
+			: container(
+				map.container
+			)
+		{
+		}
+
 		template<typename ITERATOR>
 		Map(ITERATOR first, ITERATOR last)
 			: container(
@@ -155,6 +169,21 @@ namespace AL::Collections
 		auto& operator [] (const Key& key) const
 		{
 			return container[key];
+		}
+
+		auto& operator = (Map&& map)
+		{
+			container = Move(
+				map.container
+			);
+
+			return *this;
+		}
+		auto& operator = (const Map& map)
+		{
+			container = map.container;
+
+			return *this;
 		}
 
 		bool operator == (const Map& map) const

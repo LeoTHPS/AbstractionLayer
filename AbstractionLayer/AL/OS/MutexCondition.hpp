@@ -17,6 +17,9 @@ namespace AL::OS
 		CONDITION_VARIABLE condition;
 #endif
 
+		MutexCondition(MutexCondition&&) = delete;
+		MutexCondition(const MutexCondition&) = delete;
+
 	public:
 		MutexCondition()
 		{

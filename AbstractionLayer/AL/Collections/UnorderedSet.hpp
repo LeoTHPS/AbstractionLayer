@@ -22,6 +22,20 @@ namespace AL::Collections
 		{
 		}
 
+		UnorderedSet(UnorderedSet&& set)
+			: container(
+				Move(set.container)
+			)
+		{
+		}
+
+		UnorderedSet(const UnorderedSet& set)
+			: container(
+				set.container
+			)
+		{
+		}
+
 		template<typename ITERATOR>
 		UnorderedSet(ITERATOR first, ITERATOR last)
 			: container(
@@ -132,6 +146,21 @@ namespace AL::Collections
 		ConstIterator cend() const
 		{
 			return container.cend();
+		}
+
+		auto& operator = (UnorderedSet&& set)
+		{
+			container = Move(
+				set.container
+			);
+
+			return *this;
+		}
+		auto& operator = (const UnorderedSet& set)
+		{
+			container = set.container;
+
+			return *this;
 		}
 
 		bool operator == (const UnorderedSet& set) const

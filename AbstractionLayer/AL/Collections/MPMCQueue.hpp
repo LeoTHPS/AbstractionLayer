@@ -14,6 +14,24 @@ namespace AL::Collections
 	public:
 		typedef T Type;
 
+		MPMCQueue()
+		{
+		}
+
+		MPMCQueue(MPMCQueue&& queue)
+			: container(
+				Move(queue.container)
+			)
+		{
+		}
+
+		MPMCQueue(const MPMCQueue& queue)
+			: container(
+				queue.container
+			)
+		{
+		}
+
 		virtual ~MPMCQueue()
 		{
 		}
@@ -131,6 +149,21 @@ namespace AL::Collections
 			return container.Dequeue(
 				value
 			);
+		}
+
+		auto& operator = (MPMCQueue&& queue)
+		{
+			container = Move(
+				queue.container
+			);
+
+			return *this;
+		}
+		auto& operator = (const MPMCQueue& queue)
+		{
+			container = queue.container;
+
+			return *this;
 		}
 
 		bool operator == (const MPMCQueue& queue) const
