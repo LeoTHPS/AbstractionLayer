@@ -16,12 +16,15 @@ namespace AL::USB
 	typedef uint16 VendorId;
 	typedef uint16 ProductId;
 
-	class Device;
-
-	typedef Function<void(Device& device)> DeviceEnumCallback;
+	typedef Function<void(VendorId vendor, ProductId product)> DeviceEnumCallback;
 
 	class Device
 	{
+		bool isOpen = false;
+		bool isInterfaceOpen = false;
+
+		uint32 interfaceId = 0;
+
 #if defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_LIBUSB)
 		class LibUSB final
@@ -45,7 +48,8 @@ namespace AL::USB
 		libusb_device_descriptor descriptor;
 	#endif
 #elif defined(AL_PLATFORM_WINDOWS)
-
+		VendorId vendorId;
+		ProductId productId;
 #endif
 
 		Device(Device&&) = delete;
@@ -58,16 +62,26 @@ namespace AL::USB
 				Move(descriptor)
 			)
 		{
+			isOpen = true;
 		}
 	#endif
 #elif defined(AL_PLATFORM_WINDOWS)
-
+		Device(VendorId vendorId, ProductId productId)
+			: vendorId(
+				vendorId
+			),
+			productId(
+				productId
+			)
+		{
+			isOpen = true;
+		}
 #endif
 
 	public:
 		// @throw AL::Exceptions::Exception
-		// @return false if device is not found
-		static bool FindDevice(Device& device, VendorId vendorId, ProductId productId)
+		// @return false if device does not exist
+		static bool Open(Device& device, VendorId vendorId, ProductId productId)
 		{
 #if defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_LIBUSB)
@@ -149,7 +163,7 @@ namespace AL::USB
 		}
 
 		// @throw AL::Exceptions::Exception
-		static void EnumerateDevices(const DeviceEnumCallback& callback)
+		static void Enumerate(const DeviceEnumCallback& callback)
 		{
 #if defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_LIBUSB)
@@ -182,12 +196,9 @@ namespace AL::USB
 						);
 					}
 
-					Device device(
-						Move(deviceDescriptor)
-					);
-
 					callback(
-						device
+						deviceDescriptor.idVendor,
+						deviceDescriptor.idProduct
 					);
 				}
 			}
@@ -226,15 +237,12 @@ namespace AL::USB
 
 		bool IsOpen() const
 		{
-#if defined(AL_PLATFORM_LINUX)
-	#if defined(AL_DEPENDENCY_LIBUSB)
-			return lpHandle != nullptr;
-	#else
-			return false;
-	#endif
-#elif defined(AL_PLATFORM_WINDOWS)
-			return false;
-#endif
+			return isOpen;
+		}
+
+		bool IsInterfaceOpen() const
+		{
+			return isInterfaceOpen;
 		}
 
 		auto GetVendorId() const
@@ -244,11 +252,9 @@ namespace AL::USB
 			return VendorId(
 				descriptor.idVendor
 			);
-	#else
-			return VendorId(0);
 	#endif
 #elif defined(AL_PLATFORM_WINDOWS)
-			return VendorId(0);
+			return vendorId;
 #endif
 		}
 
@@ -259,18 +265,22 @@ namespace AL::USB
 			return ProductId(
 				descriptor.idProduct
 			);
-	#else
-			return ProductId(0);
 	#endif
 #elif defined(AL_PLATFORM_WINDOWS)
-			return ProductId(0);
+			return productId;
 #endif
 		}
 
-		// @throw AL::Exceptions::Exception
-		void Open(uint32 _interface)
+		auto GetInterfaceId() const
 		{
-			AL_ASSERT(!IsOpen(), "Device already open");
+			return interfaceId;
+		}
+
+		// @throw AL::Exceptions::Exception
+		void OpenInterface(uint32 interfaceId)
+		{
+			AL_ASSERT(IsOpen(), "Device not open");
+			AL_ASSERT(!IsInterfaceOpen(), "Device interface already open");
 
 #if defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_LIBUSB)
@@ -304,11 +314,15 @@ namespace AL::USB
 #elif defined(AL_PLATFORM_WINDOWS)
 			throw Exceptions::NotImplementedException();
 #endif
+
+			this->interfaceId = interfaceId;
+
+			isInterfaceOpen = true;
 		}
 
-		void Close()
+		void CloseInterface()
 		{
-			if (IsOpen())
+			if (IsInterfaceOpen())
 			{
 #if defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_LIBUSB)
@@ -326,6 +340,8 @@ namespace AL::USB
 #elif defined(AL_PLATFORM_WINDOWS)
 
 #endif
+
+				isInterfaceOpen = false;
 			}
 		}
 
@@ -334,6 +350,7 @@ namespace AL::USB
 		size_t Read(uint8 endPoint, void* lpBuffer, size_t size)
 		{
 			AL_ASSERT(IsOpen(), "Device not open");
+			AL_ASSERT(IsInterfaceOpen(), "Device interface not open");
 
 #if defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_LIBUSB)
@@ -366,6 +383,7 @@ namespace AL::USB
 		size_t Write(uint8 endPoint, const void* lpBuffer, size_t size)
 		{
 			AL_ASSERT(IsOpen(), "Device not open");
+			AL_ASSERT(IsInterfaceOpen(), "Device interface not open");
 
 #if defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_LIBUSB)
@@ -391,6 +409,27 @@ namespace AL::USB
 #elif defined(AL_PLATFORM_WINDOWS)
 			throw Exceptions::NotImplementedException();
 #endif
+		}
+
+	private:
+		void Close()
+		{
+			if (IsOpen())
+			{
+				if (IsInterfaceOpen())
+				{
+
+					CloseInterface();
+				}
+
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_LIBUSB)
+
+	#endif
+#elif defined(AL_PLATFORM_WINDOWS)
+
+#endif
+			}
 		}
 	};
 }
