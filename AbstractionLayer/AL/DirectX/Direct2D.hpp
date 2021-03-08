@@ -75,42 +75,6 @@ namespace AL::DirectX
 	template<typename T, typename TReleaser = ResourceReleaser<T>>
 	using Direct2DResource = Resource<T, TReleaser>;
 
-	template<typename T>
-	struct Size
-	{
-		T Width;
-		T Height;
-
-		Size()
-		{
-		}
-
-		Size(T width, T height)
-			: Width(
-				width
-			),
-			Height(
-				height
-			)
-		{
-		}
-	};
-
-	typedef Size<float> SizeF;
-	typedef Size<uint32> SizeU;
-	
-	template<typename T>
-	using Point = Graphics::Vector2<T>;
-
-	typedef Point<float> PointF;
-	typedef Point<uint32> PointU;
-
-	template<typename T>
-	using Rectangle = Graphics::Rectangle<T>;
-
-	typedef Rectangle<float> RectangleF;
-	typedef Rectangle<uint32> RectangleU;
-	
 	class Bitmap
 		: public Direct2DResource<ID2D1Bitmap>
 	{
@@ -119,7 +83,7 @@ namespace AL::DirectX
 
 		auto GetDpi() const
 		{
-			PointF dpi;
+			Graphics::Vector2F dpi;
 
 			GetResource()->GetDpi(
 				&dpi.X,
@@ -133,9 +97,9 @@ namespace AL::DirectX
 		{
 			auto _size = GetResource()->GetSize();
 
-			SizeF size;
-			size.Width = _size.width;
-			size.Height = _size.height;
+			Graphics::Vector2F size;
+			size.X = _size.width;
+			size.Y = _size.height;
 
 			return size;
 		}
@@ -144,9 +108,9 @@ namespace AL::DirectX
 		{
 			auto _pixelSize = GetResource()->GetPixelSize();
 
-			SizeU pixelSize;
-			pixelSize.Width = _pixelSize.width;
-			pixelSize.Height = _pixelSize.height;
+			Graphics::Vector2U pixelSize;
+			pixelSize.X = _pixelSize.width;
+			pixelSize.Y = _pixelSize.height;
 
 			return pixelSize;
 		}
@@ -1272,7 +1236,7 @@ namespace AL::DirectX
 		}
 		// @throw AL::Exceptions::Exception
 		template<size_t S>
-		void CreateLinearGradientBrush(LinearGradientBrush& brush, const PointF& start, const PointF& end, const GradientStop(&stops)[S])
+		void CreateLinearGradientBrush(LinearGradientBrush& brush, const Graphics::Vector2F& start, const Graphics::Vector2F& end, const GradientStop(&stops)[S])
 		{
 			AL_ASSERT(IsCreated(), "Direct2D not created");
 			AL_ASSERT(IsTargetCreated(), "Direct2D target not created");
@@ -1331,7 +1295,7 @@ namespace AL::DirectX
 		}
 		// @throw AL::Exceptions::Exception
 		template<size_t S>
-		void CreateRadialGradientBrush(RadialGradientBrush& brush, const PointF& center, const PointF& offset, const PointF& radius, const GradientStop(&stops)[S])
+		void CreateRadialGradientBrush(RadialGradientBrush& brush, const Graphics::Vector2F& center, const Graphics::Vector2F& offset, const Graphics::Vector2F& radius, const GradientStop(&stops)[S])
 		{
 			AL_ASSERT(IsCreated(), "Direct2D not created");
 			AL_ASSERT(IsTargetCreated(), "Direct2D target not created");
@@ -1599,7 +1563,7 @@ namespace AL::DirectX
 			geometry = lpGeometry;
 		}
 		// @throw AL::Exceptions::Exception
-		void CreateEllipseGeometry(EllipseGeometry& geometry, const PointF& center, float radiusX, float radiusY)
+		void CreateEllipseGeometry(EllipseGeometry& geometry, const Graphics::Vector2F& center, float radiusX, float radiusY)
 		{
 			AL_ASSERT(IsCreated(), "Direct2D not created");
 			AL_ASSERT(IsTargetCreated(), "Direct2D target not created");
@@ -1625,7 +1589,7 @@ namespace AL::DirectX
 			geometry = lpGeometry;
 		}
 		// @throw AL::Exceptions::Exception
-		void CreateRectangleGeometry(RectangleGeometry& geometry, const RectangleF& rectangle)
+		void CreateRectangleGeometry(RectangleGeometry& geometry, const Graphics::RectangleF& rectangle)
 		{
 			AL_ASSERT(IsCreated(), "Direct2D not created");
 			AL_ASSERT(IsTargetCreated(), "Direct2D target not created");
@@ -1651,7 +1615,7 @@ namespace AL::DirectX
 			geometry = lpGeometry;
 		}
 		// @throw AL::Exceptions::Exception
-		void CreateRoundedRectangleGeometry(RoundedRectangleGeometry& geometry, const RectangleF& rectangle, float radius)
+		void CreateRoundedRectangleGeometry(RoundedRectangleGeometry& geometry, const Graphics::RectangleF& rectangle, float radius)
 		{
 			AL_ASSERT(IsCreated(), "Direct2D not created");
 			AL_ASSERT(IsTargetCreated(), "Direct2D target not created");
@@ -1699,7 +1663,7 @@ namespace AL::DirectX
 			GetTarget()->PopLayer();
 		}
 
-		void PushClip(const RectangleF& rectangle, bool antialias = false)
+		void PushClip(const Graphics::RectangleF& rectangle, bool antialias = false)
 		{
 			AL_ASSERT(IsCreated(), "Direct2D not created");
 			AL_ASSERT(IsTargetCreated(), "Direct2D target not created");
@@ -1723,7 +1687,7 @@ namespace AL::DirectX
 			GetTarget()->PopAxisAlignedClip();
 		}
 
-		void DrawBitmap(const PointF& position, const Bitmap& bitmap, float opacity = 1.0f) const
+		void DrawBitmap(const Graphics::Vector2F& position, const Bitmap& bitmap, float opacity = 1.0f) const
 		{
 			AL_ASSERT(IsCreated(), "Direct2D not created");
 			AL_ASSERT(IsTargetCreated(), "Direct2D target not created");
@@ -1733,12 +1697,12 @@ namespace AL::DirectX
 			DrawBitmap(
 				position,
 				bitmap,
-				size.Width,
-				size.Height,
+				size.X,
+				size.Y,
 				opacity
 			);
 		}
-		void DrawBitmap(const PointF& position, const Bitmap& bitmap, float width, float height, float opacity = 1.0f) const
+		void DrawBitmap(const Graphics::Vector2F& position, const Bitmap& bitmap, float width, float height, float opacity = 1.0f) const
 		{
 			DrawBitmap(
 				position,
@@ -1750,7 +1714,7 @@ namespace AL::DirectX
 				opacity
 			);
 		}
-		void DrawBitmap(const PointF& position, const Bitmap& bitmap, float width, float height, float sourceX, float sourceY, float opacity = 1.0f) const
+		void DrawBitmap(const Graphics::Vector2F& position, const Bitmap& bitmap, float width, float height, float sourceX, float sourceY, float opacity = 1.0f) const
 		{
 			AL_ASSERT(IsCreated(), "Direct2D not created");
 			AL_ASSERT(IsTargetCreated(), "Direct2D target not created");
@@ -1760,8 +1724,8 @@ namespace AL::DirectX
 			auto src = D2D1::RectF(
 				sourceX,
 				sourceY,
-				size.Width,
-				size.Height
+				size.X,
+				size.Y
 			);
 
 			auto dst = D2D1::RectF(
@@ -1781,7 +1745,7 @@ namespace AL::DirectX
 		}
 
 		template<typename T>
-		void DrawString(const PointF& position, const T& brush, const TextFormat& textFormat, const String& text) const
+		void DrawString(const Graphics::Vector2F& position, const T& brush, const TextFormat& textFormat, const String& text) const
 		{
 			DrawString(
 				position,
@@ -1794,7 +1758,7 @@ namespace AL::DirectX
 			);
 		}
 		template<typename T>
-		void DrawString(const PointF& position, const T& brush, const TextFormat& textFormat, const WString& text) const
+		void DrawString(const Graphics::Vector2F& position, const T& brush, const TextFormat& textFormat, const WString& text) const
 		{
 			AL_ASSERT(IsCreated(), "Direct2D not created");
 			AL_ASSERT(IsTargetCreated(), "Direct2D target not created");
@@ -1814,7 +1778,7 @@ namespace AL::DirectX
 		}
 
 		template<typename T>
-		void DrawTextLayout(const PointF& position, const T& brush, const TextLayout& textLayout) const
+		void DrawTextLayout(const Graphics::Vector2F& position, const T& brush, const TextLayout& textLayout) const
 		{
 			AL_ASSERT(IsCreated(), "Direct2D not created");
 			AL_ASSERT(IsTargetCreated(), "Direct2D target not created");
@@ -1831,7 +1795,7 @@ namespace AL::DirectX
 		}
 
 		template<typename T>
-		void DrawLine(const PointF& start, const PointF& end, const T& brush, float thickness = 1.0f) const
+		void DrawLine(const Graphics::Vector2F& start, const Graphics::Vector2F& end, const T& brush, float thickness = 1.0f) const
 		{
 			AL_ASSERT(IsCreated(), "Direct2D not created");
 			AL_ASSERT(IsTargetCreated(), "Direct2D target not created");
@@ -1851,7 +1815,7 @@ namespace AL::DirectX
 		}
 
 		template<typename T>
-		void DrawEllipse(const PointF& position, const T& brush, float radiusX, float radiusY, float strokeWidth = 1.0f) const
+		void DrawEllipse(const Graphics::Vector2F& position, const T& brush, float radiusX, float radiusY, float strokeWidth = 1.0f) const
 		{
 			AL_ASSERT(IsCreated(), "Direct2D not created");
 			AL_ASSERT(IsTargetCreated(), "Direct2D target not created");
@@ -1871,7 +1835,7 @@ namespace AL::DirectX
 		}
 
 		template<typename T>
-		void DrawCircle(const PointF& position, const T& brush, float radius, float strokeWidth = 1.0f) const
+		void DrawCircle(const Graphics::Vector2F& position, const T& brush, float radius, float strokeWidth = 1.0f) const
 		{
 			DrawEllipse(
 				position,
@@ -1883,7 +1847,7 @@ namespace AL::DirectX
 		}
 
 		template<typename T>
-		void DrawRectangle(const PointF& position, const T& brush, float width, float height, float strokeWidth = 1.0f) const
+		void DrawRectangle(const Graphics::Vector2F& position, const T& brush, float width, float height, float strokeWidth = 1.0f) const
 		{
 			AL_ASSERT(IsCreated(), "Direct2D not created");
 			AL_ASSERT(IsTargetCreated(), "Direct2D target not created");
@@ -1901,7 +1865,7 @@ namespace AL::DirectX
 		}
 
 		template<typename T>
-		void DrawRoundedRectangle(const PointF& position, const T& brush, float width, float height, float radius, float strokeWidth = 1.0f) const
+		void DrawRoundedRectangle(const Graphics::Vector2F& position, const T& brush, float width, float height, float radius, float strokeWidth = 1.0f) const
 		{
 			AL_ASSERT(IsCreated(), "Direct2D not created");
 			AL_ASSERT(IsTargetCreated(), "Direct2D target not created");
@@ -1923,7 +1887,7 @@ namespace AL::DirectX
 		}
 
 		template<typename T>
-		void FillEllipse(const PointF& position, const T& brush, float radiusX, float radiusY) const
+		void FillEllipse(const Graphics::Vector2F& position, const T& brush, float radiusX, float radiusY) const
 		{
 			AL_ASSERT(IsCreated(), "Direct2D not created");
 			AL_ASSERT(IsTargetCreated(), "Direct2D target not created");
@@ -1942,7 +1906,7 @@ namespace AL::DirectX
 		}
 
 		template<typename T>
-		void FillCircle(const PointF& position, const T& brush, float radius) const
+		void FillCircle(const Graphics::Vector2F& position, const T& brush, float radius) const
 		{
 			FillEllipse(
 				position,
@@ -1953,7 +1917,7 @@ namespace AL::DirectX
 		}
 
 		template<typename T>
-		void FillRectangle(const PointF& position, const T& brush, float width, float height) const
+		void FillRectangle(const Graphics::Vector2F& position, const T& brush, float width, float height) const
 		{
 			AL_ASSERT(IsCreated(), "Direct2D not created");
 			AL_ASSERT(IsTargetCreated(), "Direct2D target not created");
@@ -1970,7 +1934,7 @@ namespace AL::DirectX
 		}
 
 		template<typename T>
-		void FillRoundedRectangle(const PointF& position, const T& brush, float width, float height, float radius) const
+		void FillRoundedRectangle(const Graphics::Vector2F& position, const T& brush, float width, float height, float radius) const
 		{
 			AL_ASSERT(IsCreated(), "Direct2D not created");
 			AL_ASSERT(IsTargetCreated(), "Direct2D target not created");

@@ -2,6 +2,7 @@
 #include "AL/Common.hpp"
 
 #include "Resource.hpp"
+#include "FeatureLevels.hpp"
 
 #include "AL/Graphics/Color.hpp"
 #include "AL/Graphics/Vector.hpp"
@@ -51,37 +52,17 @@ namespace AL::DirectX
 		Standard = D3D11_STANDARD_MULTISAMPLE_PATTERN
 	};
 
-	// https://docs.microsoft.com/en-us/windows/desktop/direct3d11/overviews-direct3d-11-devices-downlevel-intro
-	enum class FeatureLevels
-	{
-		DX9_1  = D3D_FEATURE_LEVEL_9_1,
-		DX9_2  = D3D_FEATURE_LEVEL_9_2,
-		DX9_3  = D3D_FEATURE_LEVEL_9_3,
-
-		DX10   = D3D_FEATURE_LEVEL_10_0,
-		DX10_1 = D3D_FEATURE_LEVEL_10_1,
-
-		DX11   = D3D_FEATURE_LEVEL_11_0,
-		DX11_1 = D3D_FEATURE_LEVEL_11_1,
-
-		DX12   = D3D_FEATURE_LEVEL_12_0,
-		DX12_1 = D3D_FEATURE_LEVEL_12_1
-	};
-
 	template<typename T, typename TReleaser = ResourceReleaser<T>>
-	using Direct3DResource = Resource<T, TReleaser>;
-
-	typedef Graphics::Color Color;
-	typedef Graphics::Colors Colors;
+	using Direct3D11Resource = Resource<T, TReleaser>;
 
 	class Direct3D11
 	{
-		typedef Direct3DResource<ID3D11Device> Device;
-		typedef Direct3DResource<ID3D11DeviceContext> DeviceContext;
+		typedef Direct3D11Resource<ID3D11Device> Device;
+		typedef Direct3D11Resource<ID3D11DeviceContext> DeviceContext;
 
-		typedef Direct3DResource<ID3D11RenderTargetView> TargetView;
+		typedef Direct3D11Resource<ID3D11RenderTargetView> TargetView;
 
-		typedef Direct3DResource<IDXGISwapChain> SwapChain;
+		typedef Direct3D11Resource<IDXGISwapChain> SwapChain;
 
 		Device device;
 		SwapChain swapChain;
@@ -356,7 +337,7 @@ namespace AL::DirectX
 			}
 		}
 
-		void Clear(Color color)
+		void Clear(Graphics::Color color)
 		{
 			AL_ASSERT(IsCreated(), "Direct3D11 not created");
 			AL_ASSERT(IsTargetCreated(), "Direct3D11 target not created");

@@ -130,4 +130,7 @@ namespace AL::Graphics
 			return !operator==(rectangle);
 		}
 	};
+
+	typedef Rectangle<float> RectangleF;
+	typedef Rectangle<uint32> RectangleU;
 }

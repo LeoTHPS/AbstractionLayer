@@ -2,6 +2,7 @@
 #include "AL/Common.hpp"
 
 #include "Resource.hpp"
+#include "FeatureLevels.hpp"
 
 #include "AL/Graphics/Color.hpp"
 #include "AL/Graphics/Vector.hpp"
@@ -23,6 +24,9 @@
 
 namespace AL::DirectX
 {
+	template<typename T, typename TReleaser = ResourceReleaser<T>>
+	using Direct3D10Resource = Resource<T, TReleaser>;
+
 	class Direct3D10
 	{
 		Direct3D10(Direct3D10&&) = delete;
@@ -36,5 +40,27 @@ namespace AL::DirectX
 		virtual ~Direct3D10()
 		{
 		}
+
+		bool IsCreated() const;
+
+		bool IsTargetCreated() const;
+
+		// @throw AL::Exceptions::Exception
+		void SetClientSize(uint32 width, uint32 height);
+
+		// @throw AL::Exceptions::Exception
+		void Create(HWND hWnd, FeatureLevels featureLevel = FeatureLevels::DX10);
+
+		void Destroy();
+
+		// @throw AL::Exceptions::Exception
+		void CreateTarget();
+
+		void DestroyTarget();
+
+		void Clear(Graphics::Color color);
+
+		// @throw AL::Exceptions::Exception
+		void Present(bool vsync = false);
 	};
 }

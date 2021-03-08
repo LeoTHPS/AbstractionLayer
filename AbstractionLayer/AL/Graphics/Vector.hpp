@@ -275,10 +275,16 @@ namespace AL::Graphics
 
 	template<typename T, template<typename> typename CAST = Vector_Cast>
 	using Vector2 = _Vector2<T, CAST>;
+	using Vector2F = Vector2<float>;
+	using Vector2U = Vector2<uint32>;
 
 	template<typename T, template<typename> typename CAST = Vector_Cast>
 	using Vector3 = _Vector3<T, CAST>;
+	using Vector3F = Vector3<float>;
+	using Vector3U = Vector3<uint32>;
 
 	template<typename T, template<typename> typename CAST = Vector_Cast>
 	using Vector4 = _Vector4<T, CAST>;
+	using Vector4F = Vector4<float>;
+	using Vector4U = Vector4<uint32>;
 }
