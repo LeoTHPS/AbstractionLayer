@@ -14,6 +14,3 @@
 #include "AL/DotNET/GPIO/UARTDeviceSpeeds.hpp"
 
 #include "AL/DotNET/GPIO/Devices/BN_180.hpp"
-#include "AL/DotNET/GPIO/Devices/DHT22.hpp"
-#include "AL/DotNET/GPIO/Devices/MCP3008.hpp"
-#include "AL/DotNET/GPIO/Devices/RCWL_0516.hpp"
