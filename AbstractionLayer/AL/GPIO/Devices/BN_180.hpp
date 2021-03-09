@@ -6,7 +6,7 @@
 namespace AL::GPIO::Devices
 {
 	class BN_180
-		: public UARTDevice<void, String>
+		: public UARTDevice<void, String, void>
 	{
 	public:
 		BN_180(BN_180&& bn180)
@@ -35,9 +35,9 @@ namespace AL::GPIO::Devices
 
 	protected:
 		// @throw AL::Exceptions::Exception
-		virtual void OnRead(Data& value) override
+		virtual void OnRead(DataR& value) override
 		{
-			Data::Char c;
+			DataR::Char c;
 
 			if (value.GetSize())
 			{
@@ -50,7 +50,7 @@ namespace AL::GPIO::Devices
 
 			for (size_t i = 0; GetDevice().IsOpen(); )
 			{
-				if (!GetDevice().Read(&c, sizeof(Data::Char)))
+				if (!GetDevice().Read(&c, sizeof(DataR::Char)))
 				{
 
 					continue;

@@ -7,9 +7,9 @@
 
 namespace AL::GPIO::Devices
 {
-	template<typename T_CHANNEL, typename T_DATA>
+	template<typename T_CHANNEL, typename T_DATA_READ, typename T_DATA_WRITE>
 	class SPIDevice
-		: public Device<T_CHANNEL, T_DATA>
+		: public Device<T_CHANNEL, T_DATA_READ, T_DATA_WRITE>
 	{
 		struct DeviceInfo
 		{
@@ -75,7 +75,7 @@ namespace AL::GPIO::Devices
 
 	public:
 		SPIDevice(SPIDevice&& spiDevice)
-			: Device<T_CHANNEL, T_DATA>(
+			: Device<T_CHANNEL, T_DATA_READ, T_DATA_WRITE>(
 				Move(spiDevice)
 			),
 			device(
@@ -132,7 +132,7 @@ namespace AL::GPIO::Devices
 
 		auto& operator = (SPIDevice&& spiDevice)
 		{
-			Device<T_CHANNEL, T_DATA>::operator=(
+			Device<T_CHANNEL, T_DATA_READ, T_DATA_WRITE>::operator=(
 				Move(spiDevice)
 			);
 

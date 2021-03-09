@@ -8,7 +8,7 @@
 namespace AL::GPIO::Devices
 {
 	class DHT22
-		: public Device<void, uint16>
+		: public Device<void, uint16, void>
 	{
 		Pin pin;
 		DeviceId deviceId;
@@ -80,7 +80,7 @@ namespace AL::GPIO::Devices
 		}
 
 		// @throw AL::Exceptions::Exception
-		virtual void OnRead(uint16& value) override
+		virtual void OnRead(DataR& value) override
 		{
 			throw AL::Exceptions::NotImplementedException();
 		}

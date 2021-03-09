@@ -8,7 +8,7 @@
 namespace AL::GPIO::Devices
 {
 	class RCWL_0516
-		: public Device<void, bool>
+		: public Device<void, bool, void>
 	{
 		Pin pin;
 		DeviceId deviceId;
@@ -63,12 +63,15 @@ namespace AL::GPIO::Devices
 		// @throw AL::Exceptions::Exception
 		virtual void OnOpen() override
 		{
-			Pin::Export(
-				pin,
-				deviceId,
-				pinNumber,
-				PinDirection::In
-			);
+			if (!Pin::Export(pin, deviceId, pinNumber, PinDirection::In))
+			{
+
+				throw Exceptions::Exception(
+					"Pin %u on device %u is already exported",
+					pinNumber,
+					deviceId
+				);
+			}
 		}
 
 		virtual void OnClose() override
@@ -77,7 +80,7 @@ namespace AL::GPIO::Devices
 		}
 
 		// @throw AL::Exceptions::Exception
-		virtual void OnRead(bool& value) override
+		virtual void OnRead(DataR& value) override
 		{
 			value = (pin.Read() == 1);
 		}

@@ -7,9 +7,9 @@
 
 namespace AL::GPIO::Devices
 {
-	template<typename T_CHANNEL, typename T_DATA>
+	template<typename T_CHANNEL, typename T_DATA_READ, typename T_DATA_WRITE>
 	class UARTDevice
-		: public Device<T_CHANNEL, T_DATA>
+		: public Device<T_CHANNEL, T_DATA_READ, T_DATA_WRITE>
 	{
 		GPIO::UARTDevice device;
 		String           deviceName;
@@ -17,7 +17,7 @@ namespace AL::GPIO::Devices
 
 	public:
 		UARTDevice(UARTDevice&& uartDevice)
-			: Device<T_CHANNEL, T_DATA>(
+			: Device<T_CHANNEL, T_DATA_READ, T_DATA_WRITE>(
 				Move(uartDevice)
 			),
 			device(
@@ -45,7 +45,7 @@ namespace AL::GPIO::Devices
 
 		auto& operator = (UARTDevice&& uartDevice)
 		{
-			Device<T_CHANNEL, T_DATA>::operator=(
+			Device<T_CHANNEL, T_DATA_READ, T_DATA_WRITE>::operator=(
 				Move(uartDevice)
 			);
 
