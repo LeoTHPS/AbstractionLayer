@@ -322,6 +322,23 @@ namespace AL::Collections
 			}
 		}
 
+		Array(const Type& value, size_t count)
+			: size(
+				count
+			),
+			capacity(
+				count
+			),
+			lpContainer(
+				new T[count]
+			)
+		{
+			for (size_t i = 0; i < GetSize(); ++i)
+			{
+				lpContainer[i] = value;
+			}
+		}
+
 		Array(const Type* lpValues, size_t count)
 			: size(
 				count
