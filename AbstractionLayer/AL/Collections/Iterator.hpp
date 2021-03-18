@@ -83,4 +83,17 @@ namespace AL::Collections
 		bool operator == (const RandomAccessIterator& it) const;
 		bool operator != (const RandomAccessIterator& it) const;
 	};
+
+	template<typename T>
+	inline auto GetIteratorDifference(const T& first, const T& last)
+	{
+		int32 difference = 0;
+
+		for (auto it = first; it != last; ++it)
+		{
+			++difference;
+		}
+
+		return difference;
+	}
 }
