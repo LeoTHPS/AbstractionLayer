@@ -3,10 +3,10 @@
 
 namespace AL::Collections
 {
-	template<typename T_KEY, typename T_VALUE>
+	template<typename KEY, typename VALUE>
 	struct KeyValuePair
 	{
-		T_KEY   Key;
-		T_VALUE Value;
+		KEY   Key;
+		VALUE Value;
 	};
 }
