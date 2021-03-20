@@ -451,12 +451,12 @@ namespace AL::Collections
 		{
 			for (size_t i = (index + count), size = GetSize(); i < size; ++i)
 			{
-				--this->size;
-
 				lpContainer[i - count] = Move(
 					lpContainer[i]
 				);
 			}
+
+			size -= count;
 		}
 
 		void Erase(Iterator it)
