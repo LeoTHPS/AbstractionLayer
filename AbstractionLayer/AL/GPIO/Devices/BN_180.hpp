@@ -41,7 +41,7 @@ namespace AL::GPIO::Devices
 
 			if (value.GetSize())
 			{
-				value.SetSize(
+				value.SetCapacity(
 					0
 				);
 			}

@@ -411,7 +411,7 @@ namespace AL::OS
 #endif
 
 				line.Append(
-					{ c, '\0' }
+					c
 				);
 			}
 

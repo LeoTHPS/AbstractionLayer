@@ -1,22 +1,23 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#include "AL/Algorithms/FNV.hpp"
+#include "Array.hpp"
 
-#include <string>
+#include "AL/Algorithms/FNV.hpp"
 
 namespace AL::Collections
 {
 	template<typename CHAR>
-	class _String;
+	struct __String_Types;
+
+	template<typename CHAR>
+	struct __String_Utility;
 
 	template<typename CHAR>
 	struct __String_Constants;
 	template<>
 	struct __String_Constants<char>
 	{
-		typedef std::string Container;
-
 		static constexpr char END = '\0';
 
 		static constexpr char LOWERCASE_TABLE[] =
@@ -32,33 +33,11 @@ namespace AL::Collections
 			'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
 			'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
 		};
-
-		static constexpr bool IsLower(char c)
-		{
-			return ((c >= 'a') && (c <= 'z')) && (LOWERCASE_TABLE[c - 'a'] == c);
-		}
-
-		static constexpr bool IsUpper(char c)
-		{
-			return ((c >= 'A') && (c <= 'Z')) && (UPPERCASE_TABLE[c - 'A'] == c);
-		}
-
-		static constexpr char ToLower(char c)
-		{
-			return IsUpper(c) ? LOWERCASE_TABLE[c - 'A'] : c;
-		}
-
-		static constexpr char ToUpper(char c)
-		{
-			return IsLower(c) ? UPPERCASE_TABLE[c - 'a'] : c;
-		}
 	};
 	template<>
 	struct __String_Constants<wchar_t>
 	{
-		typedef std::wstring Container;
-
-		static constexpr wchar_t END = L'\0';
+		static constexpr wchar_t END = L'\000';
 
 		static constexpr wchar_t LOWERCASE_TABLE[] =
 		{
@@ -73,169 +52,119 @@ namespace AL::Collections
 			L'J', L'K', L'L', L'M', L'N', L'O', L'P', L'Q', L'R',
 			L'S', L'T', L'U', L'V', L'W', L'X', L'Y', L'Z'
 		};
-
-		static constexpr bool IsLower(wchar_t c)
-		{
-			return ((c >= L'a') && (c <= L'z')) && (LOWERCASE_TABLE[c - L'a'] == c);
-		}
-
-		static constexpr bool IsUpper(wchar_t c)
-		{
-			return ((c >= L'A') && (c <= L'Z')) && (UPPERCASE_TABLE[c - L'A'] == c);
-		}
-
-		static constexpr wchar_t ToLower(wchar_t c)
-		{
-			return IsUpper(c) ? LOWERCASE_TABLE[c - L'A'] : c;
-		}
-
-		static constexpr wchar_t ToUpper(wchar_t c)
-		{
-			return IsLower(c) ? UPPERCASE_TABLE[c - L'a'] : c;
-		}
-	};
-
-	template<typename CHAR>
-	class __String_Chunks_Helper
-	{
-	public:
-		typedef _String<CHAR> String;
-
-		template<typename ... CHUNK_TYPES>
-		static String Combine(CHUNK_TYPES ... chunks)
-		{
-			String buffer;
-
-			Concat(
-				buffer,
-				Forward<CHUNK_TYPES>(chunks) ...
-			);
-
-			return buffer;
-		}
-
-	private:
-		static void Concat(String& buffer)
-		{
-		}
-		template<typename ... CHUNK_TYPES>
-		static void Concat(String& buffer, const String& chunk, CHUNK_TYPES ... chunks);
 	};
 
 	template<typename CHAR>
 	class _String
 	{
-		typedef typename __String_Constants<CHAR>::Container Container;
+		typedef __String_Types<CHAR>     Types;
+		typedef __String_Utility<CHAR>   Utility;
+		typedef __String_Constants<CHAR> Constants;
 
-		Container container;
+		size_t length;
+		typename Types::Container container;
 
-		explicit _String(Container&& string)
-			: container(
-				Move(string)
+		explicit _String(size_t capacity)
+			: length(
+				0
+			),
+			container(
+				capacity + 1
 			)
 		{
 		}
 
 	public:
-		typedef CHAR Char;
+		typedef typename Types::Char                     Char;
 
-		typedef typename Container::iterator Iterator;
-		typedef typename Container::const_iterator ConstIterator;
+		typedef typename Types::Container                Container;
 
-		typedef typename Container::reverse_iterator ReverseIterator;
-		typedef typename Container::const_reverse_iterator ConstReverseIterator;
+		typedef typename Container::Iterator             Iterator;
+		typedef typename Container::ConstIterator        ConstIterator;
 
-		static constexpr Char END = __String_Constants<Char>::END;
+		typedef typename Container::ReverseIterator      ReverseIterator;
+		typedef typename Container::ConstReverseIterator ConstReverseIterator;
 
-		static constexpr size_t NPOS = Container::npos;
+		static constexpr Char                            END = Constants::END;
 
-		static size_t GetLength(const Char* string)
+		static auto GetLength(const Char* lpString)
 		{
 			size_t length = 0;
 
-			while (string[length++] != __String_Constants<Char>::END)
+			for (; lpString[length] != Constants::END; ++length)
 			{
 			}
 
-			return length - 1;
+			return length;
 		}
-		static size_t GetLength(const _String<Char>& string)
+		static auto GetLength(const _String& string)
 		{
 			return string.GetLength();
 		}
-		template<size_t SIZE>
-		static size_t GetLength(const Char(&string)[SIZE])
-		{
-			return GetLength(
-				&string[0]
-			);
-		}
 
 		template<typename ... CHUNK_TYPES>
-		static _String<Char> Combine(CHUNK_TYPES ... chunks)
+		static auto Combine(CHUNK_TYPES ... chunks)
 		{
-			return __String_Chunks_Helper<Char>::Combine(
+			return Utility::Combine(
 				chunks ...
 			);
 		}
-
-		template<typename T, bool IS_SAME_STRING_TYPE = Is_Type<T, _String<Char>>::Value, bool IS_ANY_STRING_TYPE = Is_Type<T, _String<char>>::Value || Is_Type<T, _String<wchar_t>>::Value>
-		static typename Conditional<IS_SAME_STRING_TYPE, const _String<Char>&, _String<Char>>::Type ToString(const T& value)
-		{
-			if constexpr (IS_SAME_STRING_TYPE)
-			{
-				return value;
-			}
-			else if constexpr (IS_ANY_STRING_TYPE && Is_Type<Char, wchar_t>::Value)
-			{
-				return _String<Char>(
-					value.container.begin(),
-					value.container.end()
-				);
-			}
-			else if constexpr (Is_Type<Char, char>::Value)
-			{
-				return _String<Char>(
-					std::to_string(value)
-				);
-			}
-			else if constexpr (Is_Type<Char, wchar_t>::Value)
-			{
-				return _String<Char>(
-					std::to_wstring(value)
-				);
-			}
-		}
-
+		
 		_String()
+			: length(
+				0
+			),
+			container(
+				{ Constants::END }
+			)
 		{
 		}
 
-		_String(_String<Char>&& string)
-			: container(
+		_String(_String&& string)
+			: length(
+				string.length
+			),
+			container(
 				Move(string.container)
 			)
 		{
 		}
 
-		_String(const _String<Char>& string)
-			: container(
+		_String(const _String& string)
+			: length(
+				string.length
+			),
+			container(
 				string.container
 			)
 		{
 		}
 
-		_String(const Char* lpString)
-			: container(
-				lpString
+		explicit _String(Container&& container)
+			: length(
+				GetLength(
+					&container[0]
+				)
+			),
+			container(
+				Move(container)
+			)
+		{
+		}
+		
+		explicit _String(const Container& container)
+			: _String(
+				Container(container)
 			)
 		{
 		}
 
-		_String(Char c, size_t count)
-			: container(
-				count,
-				c
+		_String(const Char* lpString)
+			: _String(
+				lpString,
+				GetLength(
+					lpString
+				)
 			)
 		{
 		}
@@ -250,76 +179,76 @@ namespace AL::Collections
 		}
 
 		_String(const Char* lpString, size_t length)
-			: container(
-				lpString,
+			: length(
 				length
+			),
+			container(
+				length + 1
 			)
 		{
+			memcpy(
+				&container[0],
+				lpString,
+				length * sizeof(Char)
+			);
+
+			container.SetSize(
+				length + 1
+			);
+
+			container[length] = END;
 		}
 
-		template<typename ITERATOR>
-		_String(ITERATOR first, ITERATOR last)
-			: container(
-				first,
-				last
+		_String(Char c, size_t count)
+			: length(
+				count
+			),
+			container(
+				count + 1
 			)
 		{
+			container.Fill(
+				c
+			);
+
+			container.SetSize(
+				count + 1
+			);
+
+			container[count] = END;
 		}
 
 		virtual ~_String()
 		{
 		}
 
-		auto GetSize() const
+		size_t GetSize() const
 		{
-			return container.size();
+			return GetLength() + 1;
 		}
 
-		auto GetLength() const
+		size_t GetLength() const
 		{
-			return container.length();
+			return length;
 		}
 
-		auto GetCapacity() const
+		size_t GetCapacity() const
 		{
-			return container.capacity();
-		}
-
-		auto& GetString() const
-		{
-			return container;
+			return container.GetCapacity() - 1;
 		}
 
 		auto GetCString() const
 		{
-			return container.c_str();
-		}
-
-		_String ToUpper() const
-		{
-			_String string(
-				*this
-			);
-
-			for (auto& c : string)
-			{
-				c = __String_Constants<Char>::ToUpper(
-					c
-				);
-			}
-
-			return string;
+			return &container[0];
 		}
 
 		_String ToLower() const
 		{
-			_String string(
-				*this
-			);
+			_String string = *this;
 
 			for (auto& c : string)
 			{
-				c = __String_Constants<Char>::ToLower(
+				c = Utility::ToLower(
 					c
 				);
 			}
@@ -327,286 +256,672 @@ namespace AL::Collections
 			return string;
 		}
 
-		Iterator Find(Char c)
+		_String ToUpper() const
 		{
-			auto i = IndexOf(
-				c
+			_String string = *this;
+
+			for (auto& c : string)
+			{
+				c = Utility::ToUpper(
+					c
+				);
+			}
+
+			return string;
+		}
+
+		void Swap(_String& string)
+		{
+			AL::Swap(
+				length,
+				string.length
 			);
 
-			if (i == NPOS)
-			{
-
-				return end();
-			}
-
-			return begin() += i;
-		}
-		Iterator Find(const _String& string)
-		{
-			auto i = IndexOf(
-				string
-			);
-
-			if (i == NPOS)
-			{
-
-				return end();
-			}
-
-			return begin() += i;
-		}
-		template<size_t SIZE>
-		Iterator Find(const Char(&string)[SIZE])
-		{
-			auto i = IndexOf(
-				string
-			);
-
-			if (i == NPOS)
-			{
-
-				return end();
-			}
-
-			return begin() += i;
-		}
-
-		ConstIterator Find(Char c) const
-		{
-			auto i = IndexOf(
-				c
-			);
-
-			if (i == NPOS)
-			{
-
-				return cend();
-			}
-
-			return cbegin() += i;
-		}
-		ConstIterator Find(const _String& string) const
-		{
-			auto i = IndexOf(
-				string
-			);
-
-			if (i == NPOS)
-			{
-
-				return cend();
-			}
-
-			return cbegin() += i;
-		}
-		template<size_t SIZE>
-		ConstIterator Find(const Char(&string)[SIZE]) const
-		{
-			auto i = IndexOf(
-				string
-			);
-
-			if (i == NPOS)
-			{
-
-				return cend();
-			}
-
-			return cbegin() += i;
-		}
-		
-		Iterator FindLast(Char c)
-		{
-			auto i = IndexOfLast(
-				c
-			);
-
-			if (i == NPOS)
-			{
-
-				return end();
-			}
-
-			return begin() += i;
-		}
-		Iterator FindLast(const _String& string)
-		{
-			auto i = IndexOfLast(
-				string
-			);
-
-			if (i == NPOS)
-			{
-
-				return end();
-			}
-
-			return begin() += i;
-		}
-		template<size_t SIZE>
-		Iterator FindLast(const Char(&string)[SIZE])
-		{
-			auto i = IndexOfLast(
-				string
-			);
-
-			if (i == NPOS)
-			{
-
-				return end();
-			}
-
-			return begin() += i;
-		}
-
-		ConstIterator FindLast(Char c) const
-		{
-			auto i = IndexOfLast(
-				c
-			);
-
-			if (i == NPOS)
-			{
-
-				return cend();
-			}
-
-			return cbegin() += i;
-		}
-		ConstIterator FindLast(const _String& string) const
-		{
-			auto i = IndexOfLast(
-				string
-			);
-
-			if (i == NPOS)
-			{
-
-				return cend();
-			}
-
-			return cbegin() += i;
-		}
-		template<size_t SIZE>
-		ConstIterator FindLast(const Char(&string)[SIZE]) const
-		{
-			auto i = IndexOfLast(
-				string
-			);
-
-			if (i == NPOS)
-			{
-
-				return cend();
-			}
-
-			return cbegin() += i;
-		}
-
-		size_t IndexOf(Char c) const
-		{
-			for (size_t i = 0, length = GetLength(); i < length; ++i)
-			{
-				if (container[i] == c)
-				{
-
-					return i;
-				}
-			}
-
-			return NPOS;
-		}
-		size_t IndexOf(const _String& string) const
-		{
-			return container.find_first_of(
+			container.Swap(
 				string.container
 			);
 		}
-		template<size_t SIZE>
-		size_t IndexOf(const Char(&string)[SIZE]) const
+
+		void Clear()
 		{
-			return container.find_first_of(
-				&string[0]
+			Erase(
+				begin(),
+				end()
 			);
 		}
 
-		size_t IndexOfLast(Char c) const
+		void Erase(size_t index)
 		{
-			if (auto length = GetLength())
+			Erase(
+				index,
+				1
+			);
+		}
+		void Erase(size_t index, size_t count)
+		{
+			length -= count;
+
+			container.Erase(
+				index,
+				count
+			);
+		}
+
+		void Erase(Iterator it)
+		{
+			auto index = GetIteratorDifference(
+				begin(),
+				it
+			);
+
+			Erase(
+				index
+			);
+		}
+		void Erase(ConstIterator it)
+		{
+			auto index = GetIteratorDifference(
+				cbegin(),
+				it
+			);
+
+			Erase(
+				index
+			);
+		}
+		void Erase(ReverseIterator it)
+		{
+			auto index = GetIteratorDifference(
+				rbegin(),
+				it
+			);
+
+			Erase(
+				index
+			);
+		}
+		void Erase(ConstReverseIterator it)
+		{
+			auto index = GetIteratorDifference(
+				rbegin(),
+				it
+			);
+
+			Erase(
+				index
+			);
+		}
+
+		void Erase(Iterator first, Iterator last)
+		{
+			auto index = GetIteratorDifference(
+				begin(),
+				first
+			);
+
+			auto count = GetIteratorDifference(
+				first,
+				last
+			);
+
+			Erase(
+				index,
+				count
+			);
+		}
+		void Erase(ConstIterator first, ConstIterator last)
+		{
+			auto index = GetIteratorDifference(
+				cbegin(),
+				first
+			);
+
+			auto count = GetIteratorDifference(
+				first,
+				last
+			);
+
+			Erase(
+				index,
+				count
+			);
+		}
+		void Erase(ReverseIterator first, ReverseIterator last)
+		{
+			auto index = GetIteratorDifference(
+				rbegin(),
+				first
+			);
+
+			auto count = GetIteratorDifference(
+				first,
+				last
+			);
+
+			Erase(
+				index,
+				count
+			);
+		}
+		void Erase(ConstReverseIterator first, ConstReverseIterator last)
+		{
+			auto index = GetIteratorDifference(
+				rbegin(),
+				first
+			);
+
+			auto count = GetIteratorDifference(
+				first,
+				last
+			);
+
+			Erase(
+				index,
+				count
+			);
+		}
+
+		void ShrinkToFit()
+		{
+			container.SetCapacity(
+				GetLength() + 1
+			);
+
+			container[GetLength()] = END;
+		}
+
+		void SetCapacity(size_t value)
+		{
+			if (value > GetCapacity())
 			{
-				for (size_t i = length; i > 0; --i)
+				container.SetCapacity(
+					value + 1
+				);
+			}
+			else if (value < GetCapacity())
+			{
+				container.SetCapacity(
+					value + 1
+				);
+
+				if (value > GetLength())
 				{
-					if (container[i] == c)
-					{
+					length = value;
 
-						return i;
-					}
-				}
-
-				if (container[0] == c)
-				{
-
-					return 0;
+					container[value] = END;
 				}
 			}
-
-			return NPOS;
 		}
-		size_t IndexOfLast(const _String& string) const
+
+		auto SubString(size_t index) const
 		{
-			return container.find_last_of(
-				string.container
+			return SubString(
+				index,
+				GetLength() - index
 			);
 		}
-		template<size_t SIZE>
-		size_t IndexOfLast(const Char(&string)[SIZE]) const
+		auto SubString(size_t index, size_t length) const
 		{
-			return container.find_last_of(
-				&string[0]
+			_String string(
+				length
+			);
+
+			memcpy(
+				&string[0],
+				GetCString(),
+				length * sizeof(Char)
+			);
+
+			string[length] = END;
+
+			return string;
+		}
+
+		auto SubString(Iterator it) const
+		{
+			auto index = GetIteratorDifference(
+				begin(),
+				it
+			);
+
+			return SubString(
+				index
+			);
+		}
+		auto SubString(ConstIterator it) const
+		{
+			auto index = GetIteratorDifference(
+				cbegin(),
+				it
+			);
+
+			return SubString(
+				index
+			);
+		}
+		auto SubString(ReverseIterator it) const
+		{
+			auto index = GetIteratorDifference(
+				rbegin(),
+				it
+			);
+
+			return SubString(
+				index
+			);
+		}
+		auto SubString(ConstReverseIterator it) const
+		{
+			auto index = GetIteratorDifference(
+				rbegin(),
+				it
+			);
+
+			return SubString(
+				index
 			);
 		}
 		
-		template<typename T>
-		bool Contains(T string) const
+		auto SubString(Iterator first, Iterator last) const
 		{
-			return IndexOf(string) != NPOS;
+			auto index = GetIteratorDifference(
+				begin(),
+				first
+			);
+
+			auto length = GetIteratorDifference(
+				first,
+				last
+			);
+
+			return SubString(
+				index,
+				length
+			);
+		}
+		auto SubString(ConstIterator first, ConstIterator last) const
+		{
+			auto index = GetIteratorDifference(
+				cbegin(),
+				first
+			);
+
+			auto length = GetIteratorDifference(
+				first,
+				last
+			);
+
+			return SubString(
+				index,
+				length
+			);
+		}
+		auto SubString(ReverseIterator first, ReverseIterator last) const
+		{
+			auto index = GetIteratorDifference(
+				rbegin(),
+				first
+			);
+
+			auto length = GetIteratorDifference(
+				first,
+				last
+			);
+
+			return SubString(
+				index,
+				length
+			);
+		}
+		auto SubString(ConstReverseIterator first, ConstReverseIterator last) const
+		{
+			auto index = GetIteratorDifference(
+				rbegin(),
+				first
+			);
+
+			auto length = GetIteratorDifference(
+				first,
+				last
+			);
+
+			return SubString(
+				index,
+				length
+			);
 		}
 
-		template<typename T>
-		bool Compare(T string, bool ignoreCase = false) const
+		void Append(Char value)
 		{
-			if (!ignoreCase)
+			Insert(
+				end(),
+				value
+			);
+		}
+		void Append(const Char* lpValue)
+		{
+			Insert(
+				end(),
+				lpValue
+			);
+		}
+		void Append(const _String& value)
+		{
+			Insert(
+				end(),
+				value
+			);
+		}
+
+		void Insert(size_t index, Char value)
+		{
+			Insert(
+				index,
+				&value,
+				1
+			);
+		}
+		void Insert(size_t index, const Char* lpValue)
+		{
+			Insert(
+				index,
+				lpValue,
+				GetLength(lpValue)
+			);
+		}
+		void Insert(size_t index, const _String& value)
+		{
+			Insert(
+				index,
+				value.GetCString(),
+				value.GetLength()
+			);
+		}
+		void Insert(Iterator it, Char value)
+		{
+			auto index = GetIteratorDifference(
+				begin(),
+				it
+			);
+
+			Insert(
+				index,
+				value
+			);
+		}
+		void Insert(Iterator it, const Char* lpValue)
+		{
+			auto index = GetIteratorDifference(
+				begin(),
+				it
+			);
+
+			Insert(
+				index,
+				lpValue
+			);
+		}
+		void Insert(Iterator it, const _String& value)
+		{
+			auto index = GetIteratorDifference(
+				begin(),
+				it
+			);
+
+			Insert(
+				index,
+				value
+			);
+		}
+		void Insert(ConstIterator it, Char value)
+		{
+			auto index = GetIteratorDifference(
+				cbegin(),
+				it
+			);
+
+			Insert(
+				index,
+				value
+			);
+		}
+		void Insert(ConstIterator it, const Char* lpValue)
+		{
+			auto index = GetIteratorDifference(
+				cbegin(),
+				it
+			);
+
+			Insert(
+				index,
+				lpValue
+			);
+		}
+		void Insert(ConstIterator it, const _String& value)
+		{
+			auto index = GetIteratorDifference(
+				cbegin(),
+				it
+			);
+
+			Insert(
+				index,
+				value
+			);
+		}
+		void Insert(ReverseIterator it, Char value)
+		{
+			auto index = GetIteratorDifference(
+				rbegin(),
+				it
+			);
+
+			Insert(
+				index,
+				value
+			);
+		}
+		void Insert(ReverseIterator it, const Char* lpValue)
+		{
+			auto index = GetIteratorDifference(
+				rbegin(),
+				it
+			);
+
+			Insert(
+				index,
+				lpValue
+			);
+		}
+		void Insert(ReverseIterator it, const _String& value)
+		{
+			auto index = GetIteratorDifference(
+				rbegin(),
+				it
+			);
+
+			Insert(
+				index,
+				value
+			);
+		}
+		void Insert(ConstReverseIterator it, Char value)
+		{
+			auto index = GetIteratorDifference(
+				rbegin(),
+				it
+			);
+
+			Insert(
+				index,
+				value
+			);
+		}
+		void Insert(ConstReverseIterator it, const Char* lpValue)
+		{
+			auto index = GetIteratorDifference(
+				rbegin(),
+				it
+			);
+
+			Insert(
+				index,
+				lpValue
+			);
+		}
+		void Insert(ConstReverseIterator it, const _String& value)
+		{
+			auto index = GetIteratorDifference(
+				rbegin(),
+				it
+			);
+
+			Insert(
+				index,
+				value
+			);
+		}
+
+		void Remove(Char value)
+		{
+			size_t index;
+
+			if (Find(index, value))
 			{
-				auto stringLength = GetLength(
-					string
+				Erase(
+					index
 				);
-
-				if (stringLength == GetLength())
-				{
-
-					return memcmp(
-						&container[0],
-						&string[0],
-						stringLength * sizeof(Char)
-					);
-				}
 			}
-			else
+		}
+		void Remove(const Char* lpValue)
+		{
+			size_t index;
+
+			if (Find(index, lpValue))
 			{
-				auto stringLength = GetLength(
-					string
+				Erase(
+					index,
+					GetLength(lpValue)
 				);
+			}
+		}
+		void Remove(const _String& value)
+		{
+			size_t index;
 
-				if (stringLength == GetLength())
+			if (Find(index, value))
+			{
+				Erase(
+					index,
+					value.GetLength()
+				);
+			}
+		}
+		
+		void RemoveAll(Char value)
+		{
+			size_t index;
+
+			while (Find(index, value))
+			{
+				Erase(
+					index
+				);
+			}
+		}
+		void RemoveAll(const Char* lpValue)
+		{
+			size_t index;
+
+			auto valueLength = GetLength(
+				lpValue
+			);
+
+			while (Find(index, lpValue))
+			{
+				Erase(
+					index,
+					valueLength
+				);
+			}
+		}
+		void RemoveAll(const _String& value)
+		{
+			size_t index;
+
+			while (Find(index, value))
+			{
+				Erase(
+					index,
+					value.GetLength()
+				);
+			}
+		}
+		
+		void RemoveLast(Char value)
+		{
+			size_t index;
+
+			if (FindLast(index, value))
+			{
+				Erase(
+					index
+				);
+			}
+		}
+		void RemoveLast(const Char* lpValue)
+		{
+			size_t index;
+
+			if (FindLast(index, lpValue))
+			{
+				Erase(
+					index,
+					GetLength(lpValue)
+				);
+			}
+		}
+		void RemoveLast(const _String& value)
+		{
+			size_t index;
+
+			if (FindLast(index, value))
+			{
+				Erase(
+					index,
+					value.GetLength()
+				);
+			}
+		}
+
+		bool Compare(const Char* lpValue, bool ignoreCase = false) const
+		{
+			return Compare(
+				lpValue,
+				GetLength(lpValue),
+				ignoreCase
+			);
+		}
+		bool Compare(const _String& value, bool ignoreCase = false) const
+		{
+			return Compare(
+				value.GetCString(),
+				value.GetLength(),
+				ignoreCase
+			);
+		}
+
+		bool Contains(Char value, bool ignoreCase = false) const
+		{
+			for (size_t i = 0; i < GetLength(); ++i)
+			{
+				if (container[i] == value)
 				{
-					for (size_t i = 0; i < stringLength; i++)
-					{
-						if (__String_Constants<Char>::ToLower(container[i]) != __String_Constants<Char>::ToLower(string[i]))
-						{
 
-							return false;
-						}
-					}
+					return true;
+				}
+				else if (ignoreCase && (Utility::ToLower(container[i]) == Utility::ToLower(value)))
+				{
 
 					return true;
 				}
@@ -614,330 +929,494 @@ namespace AL::Collections
 
 			return false;
 		}
-
-		bool StartsWith(Char c) const
+		bool Contains(const Char* lpValue, bool ignoreCase = false) const
 		{
-			if (!GetLength())
-			{
-
-				return false;
-			}
-
-			if (container[0] != c)
-			{
-
-				return false;
-			}
-
-			return true;
+			return Contains(
+				lpValue,
+				GetLength(lpValue),
+				ignoreCase
+			);
 		}
-		bool StartsWith(const _String& string) const
+		bool Contains(const _String& value, bool ignoreCase = false) const
 		{
-			size_t stringLength;
-
-			if (GetLength() < (stringLength = string.GetLength()))
-			{
-
-				return false;
-			}
-
-			for (size_t i = 0; i < stringLength; ++i)
-			{
-				if (container[i] != string[i])
-				{
-
-					return false;
-				}
-			}
-
-			return true;
+			return Contains(
+				value.GetCString(),
+				value.GetLength(),
+				ignoreCase
+			);
 		}
-		template<size_t SIZE>
-		bool StartsWith(const Char(&string)[SIZE]) const
+
+		bool EndsWith(Char value, bool ignoreCase = false) const
 		{
-			size_t stringLength;
-
-			if (GetLength() < (stringLength = GetLength(string)))
+			if (container[GetLength() - 1] == value)
 			{
 
-				return false;
+				return true;
 			}
-
-			for (size_t i = 0; i < stringLength; ++i)
+			else if (ignoreCase && (Utility::ToLower(container[GetLength() - 1]) == Utility::ToLower(value)))
 			{
-				if (container[i] != string[i])
-				{
 
-					return false;
-				}
+				return true;
 			}
 
-			return true;
+			return false;
+		}
+		bool EndsWith(const Char* lpValue, bool ignoreCase = false) const
+		{
+			return EndsWith(
+				lpValue,
+				GetLength(lpValue),
+				ignoreCase
+			);
+		}
+		bool EndsWith(const _String& value, bool ignoreCase = false) const
+		{
+			return EndsWith(
+				value.GetCString(),
+				value.GetLength(),
+				ignoreCase
+			);
 		}
 		
-		bool EndsWith(Char c) const
+		bool StartsWith(Char value, bool ignoreCase = false) const
 		{
-			size_t length;
-
-			if ((length = GetLength()) == 0)
+			if (container[0] == value)
 			{
-				
+
+				return true;
+			}
+			else if (ignoreCase && (Utility::ToLower(container) == Utility::ToLower(value)))
+			{
+
+				return true;
+			}
+
+			return false;
+		}
+		bool StartsWith(const Char* lpValue, bool ignoreCase = false) const
+		{
+			return StartsWith(
+				lpValue,
+				GetLength(lpValue),
+				ignoreCase
+			);
+		}
+		bool StartsWith(const _String& value, bool ignoreCase = false) const
+		{
+			return StartsWith(
+				value.GetCString(),
+				value.GetLength(),
+				ignoreCase
+			);
+		}
+
+		bool Find(size_t& index, Char value, bool ignoreCase = false) const
+		{
+			Char buffer[] =
+			{
+				value,
+				END
+			};
+
+			return Find(
+				index,
+				buffer,
+				ignoreCase
+			);
+		}
+		bool Find(size_t& index, const Char* lpValue, bool ignoreCase = false) const
+		{
+			return Find(
+				index,
+				lpValue,
+				GetLength(lpValue),
+				ignoreCase
+			);
+		}
+		bool Find(size_t& index, const _String& value, bool ignoreCase = false) const
+		{
+			return Find(
+				index,
+				value.GetCString(),
+				value.GetLength(),
+				ignoreCase
+			);
+		}
+		bool Find(Iterator& iterator, Char value, bool ignoreCase = false)
+		{
+			size_t index;
+
+			if (!Find(index, value, ignoreCase))
+			{
+
 				return false;
 			}
 
-			if (container[length - 1] != c)
-			{
-
-				return false;
-			}
+			iterator = begin() += index;
 
 			return true;
 		}
-		bool EndsWith(const _String& string) const
+		bool Find(Iterator& iterator, const Char* lpValue, bool ignoreCase = false)
 		{
-			size_t length;
-			size_t stringLength;
+			size_t index;
 
-			if ((length = GetLength()) < (stringLength = string.GetLength()))
+			if (!Find(index, lpValue, ignoreCase))
 			{
 
 				return false;
 			}
 
-			for (size_t i = length, j = stringLength; stringLength != 0; )
-			{
-				if (container[--i] != string[--j])
-				{
-
-					return false;
-				}
-			}
+			iterator = begin() += index;
 
 			return true;
 		}
-		template<size_t SIZE>
-		bool EndsWith(const Char(&string)[SIZE]) const
+		bool Find(Iterator& iterator, const _String& value, bool ignoreCase = false)
 		{
-			size_t length;
-			size_t stringLength;
+			size_t index;
 
-			if ((length = GetLength()) < (stringLength = GetLength(string)))
+			if (!Find(index, value, ignoreCase))
 			{
 
 				return false;
 			}
 
-			for (size_t i = length, j = stringLength; stringLength != 0; )
-			{
-				if (container[--i] != string[--j])
-				{
+			iterator = begin() += index;
 
-					return false;
-				}
+			return true;
+		}
+		bool Find(ConstIterator& iterator, Char value, bool ignoreCase = false) const
+		{
+			size_t index;
+
+			if (!Find(index, value, ignoreCase))
+			{
+
+				return false;
 			}
+
+			iterator = cbegin() += index;
+
+			return true;
+		}
+		bool Find(ConstIterator& iterator, const Char* lpValue, bool ignoreCase = false) const
+		{
+			size_t index;
+
+			if (!Find(index, lpValue, ignoreCase))
+			{
+
+				return false;
+			}
+
+			iterator = cbegin() += index;
+
+			return true;
+		}
+		bool Find(ConstIterator& iterator, const _String& value, bool ignoreCase = false) const
+		{
+			size_t index;
+
+			if (!Find(index, value, ignoreCase))
+			{
+
+				return false;
+			}
+
+			iterator = cbegin() += index;
+
+			return true;
+		}
+		bool Find(ReverseIterator& iterator, Char value, bool ignoreCase = false) const
+		{
+			size_t index;
+
+			if (!Find(index, value, ignoreCase))
+			{
+
+				return false;
+			}
+
+			iterator = rbegin() += index;
+
+			return true;
+		}
+		bool Find(ReverseIterator& iterator, const Char* lpValue, bool ignoreCase = false) const
+		{
+			size_t index;
+
+			if (!Find(index, lpValue, ignoreCase))
+			{
+
+				return false;
+			}
+
+			iterator = rbegin() += index;
+
+			return true;
+		}
+		bool Find(ReverseIterator& iterator, const _String& value, bool ignoreCase = false) const
+		{
+			size_t index;
+
+			if (!Find(index, value, ignoreCase))
+			{
+
+				return false;
+			}
+
+			iterator = rbegin() += index;
+
+			return true;
+		}
+		bool Find(ConstReverseIterator& iterator, Char value, bool ignoreCase = false) const
+		{
+			size_t index;
+
+			if (!Find(index, value, ignoreCase))
+			{
+
+				return false;
+			}
+
+			iterator = rbegin() += index;
+
+			return true;
+		}
+		bool Find(ConstReverseIterator& iterator, const Char* lpValue, bool ignoreCase = false) const
+		{
+			size_t index;
+
+			if (!Find(index, lpValue, ignoreCase))
+			{
+
+				return false;
+			}
+
+			iterator = rbegin() += index;
+
+			return true;
+		}
+		bool Find(ConstReverseIterator& iterator, const _String& value, bool ignoreCase = false) const
+		{
+			size_t index;
+
+			if (!Find(index, value, ignoreCase))
+			{
+
+				return false;
+			}
+
+			iterator = rbegin() += index;
 
 			return true;
 		}
 
-		void Clear()
+		bool FindLast(size_t& index, Char value, bool ignoreCase = false) const
 		{
-			container.clear();
-		}
-
-		void ShrinkToFit()
-		{
-			container.shrink_to_fit();
-		}
-
-		void Swap(_String& string)
-		{
-			container.swap(
-				string.container
-			);
-		}
-
-		void Reserve(size_t size)
-		{
-			container.reserve(
-				GetSize() + size
-			);
-		}
-
-		template<typename ITERATOR>
-		void Erase(ITERATOR it)
-		{
-			container.erase(
-				it
-			);
-		}
-		template<typename ITERATOR>
-		void Erase(ITERATOR first, ITERATOR last)
-		{
-			container.erase(
-				first,
-				last
-			);
-		}
-
-		template<typename ITERATOR>
-		auto Split(ITERATOR it) const
-		{
-			auto string = container.substr(
-				it - container.begin()
-			);
-
-			return _String(
-				Move(string)
-			);
-		}
-		template<typename ITERATOR>
-		auto Split(ITERATOR begin, ITERATOR end) const
-		{
-			size_t length = end - begin;
-			size_t first = begin - container.begin();
-			
-			auto string = container.substr(
-				first,
-				length
-			);
-
-			return _String(
-				Move(string)
-			);
-		}
-
-		auto SubString(size_t i) const
-		{
-			return SubString(
-				i,
-				GetLength()
-			);
-		}
-		auto SubString(size_t begin, size_t end) const
-		{
-			auto string = container.substr(
-				begin,
-				end - begin
-			);
-
-			return _String(
-				Move(string)
-			);
-		}
-
-		void Append(Char c)
-		{
-			Append(
-				{ c, __String_Constants<Char>::END }
-			);
-		}
-		void Append(const _String& string)
-		{
-			container.append(
-				string.container
-			);
-		}
-		template<size_t SIZE>
-		void Append(const Char(&string)[SIZE])
-		{
-			container.append(
-				&string[0]
-			);
-		}
-
-		template<typename ITERATOR>
-		void Insert(ITERATOR it, const _String& string)
-		{
-			container.insert(
-				it,
-				string.container
-			);
-		}
-		template<typename ITERATOR, size_t SIZE>
-		void Insert(ITERATOR it, const Char(&string)[SIZE])
-		{
-			container.insert(
-				it,
-				&string[0],
-				SIZE - 1
-			);
-		}
-
-		void Remove(const _String& string)
-		{
-			auto i = IndexOf(
-				string
-			);
-
-			if (i != NPOS)
+			Char buffer[] =
 			{
-				Erase(
-					i
-				);
-			}
-		}
-		template<size_t SIZE>
-		void Remove(const Char(&string)[SIZE])
-		{
-			auto i = IndexOf(
-				string
-			);
+				value,
+				END
+			};
 
-			if (i != NPOS)
+			return FindLast(
+				index,
+				buffer,
+				ignoreCase
+			);
+		}
+		bool FindLast(size_t& index, const Char* lpValue, bool ignoreCase = false) const
+		{
+			return FindLast(
+				index,
+				lpValue,
+				GetLength(lpValue),
+				ignoreCase
+			);
+		}
+		bool FindLast(size_t& index, const _String& value, bool ignoreCase = false) const
+		{
+			return FindLast(
+				index,
+				value.GetCString(),
+				value.GetLength(),
+				ignoreCase
+			);
+		}
+		bool FindLast(Iterator& iterator, Char value, bool ignoreCase = false)
+		{
+			size_t index;
+
+			if (!FindLast(index, value, ignoreCase))
 			{
-				Erase(
-					i
-				);
+
+				return false;
 			}
+
+			iterator = begin() += index;
+
+			return true;
 		}
-
-		void RemoveLast(const _String& string)
+		bool FindLast(Iterator& iterator, const Char* lpValue, bool ignoreCase = false)
 		{
-			auto i = IndexOfLast(
-				string
-			);
+			size_t index;
 
-			if (i != NPOS)
+			if (!FindLast(index, lpValue, ignoreCase))
 			{
-				Erase(
-					i
-				);
-			}
-		}
-		template<size_t SIZE>
-		void RemoveLast(const Char(&string)[SIZE])
-		{
-			auto i = IndexOfLast(
-				string
-			);
 
-			if (i != NPOS)
+				return false;
+			}
+
+			iterator = begin() += index;
+
+			return true;
+		}
+		bool FindLast(Iterator& iterator, const _String& value, bool ignoreCase = false)
+		{
+			size_t index;
+
+			if (!FindLast(index, value, ignoreCase))
 			{
-				Erase(
-					i
-				);
+
+				return false;
 			}
-		}
 
-		void SetSize(size_t size)
-		{
-			container.resize(
-				size
-			);
-		}
+			iterator = begin() += index;
 
-		void SetCapacity(size_t capacity)
+			return true;
+		}
+		bool FindLast(ConstIterator& iterator, Char value, bool ignoreCase = false) const
 		{
-			container.reserve(
-				capacity
-			);
+			size_t index;
+
+			if (!FindLast(index, value, ignoreCase))
+			{
+
+				return false;
+			}
+
+			iterator = cbegin() += index;
+
+			return true;
+		}
+		bool FindLast(ConstIterator& iterator, const Char* lpValue, bool ignoreCase = false) const
+		{
+			size_t index;
+
+			if (!FindLast(index, lpValue, ignoreCase))
+			{
+
+				return false;
+			}
+
+			iterator = cbegin() += index;
+
+			return true;
+		}
+		bool FindLast(ConstIterator& iterator, const _String& value, bool ignoreCase = false) const
+		{
+			size_t index;
+
+			if (!FindLast(index, value, ignoreCase))
+			{
+
+				return false;
+			}
+
+			iterator = cbegin() += index;
+
+			return true;
+		}
+		bool FindLast(ReverseIterator& iterator, Char value, bool ignoreCase = false) const
+		{
+			size_t index;
+
+			if (!FindLast(index, value, ignoreCase))
+			{
+
+				return false;
+			}
+
+			iterator = rbegin() += index;
+
+			return true;
+		}
+		bool FindLast(ReverseIterator& iterator, const Char* lpValue, bool ignoreCase = false) const
+		{
+			size_t index;
+
+			if (!FindLast(index, lpValue, ignoreCase))
+			{
+
+				return false;
+			}
+
+			iterator = rbegin() += index;
+
+			return true;
+		}
+		bool FindLast(ReverseIterator& iterator, const _String& value, bool ignoreCase = false) const
+		{
+			size_t index;
+
+			if (!FindLast(index, value, ignoreCase))
+			{
+
+				return false;
+			}
+
+			iterator = rbegin() += index;
+
+			return true;
+		}
+		bool FindLast(ConstReverseIterator& iterator, Char value, bool ignoreCase = false) const
+		{
+			size_t index;
+
+			if (!FindLast(index, value, ignoreCase))
+			{
+
+				return false;
+			}
+
+			iterator = rbegin() += index;
+
+			return true;
+		}
+		bool FindLast(ConstReverseIterator& iterator, const Char* lpValue, bool ignoreCase = false) const
+		{
+			size_t index;
+
+			if (!FindLast(index, lpValue, ignoreCase))
+			{
+
+				return false;
+			}
+
+			iterator = rbegin() += index;
+
+			return true;
+		}
+		bool FindLast(ConstReverseIterator& iterator, const _String& value, bool ignoreCase = false) const
+		{
+			size_t index;
+
+			if (!FindLast(index, value, ignoreCase))
+			{
+
+				return false;
+			}
+
+			iterator = rbegin() += index;
+
+			return true;
 		}
 
 		template<typename ... TArgs>
+		static auto Format(const Char* lpFormat, TArgs ... args);
+		template<typename ... TArgs>
 		static auto Format(const _String& format, TArgs ... args);
-		template<size_t SIZE, typename ... TArgs>
-		static auto Format(const Char(&format)[SIZE], TArgs ... args);
-
+		
 		Iterator begin()
 		{
 			return container.begin();
@@ -949,11 +1428,11 @@ namespace AL::Collections
 
 		Iterator end()
 		{
-			return container.end();
+			return container.begin() += GetLength();
 		}
 		ConstIterator end() const
 		{
-			return container.end();
+			return container.begin() += GetLength();
 		}
 
 		ConstIterator cbegin() const
@@ -963,16 +1442,16 @@ namespace AL::Collections
 
 		ConstIterator cend() const
 		{
-			return container.cend();
+			return container.cbegin() += GetLength();
 		}
 
 		ReverseIterator rbegin()
 		{
-			return container.rbegin();
+			return container.rend() += GetLength();
 		}
 		ConstReverseIterator rbegin() const
 		{
-			return container.crbegin();
+			return container.rend() += GetLength();
 		}
 
 		ReverseIterator rend()
@@ -993,16 +1472,20 @@ namespace AL::Collections
 			return container[index];
 		}
 
-		auto& operator = (_String<Char>&& string)
+		auto& operator = (_String&& string)
 		{
+			length = string.length;
+			string.length = 0;
+
 			container = Move(
 				string.container
 			);
 
 			return *this;
 		}
-		auto& operator = (const _String<Char>& string)
+		auto& operator = (const _String& string)
 		{
+			length = string.length;
 			container = string.container;
 
 			return *this;
@@ -1013,6 +1496,7 @@ namespace AL::Collections
 			auto fnv32_hash = [](const _String& _string)
 			{
 				uint32 hash = 0x811C9DC5;
+
 				auto length = _string.GetLength();
 
 				for (size_t i = 0; i < length; ++i)
@@ -1030,38 +1514,469 @@ namespace AL::Collections
 			return fnv32_hash(*this) < fnv32_hash(string);
 		}
 
-		template<typename T>
-		bool operator == (T string) const
+		bool operator == (const Char* lpString) const
+		{
+			return Compare(
+				lpString
+			);
+		}
+		bool operator != (const Char* lpString) const
+		{
+			return !operator==(
+				lpString
+			);
+		}
+
+		bool operator == (const _String& string) const
 		{
 			return Compare(
 				string
 			);
 		}
-		template<typename T>
-		bool operator != (T string) const
+		bool operator != (const _String& string) const
 		{
-			return !operator==<T>(
+			return !operator==(
 				string
+			);
+		}
+
+	private:
+		void Insert(size_t index, const Char* lpValue, size_t length)
+		{
+			Container container(
+				(GetLength() + length) + 1
+			);
+
+			if (index == 0)
+			{
+				memcpy(
+					&container[0],
+					lpValue,
+					length * sizeof(Char)
+				);
+
+				memcpy(
+					&container[length],
+					GetCString(),
+					GetLength() * sizeof(Char)
+				);
+			}
+			else if (index == GetLength())
+			{
+				memcpy(
+					&container[0],
+					GetCString(),
+					GetLength() * sizeof(Char)
+				);
+
+				memcpy(
+					&container[GetLength()],
+					lpValue,
+					length * sizeof(Char)
+				);
+			}
+			else
+			{
+				memcpy(
+					&container[0],
+					GetCString(),
+					index * sizeof(Char)
+				);
+
+				memcpy(
+					&container[index],
+					lpValue,
+					length * sizeof(Char)
+				);
+
+				memcpy(
+					&container[index + length],
+					&GetCString()[index],
+					GetLength() - index * sizeof(Char)
+				);
+			}
+
+			container.SetSize(
+				(GetLength() + length) + 1
+			);
+
+			container[GetLength() + length] = END;
+
+			this->length += length;
+
+			this->container = Move(
+				container
+			);
+		}
+
+		bool Compare(const Char* lpValue, size_t length, bool ignoreCase) const
+		{
+			if (GetLength() != length)
+			{
+
+				return false;
+			}
+
+			if (!ignoreCase && !memcmp(lpValue, GetCString(), length * sizeof(Char)))
+			{
+
+				return false;
+			}
+			else if (ignoreCase)
+			{
+				for (size_t i = 0; i < length; ++i)
+				{
+					if (Utility::ToLower(container[i]) != Utility::ToLower(lpValue[i]))
+					{
+
+						return false;
+					}
+				}
+			}
+
+			return true;
+		}
+
+		bool Contains(const Char* lpValue, size_t length, bool ignoreCase) const
+		{
+			size_t index;
+
+			return Find(
+				index,
+				lpValue,
+				length,
+				ignoreCase
+			);
+		}
+
+		bool EndsWith(const Char* lpValue, size_t length, bool ignoreCase) const
+		{
+			if (GetLength() >= length)
+			{
+				auto compare_value_to_container = [](const Char* _lpContainer, const Char* _lpValue, size_t _length, bool _ignoreCase)
+				{
+					if (!_ignoreCase && !memcmp(_lpContainer, _lpValue, _length * sizeof(Char)))
+					{
+
+						return false;
+					}
+					else if (_ignoreCase)
+					{
+						for (size_t i = 0; i < _length; ++i)
+						{
+							if (Utility::ToLower(_lpContainer[i]) != Utility::ToLower(_lpValue[i]))
+							{
+
+								return false;
+							}
+						}
+					}
+
+					return true;
+				};
+
+				return compare_value_to_container(
+					&container[GetLength() - length],
+					lpValue,
+					length,
+					ignoreCase
+				);
+			}
+
+			return false;
+		}
+
+		bool StartsWith(const Char* lpValue, size_t length, bool ignoreCase) const
+		{
+			if (GetLength() >= length)
+			{
+				if (!ignoreCase && memcmp(&container[0], lpValue, length * sizeof(Char)))
+				{
+
+					return true;
+				}
+				else if (ignoreCase)
+				{
+					for (size_t i = 0; i < length; ++i)
+					{
+						if (Utility::ToLower(container[i]) != Utility::ToLower(lpValue[i]))
+						{
+
+							return false;
+						}
+					}
+
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		bool Find(size_t& index, const Char* lpValue, size_t length, bool ignoreCase) const
+		{
+			auto compare_value_to_container = [](const Char* _lpContainer, const Char* _lpValue, size_t _length, bool _ignoreCase)
+			{
+				if (!_ignoreCase && !memcmp(_lpContainer, _lpValue, _length * sizeof(Char)))
+				{
+
+					return false;
+				}
+				else if (_ignoreCase)
+				{
+					for (size_t i = 0; i < _length; ++i)
+					{
+						if (Utility::ToLower(_lpContainer[i]) != Utility::ToLower(_lpValue[i]))
+						{
+
+							return false;
+						}
+					}
+				}
+
+				return true;
+			};
+
+			for (size_t i = 0, j = length; j <= GetLength(); ++i, ++j)
+			{
+				if (container[i] != lpValue[0])
+				{
+
+					continue;
+				}
+
+				if (!compare_value_to_container(&container[i + 1], &lpValue[1], length - 1, ignoreCase))
+				{
+
+					continue;
+				}
+
+				index = i;
+
+				return true;
+			}
+
+			return false;
+		}
+
+		bool FindLast(size_t& index, const Char* lpValue, size_t length, bool ignoreCase) const
+		{
+			auto compare_value_to_container = [](const Char* _lpContainer, const Char* _lpValue, size_t _length, bool _ignoreCase)
+			{
+				if (!_ignoreCase && !memcmp(_lpContainer, _lpValue, _length * sizeof(Char)))
+				{
+
+					return false;
+				}
+				else if (_ignoreCase)
+				{
+					for (size_t i = 0; i < _length; ++i)
+					{
+						if (Utility::ToLower(_lpContainer[i]) != Utility::ToLower(_lpValue[i]))
+						{
+
+							return false;
+						}
+					}
+				}
+
+				return true;
+			};
+
+			for (size_t i = (GetLength() - length), j = length; j <= GetLength(); --i, ++j)
+			{
+				if (container[i] != lpValue[0])
+				{
+
+					continue;
+				}
+
+				if (!compare_value_to_container(&container[i + 1], &lpValue[1], length - 1, ignoreCase))
+				{
+
+					continue;
+				}
+
+				index = i;
+
+				return true;
+			}
+
+			return false;
+		}
+	};
+
+	template<>
+	struct __String_Types<char>
+	{
+		typedef char        Char;
+		typedef Array<Char> Container;
+	};
+	template<>
+	struct __String_Types<wchar_t>
+	{
+		typedef wchar_t     Char;
+		typedef Array<Char> Container;
+	};
+
+	template<>
+	struct __String_Utility<char>
+	{
+		template<typename ... CHUNK_TYPES>
+		static _String<char> Combine(CHUNK_TYPES ... chunks)
+		{
+			_String<char> buffer;
+
+			Concat(
+				buffer,
+				Forward<CHUNK_TYPES>(chunks) ...
+			);
+
+			return buffer;
+		}
+
+		static constexpr bool IsLower(char c)
+		{
+			return ((c >= 'a') && (c <= 'z')) && (__String_Constants<char>::LOWERCASE_TABLE[c - 'a'] == c);
+		}
+
+		static constexpr bool IsUpper(char c)
+		{
+			return ((c >= 'A') && (c <= 'Z')) && (__String_Constants<char>::UPPERCASE_TABLE[c - 'A'] == c);
+		}
+
+		static constexpr char ToLower(char c)
+		{
+			return IsUpper(c) ? __String_Constants<char>::LOWERCASE_TABLE[c - 'A'] : c;
+		}
+
+		static constexpr char ToUpper(char c)
+		{
+			return IsLower(c) ? __String_Constants<char>::UPPERCASE_TABLE[c - 'a'] : c;
+		}
+
+	private:
+		static void Concat(_String<char>& buffer)
+		{
+		}
+		template<typename ... CHUNK_TYPES>
+		static void Concat(_String<char>& buffer, const _String<char>& chunk, CHUNK_TYPES ... chunks)
+		{
+			buffer.Append(
+				chunk
+			);
+
+			Concat(
+				buffer,
+				Forward<CHUNK_TYPES>(chunks) ...
+			);
+		}
+	};
+	template<>
+	struct __String_Utility<wchar_t>
+	{
+		template<typename ... CHUNK_TYPES>
+		static _String<wchar_t> Combine(CHUNK_TYPES ... chunks)
+		{
+			_String<wchar_t> buffer;
+
+			Concat(
+				buffer,
+				Forward<CHUNK_TYPES>(chunks) ...
+			);
+
+			return buffer;
+		}
+
+		static constexpr bool IsLower(wchar_t c)
+		{
+			return ((c >= L'a') && (c <= L'z')) && (__String_Constants<wchar_t>::LOWERCASE_TABLE[c - L'a'] == c);
+		}
+
+		static constexpr bool IsUpper(wchar_t c)
+		{
+			return ((c >= L'A') && (c <= L'Z')) && (__String_Constants<wchar_t>::UPPERCASE_TABLE[c - L'A'] == c);
+		}
+
+		static constexpr wchar_t ToLower(wchar_t c)
+		{
+			return IsUpper(c) ? __String_Constants<wchar_t>::LOWERCASE_TABLE[c - L'A'] : c;
+		}
+
+		static constexpr wchar_t ToUpper(wchar_t c)
+		{
+			return IsLower(c) ? __String_Constants<wchar_t>::UPPERCASE_TABLE[c - L'a'] : c;
+		}
+
+	private:
+		static void Concat(_String<wchar_t>& buffer)
+		{
+		}
+		template<typename ... CHUNK_TYPES>
+		static void Concat(_String<wchar_t>& buffer, const _String<wchar_t>& chunk, CHUNK_TYPES ... chunks)
+		{
+			buffer.Append(
+				chunk
+			);
+
+			Concat(
+				buffer,
+				Forward<CHUNK_TYPES>(chunks) ...
 			);
 		}
 	};
 
-	typedef _String<char> String;
+	typedef _String<char>    String;
 	typedef _String<wchar_t> WString;
 }
 
-template<typename CHAR>
-template<typename ... CHUNK_TYPES>
-inline void AL::Collections::__String_Chunks_Helper<CHAR>::Concat(String& buffer, const String& chunk, CHUNK_TYPES ... chunks)
+template<>
+template<typename ... TArgs>
+inline auto AL::Collections::_String<char>::Format(const Char* lpFormat, TArgs ... args)
 {
-	buffer.Append(
-		chunk
+	auto bufferSize = std::snprintf(
+		nullptr,
+		0,
+		lpFormat,
+		std::forward<TArgs>(args) ...
 	);
-	
-	Concat(
-		buffer,
-		Forward<CHUNK_TYPES>(chunks) ...
+
+	_String string(
+		bufferSize
 	);
+
+	string.length = std::snprintf(
+		&string[0],
+		bufferSize + 1,
+		lpFormat,
+		std::forward<TArgs>(args) ...
+	);
+
+	return string;
+}
+template<>
+template<typename ... TArgs>
+inline auto AL::Collections::_String<wchar_t>::Format(const Char* lpFormat, TArgs ... args)
+{
+	auto bufferSize = std::swprintf(
+		nullptr,
+		0,
+		lpFormat,
+		std::forward<TArgs>(args) ...
+	);
+
+	_String string(
+		bufferSize
+	);
+
+	string.length = std::swprintf(
+		&string[0],
+		bufferSize + 1,
+		lpFormat,
+		std::forward<TArgs>(args) ...
+	);
+
+	return string;
 }
 
 template<>
@@ -1076,11 +1991,10 @@ inline auto AL::Collections::_String<char>::Format(const _String& format, TArgs 
 	);
 
 	_String string(
-		'\0',
 		bufferSize
 	);
 
-	std::snprintf(
+	string.length = std::snprintf(
 		&string[0],
 		bufferSize + 1,
 		format.GetCString(),
@@ -1089,32 +2003,6 @@ inline auto AL::Collections::_String<char>::Format(const _String& format, TArgs 
 
 	return string;
 }
-template<>
-template<size_t SIZE, typename ... TArgs>
-inline auto AL::Collections::_String<char>::Format(const char(&format)[SIZE], TArgs ... args)
-{
-	auto bufferSize = std::snprintf(
-		nullptr,
-		0,
-		&format[0],
-		std::forward<TArgs>(args) ...
-	);
-
-	_String string(
-		'\0',
-		bufferSize
-	);
-
-	std::snprintf(
-		&string[0],
-		bufferSize + 1,
-		&format[0],
-		std::forward<TArgs>(args) ...
-	);
-
-	return string;
-}
-
 template<>
 template<typename ... TArgs>
 inline auto AL::Collections::_String<wchar_t>::Format(const _String& format, TArgs ... args)
@@ -1127,11 +2015,10 @@ inline auto AL::Collections::_String<wchar_t>::Format(const _String& format, TAr
 	);
 
 	_String string(
-		L'\0',
 		bufferSize
 	);
 
-	std::swprintf(
+	string.length = std::swprintf(
 		&string[0],
 		bufferSize + 1,
 		format.GetCString(),
@@ -1140,36 +2027,11 @@ inline auto AL::Collections::_String<wchar_t>::Format(const _String& format, TAr
 
 	return string;
 }
-template<>
-template<size_t SIZE, typename ... TArgs>
-inline auto AL::Collections::_String<wchar_t>::Format(const wchar_t(&format)[SIZE], TArgs ... args)
+
+template<typename CHAR>
+struct std::hash<AL::Collections::_String<CHAR>>
 {
-	auto bufferSize = std::swprintf(
-		nullptr,
-		0,
-		&format[0],
-		std::forward<TArgs>(args) ...
-	);
-
-	_String string(
-		L'\0',
-		bufferSize
-	);
-
-	std::swprintf(
-		&string[0],
-		bufferSize + 1,
-		&format[0],
-		std::forward<TArgs>(args) ...
-	);
-
-	return string;
-}
-
-template<typename C>
-struct std::hash<AL::Collections::_String<C>>
-{
-	size_t operator ()(const AL::Collections::_String<C>& string) const noexcept
+	size_t operator () (const AL::Collections::_String<CHAR>& string) const noexcept
 	{
 		static constexpr bool IS_UINT32 = sizeof(size_t) == sizeof(AL::uint32);
 

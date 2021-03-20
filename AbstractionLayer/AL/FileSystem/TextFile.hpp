@@ -38,8 +38,8 @@ namespace AL::FileSystem
 				(GetSize() * sizeof(String::Char)) - (GetReadPosition() * sizeof(String::Char))
 			);
 
-			value.SetSize(
-				valueLength + 1
+			value.SetCapacity(
+				valueLength
 			);
 
 			if (!File::Read(&value[0], valueLength))
@@ -67,7 +67,7 @@ namespace AL::FileSystem
 		// @return false if end of file
 		bool Read(String& value, size_t length)
 		{
-			value.SetSize(
+			value.SetCapacity(
 				length
 			);
 
@@ -105,11 +105,9 @@ namespace AL::FileSystem
 				totalBytesRead += bytesRead;
 				lineChunkBuffer[static_cast<size_t>(bytesRead / sizeof(String::Char))] = String::END;
 
-				auto endOfLineChunk = lineChunkBuffer.IndexOf(
-					LINE_TERMINATOR[0]
-				);
+				size_t endOfLineChunk;
 
-				if (endOfLineChunk == String::NPOS)
+				if (!lineChunkBuffer.Find(endOfLineChunk, LINE_TERMINATOR[0]))
 				{
 					value.Append(
 						lineChunkBuffer
@@ -126,7 +124,9 @@ namespace AL::FileSystem
 				);
 
 #if defined(AL_PLATFORM_WINDOWS)
-				if (auto endOfLineChunk2 = lineChunkBuffer.IndexOf(LINE_TERMINATOR[1]); endOfLineChunk2 > endOfLineChunk)
+				size_t endOfLineChunk2;
+
+				if (lineChunkBuffer.Find(endOfLineChunk2, LINE_TERMINATOR[1]) && (endOfLineChunk2 > endOfLineChunk))
 				{
 
 					endOfLineChunk = endOfLineChunk2;

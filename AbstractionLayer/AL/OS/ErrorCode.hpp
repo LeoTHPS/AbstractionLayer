@@ -36,26 +36,26 @@ namespace AL::OS
 			errorCode
 		);
 
-		LPVOID lpBuffer;
+		LPVOID lpMessageBuffer;
 
-		if (auto stringLength = FormatMessageA(
-			FORMAT_MESSAGE_ALLOCATE_BUFFER |
-			FORMAT_MESSAGE_FROM_SYSTEM |
-			FORMAT_MESSAGE_IGNORE_INSERTS,
-			nullptr,
-			errorCode,
-			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-			reinterpret_cast<LPSTR>(&lpBuffer),
-			0, nullptr))
+		if (auto messageLength = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPSTR>(&lpMessageBuffer), 0, nullptr))
 		{
-			string.SetSize(
-				stringLength
+			typename String::Container container(
+				messageLength + 1
 			);
 
 			memcpy(
-				&string[0],
-				lpBuffer,
-				stringLength
+				&container[0],
+				lpMessageBuffer,
+				messageLength + 1
+			);
+
+			LocalFree(
+				lpMessageBuffer
+			);
+
+			string = String(
+				Move(container)
 			);
 
 			string.RemoveLast(
@@ -65,8 +65,6 @@ namespace AL::OS
 			string.RemoveLast(
 				"\r"
 			);
-
-			LocalFree(lpBuffer);
 		}
 
 		return string;

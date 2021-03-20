@@ -75,7 +75,7 @@ namespace AL::DotNET
 				if (_size > 1)
 				{
 					// -1 because resize will automatically +1 for the NULL
-					_to_obj.SetSize(_size - 1);
+					_to_obj.SetCapacity(_size - 1);
 
 					char* _dest_buf = &(_to_obj[0]);
 

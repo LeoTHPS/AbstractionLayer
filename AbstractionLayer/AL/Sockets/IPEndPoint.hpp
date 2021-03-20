@@ -15,7 +15,7 @@ namespace AL::Sockets
 		{
 			size_t separatorIndex;
 
-			if ((separatorIndex = string.IndexOfLast(':')) == String::NPOS)
+			if (!string.FindLast(separatorIndex, ':'))
 			{
 
 				throw Exceptions::Exception(
