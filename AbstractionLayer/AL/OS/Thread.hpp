@@ -292,7 +292,18 @@ namespace AL::OS
 			StartAndDetach(
 				[lpInstance, lpFunction]()
 				{
-					(lpFunction->*lpInstance)();
+					(lpInstance->*lpFunction)();
+				}
+			);
+		}
+		// @throw AL::Exceptions::Exception
+		template<typename C>
+		static void StartAndDetach(void(C::*lpFunction)() const, const C* lpInstance)
+		{
+			StartAndDetach(
+				[lpInstance, lpFunction]()
+				{
+					(lpInstance->*lpFunction)();
 				}
 			);
 		}
@@ -370,7 +381,18 @@ namespace AL::OS
 			Start(
 				[lpInstance, lpFunction]()
 				{
-					(lpFunction->*lpInstance)();
+					(lpInstance->*lpFunction)();
+				}
+			);
+		}
+		// @throw AL::Exceptions::Exception
+		template<typename C>
+		void Start(void(C::*lpFunction)() const, const C* lpInstance)
+		{
+			Start(
+				[lpInstance, lpFunction]()
+				{
+					(lpInstance->*lpFunction)();
 				}
 			);
 		}
