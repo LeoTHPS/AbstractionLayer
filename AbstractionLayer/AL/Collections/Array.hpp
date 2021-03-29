@@ -427,7 +427,11 @@ namespace AL::Collections
 
 		void Fill(const Type& value)
 		{
-			for (size_t i = 0; i < GetCapacity(); ++i)
+			SetSize(
+				GetCapacity()
+			);
+
+			for (size_t i = 0; i < GetSize(); ++i)
 			{
 				lpContainer[i] = value;
 			}
