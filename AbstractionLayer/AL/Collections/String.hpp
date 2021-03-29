@@ -150,6 +150,9 @@ namespace AL::Collections
 				Move(container)
 			)
 		{
+			this->container.SetSize(
+				length + 1
+			);
 		}
 		
 		explicit _String(const Container& container)
@@ -209,10 +212,6 @@ namespace AL::Collections
 		{
 			container.Fill(
 				c
-			);
-
-			container.SetSize(
-				count + 1
 			);
 
 			container[count] = END;
