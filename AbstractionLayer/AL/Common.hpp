@@ -45,20 +45,20 @@
 		#define AL_FASTCALL    __attribute__((fastcall))
 	#endif
 
-	#define AL_STDCALL     __attribute__((stdcall))
-	#define AL_THISCALL    __attribute__((thiscall))
+	#define AL_STDCALL         __attribute__((stdcall))
+	#define AL_THISCALL        __attribute__((thiscall))
 #elif defined(AL_PLATFORM_WINDOWS)
 	#if defined(AL_X86)
 		#define AL_CDECL       __cdecl
 		#define AL_FASTCALL    __fastcall
 	#endif
 
-	#define AL_STDCALL     __stdcall
-	#define AL_THISCALL    __thiscall
-	#define AL_VECTORCALL  __vectorcall
+	#define AL_STDCALL         __stdcall
+	#define AL_THISCALL        __thiscall
+	#define AL_VECTORCALL      __vectorcall
 
 	#if defined(__cplusplus_cli)
-		#define AL_CLRCALL __clrcall
+		#define AL_CLRCALL     __clrcall
 	#endif
 #endif
 
