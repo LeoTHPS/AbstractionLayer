@@ -106,10 +106,24 @@ namespace AL::Collections
 		static auto Combine(CHUNK_TYPES ... chunks)
 		{
 			return Utility::Combine(
-				chunks ...
+				Forward<CHUNK_TYPES>(chunks) ...
 			);
 		}
 		
+		template<typename DELIMITER, typename ... CHUNK_TYPES>
+		static auto Join(DELIMITER delimiter, CHUNK_TYPES ... chunks)
+		{
+			return Utility::Join(
+				Forward<DELIMITER>(delimiter),
+				Forward<CHUNK_TYPES>(chunks) ...
+			);
+		}
+
+		template<typename ... TArgs>
+		static auto Format(const Char* lpFormat, TArgs ... args);
+		template<typename ... TArgs>
+		static auto Format(const _String& format, TArgs ... args);
+
 		_String()
 			: length(
 				0
@@ -467,9 +481,11 @@ namespace AL::Collections
 
 			memcpy(
 				&string[0],
-				GetCString(),
+				&GetCString()[index],
 				length * sizeof(Char)
 			);
+
+			string.length = length;
 
 			string[length] = END;
 
@@ -781,6 +797,37 @@ namespace AL::Collections
 			);
 		}
 
+		auto Split(Char delimiter, bool ignoreCase = false) const
+		{
+			Char buffer[] =
+			{
+				delimiter,
+				END
+			};
+
+			return Split(
+				buffer,
+				1,
+				ignoreCase
+			);
+		}
+		auto Split(const Char* lpDelimiter, bool ignoreCase = false) const
+		{
+			return Split(
+				lpDelimiter,
+				GetLength(lpDelimiter),
+				ignoreCase
+			);
+		}
+		auto Split(const _String& delimiter, bool ignoreCase = false) const
+		{
+			return Split(
+				delimiter.GetCString(),
+				delimiter.GetLength(),
+				ignoreCase
+			);
+		}
+
 		void Remove(Char value)
 		{
 			size_t index;
@@ -895,19 +942,57 @@ namespace AL::Collections
 
 		bool Compare(const Char* lpValue, bool ignoreCase = false) const
 		{
-			return Compare(
-				lpValue,
-				GetLength(lpValue),
-				ignoreCase
-			);
+			for (size_t i = 0; i < GetLength(); ++i)
+			{
+				if (ignoreCase)
+				{
+					if (Utility::ToLower(container[i]) != Utility::ToLower(lpValue[i]))
+					{
+
+						return false;
+					}
+				}
+				else if (container[i] != lpValue[i])
+				{
+
+					return false;
+				}
+			}
+
+			if (lpValue[GetLength()] != END)
+			{
+
+				return false;
+			}
+
+			return true;
 		}
 		bool Compare(const _String& value, bool ignoreCase = false) const
 		{
-			return Compare(
-				value.GetCString(),
-				value.GetLength(),
-				ignoreCase
-			);
+			if (GetLength() != value.GetLength())
+			{
+
+				return false;
+			}
+
+			if (!ignoreCase && !memcmp(value.GetCString(), GetCString(), GetLength() * sizeof(Char)))
+			{
+
+				return false;
+			}
+			else if (ignoreCase)
+			{
+				for (size_t i = 0; i < GetLength(); ++i)
+				{
+					if (Utility::ToLower(container[i]) != Utility::ToLower(value[i]))
+					{
+
+						return false;
+					}
+				}
+			}
+
+			return true;
 		}
 
 		bool Contains(Char value, bool ignoreCase = false) const
@@ -1411,11 +1496,6 @@ namespace AL::Collections
 			return true;
 		}
 
-		template<typename ... TArgs>
-		static auto Format(const Char* lpFormat, TArgs ... args);
-		template<typename ... TArgs>
-		static auto Format(const _String& format, TArgs ... args);
-		
 		Iterator begin()
 		{
 			return container.begin();
@@ -1540,6 +1620,31 @@ namespace AL::Collections
 		}
 
 	private:
+		auto Split(const Char* lpDelimiter, size_t delimiterLength, bool ignoreCase) const
+		{
+			Array<_String> chunks;
+
+			for (size_t i = 0, j; i < GetLength(); i = (j + 1))
+			{
+				if (!FindAt(j, i, lpDelimiter, delimiterLength, ignoreCase))
+				{
+
+					j = GetLength();
+				}
+
+				auto chunk = SubString(
+					i,
+					j - i
+				);
+
+				chunks.PushBack(
+					Move(chunk)
+				);
+			}
+
+			return chunks;
+		}
+
 		void Insert(size_t index, const Char* lpValue, size_t length)
 		{
 			Container container(
@@ -1606,34 +1711,6 @@ namespace AL::Collections
 			this->container = Move(
 				container
 			);
-		}
-
-		bool Compare(const Char* lpValue, size_t length, bool ignoreCase) const
-		{
-			if (GetLength() != length)
-			{
-
-				return false;
-			}
-
-			if (!ignoreCase && !memcmp(lpValue, GetCString(), length * sizeof(Char)))
-			{
-
-				return false;
-			}
-			else if (ignoreCase)
-			{
-				for (size_t i = 0; i < length; ++i)
-				{
-					if (Utility::ToLower(container[i]) != Utility::ToLower(lpValue[i]))
-					{
-
-						return false;
-					}
-				}
-			}
-
-			return true;
 		}
 
 		bool Contains(const Char* lpValue, size_t length, bool ignoreCase) const
@@ -1714,6 +1791,17 @@ namespace AL::Collections
 
 		bool Find(size_t& index, const Char* lpValue, size_t length, bool ignoreCase) const
 		{
+			if (!FindAt(index, 0, lpValue, length, ignoreCase))
+			{
+
+				return false;
+			}
+
+			return true;
+		}
+
+		bool FindAt(size_t& index, size_t offset, const Char* lpValue, size_t length, bool ignoreCase) const
+		{
 			auto compare_value_to_container = [](const Char* _lpContainer, const Char* _lpValue, size_t _length, bool _ignoreCase)
 			{
 				if (!_ignoreCase && !memcmp(_lpContainer, _lpValue, _length * sizeof(Char)))
@@ -1736,7 +1824,7 @@ namespace AL::Collections
 				return true;
 			};
 
-			for (size_t i = 0, j = length; j <= GetLength(); ++i, ++j)
+			for (size_t i = offset; i < GetLength(); ++i)
 			{
 				if (container[i] != lpValue[0])
 				{
@@ -1826,8 +1914,22 @@ namespace AL::Collections
 		{
 			_String<char> buffer;
 
-			Concat(
+			Concat<CHUNK_TYPES ...>(
 				buffer,
+				Forward<CHUNK_TYPES>(chunks) ...
+			);
+
+			return buffer;
+		}
+
+		template<typename DELIMITER, typename ... CHUNK_TYPES>
+		static _String<char> Join(DELIMITER delimiter, CHUNK_TYPES ... chunks)
+		{
+			_String<char> buffer;
+
+			Concat2<DELIMITER, CHUNK_TYPES ...>(
+				buffer,
+				Forward<DELIMITER>(delimiter),
 				Forward<CHUNK_TYPES>(chunks) ...
 			);
 
@@ -1858,17 +1960,42 @@ namespace AL::Collections
 		static void Concat(_String<char>& buffer)
 		{
 		}
-		template<typename ... CHUNK_TYPES>
-		static void Concat(_String<char>& buffer, const _String<char>& chunk, CHUNK_TYPES ... chunks)
+		template<typename CHUNK_TYPE, typename ... CHUNK_TYPES>
+		static void Concat(_String<char>& buffer, CHUNK_TYPE chunk, CHUNK_TYPES ... chunks)
 		{
 			buffer.Append(
 				chunk
 			);
 
-			Concat(
+			Concat<CHUNK_TYPES ...>(
 				buffer,
 				Forward<CHUNK_TYPES>(chunks) ...
 			);
+		}
+
+		template<typename DELIMITER>
+		static void Concat2(_String<char>& buffer, DELIMITER delimiter)
+		{
+		}
+		template<typename DELIMITER, typename CHUNK_TYPE, typename ... CHUNK_TYPES>
+		static void Concat2(_String<char>& buffer, DELIMITER delimiter, CHUNK_TYPE chunk, CHUNK_TYPES ... chunks)
+		{
+			buffer.Append(
+				chunk
+			);
+
+			if constexpr (sizeof ...(CHUNK_TYPES) != 0)
+			{
+				buffer.Append(
+					delimiter
+				);
+
+				Concat2<DELIMITER, CHUNK_TYPES ...>(
+					buffer,
+					Forward<DELIMITER>(delimiter),
+					Forward<CHUNK_TYPES>(chunks) ...
+				);
+			}
 		}
 	};
 	template<>
@@ -1879,7 +2006,7 @@ namespace AL::Collections
 		{
 			_String<wchar_t> buffer;
 
-			Concat(
+			Concat<CHUNK_TYPES ...>(
 				buffer,
 				Forward<CHUNK_TYPES>(chunks) ...
 			);
@@ -1887,6 +2014,20 @@ namespace AL::Collections
 			return buffer;
 		}
 
+		template<typename DELIMITER, typename ... CHUNK_TYPES>
+		static _String<wchar_t> Join(DELIMITER delimiter, CHUNK_TYPES ... chunks)
+		{
+			_String<wchar_t> buffer;
+
+			Concat2<DELIMITER, CHUNK_TYPES ...>(
+				buffer,
+				Forward<DELIMITER>(delimiter),
+				Forward<CHUNK_TYPES>(chunks) ...
+			);
+
+			return buffer;
+		}
+		
 		static constexpr bool IsLower(wchar_t c)
 		{
 			return ((c >= L'a') && (c <= L'z')) && (__String_Constants<wchar_t>::LOWERCASE_TABLE[c - L'a'] == c);
@@ -1911,17 +2052,42 @@ namespace AL::Collections
 		static void Concat(_String<wchar_t>& buffer)
 		{
 		}
-		template<typename ... CHUNK_TYPES>
-		static void Concat(_String<wchar_t>& buffer, const _String<wchar_t>& chunk, CHUNK_TYPES ... chunks)
+		template<typename CHUNK_TYPE, typename ... CHUNK_TYPES>
+		static void Concat(_String<wchar_t>& buffer, CHUNK_TYPE chunk, CHUNK_TYPES ... chunks)
 		{
 			buffer.Append(
 				chunk
 			);
 
-			Concat(
+			Concat<CHUNK_TYPES ...>(
 				buffer,
 				Forward<CHUNK_TYPES>(chunks) ...
 			);
+		}
+
+		template<typename DELIMITER>
+		static void Concat2(_String<wchar_t>& buffer, DELIMITER delimiter)
+		{
+		}
+		template<typename DELIMITER, typename CHUNK_TYPE, typename ... CHUNK_TYPES>
+		static void Concat2(_String<wchar_t>& buffer, DELIMITER delimiter, CHUNK_TYPE chunk, CHUNK_TYPES ... chunks)
+		{
+			buffer.Append(
+				chunk
+			);
+
+			if constexpr (sizeof ...(CHUNK_TYPES) != 0)
+			{
+				buffer.Append(
+					delimiter
+				);
+
+				Concat2<DELIMITER, CHUNK_TYPES ...>(
+					buffer,
+					Forward<DELIMITER>(delimiter),
+					Forward<CHUNK_TYPES>(chunks) ...
+				);
+			}
 		}
 	};
 
