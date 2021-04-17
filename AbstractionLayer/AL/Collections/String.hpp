@@ -445,6 +445,13 @@ namespace AL::Collections
 			container[GetLength()] = END;
 		}
 
+		void RefreshLength()
+		{
+			length = GetLength(
+				GetCString()
+			);
+		}
+
 		void SetCapacity(size_t value)
 		{
 			if (value > GetCapacity())
