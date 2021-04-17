@@ -64,32 +64,32 @@ namespace AL::DotNET
 
 		static String ToNativeString(::System::String^ string)
 		{
-			using namespace msclr::interop::details;
+			String nativeString;
 
-			String _to_obj;
-
-			if (string)
+			if (auto stringSize = msclr::interop::details::GetAnsiStringSize(string))
 			{
-				size_t _size = GetAnsiStringSize(string);
+				// AL::String::SetCapacity automatically adds +1 for NULL terminator
+				nativeString.SetCapacity(
+					stringSize - 1
+				);
 
-				if (_size > 1)
-				{
-					// -1 because resize will automatically +1 for the NULL
-					_to_obj.SetCapacity(_size - 1);
+				msclr::interop::details::WriteAnsiString(
+					&nativeString[0],
+					stringSize,
+					string
+				);
 
-					char* _dest_buf = &(_to_obj[0]);
-
-					WriteAnsiString(_dest_buf, _size, string);
-				}
+				nativeString.RefreshLength();
 			}
 
-			return _to_obj;
+			return nativeString;
 		}
+
 		static WString ToNativeWString(::System::String^ string)
 		{
 			return WString::Format(
 				L"%S",
-				ToNativeString(string)
+				ToNativeString(string).GetCString()
 			);
 		}
 
