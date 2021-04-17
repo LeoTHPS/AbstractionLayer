@@ -450,6 +450,10 @@ namespace AL::Collections
 			length = GetLength(
 				GetCString()
 			);
+
+			container.SetSize(
+				GetLength() + 1
+			);
 		}
 
 		void SetCapacity(size_t value)
