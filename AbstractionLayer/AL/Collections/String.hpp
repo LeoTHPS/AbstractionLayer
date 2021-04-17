@@ -252,7 +252,9 @@ namespace AL::Collections
 
 		auto GetCString() const
 		{
-			return &container[0];
+			return static_cast<const Char*>(
+				&container[0]
+			);
 		}
 
 		_String ToLower() const
