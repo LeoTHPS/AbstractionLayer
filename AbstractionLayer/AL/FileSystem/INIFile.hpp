@@ -167,7 +167,7 @@ namespace AL::FileSystem
 
 			return GetValue().SubString(
 				1,
-				GetValue().GetLength() - 1
+				GetValue().GetLength() - 2
 			);
 		}
 
