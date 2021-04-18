@@ -61,14 +61,10 @@ namespace AL::Collections
 		typedef __String_Utility<CHAR>   Utility;
 		typedef __String_Constants<CHAR> Constants;
 
-		size_t length;
 		typename Types::Container container;
 
 		explicit _String(size_t capacity)
-			: length(
-				0
-			),
-			container(
+			: container(
 				capacity + 1
 			)
 		{
@@ -125,47 +121,33 @@ namespace AL::Collections
 		static auto Format(const _String& format, TArgs ... args);
 
 		_String()
-			: length(
-				0
-			),
-			container(
+			: container(
 				{ Constants::END }
 			)
 		{
 		}
 
 		_String(_String&& string)
-			: length(
-				string.length
-			),
-			container(
+			: container(
 				Move(string.container)
 			)
 		{
 		}
 
 		_String(const _String& string)
-			: length(
-				string.length
-			),
-			container(
+			: container(
 				string.container
 			)
 		{
 		}
 
 		explicit _String(Container&& container)
-			: length(
-				GetLength(
-					&container[0]
-				)
-			),
-			container(
+			: container(
 				Move(container)
 			)
 		{
 			this->container.SetSize(
-				length + 1
+				GetLength(&this->container[0]) + 1
 			);
 		}
 		
@@ -196,10 +178,7 @@ namespace AL::Collections
 		}
 
 		_String(const Char* lpString, size_t length)
-			: length(
-				length
-			),
-			container(
+			: container(
 				length + 1
 			)
 		{
@@ -217,10 +196,7 @@ namespace AL::Collections
 		}
 
 		_String(Char c, size_t count)
-			: length(
-				count
-			),
-			container(
+			: container(
 				count + 1
 			)
 		{
@@ -237,12 +213,12 @@ namespace AL::Collections
 
 		size_t GetSize() const
 		{
-			return GetLength() + 1;
+			return container.GetSize() - 1;
 		}
 
 		size_t GetLength() const
 		{
-			return length;
+			return container.GetSize() - 1;
 		}
 
 		size_t GetCapacity() const
@@ -287,11 +263,6 @@ namespace AL::Collections
 
 		void Swap(_String& string)
 		{
-			AL::Swap(
-				length,
-				string.length
-			);
-
 			container.Swap(
 				string.container
 			);
@@ -314,8 +285,6 @@ namespace AL::Collections
 		}
 		void Erase(size_t index, size_t count)
 		{
-			length -= count;
-
 			container.Erase(
 				index,
 				count
@@ -447,35 +416,26 @@ namespace AL::Collections
 
 		void RefreshLength()
 		{
-			length = GetLength(
-				GetCString()
-			);
-
 			container.SetSize(
-				GetLength() + 1
+				GetLength(GetCString()) + 1
 			);
 		}
 
 		void SetCapacity(size_t value)
 		{
-			if (value > GetCapacity())
+			if (value < GetLength())
 			{
-				container.SetCapacity(
+				container.SetSize(
 					value + 1
 				);
+
+				container[value] = END;
 			}
-			else if (value < GetCapacity())
+			else
 			{
 				container.SetCapacity(
 					value + 1
 				);
-
-				if (value > GetLength())
-				{
-					length = value;
-
-					container[value] = END;
-				}
 			}
 		}
 
@@ -498,7 +458,9 @@ namespace AL::Collections
 				length * sizeof(Char)
 			);
 
-			string.length = length;
+			string.container.SetSize(
+				length + 1
+			);
 
 			string[length] = END;
 
@@ -1566,9 +1528,6 @@ namespace AL::Collections
 
 		auto& operator = (_String&& string)
 		{
-			length = string.length;
-			string.length = 0;
-
 			container = Move(
 				string.container
 			);
@@ -1577,7 +1536,6 @@ namespace AL::Collections
 		}
 		auto& operator = (const _String& string)
 		{
-			length = string.length;
 			container = string.container;
 
 			return *this;
@@ -1718,8 +1676,6 @@ namespace AL::Collections
 			);
 
 			container[GetLength() + length] = END;
-
-			this->length += length;
 
 			this->container = Move(
 				container
@@ -2123,11 +2079,15 @@ inline auto AL::Collections::_String<char>::Format(const Char* lpFormat, TArgs .
 		bufferSize
 	);
 
-	string.length = std::snprintf(
+	auto length = std::snprintf(
 		&string[0],
 		bufferSize + 1,
 		lpFormat,
 		std::forward<TArgs>(args) ...
+	);
+
+	string.container.SetSize(
+		length + 1
 	);
 
 	return string;
@@ -2147,11 +2107,15 @@ inline auto AL::Collections::_String<wchar_t>::Format(const Char* lpFormat, TArg
 		bufferSize
 	);
 
-	string.length = std::swprintf(
+	auto length = std::swprintf(
 		&string[0],
 		bufferSize + 1,
 		lpFormat,
 		std::forward<TArgs>(args) ...
+	);
+
+	string.container.SetSize(
+		length + 1
 	);
 
 	return string;
@@ -2172,11 +2136,15 @@ inline auto AL::Collections::_String<char>::Format(const _String& format, TArgs 
 		bufferSize
 	);
 
-	string.length = std::snprintf(
+	auto length = std::snprintf(
 		&string[0],
 		bufferSize + 1,
 		format.GetCString(),
 		std::forward<TArgs>(args) ...
+	);
+
+	string.container.SetSize(
+		length + 1
 	);
 
 	return string;
@@ -2196,11 +2164,15 @@ inline auto AL::Collections::_String<wchar_t>::Format(const _String& format, TAr
 		bufferSize
 	);
 
-	string.length = std::swprintf(
+	auto length = std::swprintf(
 		&string[0],
 		bufferSize + 1,
 		format.GetCString(),
 		std::forward<TArgs>(args) ...
+	);
+
+	string.container.SetSize(
+		length + 1
 	);
 
 	return string;
