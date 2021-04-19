@@ -2799,7 +2799,7 @@ namespace AL
 			}
 			else
 			{
-				T result;
+				auto result = T();
 
 				for (auto lpCallback : callbackRefs)
 				{
