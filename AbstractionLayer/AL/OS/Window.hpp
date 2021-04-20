@@ -393,7 +393,7 @@ namespace AL::OS
 			wClass.cbSize = sizeof(wClass);
 			wClass.hIcon = LoadNativeIcon(WindowIcons::Default);
 			wClass.hIconSm = LoadNativeIcon(WindowIcons::Default);
-			//wClass.hCursor = LoadNativeCursor(WindowCursors::Arrow);
+			wClass.hCursor = LoadNativeCursor(WindowCursors::Arrow);
 			wClass.hInstance = GetModuleHandle(nullptr);
 			wClass.lpfnWndProc = &Window::NativeWindowProc;
 			wClass.lpszClassName = this->className.GetCString();
@@ -1317,6 +1317,10 @@ namespace AL::OS
 				SetIcon(
 					wClass.hIcon
 				);
+
+				SetCursor(
+					GetCursor()
+				);
 #endif
 
 				SetTitle(
@@ -1373,17 +1377,6 @@ namespace AL::OS
 					"Error applying state"
 				);
 			}
-
-#if defined(AL_PLATFORM_LINUX)
-
-#elif defined(AL_PLATFORM_WINDOWS)
-			if (auto hCursor = wClass.hCursor)
-			{
-				::SetCursor(
-					hCursor
-				);
-			}
-#endif
 		}
 
 		virtual void OnClose()
@@ -1881,6 +1874,14 @@ namespace AL::OS
 					}
 				}
 				break;
+
+				case WM_SETCURSOR:
+				{
+					::SetCursor(
+						wClass.hCursor
+					);
+				}
+				return TRUE;
 
 				case WM_CLOSE:
 				{
