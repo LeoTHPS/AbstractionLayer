@@ -844,6 +844,20 @@ namespace AL::DotNET::Collections
 			}
 		}
 
+		array<System::Byte>^ ToArray()
+		{
+			auto _array = gcnew array<System::Byte>(
+				GetSize()
+			);
+
+			for (System::UInt32 i = 0; i < GetSize(); ++i)
+			{
+				_array[i] = buffer[i];
+			}
+
+			return _array;
+		}
+
 		generic<typename T>
 		T ToEndian(T value)
 		{
@@ -936,18 +950,16 @@ namespace AL::DotNET::Collections
 			}
 		}
 		
-		auto operator [] (System::UInt32 index)
+		static bool operator == (ByteBuffer^ buffer1, ByteBuffer^ buffer2)
 		{
-			return buffer[index];
+			return buffer1->buffer == buffer2->buffer;
 		}
-
-		bool operator == (ByteBuffer^ buffer)
+		static bool operator != (ByteBuffer^ buffer1, ByteBuffer^ buffer2)
 		{
-			return this->buffer == buffer->buffer;
-		}
-		bool operator != (ByteBuffer^ buffer)
-		{
-			return !operator==(buffer);
+			return !operator==(
+				buffer1,
+				buffer2
+			);
 		}
 
 		static array<System::Byte>^ CreateBuffer(array<System::Byte>^ buffer, System::UInt32 offset, System::UInt32 count)
@@ -972,18 +984,4 @@ namespace AL::DotNET::Collections
 			return buffer;
 		}
 	};
-}
-
-inline array<System::Byte>^ AL::DotNET::Extensions::ToArray(Collections::ByteBuffer^ buffer)
-{
-	auto _array = gcnew array<System::Byte>(
-		buffer->GetSize()
-	);
-
-	for (System::UInt32 i = 0; i < buffer->GetSize(); ++i)
-	{
-		_array[i] = buffer[i];
-	}
-
-	return _array;
 }

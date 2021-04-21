@@ -108,8 +108,6 @@ namespace AL::DotNET
 				value
 			);
         }
-
-		static array<System::Byte>^ ToArray(Collections::ByteBuffer^ buffer);
 	};
 }
 
