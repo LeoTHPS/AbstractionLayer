@@ -779,11 +779,11 @@ namespace AL::Collections
 		template<typename T>
 		static constexpr T FromEndian(T value);
 		
-		auto& operator [] (size_t index)
+		uint8& operator [] (size_t index)
 		{
 			return buffer[index];
 		}
-		auto& operator [] (size_t index) const
+		const uint8& operator [] (size_t index) const
 		{
 			return buffer[index];
 		}
