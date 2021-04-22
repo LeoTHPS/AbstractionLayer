@@ -844,7 +844,7 @@ namespace AL::DotNET::Collections
 			}
 		}
 
-		array<System::Byte>^ ToArray()
+		virtual array<System::Byte>^ ToArray()
 		{
 			auto _array = gcnew array<System::Byte>(
 				GetSize()
