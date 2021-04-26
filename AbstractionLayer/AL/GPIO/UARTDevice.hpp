@@ -56,7 +56,6 @@ namespace AL::GPIO
 		{
 #if defined(AL_PLATFORM_LINUX)
 			int fd;
-			int status;
 
 			if ((fd = open(name.GetCString(), O_RDWR | O_NOCTTY | O_NDELAY)) == -1)
 			{
@@ -84,6 +83,7 @@ namespace AL::GPIO
 
 			tcsetattr(fd, TCSANOW, &options);
 
+			int status;
 			ioctl(fd, TIOCMGET, &status);
 			status |= TIOCM_DTR | TIOCM_RTS;
 			ioctl(fd, TIOCMSET, &status);
