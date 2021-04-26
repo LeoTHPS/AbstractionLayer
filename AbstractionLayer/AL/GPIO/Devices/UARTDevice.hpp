@@ -72,11 +72,22 @@ namespace AL::GPIO::Devices
 		// @throw AL::Exceptions::Exception
 		virtual void OnOpen() override
 		{
-			GPIO::UARTDevice::Open(
-				device,
-				deviceName,
-				deviceSpeed
-			);
+			try
+			{
+				GPIO::UARTDevice::Open(
+					device,
+					deviceName,
+					deviceSpeed
+				);
+			}
+			catch (Exceptions::Exception& exception)
+			{
+
+				throw Exceptions::Exception(
+					Move(exception),
+					"Error opening GPIO::UARTDevice"
+				);
+			}
 		}
 
 		virtual void OnClose() override

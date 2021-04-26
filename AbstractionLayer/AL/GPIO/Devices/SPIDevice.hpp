@@ -163,28 +163,39 @@ namespace AL::GPIO::Devices
 		// @throw AL::Exceptions::Exception
 		virtual void OnOpen() override
 		{
-			if (!useCustomCS)
+			try
 			{
-				GPIO::SPIDevice::Open(
-					device,
-					deviceInfo.SPI_BusId,
-					deviceInfo.SPI_DeviceId,
-					deviceInfo.SPI_Mode,
-					deviceInfo.SPI_Speed,
-					deviceInfo.SPI_BitCount
-				);
+				if (!useCustomCS)
+				{
+					GPIO::SPIDevice::Open(
+						device,
+						deviceInfo.SPI_BusId,
+						deviceInfo.SPI_DeviceId,
+						deviceInfo.SPI_Mode,
+						deviceInfo.SPI_Speed,
+						deviceInfo.SPI_BitCount
+					);
+				}
+				else
+				{
+					GPIO::SPIDevice::Open(
+						device,
+						deviceInfo.SPI_BusId,
+						deviceInfo.SPI_CS_DeviceId,
+						deviceInfo.SPI_CS_PinNumber,
+						deviceInfo.SPI_CS_Mode,
+						deviceInfo.SPI_Mode,
+						deviceInfo.SPI_Speed,
+						deviceInfo.SPI_BitCount
+					);
+				}
 			}
-			else
+			catch (Exceptions::Exception& exception)
 			{
-				GPIO::SPIDevice::Open(
-					device,
-					deviceInfo.SPI_BusId,
-					deviceInfo.SPI_CS_DeviceId,
-					deviceInfo.SPI_CS_PinNumber,
-					deviceInfo.SPI_CS_Mode,
-					deviceInfo.SPI_Mode,
-					deviceInfo.SPI_Speed,
-					deviceInfo.SPI_BitCount
+
+				throw Exceptions::Exception(
+					Move(exception),
+					"Error opening GPIO::SPIDevice"
 				);
 			}
 		}
