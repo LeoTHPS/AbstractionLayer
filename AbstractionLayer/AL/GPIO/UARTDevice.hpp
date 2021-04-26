@@ -214,6 +214,8 @@ namespace AL::GPIO
 		// @return number of bytes read
 		size_t Read(void* lpBuffer, size_t size)
 		{
+			AL_ASSERT(IsOpen(), "UARTDevice not open");
+
 #if defined(AL_PLATFORM_LINUX)
 			int bytesRead;
 

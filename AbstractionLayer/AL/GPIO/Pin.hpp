@@ -1,14 +1,14 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#if __has_include(<gpiod.hpp>)
-	#include <gpiod.hpp>
+#if defined(AL_PLATFORM_LINUX)
+	#include <sys/stat.h>
 
-	#if defined(AL_PLATFORM_LINUX)
-		#include <sys/stat.h>
+	#if __has_include(<gpiod.hpp>)
+		#include <gpiod.hpp>
+
+		#define AL_DEPENDENCY_GPIOD
 	#endif
-
-	#define AL_DEPENDENCY_GPIOD
 #endif
 
 namespace AL::GPIO
@@ -41,19 +41,20 @@ namespace AL::GPIO
 
 	class Pin
 	{
-#if !defined(AL_DEPENDENCY_GPIOD)
-		struct gpiod_chip {};
-		struct gpiod_line {};
-#endif
-
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_GPIOD)
 		gpiod_chip* lpChip;
 		gpiod_line* lpLine;
+	#endif
+#endif
 
 		PinNumber number;
 		DeviceId deviceId;
 
 		Pin(const Pin&) = delete;
 
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_GPIOD)
 		Pin(gpiod_chip* lpChip, gpiod_line* lpLine, DeviceId deviceId, PinNumber number)
 			: lpChip(
 				lpChip
@@ -69,13 +70,16 @@ namespace AL::GPIO
 			)
 		{
 		}
+	#endif
+#endif
 
 	public:
 		// @throw AL::Exceptions::Exception
 		// @return false if already exported
 		static bool Export(Pin& pin, DeviceId deviceId, PinNumber number, PinDirection direction, PinValue value)
 		{
-#if defined(AL_DEPENDENCY_GPIOD)
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_GPIOD)
 			char device[32];
 			sprintf(device, "%u", deviceId);
 			
@@ -137,10 +141,13 @@ namespace AL::GPIO
 				"GPIO device #%u not found",
 				deviceId
 			);
-#else
+	#else
 			throw Exceptions::DependencyMissingException(
 				"gpiod"
 			);
+	#endif
+#else
+			throw Exceptions::NotImplementedException();
 #endif
 		}
 		// @throw AL::Exceptions::Exception
@@ -157,22 +164,21 @@ namespace AL::GPIO
 		}
 
 		Pin()
-			: Pin(
-				nullptr,
-				nullptr,
-				0,
-				0
-			)
 		{
 		}
 
 		Pin(Pin&& pin)
-			: lpChip(
+			:
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_GPIOD)
+			lpChip(
 				pin.lpChip
 			),
 			lpLine(
 				pin.lpLine
 			),
+	#endif
+#endif
 			number(
 				pin.number
 			),
@@ -180,8 +186,12 @@ namespace AL::GPIO
 				pin.deviceId
 			)
 		{
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_GPIOD)
 			pin.lpChip = nullptr;
 			pin.lpLine = nullptr;
+	#endif
+#endif
 		}
 
 		virtual ~Pin()
@@ -191,7 +201,13 @@ namespace AL::GPIO
 
 		bool IsExported() const
 		{
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_GPIOD)
 			return lpLine != nullptr;
+	#endif
+#endif
+
+			return false;
 		}
 
 		PinNumber GetNumber() const
@@ -269,6 +285,8 @@ namespace AL::GPIO
 		// @throw AL::Exceptions::Exception
 		void Write(PinValues value)
 		{
+			AL_ASSERT(IsExported(), "Pin not exported");
+
 			Write(
 				static_cast<PinValue>(value)
 			);
@@ -279,7 +297,8 @@ namespace AL::GPIO
 		{
 			AL_ASSERT(IsExported(), "Pin not exported");
 
-#if defined(AL_DEPENDENCY_GPIOD)
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_GPIOD)
 			gpiod_line_release(
 				lpLine
 			);
@@ -305,15 +324,20 @@ namespace AL::GPIO
 					"gpiod_line_request"
 				);
 			}
-#else
+	#else
 			throw Exceptions::DependencyMissingException(
 				"gpiod"
 			);
+	#endif
+#else
+			throw Exceptions::NotImplementedException();
 #endif
 		}
 		// @throw AL::Exceptions::Exception
 		void SetDirection(PinDirection direction, PinValues value = PinValues::Low)
 		{
+			AL_ASSERT(IsExported(), "Pin not exported");
+
 			SetDirection(
 				direction,
 				static_cast<PinValue>(value)
@@ -325,7 +349,8 @@ namespace AL::GPIO
 		{
 			AL_ASSERT(IsExported(), "Pin not exported");
 
-#if defined(AL_DEPENDENCY_GPIOD)
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_GPIOD)
 			gpiod_line_release(
 				lpLine
 			);
@@ -356,10 +381,13 @@ namespace AL::GPIO
 					"gpiod_line_request"
 				);
 			}
-#else
+	#else
 			throw Exceptions::DependencyMissingException(
 				"gpiod"
 			);
+	#endif
+#else
+			throw Exceptions::NotImplementedException();
 #endif
 		}
 
@@ -367,13 +395,15 @@ namespace AL::GPIO
 		{
 			if (IsExported())
 			{
-#if defined(AL_DEPENDENCY_GPIOD)
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_GPIOD)
 				gpiod_line_release(lpLine);
-				gpiod_chip_close(lpChip);
-#endif
-
 				lpLine = nullptr;
+
+				gpiod_chip_close(lpChip);
 				lpChip = nullptr;
+	#endif
+#endif
 			}
 		}
 
@@ -381,12 +411,16 @@ namespace AL::GPIO
 		{
 			Unexport();
 
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_GPIOD)
 			lpChip = pin.lpChip;
 			pin.lpChip = nullptr;
 
 			lpLine = pin.lpLine;
 			pin.lpLine = nullptr;
-
+	#endif
+#endif
+			
 			number = pin.number;
 			deviceId = pin.deviceId;
 

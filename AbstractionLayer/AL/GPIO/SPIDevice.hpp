@@ -3,17 +3,17 @@
 
 #include "Pin.hpp"
 
-#if __has_include(<linux/spi/spidev.h>)
-	#include <linux/spi/spidev.h>
+#if defined(AL_PLATFORM_LINUX)
+	#include <fcntl.h>
+	#include <unistd.h>
 
-	#if defined(AL_PLATFORM_LINUX)
-		#include <fcntl.h>
-		#include <unistd.h>
+	#include <sys/ioctl.h>
 
-		#include <sys/ioctl.h>
+	#if __has_include(<linux/spi/spidev.h>)
+		#include <linux/spi/spidev.h>
+
+		#define AL_DEPENDENCY_SPIDEV
 	#endif
-
-	#define AL_DEPENDENCY_SPIDEV
 #endif
 
 namespace AL::GPIO
@@ -49,7 +49,17 @@ namespace AL::GPIO
 
 	class SPIDevice
 	{
-		int fd;
+#if defined(AL_PLATFORM_LINUX)
+		typedef int HFILE;
+
+		static constexpr HFILE FILE_HANDLE_NULL = -1;
+#else
+		typedef void* HFILE;
+
+		static constexpr HFILE FILE_HANDLE_NULL = nullptr;
+#endif
+
+		HFILE hFile;
 
 		Pin csPin;
 		SPICSModes csPinMode;
@@ -65,9 +75,9 @@ namespace AL::GPIO
 
 		SPIDevice(const SPIDevice&) = delete;
 
-		SPIDevice(int fd, SPIBusId busId, SPIDeviceId deviceId, SPIModes mode, SPISpeed speed, SPIBitCount bitCount)
-			: fd(
-				fd
+		SPIDevice(HFILE hFile, SPIBusId busId, SPIDeviceId deviceId, SPIModes mode, SPISpeed speed, SPIBitCount bitCount)
+			: hFile(
+				hFile
 			),
 			busId(
 				busId
@@ -87,9 +97,9 @@ namespace AL::GPIO
 		{
 		}
 
-		SPIDevice(int fd, SPIBusId busId, Pin&& csPin, SPICSModes csPinMode, SPIModes mode, SPISpeed speed, SPIBitCount bitCount)
-			: fd(
-				fd
+		SPIDevice(HFILE hFile, SPIBusId busId, Pin&& csPin, SPICSModes csPinMode, SPIModes mode, SPISpeed speed, SPIBitCount bitCount)
+			: hFile(
+				hFile
 			),
 			csPin(
 				Move(csPin)
@@ -119,7 +129,8 @@ namespace AL::GPIO
 		// @throw AL::Exceptions::Exception
 		static void Open(SPIDevice& device, SPIBusId busId, SPIDeviceId deviceId, SPIModes mode, SPISpeed speed, SPIBitCount bitCount)
 		{
-#if defined(AL_DEPENDENCY_SPIDEV)
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_SPIDEV)
 			int fd;
 			char path[255];
 			sprintf(path, "/dev/spidev%u.%u", busId, deviceId);
@@ -178,17 +189,21 @@ namespace AL::GPIO
 				speed,
 				bitCount
 			);
-#else
+	#else
 			throw Exceptions::DependencyMissingException(
 				"spidev"
 			);
+	#endif
+#else
+			throw Exceptions::NotImplementedException();
 #endif
 		}
 		// @throw AL::Exceptions::Exception
 		// @return false if CS is already exported
 		static bool Open(SPIDevice& device, SPIBusId busId, DeviceId csPinDeviceId, PinNumber csPinNumber, SPICSModes csPinMode, SPIModes mode, SPISpeed speed, SPIBitCount bitCount)
 		{
-#if defined(AL_DEPENDENCY_SPIDEV)
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_SPIDEV)
 			Pin csPin;
 
 			if (!Pin::Export(csPin, csPinDeviceId, csPinNumber, PinDirection::Out, (csPinMode == SPICSModes::ActiveLow) ? PinValues::High : PinValues::Low))
@@ -258,10 +273,13 @@ namespace AL::GPIO
 				speed,
 				bitCount
 			);
-#else
+	#else
 			throw Exceptions::DependencyMissingException(
 				"spidev"
 			);
+	#endif
+#else
+			throw Exceptions::NotImplementedException();
 #endif
 
 			return true;
@@ -269,7 +287,7 @@ namespace AL::GPIO
 
 		SPIDevice()
 			: SPIDevice(
-				int(-1),
+				FILE_HANDLE_NULL,
 				SPIBusId(0),
 				SPIDeviceId(0),
 				SPIModes::Zero,
@@ -280,8 +298,8 @@ namespace AL::GPIO
 		}
 
 		SPIDevice(SPIDevice&& device)
-			: fd(
-				device.fd
+			: hFile(
+				device.hFile
 			),
 			csPin(
 				Move(device.csPin)
@@ -308,7 +326,7 @@ namespace AL::GPIO
 				device.isCsChangeEnabled
 			)
 		{
-			device.fd = -1;
+			device.hFile = FILE_HANDLE_NULL;
 			device.isCsChangeEnabled = false;
 		}
 
@@ -319,7 +337,7 @@ namespace AL::GPIO
 
 		bool IsOpen() const
 		{
-			return fd != -1;
+			return hFile != FILE_HANDLE_NULL;
 		}
 
 		bool IsCSChangeEnabled() const
@@ -363,6 +381,8 @@ namespace AL::GPIO
 		template<typename T>
 		void Read(T& value)
 		{
+			AL_ASSERT(IsOpen(), "SPIDevice not open");
+
 			Read(
 				&value,
 				sizeof(T)
@@ -372,6 +392,8 @@ namespace AL::GPIO
 		// @throw AL::Exceptions::Exception
 		void Read(void* lpBuffer, size_t size)
 		{
+			AL_ASSERT(IsOpen(), "SPIDevice not open");
+
 			ReadWrite(
 				lpBuffer,
 				nullptr,
@@ -383,6 +405,8 @@ namespace AL::GPIO
 		template<typename T>
 		void Write(const T& value)
 		{
+			AL_ASSERT(IsOpen(), "SPIDevice not open");
+
 			Write(
 				&value,
 				sizeof(T)
@@ -392,6 +416,8 @@ namespace AL::GPIO
 		// @throw AL::Exceptions::Exception
 		void Write(const void* lpBuffer, size_t size)
 		{
+			AL_ASSERT(IsOpen(), "SPIDevice not open");
+
 			ReadWrite(
 				nullptr,
 				lpBuffer,
@@ -403,6 +429,8 @@ namespace AL::GPIO
 		template<typename T>
 		void ReadWrite(T& rx, const T& tx)
 		{
+			AL_ASSERT(IsOpen(), "SPIDevice not open");
+
 			ReadWrite(
 				&rx,
 				&tx,
@@ -413,7 +441,10 @@ namespace AL::GPIO
 		// @throw AL::Exceptions::Exception
 		void ReadWrite(void* lpReadBuffer, const void* lpWriteBuffer, size_t size)
 		{
-#if defined(AL_DEPENDENCY_SPIDEV)
+			AL_ASSERT(IsOpen(), "SPIDevice not open");
+
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_SPIDEV)
 			spi_ioc_transfer transfer = { 0 };
 			transfer.cs_change = IsCSChangeEnabled() ? 1 : 0;
 			transfer.len = static_cast<decltype(transfer.len)>(size);
@@ -455,10 +486,13 @@ namespace AL::GPIO
 					(csPinMode == SPICSModes::ActiveLow) ? PinValues::High : PinValues::Low
 				);
 			}
-#else
+	#else
 			throw Exceptions::DependencyMissingException(
 				"spidev"
 			);
+	#endif
+#else
+			throw Exceptions::NotImplementedException();
 #endif
 		}
 
@@ -466,11 +500,13 @@ namespace AL::GPIO
 		{
 			if (IsOpen())
 			{
-#if defined(AL_DEPENDENCY_SPIDEV)
-				close(fd);
-				fd = -1;
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_SPIDEV)
+				close(hFile);
+				hFile = FILE_HANDLE_NULL;
 
 				csPin.Unexport();
+	#endif
 #endif
 			}
 		}
@@ -479,8 +515,8 @@ namespace AL::GPIO
 		{
 			Close();
 
-			fd = device.fd;
-			device.fd = -1;
+			hFile = device.hFile;
+			device.hFile = FILE_HANDLE_NULL;
 
 			csPin = Move(device.csPin);
 			csPinMode = device.csPinMode;
