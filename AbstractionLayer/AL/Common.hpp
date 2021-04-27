@@ -1616,6 +1616,12 @@ namespace AL
 		}
 
 		template<typename T>
+		static constexpr T Pow(T value, T exponent)
+		{
+			return exponent ? Pow(value * value, --exponent) : value;
+		}
+
+		template<typename T>
 		static constexpr T Clamp(T value, T min, T max)
 		{
 			if (value < min)
