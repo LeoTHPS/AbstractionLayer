@@ -829,7 +829,7 @@ namespace AL::DotNET::Collections
 				if ((writePosition += count) >= GetCapacity())
 				{
 					System::Array::Resize(
-						buffer,
+						this->buffer,
 						writePosition
 					);
 				}
@@ -856,6 +856,24 @@ namespace AL::DotNET::Collections
 			}
 
 			return _array;
+		}
+
+		virtual System::String^ ToString() override
+		{
+			auto buffer = ToArray();
+
+			auto string = gcnew System::String(
+				""
+			);
+
+			for (System::Int32 i = 0; i < buffer->Length; ++i)
+			{
+				string += buffer[i].ToString(
+					"X2"
+				);
+			}
+
+			return string;
 		}
 
 		generic<typename T>
