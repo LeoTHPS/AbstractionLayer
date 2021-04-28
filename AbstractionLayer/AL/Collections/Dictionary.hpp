@@ -21,6 +21,9 @@ namespace AL::Collections
 		typedef typename Container::iterator Iterator;
 		typedef typename Container::const_iterator ConstIterator;
 
+		typedef typename Container::reverse_iterator ReverseIterator;
+		typedef typename Container::const_reverse_iterator ConstReverseIterator;
+
 		Dictionary()
 		{
 		}
@@ -158,6 +161,24 @@ namespace AL::Collections
 		ConstIterator cend() const
 		{
 			return container.cend();
+		}
+
+		ReverseIterator rbegin()
+		{
+			return container.rbegin();
+		}
+		ConstReverseIterator rbegin() const
+		{
+			return container.crbegin();
+		}
+
+		ReverseIterator rend()
+		{
+			return container.rend();
+		}
+		ConstReverseIterator rend() const
+		{
+			return container.crend();
 		}
 
 		auto& operator [] (Key&& key)
