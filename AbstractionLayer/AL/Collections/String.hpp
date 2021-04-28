@@ -63,13 +63,6 @@ namespace AL::Collections
 
 		typename Types::Container container;
 
-		explicit _String(size_t capacity)
-			: container(
-				capacity + 1
-			)
-		{
-		}
-
 	public:
 		typedef typename Types::Char                     Char;
 
@@ -122,7 +115,8 @@ namespace AL::Collections
 
 		_String()
 			: container(
-				{ Constants::END }
+				END,
+				1
 			)
 		{
 		}
@@ -139,6 +133,16 @@ namespace AL::Collections
 				string.container
 			)
 		{
+		}
+
+		explicit _String(size_t capacity)
+			: container(
+				capacity + 1
+			)
+		{
+			container.PushBack(
+				END
+			);
 		}
 
 		explicit _String(Container&& container)
