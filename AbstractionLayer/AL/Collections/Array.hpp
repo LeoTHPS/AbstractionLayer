@@ -600,9 +600,14 @@ namespace AL::Collections
 		}
 		void PushBack(const Type& value)
 		{
-			PushBack(
-				Type(value)
-			);
+			if (GetSize() == GetCapacity())
+			{
+				Reserve(
+					1
+				);
+			}
+
+			lpContainer[size++] = value;
 		}
 
 		template<typename ... TArgs>
@@ -1337,9 +1342,15 @@ namespace AL::Collections
 		// @return false if full
 		bool PushBack(const Type& value)
 		{
-			return PushBack(
-				Type(value)
-			);
+			if (GetSize() == GetCapacity())
+			{
+
+				return false;
+			}
+
+			container[size++] = value;
+
+			return true;
 		}
 
 		// @return false if full
