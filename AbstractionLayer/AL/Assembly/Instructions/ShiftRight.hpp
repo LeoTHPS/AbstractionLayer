@@ -3,15 +3,15 @@
 
 #include "Instruction.hpp"
 
-namespace AL::Interop::Instructions
+namespace AL::Assembly::Instructions
 {
-	class Return
+	class ShiftRight
 		: public Instruction
 	{
 		Buffer buffer;
 
 	public:
-		Return()
+		ShiftRight()
 		{
 		}
 

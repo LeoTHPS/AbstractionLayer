@@ -1,7 +1,7 @@
 #pragma once
 #include "AL/Common.hpp"
 
-namespace AL::Interop::Instructions
+namespace AL::Assembly::Instructions
 {
 	enum class Registers
 	{

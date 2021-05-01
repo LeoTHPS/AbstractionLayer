@@ -3,7 +3,7 @@
 
 #include "Instruction.hpp"
 
-namespace AL::Interop::Instructions
+namespace AL::Assembly::Instructions
 {
 	class Copy
 		: public Instruction
@@ -22,8 +22,8 @@ namespace AL::Interop::Instructions
 
 		union Context
 		{
-			typename Interop::Address::Type Address;
-			Registers                       Register;
+			typename Address::Type Address;
+			Registers              Register;
 		};
 
 		Buffer buffer;

@@ -3,10 +3,10 @@
 
 #include "Registers.hpp"
 
-#include "AL/Interop/Buffer.hpp"
-#include "AL/Interop/Address.hpp"
+#include "AL/Assembly/Buffer.hpp"
+#include "AL/Assembly/Address.hpp"
 
-namespace AL::Interop::Instructions
+namespace AL::Assembly::Instructions
 {
 	class Instruction
 	{

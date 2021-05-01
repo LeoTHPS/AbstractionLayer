@@ -3,15 +3,15 @@
 
 #include "Instruction.hpp"
 
-namespace AL::Interop::Instructions
+namespace AL::Assembly::Instructions
 {
-	class JumpIfNotZero
+	class Jump
 		: public Instruction
 	{
 		Buffer buffer;
 
 	public:
-		JumpIfNotZero()
+		Jump()
 		{
 		}
 

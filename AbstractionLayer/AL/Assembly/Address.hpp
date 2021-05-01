@@ -1,7 +1,7 @@
 #pragma once
 #include "AL/Common.hpp"
 
-namespace AL::Interop
+namespace AL::Assembly
 {
 	class Address
 	{

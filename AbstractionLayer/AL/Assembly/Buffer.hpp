@@ -3,7 +3,7 @@
 
 #include "AL/Collections/Array.hpp"
 
-namespace AL::Interop
+namespace AL::Assembly
 {
 	typedef Collections::Array<uint8> Buffer;
 }

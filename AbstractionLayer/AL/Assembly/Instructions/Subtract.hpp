@@ -3,15 +3,15 @@
 
 #include "Instruction.hpp"
 
-namespace AL::Interop::Instructions
+namespace AL::Assembly::Instructions
 {
-	class Pop
+	class Subtract
 		: public Instruction
 	{
 		Buffer buffer;
 
 	public:
-		Pop()
+		Subtract()
 		{
 		}
 

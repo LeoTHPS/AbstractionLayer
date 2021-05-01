@@ -3,15 +3,15 @@
 
 #include "Instruction.hpp"
 
-namespace AL::Interop::Instructions
+namespace AL::Assembly::Instructions
 {
-	class Push
+	class Multiply
 		: public Instruction
 	{
 		Buffer buffer;
 
 	public:
-		Push()
+		Multiply()
 		{
 		}
 

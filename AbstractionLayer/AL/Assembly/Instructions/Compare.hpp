@@ -3,15 +3,15 @@
 
 #include "Instruction.hpp"
 
-namespace AL::Interop::Instructions
+namespace AL::Assembly::Instructions
 {
-	class Divide
+	class Compare
 		: public Instruction
 	{
 		Buffer buffer;
 
 	public:
-		Divide()
+		Compare()
 		{
 		}
 

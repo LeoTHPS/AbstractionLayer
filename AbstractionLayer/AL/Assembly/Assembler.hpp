@@ -1,6 +1,9 @@
 #pragma once
 #include "AL/Common.hpp"
 
+#include "Buffer.hpp"
+#include "Address.hpp"
+
 #include "Instructions/Add.hpp"
 #include "Instructions/Call.hpp"
 #include "Instructions/Compare.hpp"
@@ -20,7 +23,7 @@
 #include "Instructions/ShiftRight.hpp"
 #include "Instructions/Subtract.hpp"
 
-namespace AL::Interop
+namespace AL::Assembly
 {
 	class Assembler
 	{

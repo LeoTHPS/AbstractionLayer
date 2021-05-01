@@ -3,7 +3,7 @@
 
 #include "Instruction.hpp"
 
-namespace AL::Interop::Instructions
+namespace AL::Assembly::Instructions
 {
 	class Call
 		: public Instruction
@@ -21,13 +21,13 @@ namespace AL::Interop::Instructions
 		{
 			BuildBuffer(
 				Types::CallRegister,
-				Interop::Address::Type(0),
-				Interop::Address::Type(0),
+				Address::Type(0),
+				Address::Type(0),
 				_register
 			);
 		}
 		
-		Call(Interop::Address address, bool dereference)
+		Call(Address address, bool dereference)
 		{
 			BuildBuffer(
 				dereference ? Types::CallMemory : Types::CallAddress,
@@ -38,7 +38,7 @@ namespace AL::Interop::Instructions
 		}
 
 	public:
-		static Call Memory(Interop::Address address)
+		static Call Memory(Address address)
 		{
 			return Call(
 				address,
@@ -46,7 +46,7 @@ namespace AL::Interop::Instructions
 			);
 		}
 
-		static Call Address(Interop::Address address)
+		static Call Address(Address address)
 		{
 			return Call(
 				address,
@@ -81,7 +81,7 @@ namespace AL::Interop::Instructions
 		}
 
 	private:
-		void BuildBuffer(Types type, Interop::Address memory, Interop::Address address, Registers _register)
+		void BuildBuffer(Types type, Assembly::Address memory, Assembly::Address address, Registers _register)
 		{
 			switch (type)
 			{

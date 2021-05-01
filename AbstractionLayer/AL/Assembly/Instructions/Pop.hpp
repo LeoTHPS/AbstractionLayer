@@ -3,15 +3,15 @@
 
 #include "Instruction.hpp"
 
-namespace AL::Interop::Instructions
+namespace AL::Assembly::Instructions
 {
-	class Jump
+	class Pop
 		: public Instruction
 	{
 		Buffer buffer;
 
 	public:
-		Jump()
+		Pop()
 		{
 		}
 
