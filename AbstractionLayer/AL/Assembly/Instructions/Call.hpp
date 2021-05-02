@@ -21,13 +21,13 @@ namespace AL::Assembly::Instructions
 		{
 			BuildBuffer(
 				Types::CallRegister,
-				Address::Type(0),
-				Address::Type(0),
+				Assembly::Address::Type(0),
+				Assembly::Address::Type(0),
 				_register
 			);
 		}
 		
-		Call(Address address, bool dereference)
+		Call(Assembly::Address address, bool dereference)
 		{
 			BuildBuffer(
 				dereference ? Types::CallMemory : Types::CallAddress,
@@ -38,7 +38,7 @@ namespace AL::Assembly::Instructions
 		}
 
 	public:
-		static Call Memory(Address address)
+		static Call Memory(Assembly::Address address)
 		{
 			return Call(
 				address,
@@ -46,7 +46,7 @@ namespace AL::Assembly::Instructions
 			);
 		}
 
-		static Call Address(Address address)
+		static Call Address(Assembly::Address address)
 		{
 			return Call(
 				address,

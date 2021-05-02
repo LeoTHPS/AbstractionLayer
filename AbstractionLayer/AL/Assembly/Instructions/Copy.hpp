@@ -22,8 +22,8 @@ namespace AL::Assembly::Instructions
 
 		union Context
 		{
-			typename Address::Type Address;
-			Registers              Register;
+			typename Assembly::Address::Type Address;
+			Registers                        Register;
 		};
 
 		Buffer buffer;
