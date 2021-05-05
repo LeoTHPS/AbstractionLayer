@@ -6,16 +6,16 @@ namespace AL::Collections
 	template<typename ... TYPES>
 	class Tuple
 	{
-		template<size_t I, typename TYPE>
+		template<size_t I, typename T>
 		struct Entry
 		{
-			TYPE Value;
+			T Value;
 
 			Entry()
 			{
 			}
 
-			Entry(TYPE&& value)
+			Entry(T&& value)
 				: Value(
 					Move(value)
 				)
@@ -29,20 +29,20 @@ namespace AL::Collections
 		struct EntryList<I>
 		{
 		};
-		template<size_t I, typename TYPE, typename ... TYPES>
-		struct EntryList<I, TYPE, TYPES ...>
-			: public Entry<I, TYPE>,
-			public EntryList<I + 1, TYPES ...>
+		template<size_t I, typename T_NODE, typename ... T_NODES>
+		struct EntryList<I, T_NODE, T_NODES ...>
+			: public Entry<I, T_NODE>,
+			public EntryList<I + 1, T_NODES ...>
 		{
 			EntryList()
 			{
 			}
 
-			EntryList(TYPE&& value, TYPES&& ... values)
-				: Entry<I, TYPE>(
+			EntryList(T_NODE&& value, T_NODES&& ... values)
+				: Entry<I, T_NODE>(
 					Move(value)
 				),
-				EntryList<I + 1, TYPES ...>(
+				EntryList<I + 1, T_NODES ...>(
 					Move(values) ...
 				)
 			{
