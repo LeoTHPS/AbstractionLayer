@@ -249,6 +249,17 @@ namespace AL
 		typedef CONDITION_2 Type;
 	};
 
+	template<bool CONDITION, typename T, T VALUE_1, T VALUE_2>
+	struct Conditional_Value
+	{
+		static constexpr T Value = VALUE_1;
+	};
+	template<typename T, T VALUE_1, T VALUE_2>
+	struct Conditional_Value<false, T, VALUE_1, VALUE_2>
+	{
+		static constexpr T Value = VALUE_2;
+	};
+
 	template<bool CONDITION, typename T>
 	struct Inherit_If
 	{
@@ -626,6 +637,7 @@ namespace AL
 
 #include "Collections/List.hpp"
 #include "Collections/Array.hpp"
+#include "Collections/Tuple.hpp"
 #include "Collections/String.hpp"
 
 #include <regex>
