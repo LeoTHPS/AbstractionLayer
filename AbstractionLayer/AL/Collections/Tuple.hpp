@@ -93,7 +93,7 @@ namespace AL::Collections
 		{
 			typedef typename Get_Type_Sequence<I, TYPES ...>::Type TYPE;
 
-			return static_cast<Entry<I, TYPE>&>(entries).Value;
+			return static_cast<const Entry<I, TYPE>&>(entries).Value;
 		}
 
 		template<size_t I>
