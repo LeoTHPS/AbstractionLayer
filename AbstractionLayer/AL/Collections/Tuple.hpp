@@ -114,7 +114,7 @@ namespace AL::Collections
 		{
 			return Invoke(
 				func,
-				typename Make_Index_Sequence<sizeof ...(TYPES)>::Type()
+				typename Make_Index_Sequence<sizeof ...(TYPES)>::Type{}
 			);
 		}
 
