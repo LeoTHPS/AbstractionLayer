@@ -33,13 +33,13 @@ namespace AL::WiFi
 		typedef void* DeviceGUID;
 
 #elif defined(AL_PLATFORM_WINDOWS)
-		typedef GUID DeviceGUID;
+		typedef ::GUID DeviceGUID;
 
 		HANDLE hClient;
 #endif
 		
-		GUID guid;
-		String name;
+		DeviceGUID guid;
+		String     name;
 
 		Device(Device&&) = delete;
 		Device(const Device&) = delete;

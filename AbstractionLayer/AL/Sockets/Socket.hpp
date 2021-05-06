@@ -160,7 +160,7 @@ namespace AL::Sockets
 		typedef SOCKET HSOCKET;
 
 		template<typename F>
-		static bool WSALoadExtension(const Socket& s, GUID guid, F* lpFunction)
+		static bool WSALoadExtension(const Socket& s, ::GUID guid, F* lpFunction)
 		{
 			DWORD nBytesReturned = 0;
 
