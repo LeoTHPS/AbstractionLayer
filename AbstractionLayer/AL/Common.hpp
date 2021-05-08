@@ -1890,7 +1890,10 @@ namespace AL
 		template<typename T>
 		static constexpr T Pow(T value, T exponent)
 		{
-			return exponent ? Pow(value * value, --exponent) : value;
+			return std::pow(
+				value,
+				exponent
+			);
 		}
 
 		template<typename T>
