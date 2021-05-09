@@ -8,8 +8,12 @@
 
 	#include <sys/ioctl.h>
 
-	#include <linux/i2c.h>
-	#include <linux/i2c-dev.h>
+	extern "C"
+	{
+		#include <i2c/smbus.h>
+
+		#include <linux/i2c-dev.h>
+	}
 #endif
 
 namespace AL::GPIO
@@ -149,91 +153,24 @@ namespace AL::GPIO
 		}
 		
 		// @throw AL::Exceptions::Exception
-		void ReadInt8(int8& value)
-		{
-			AL_ASSERT(IsOpen(), "I2CDevice not open");
-
-#if defined(AL_PLATFORM_LINUX)
-			i2c_smbus_data result;
-
-			i2c_smbus_ioctl_data request;
-			request.size = I2C_SMBUS_BYTE;
-			request.read_write = I2C_SMBUS_READ;
-			request.data = &result;
-			request.command = 0;
-
-			if (ioctl(hFile, I2C_SMBUS, &request) == -1)
-			{
-
-				throw Exceptions::SystemException(
-					"ioctl"
-				);
-			}
-
-			value = static_cast<int8>(
-				result.byte
-			);
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
-		// @throw AL::Exceptions::Exception
 		void ReadInt8(I2CRegister reg, int8& value)
 		{
 			AL_ASSERT(IsOpen(), "I2CDevice not open");
 
 #if defined(AL_PLATFORM_LINUX)
-			i2c_smbus_data result;
+			int result;
 
-			i2c_smbus_ioctl_data request;
-			request.size = I2C_SMBUS_BYTE_DATA;
-			request.read_write = I2C_SMBUS_READ;
-			request.data = &result;
-			request.command = static_cast<decltype(i2c_smbus_ioctl_data::command)>(
-				reg
-			);
-
-			if (ioctl(hFile, I2C_SMBUS, &request) == -1)
+			if ((result = i2c_smbus_read_byte_data(hFile, static_cast<__u8>(reg))) < 0)
 			{
 
 				throw Exceptions::SystemException(
-					"ioctl"
+					"i2c_smbus_read_byte_data",
+					result
 				);
 			}
 
 			value = static_cast<int8>(
-				result.byte
-			);
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
-
-		// @throw AL::Exceptions::Exception
-		void ReadInt16(int16& value)
-		{
-			AL_ASSERT(IsOpen(), "I2CDevice not open");
-
-#if defined(AL_PLATFORM_LINUX)
-			i2c_smbus_data result;
-			result.block[0] = sizeof(int16);
-
-			i2c_smbus_ioctl_data request;
-			request.size = I2C_SMBUS_I2C_BLOCK_DATA;
-			request.read_write = I2C_SMBUS_READ;
-			request.data = &result;
-			request.command = 0;
-
-			if (ioctl(hFile, I2C_SMBUS, &request) == -1)
-			{
-
-				throw Exceptions::SystemException(
-					"ioctl"
-				);
-			}
-
-			value = *reinterpret_cast<const int16*>(
-				&result.block[0]
+				result
 			);
 #else
 			throw Exceptions::NotImplementedException();
@@ -245,114 +182,44 @@ namespace AL::GPIO
 			AL_ASSERT(IsOpen(), "I2CDevice not open");
 
 #if defined(AL_PLATFORM_LINUX)
-			i2c_smbus_data result;
+			int result;
 
-			i2c_smbus_ioctl_data request;
-			request.size = I2C_SMBUS_WORD_DATA;
-			request.read_write = I2C_SMBUS_READ;
-			request.data = &result;
-			request.command = static_cast<decltype(i2c_smbus_ioctl_data::command)>(
-				reg
-			);
-
-			if (ioctl(hFile, I2C_SMBUS, &request) == -1)
+			if ((result = i2c_smbus_read_word_data(hFile, static_cast<__u8>(reg))) < 0)
 			{
 
 				throw Exceptions::SystemException(
-					"ioctl"
+					"i2c_smbus_read_word_data",
+					result
 				);
 			}
 
 			value = static_cast<int16>(
-				result.word
+				result
 			);
 #else
 			throw Exceptions::NotImplementedException();
 #endif
 		}
 
-		// @throw AL::Exceptions::Exception
-		void ReadUInt8(uint8& value)
-		{
-			AL_ASSERT(IsOpen(), "I2CDevice not open");
-
-#if defined(AL_PLATFORM_LINUX)
-			i2c_smbus_data result;
-
-			i2c_smbus_ioctl_data request;
-			request.size = I2C_SMBUS_BYTE;
-			request.read_write = I2C_SMBUS_READ;
-			request.data = &result;
-			request.command = 0;
-
-			if (ioctl(hFile, I2C_SMBUS, &request) == -1)
-			{
-
-				throw Exceptions::SystemException(
-					"ioctl"
-				);
-			}
-
-			value = result.byte;
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
 		// @throw AL::Exceptions::Exception
 		void ReadUInt8(I2CRegister reg, uint8& value)
 		{
 			AL_ASSERT(IsOpen(), "I2CDevice not open");
 
 #if defined(AL_PLATFORM_LINUX)
-			i2c_smbus_data result;
+			int result;
 
-			i2c_smbus_ioctl_data request;
-			request.size = I2C_SMBUS_BYTE_DATA;
-			request.read_write = I2C_SMBUS_READ;
-			request.data = &result;
-			request.command = static_cast<decltype(i2c_smbus_ioctl_data::command)>(
-				reg
-			);
-
-			if (ioctl(hFile, I2C_SMBUS, &request) == -1)
+			if ((result = i2c_smbus_read_byte_data(hFile, static_cast<__u8>(reg))) < 0)
 			{
 
 				throw Exceptions::SystemException(
-					"ioctl"
+					"i2c_smbus_read_byte_data",
+					result
 				);
 			}
 
-			value = result.byte;
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
-
-		// @throw AL::Exceptions::Exception
-		void ReadUInt16(uint16& value)
-		{
-			AL_ASSERT(IsOpen(), "I2CDevice not open");
-
-#if defined(AL_PLATFORM_LINUX)
-			i2c_smbus_data result;
-			result.block[0] = sizeof(uint16);
-
-			i2c_smbus_ioctl_data request;
-			request.size = I2C_SMBUS_I2C_BLOCK_DATA;
-			request.read_write = I2C_SMBUS_READ;
-			request.data = &result;
-			request.command = 0;
-
-			if (ioctl(hFile, I2C_SMBUS, &request) == -1)
-			{
-
-				throw Exceptions::SystemException(
-					"ioctl"
-				);
-			}
-
-			value = *reinterpret_cast<const uint16*>(
-				&result.block[0]
+			value = static_cast<uint8>(
+				result
 			);
 #else
 			throw Exceptions::NotImplementedException();
@@ -364,100 +231,39 @@ namespace AL::GPIO
 			AL_ASSERT(IsOpen(), "I2CDevice not open");
 
 #if defined(AL_PLATFORM_LINUX)
-			i2c_smbus_data result;
+			int result;
 
-			i2c_smbus_ioctl_data request;
-			request.size = I2C_SMBUS_WORD_DATA;
-			request.read_write = I2C_SMBUS_READ;
-			request.data = &result;
-			request.command = static_cast<decltype(i2c_smbus_ioctl_data::command)>(
-				reg
-			);
-
-			if (ioctl(hFile, I2C_SMBUS, &request) == -1)
+			if ((result = i2c_smbus_read_word_data(hFile, static_cast<__u8>(reg))) < 0)
 			{
 
 				throw Exceptions::SystemException(
-					"ioctl"
+					"i2c_smbus_read_word_data",
+					result
 				);
 			}
 
-			value = result.word;
+			value = static_cast<uint16>(
+				result
+			);
 #else
 			throw Exceptions::NotImplementedException();
 #endif
 		}
 
-		// @throw AL::Exceptions::Exception
-		void Read(void* lpBuffer, size_t size)
-		{
-			AL_ASSERT(IsOpen(), "I2CDevice not open");
-
-#if defined(AL_PLATFORM_LINUX)
-			for (size_t i = 0; i < size; i += I2C_SMBUS_BLOCK_MAX)
-			{
-				i2c_smbus_data data;
-				data.block[0] = static_cast<typename Remove_Modifiers<decltype(i2c_smbus_data::block[0])>::Type>(
-					((size - i) > I2C_SMBUS_BLOCK_MAX) ? I2C_SMBUS_BLOCK_MAX : (size - i)
-				);
-
-				i2c_smbus_ioctl_data request;
-				request.size = I2C_SMBUS_I2C_BLOCK_BROKEN;
-				request.read_write = I2C_SMBUS_READ;
-				request.data = &data;
-				request.command = 0;
-
-				if (ioctl(hFile, I2C_SMBUS, &request) == -1)
-				{
-
-					throw Exceptions::SystemException(
-						"ioctl"
-					);
-				}
-
-				memcpy(
-					&data.block[1],
-					&reinterpret_cast<uint8*>(lpBuffer)[i],
-					data.block[0]
-				);
-			}
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
 		// @throw AL::Exceptions::Exception
 		void Read(I2CRegister reg, void* lpBuffer, size_t size)
 		{
 			AL_ASSERT(IsOpen(), "I2CDevice not open");
 
 #if defined(AL_PLATFORM_LINUX)
-			for (size_t i = 0; i < size; i += I2C_SMBUS_BLOCK_MAX)
+			int errorCode;
+
+			if ((errorCode = i2c_smbus_read_i2c_block_data(hFile, static_cast<__u8>(reg), static_cast<__u8>((size <= 255) ? size : 255), reinterpret_cast<__u8*>(lpBuffer))) < 0)
 			{
-				i2c_smbus_data data;
-				data.block[0] = static_cast<typename Remove_Modifiers<decltype(i2c_smbus_data::block[0])>::Type>(
-					((size - i) > I2C_SMBUS_BLOCK_MAX) ? I2C_SMBUS_BLOCK_MAX : (size - i)
-				);
 
-				i2c_smbus_ioctl_data request;
-				request.size = I2C_SMBUS_I2C_BLOCK_BROKEN;
-				request.read_write = I2C_SMBUS_READ;
-				request.data = &data;
-				request.command = static_cast<decltype(i2c_smbus_ioctl_data::command)>(
-					reg
-				);
-
-				if (ioctl(hFile, I2C_SMBUS, &request) == -1)
-				{
-
-					throw Exceptions::SystemException(
-						"ioctl"
-					);
-				}
-
-				memcpy(
-					&data.block[1],
-					&reinterpret_cast<uint8*>(lpBuffer)[i],
-					data.block[0]
+				throw Exceptions::SystemException(
+					"i2c_smbus_read_i2c_block_data",
+					errorCode
 				);
 			}
 #else
@@ -466,85 +272,19 @@ namespace AL::GPIO
 		}
 		
 		// @throw AL::Exceptions::Exception
-		void WriteInt8(int8 value)
-		{
-			AL_ASSERT(IsOpen(), "I2CDevice not open");
-
-#if defined(AL_PLATFORM_LINUX)
-			i2c_smbus_data data;
-			data.byte = static_cast<uint8>(
-				value
-			);
-
-			i2c_smbus_ioctl_data request;
-			request.size = I2C_SMBUS_BYTE;
-			request.read_write = I2C_SMBUS_WRITE;
-			request.data = &data;
-			request.command = 0;
-
-			if (ioctl(hFile, I2C_SMBUS, &request) == -1)
-			{
-
-				throw Exceptions::SystemException(
-					"ioctl"
-				);
-			}
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
-		// @throw AL::Exceptions::Exception
 		void WriteInt8(I2CRegister reg, int8 value)
 		{
 			AL_ASSERT(IsOpen(), "I2CDevice not open");
 
 #if defined(AL_PLATFORM_LINUX)
-			i2c_smbus_data data;
-			data.byte = static_cast<uint8>(
-				value
-			);
+			int errorCode;
 
-			i2c_smbus_ioctl_data request;
-			request.size = I2C_SMBUS_BYTE_DATA;
-			request.read_write = I2C_SMBUS_WRITE;
-			request.data = &data;
-			request.command = static_cast<decltype(i2c_smbus_ioctl_data::command)>(
-				reg
-			);
-
-			if (ioctl(hFile, I2C_SMBUS, &request) == -1)
+			if ((errorCode = i2c_smbus_write_byte_data(hFile, static_cast<__u8>(reg), static_cast<__u8>(value))) < 0)
 			{
 
 				throw Exceptions::SystemException(
-					"ioctl"
-				);
-			}
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
-
-		// @throw AL::Exceptions::Exception
-		void WriteInt16(int16 value)
-		{
-			AL_ASSERT(IsOpen(), "I2CDevice not open");
-
-#if defined(AL_PLATFORM_LINUX)
-			i2c_smbus_data data;
-			data.block[0] = sizeof(int16);
-			memcpy(&data.block[1], &value, sizeof(int16));
-
-			i2c_smbus_ioctl_data request;
-			request.size = I2C_SMBUS_I2C_BLOCK_BROKEN;
-			request.read_write = I2C_SMBUS_WRITE;
-			request.data = &data;
-			request.command = 0;
-
-			if (ioctl(hFile, I2C_SMBUS, &request) == -1)
-			{
-
-				throw Exceptions::SystemException(
-					"ioctl"
+					"i2c_smbus_write_byte_data",
+					errorCode
 				);
 			}
 #else
@@ -557,24 +297,14 @@ namespace AL::GPIO
 			AL_ASSERT(IsOpen(), "I2CDevice not open");
 
 #if defined(AL_PLATFORM_LINUX)
-			i2c_smbus_data data;
-			data.word = static_cast<uint16>(
-				value
-			);
+			int errorCode;
 
-			i2c_smbus_ioctl_data request;
-			request.size = I2C_SMBUS_WORD_DATA;
-			request.read_write = I2C_SMBUS_WRITE;
-			request.data = &data;
-			request.command = static_cast<decltype(i2c_smbus_ioctl_data::command)>(
-				reg
-			);
-
-			if (ioctl(hFile, I2C_SMBUS, &request) == -1)
+			if ((errorCode = i2c_smbus_write_word_data(hFile, static_cast<__u8>(reg), static_cast<__u16>(value))) < 0)
 			{
 
 				throw Exceptions::SystemException(
-					"ioctl"
+					"i2c_smbus_write_word_data",
+					errorCode
 				);
 			}
 #else
@@ -582,82 +312,20 @@ namespace AL::GPIO
 #endif
 		}
 
-		// @throw AL::Exceptions::Exception
-		void WriteUInt8(uint8 value)
-		{
-			AL_ASSERT(IsOpen(), "I2CDevice not open");
-
-#if defined(AL_PLATFORM_LINUX)
-			i2c_smbus_data data;
-			data.byte = value;
-
-			i2c_smbus_ioctl_data request;
-			request.size = I2C_SMBUS_BYTE;
-			request.read_write = I2C_SMBUS_WRITE;
-			request.data = &data;
-			request.command = 0;
-
-			if (ioctl(hFile, I2C_SMBUS, &request) == -1)
-			{
-
-				throw Exceptions::SystemException(
-					"ioctl"
-				);
-			}
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
 		// @throw AL::Exceptions::Exception
 		void WriteUInt8(I2CRegister reg, uint8 value)
 		{
 			AL_ASSERT(IsOpen(), "I2CDevice not open");
 
 #if defined(AL_PLATFORM_LINUX)
-			i2c_smbus_data data;
-			data.byte = value;
+			int errorCode;
 
-			i2c_smbus_ioctl_data request;
-			request.size = I2C_SMBUS_BYTE_DATA;
-			request.read_write = I2C_SMBUS_WRITE;
-			request.data = &data;
-			request.command = static_cast<decltype(i2c_smbus_ioctl_data::command)>(
-				reg
-			);
-
-			if (ioctl(hFile, I2C_SMBUS, &request) == -1)
+			if ((errorCode = i2c_smbus_write_byte_data(hFile, static_cast<__u8>(reg), static_cast<__u8>(value))) < 0)
 			{
 
 				throw Exceptions::SystemException(
-					"ioctl"
-				);
-			}
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
-
-		// @throw AL::Exceptions::Exception
-		void WriteUInt16(uint16 value)
-		{
-			AL_ASSERT(IsOpen(), "I2CDevice not open");
-
-#if defined(AL_PLATFORM_LINUX)
-			i2c_smbus_data data;
-			data.block[0] = sizeof(uint16);
-			memcpy(&data.block[1], &value, sizeof(uint16));
-
-			i2c_smbus_ioctl_data request;
-			request.size = I2C_SMBUS_I2C_BLOCK_BROKEN;
-			request.read_write = I2C_SMBUS_WRITE;
-			request.data = &data;
-			request.command = 0;
-
-			if (ioctl(hFile, I2C_SMBUS, &request) == -1)
-			{
-
-				throw Exceptions::SystemException(
-					"ioctl"
+					"i2c_smbus_write_byte_data",
+					errorCode
 				);
 			}
 #else
@@ -670,22 +338,14 @@ namespace AL::GPIO
 			AL_ASSERT(IsOpen(), "I2CDevice not open");
 
 #if defined(AL_PLATFORM_LINUX)
-			i2c_smbus_data data;
-			data.word = value;
+			int errorCode;
 
-			i2c_smbus_ioctl_data request;
-			request.size = I2C_SMBUS_WORD_DATA;
-			request.read_write = I2C_SMBUS_WRITE;
-			request.data = &data;
-			request.command = static_cast<decltype(i2c_smbus_ioctl_data::command)>(
-				reg
-			);
-
-			if (ioctl(hFile, I2C_SMBUS, &request) == -1)
+			if ((errorCode = i2c_smbus_write_word_data(hFile, static_cast<__u8>(reg), static_cast<__u16>(value))) < 0)
 			{
 
 				throw Exceptions::SystemException(
-					"ioctl"
+					"i2c_smbus_write_word_data",
+					errorCode
 				);
 			}
 #else
@@ -693,79 +353,21 @@ namespace AL::GPIO
 #endif
 		}
 
-		// @throw AL::Exceptions::Exception
-		void Write(const void* lpBuffer, size_t size)
-		{
-			AL_ASSERT(IsOpen(), "I2CDevice not open");
-
-#if defined(AL_PLATFORM_LINUX)
-			for (size_t i = 0; i < size; i += I2C_SMBUS_BLOCK_MAX)
-			{
-				i2c_smbus_data data;
-
-				data.block[0] = static_cast<typename Remove_Modifiers<decltype(i2c_smbus_data::block[0])>::Type>(
-					((size - i) > I2C_SMBUS_BLOCK_MAX) ? I2C_SMBUS_BLOCK_MAX : (size - i)
-				);
-
-				memcpy(
-					&data.block[1],
-					&reinterpret_cast<const uint8*>(lpBuffer)[i],
-					data.block[0]
-				);
-
-				i2c_smbus_ioctl_data request;
-				request.size = I2C_SMBUS_I2C_BLOCK_BROKEN;
-				request.read_write = I2C_SMBUS_WRITE;
-				request.data = &data;
-				request.command = 0;
-
-				if (ioctl(hFile, I2C_SMBUS, &request) == -1)
-				{
-
-					throw Exceptions::SystemException(
-						"ioctl"
-					);
-				}
-			}
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
 		// @throw AL::Exceptions::Exception
 		void Write(I2CRegister reg, const void* lpBuffer, size_t size)
 		{
 			AL_ASSERT(IsOpen(), "I2CDevice not open");
 
 #if defined(AL_PLATFORM_LINUX)
-			for (size_t i = 0; i < size; i += I2C_SMBUS_BLOCK_MAX)
+			int errorCode;
+
+			if ((errorCode = i2c_smbus_write_i2c_block_data(hFile, static_cast<__u8>(reg), static_cast<__u8>((size <= 255) ? size : 255), reinterpret_cast<const __u8*>(lpBuffer))) < 0)
 			{
-				i2c_smbus_data data;
 
-				data.block[0] = static_cast<typename Remove_Modifiers<decltype(i2c_smbus_data::block[0])>::Type>(
-					((size - i) > I2C_SMBUS_BLOCK_MAX) ? I2C_SMBUS_BLOCK_MAX : (size - i)
+				throw Exceptions::SystemException(
+					"i2c_smbus_write_i2c_block_data",
+					errorCode
 				);
-
-				memcpy(
-					&data.block[1],
-					&reinterpret_cast<const uint8*>(lpBuffer)[i],
-					data.block[0]
-				);
-
-				i2c_smbus_ioctl_data request;
-				request.size = I2C_SMBUS_I2C_BLOCK_BROKEN;
-				request.read_write = I2C_SMBUS_WRITE;
-				request.data = &data;
-				request.command = static_cast<decltype(i2c_smbus_ioctl_data::command)>(
-					reg
-				);
-
-				if (ioctl(hFile, I2C_SMBUS, &request) == -1)
-				{
-
-					throw Exceptions::SystemException(
-						"ioctl"
-					);
-				}
 			}
 #else
 			throw Exceptions::NotImplementedException();
