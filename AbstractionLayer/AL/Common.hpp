@@ -2063,6 +2063,18 @@ namespace AL
 		}
 
 		template<typename T>
+		static constexpr T FromBigEndian(T value)
+		{
+			return IsLittleEndian() ? Flip(value) : value;
+		}
+		
+		template<typename T>
+		static constexpr T FromLittleEndian(T value)
+		{
+			return IsBigEndian() ? Flip(value) : value;
+		}
+
+		template<typename T>
 		static constexpr T NetworkToHost(T value)
 		{
 			return IsLittleEndian() ? Flip(value) : value;
