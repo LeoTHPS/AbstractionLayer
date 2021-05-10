@@ -146,7 +146,7 @@ namespace AL::GPIO::Devices
 		// @throw AL::Exceptions::Exception
 		virtual void OnOpen() override
 		{
-			if (!Pin::Export(pins.IN1, deviceId, in1, PinDirection::Out))
+			if (!Pin::Export(pins.IN1, deviceId, in1, PinDirection::Out, PinValues::Low))
 			{
 
 				throw Exceptions::Exception(
@@ -156,7 +156,7 @@ namespace AL::GPIO::Devices
 				);
 			}
 
-			if (!Pin::Export(pins.IN2, deviceId, in2, PinDirection::Out))
+			if (!Pin::Export(pins.IN2, deviceId, in2, PinDirection::Out, PinValues::Low))
 			{
 				pins.IN1.Unexport();
 
@@ -167,7 +167,7 @@ namespace AL::GPIO::Devices
 				);
 			}
 
-			if (!Pin::Export(pins.IN3, deviceId, in3, PinDirection::Out))
+			if (!Pin::Export(pins.IN3, deviceId, in3, PinDirection::Out, PinValues::Low))
 			{
 				pins.IN2.Unexport();
 				pins.IN1.Unexport();
@@ -179,7 +179,7 @@ namespace AL::GPIO::Devices
 				);
 			}
 
-			if (!Pin::Export(pins.IN4, deviceId, in4, PinDirection::Out))
+			if (!Pin::Export(pins.IN4, deviceId, in4, PinDirection::Out, PinValues::Low))
 			{
 				pins.IN3.Unexport();
 				pins.IN2.Unexport();
