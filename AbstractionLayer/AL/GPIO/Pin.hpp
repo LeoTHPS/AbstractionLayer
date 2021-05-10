@@ -164,6 +164,23 @@ namespace AL::GPIO
 		}
 
 		Pin()
+			:
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_GPIOD)
+			lpChip(
+				nullptr
+			),
+			lpLine(
+				nullptr
+			),
+	#endif
+#endif
+			number(
+				0
+			),
+			deviceId(
+				0
+			)
 		{
 		}
 
@@ -409,7 +426,11 @@ namespace AL::GPIO
 
 		Pin& operator = (Pin&& pin)
 		{
+			OS::Console::WriteLine(__FUNCTION__);
+
 			Unexport();
+
+			OS::Console::WriteLine(__FUNCTION__);
 
 #if defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_GPIOD)
