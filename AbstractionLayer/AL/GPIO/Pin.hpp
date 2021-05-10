@@ -4,8 +4,8 @@
 #if defined(AL_PLATFORM_LINUX)
 	#include <sys/stat.h>
 
-	#if __has_include(<gpiod.hpp>)
-		#include <gpiod.hpp>
+	#if __has_include(<gpiod.h>)
+		#include <gpiod.h>
 
 		#define AL_DEPENDENCY_GPIOD
 	#endif
@@ -76,48 +76,24 @@ namespace AL::GPIO
 	public:
 		// @throw AL::Exceptions::Exception
 		// @return false if already exported
-		static bool Export(Pin& pin, DeviceId deviceId, PinNumber number, PinDirection direction, PinValue value)
+		static bool Export(Pin& pin, DeviceId deviceId, PinNumber number)
 		{
 #if defined(AL_PLATFORM_LINUX)
+			{
+				struct stat s;
+
+				if (!stat(String::Format("/sys/class/gpio/gpio%u", number).GetCString(), &s) && S_ISDIR(s.st_mode))
+				{
+
+					return false;
+				}
+			}
+
 	#if defined(AL_DEPENDENCY_GPIOD)
-			char device[32];
-			sprintf(device, "%u", deviceId);
-			
 			if (auto lpChip = gpiod_chip_open_by_number(static_cast<unsigned int>(deviceId)))
 			{
 				if (auto lpLine = gpiod_chip_get_line(lpChip, static_cast<unsigned int>(number)))
 				{
-					{
-						struct stat s;
-
-						if (!stat(String::Format("/sys/class/gpio/gpio%u", number).GetCString(), &s) && S_ISDIR(s.st_mode))
-						{
-							gpiod_line_release(lpLine);
-							gpiod_chip_close(lpChip);
-
-							return false;
-						}
-					}
-
-					gpiod_line_request_config request = { 0 };
-					request.request_type = GPIOD_LINE_REQUEST_DIRECTION_INPUT;
-
-					if (direction == PinDirection::Out)
-					{
-
-						request.request_type = GPIOD_LINE_REQUEST_DIRECTION_OUTPUT;
-					}
-
-					if (gpiod_line_request(lpLine, &request, static_cast<int>(value)) == -1)
-					{
-						gpiod_line_release(lpLine);
-						gpiod_chip_close(lpChip);
-
-						throw Exceptions::SystemException(
-							"gpiod_line_request"
-						);
-					}
-
 					pin = Pin(
 						lpChip,
 						lpLine,
@@ -128,17 +104,14 @@ namespace AL::GPIO
 					return true;
 				}
 
-				gpiod_chip_close(lpChip);
-
-				throw Exceptions::Exception(
-					"GPIO line #%u on device #%u not found",
-					number,
-					deviceId
+				gpiod_chip_close(
+					lpChip
 				);
 			}
 
 			throw Exceptions::Exception(
-				"GPIO device #%u not found",
+				"GPIO #%u on device #%u not found",
+				number,
 				deviceId
 			);
 	#else
@@ -152,15 +125,55 @@ namespace AL::GPIO
 		}
 		// @throw AL::Exceptions::Exception
 		// @return false if already exported
-		static bool Export(Pin& pin, DeviceId deviceId, PinNumber number, PinDirection direction, PinValues value = PinValues::Low)
+		static bool Export(Pin& pin, DeviceId deviceId, PinNumber number, PinDirection direction, PinValue value)
 		{
-			return Export(
-				pin,
-				deviceId,
-				number,
-				direction,
-				static_cast<PinValue>(value)
-			);
+			if (!Export(pin, deviceId, number))
+			{
+
+				return false;
+			}
+
+			try
+			{
+				pin.SetDirection(
+					direction,
+					value
+				);
+			}
+			catch (Exceptions::Exception&)
+			{
+				pin.Unexport();
+
+				throw;
+			}
+
+			return true;
+		}
+		// @throw AL::Exceptions::Exception
+		// @return false if already exported
+		static bool Export(Pin& pin, DeviceId deviceId, PinNumber number, PinDirection direction, PinValues value)
+		{
+			if (!Export(pin, deviceId, number))
+			{
+
+				return false;
+			}
+
+			try
+			{
+				pin.SetDirection(
+					direction,
+					value
+				);
+			}
+			catch (Exceptions::Exception&)
+			{
+				pin.Unexport();
+
+				throw;
+			}
+
+			return true;
 		}
 
 		Pin()
@@ -209,6 +222,9 @@ namespace AL::GPIO
 			pin.lpLine = nullptr;
 	#endif
 #endif
+
+			pin.number = 0;
+			pin.deviceId = 0;
 		}
 
 		virtual ~Pin()
@@ -255,37 +271,45 @@ namespace AL::GPIO
 		}
 
 		// @throw AL::Exceptions::Exception
-		PinValue Read() const
+		void Read(PinValue& value)
 		{
 			AL_ASSERT(IsExported(), "Pin not exported");
 
-#if defined(AL_DEPENDENCY_GPIOD)
-			int value;
-
-			if ((value = gpiod_line_get_value(lpLine)) == -1)
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_GPIOD)
+			if ((value = gpiod_line_get_value(lpLine)) == PinValue(-1))
 			{
 
 				throw Exceptions::SystemException(
 					"gpiod_line_get_value"
 				);
 			}
-
-			return static_cast<PinValue>(
-				value
-			);
-#else
+	#else
 			throw Exceptions::DependencyMissingException(
 				"gpiod"
 			);
+	#endif
+#else
+			throw Exceptions::NotImplementedException();
 #endif
+		}
+		// @throw AL::Exceptions::Exception
+		void Read(PinValues& value)
+		{
+			AL_ASSERT(IsExported(), "Pin not exported");
+
+			Read(
+				reinterpret_cast<PinValue&>(value)
+			);
 		}
 
 		// @throw AL::Exceptions::Exception
 		void Write(PinValue value)
 		{
 			AL_ASSERT(IsExported(), "Pin not exported");
-
-#if defined(AL_DEPENDENCY_GPIOD)
+			
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_GPIOD)
 			if (gpiod_line_set_value(lpLine, static_cast<int>(value)) == -1)
 			{
 
@@ -293,10 +317,13 @@ namespace AL::GPIO
 					"gpiod_line_set_value"
 				);
 			}
-#else
+	#else
 			throw Exceptions::DependencyMissingException(
 				"gpiod"
 			);
+	#endif
+#else
+			throw Exceptions::NotImplementedException();
 #endif
 		}
 		// @throw AL::Exceptions::Exception
@@ -310,36 +337,65 @@ namespace AL::GPIO
 		}
 
 		// @throw AL::Exceptions::Exception
-		void SetDirection(PinDirection direction, PinValue value)
+		void SetDirection(PinDirection direction)
 		{
 			AL_ASSERT(IsExported(), "Pin not exported");
 
+			SetDirection(
+				direction,
+				PinValues::Low
+			);
+		}
+		// @throw AL::Exceptions::Exception
+		void SetDirection(PinDirection direction, PinValue value)
+		{
+			AL_ASSERT(IsExported(), "Pin not exported");
+			
 #if defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_GPIOD)
-			gpiod_line_release(
-				lpLine
-			);
-			
-			lpLine = gpiod_chip_get_line(
-				lpChip,
-				static_cast<unsigned int>(number)
-			);
-
-			gpiod_line_request_config request = { 0 };
-			request.request_type = GPIOD_LINE_REQUEST_DIRECTION_INPUT;
-
-			if (direction == PinDirection::Out)
+			if (lpLine != nullptr)
 			{
+				gpiod_line_release(
+					lpLine
+				);
 
-				request.request_type = GPIOD_LINE_DIRECTION_OUTPUT;
+				lpLine = gpiod_chip_get_line(
+					lpChip,
+					static_cast<unsigned int>(GetNumber())
+				);
 			}
-
-			if (gpiod_line_request(lpLine, &request, static_cast<int>(value)) == -1)
+			else if (!(lpLine = gpiod_chip_get_line(lpChip, static_cast<unsigned int>(GetNumber()))))
 			{
 
 				throw Exceptions::SystemException(
-					"gpiod_line_request"
+					"gpiod_chip_get_line"
 				);
+			}
+
+			switch (direction)
+			{
+				case PinDirection::In:
+					if (gpiod_line_request_input(lpLine, nullptr) == -1)
+					{
+
+						throw Exceptions::SystemException(
+							"gpiod_line_request_input"
+						);
+					}
+					break;
+
+				case PinDirection::Out:
+					if (gpiod_line_request_output(lpLine, nullptr, static_cast<int>(value)) == -1)
+					{
+
+						throw Exceptions::SystemException(
+							"gpiod_line_request_output"
+						);
+					}
+					break;
+
+				default:
+					throw Exceptions::NotImplementedException();
 			}
 	#else
 			throw Exceptions::DependencyMissingException(
@@ -351,7 +407,7 @@ namespace AL::GPIO
 #endif
 		}
 		// @throw AL::Exceptions::Exception
-		void SetDirection(PinDirection direction, PinValues value = PinValues::Low)
+		void SetDirection(PinDirection direction, PinValues value)
 		{
 			AL_ASSERT(IsExported(), "Pin not exported");
 
@@ -366,38 +422,114 @@ namespace AL::GPIO
 		{
 			AL_ASSERT(IsExported(), "Pin not exported");
 
+			if (!WaitForEdge(edge, TimeSpan::Infinite))
+			{
+			}
+		}
+		// @throw AL::Exceptions::Exception
+		// @return false if maxWaitTime elapsed
+		bool WaitForEdge(PinEdges edge, TimeSpan maxWaitTime)
+		{
+			AL_ASSERT(IsExported(), "Pin not exported");
+
 #if defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_GPIOD)
-			gpiod_line_release(
-				lpLine
-			);
-
-			lpLine = gpiod_chip_get_line(
-				lpChip,
-				static_cast<unsigned int>(number)
-			);
-
-			gpiod_line_request_config request = { 0 };
-			request.request_type = GPIOD_LINE_REQUEST_EVENT_BOTH_EDGES;
-
-			switch (edge)
+			if (lpLine != nullptr)
 			{
-				case PinEdges::Rising:
-					request.request_type = GPIOD_LINE_REQUEST_EVENT_RISING_EDGE;
-					break;
+				gpiod_line_release(
+					lpLine
+				);
 
-				case PinEdges::Falling:
-					request.request_type = GPIOD_LINE_REQUEST_EVENT_FALLING_EDGE;
-					break;
+				lpLine = gpiod_chip_get_line(
+					lpChip,
+					static_cast<unsigned int>(GetNumber())
+				);
 			}
-
-			if (gpiod_line_request(lpLine, &request, 0) == -1)
+			else if (!(lpLine = gpiod_chip_get_line(lpChip, static_cast<unsigned int>(GetNumber()))))
 			{
 
 				throw Exceptions::SystemException(
-					"gpiod_line_request"
+					"gpiod_chip_get_line"
 				);
 			}
+
+			int expectedEventType = 0;
+
+			switch (edge)
+			{
+				case PinEdges::Both:
+				{
+					if (gpiod_line_request_both_edges_events(lpLine, nullptr) == -1)
+					{
+
+						throw Exceptions::SystemException(
+							"gpiod_line_request_both_edges_events"
+						);
+					}
+				}
+				break;
+
+				case PinEdges::Rising:
+				{
+					expectedEventType = GPIOD_LINE_EVENT_RISING_EDGE;
+
+					if (gpiod_line_request_rising_edge_events(lpLine, nullptr) == -1)
+					{
+
+						throw Exceptions::SystemException(
+							"gpiod_line_request_rising_edge_events"
+						);
+					}
+				}
+				break;
+
+				case PinEdges::Falling:
+				{
+					expectedEventType = GPIOD_LINE_EVENT_RISING_EDGE;
+
+					if (gpiod_line_request_falling_edge_events(lpLine, nullptr) == -1)
+					{
+
+						throw Exceptions::SystemException(
+							"gpiod_line_request_falling_edge_events"
+						);
+					}
+				}
+				break;
+
+				default:
+					throw Exceptions::NotImplementedException();
+			}
+
+			timespec timeout;
+			timeout.tv_sec = maxWaitTime.ToSeconds();
+			timeout.tv_nsec = maxWaitTime.ToMicroseconds() - TimeSpan::FromSeconds(timeout.tv_sec).ToMicroseconds();
+
+			switch (gpiod_line_event_wait(lpLine, &timeout))
+			{
+				case -1:
+					throw Exceptions::SystemException(
+						"gpiod_line_event_wait"
+					);
+
+				case 0:
+					return false;
+			}
+
+			gpiod_line_event event;
+
+			do
+			{
+				if (gpiod_line_event_read(lpLine, &event) == -1)
+				{
+
+					throw Exceptions::SystemException(
+						"gpiod_line_event_read"
+					);
+				}
+			} while (expectedEventType && (event.event_type != expectedEventType));
+
+			return true;
 	#else
 			throw Exceptions::DependencyMissingException(
 				"gpiod"
@@ -414,10 +546,15 @@ namespace AL::GPIO
 			{
 #if defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_GPIOD)
-				gpiod_line_release(lpLine);
-				lpLine = nullptr;
+				gpiod_line_release(
+					lpLine
+				);
 
-				gpiod_chip_close(lpChip);
+				gpiod_chip_close(
+					lpChip
+				);
+
+				lpLine = nullptr;
 				lpChip = nullptr;
 	#endif
 #endif
