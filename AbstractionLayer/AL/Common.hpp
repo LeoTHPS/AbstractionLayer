@@ -3548,6 +3548,8 @@ namespace AL
 		}
 	};
 
+	void Spin(TimeSpan duration);
+
 	inline void Sleep(TimeSpan duration)
 	{
 #if defined(AL_PLATFORM_LINUX)
@@ -3754,3 +3756,12 @@ namespace AL
 #if defined(AL_CLRCALL)
 	#include "DotNET/Marshal.hpp"
 #endif
+
+inline void AL::Spin(TimeSpan duration)
+{
+	OS::Timer timer;
+
+	while (timer.GetElapsed() < duration)
+	{
+	}
+}
