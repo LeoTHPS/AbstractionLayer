@@ -503,7 +503,7 @@ namespace AL::GPIO
 
 			timespec timeout;
 			timeout.tv_sec = maxWaitTime.ToSeconds();
-			timeout.tv_nsec = maxWaitTime.ToMicroseconds() - TimeSpan::FromSeconds(timeout.tv_sec).ToMicroseconds();
+			timeout.tv_nsec = (maxWaitTime.ToMicroseconds() - TimeSpan::FromSeconds(timeout.tv_sec).ToMicroseconds()) * 1000;
 
 			switch (gpiod_line_event_wait(lpLine, &timeout))
 			{
