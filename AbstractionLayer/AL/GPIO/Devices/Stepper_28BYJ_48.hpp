@@ -9,15 +9,15 @@ namespace AL::GPIO::Devices
 {
 	enum class Stepper_28BYJ_48_Phases
 	{
-		Phase_0 = 0b0000,
-		Phase_1 = 0b1000,
-		Phase_2 = 0b1100,
-		Phase_3 = 0b0100,
-		Phase_4 = 0b0110,
-		Phase_5 = 0b0010,
-		Phase_6 = 0b0011,
-		Phase_7 = 0b0001,
-		Phase_8 = 0b1001
+		Phase_0,
+		Phase_1,
+		Phase_2,
+		Phase_3,
+		Phase_4,
+		Phase_5,
+		Phase_6,
+		Phase_7,
+		Phase_8
 	};
 
 	class Stepper_28BYJ_48
@@ -127,7 +127,7 @@ namespace AL::GPIO::Devices
 
 				for (uint64 i = 1; i < steps; ++i)
 				{
-					Sleep(
+					Spin(
 						delay
 					);
 
@@ -146,7 +146,17 @@ namespace AL::GPIO::Devices
 		// @throw AL::Exceptions::Exception
 		virtual void OnOpen() override
 		{
-			if (!Pin::Export(pins.IN1, deviceId, in1, PinDirection::Out, PinValues::Low))
+			PinValues pinValues[4];
+
+			if (!Stepper_28BYJ_48_Phases_GetPinValues(pinValues, GetPhase()))
+			{
+
+				throw Exceptions::Exception(
+					"Unsupported phase"
+				);
+			}
+
+			if (!Pin::Export(pins.IN1, deviceId, in1, PinDirection::Out, pinValues[0]))
 			{
 
 				throw Exceptions::Exception(
@@ -156,7 +166,7 @@ namespace AL::GPIO::Devices
 				);
 			}
 
-			if (!Pin::Export(pins.IN2, deviceId, in2, PinDirection::Out, PinValues::Low))
+			if (!Pin::Export(pins.IN2, deviceId, in2, PinDirection::Out, pinValues[1]))
 			{
 				pins.IN1.Unexport();
 
@@ -167,7 +177,7 @@ namespace AL::GPIO::Devices
 				);
 			}
 
-			if (!Pin::Export(pins.IN3, deviceId, in3, PinDirection::Out, PinValues::Low))
+			if (!Pin::Export(pins.IN3, deviceId, in3, PinDirection::Out, pinValues[2]))
 			{
 				pins.IN2.Unexport();
 				pins.IN1.Unexport();
@@ -179,7 +189,7 @@ namespace AL::GPIO::Devices
 				);
 			}
 
-			if (!Pin::Export(pins.IN4, deviceId, in4, PinDirection::Out, PinValues::Low))
+			if (!Pin::Export(pins.IN4, deviceId, in4, PinDirection::Out, pinValues[3]))
 			{
 				pins.IN3.Unexport();
 				pins.IN2.Unexport();
@@ -231,37 +241,17 @@ namespace AL::GPIO::Devices
 	private:
 		static Stepper_28BYJ_48_Phases Stepper_28BYJ_48_Phases_Next(Stepper_28BYJ_48_Phases phase)
 		{
-			switch (phase)
+			if (phase == Stepper_28BYJ_48_Phases::Phase_8)
 			{
-				case Stepper_28BYJ_48_Phases::Phase_0:
-					return Stepper_28BYJ_48_Phases::Phase_1;
 
-				case Stepper_28BYJ_48_Phases::Phase_1:
-					return Stepper_28BYJ_48_Phases::Phase_2;
-
-				case Stepper_28BYJ_48_Phases::Phase_2:
-					return Stepper_28BYJ_48_Phases::Phase_3;
-
-				case Stepper_28BYJ_48_Phases::Phase_3:
-					return Stepper_28BYJ_48_Phases::Phase_4;
-
-				case Stepper_28BYJ_48_Phases::Phase_4:
-					return Stepper_28BYJ_48_Phases::Phase_5;
-
-				case Stepper_28BYJ_48_Phases::Phase_5:
-					return Stepper_28BYJ_48_Phases::Phase_6;
-
-				case Stepper_28BYJ_48_Phases::Phase_6:
-					return Stepper_28BYJ_48_Phases::Phase_7;
-
-				case Stepper_28BYJ_48_Phases::Phase_7:
-					return Stepper_28BYJ_48_Phases::Phase_8;
-
-				case Stepper_28BYJ_48_Phases::Phase_8:
-					return Stepper_28BYJ_48_Phases::Phase_1;
+				return Stepper_28BYJ_48_Phases::Phase_1;
 			}
 
-			return Stepper_28BYJ_48_Phases::Phase_1;
+			typedef typename Get_Enum_Or_Integer_Base<Stepper_28BYJ_48_Phases>::Type Stepper_28BYJ_48_Phases_Base_Type;
+
+			return static_cast<Stepper_28BYJ_48_Phases>(
+				static_cast<Stepper_28BYJ_48_Phases_Base_Type>(phase) + 1
+			);
 		}
 		
 		static Stepper_28BYJ_48_Phases Stepper_28BYJ_48_Phases_Previous(Stepper_28BYJ_48_Phases phase)
@@ -269,34 +259,15 @@ namespace AL::GPIO::Devices
 			switch (phase)
 			{
 				case Stepper_28BYJ_48_Phases::Phase_0:
-					return Stepper_28BYJ_48_Phases::Phase_8;
-
 				case Stepper_28BYJ_48_Phases::Phase_1:
 					return Stepper_28BYJ_48_Phases::Phase_8;
-
-				case Stepper_28BYJ_48_Phases::Phase_2:
-					return Stepper_28BYJ_48_Phases::Phase_1;
-
-				case Stepper_28BYJ_48_Phases::Phase_3:
-					return Stepper_28BYJ_48_Phases::Phase_2;
-
-				case Stepper_28BYJ_48_Phases::Phase_4:
-					return Stepper_28BYJ_48_Phases::Phase_3;
-
-				case Stepper_28BYJ_48_Phases::Phase_5:
-					return Stepper_28BYJ_48_Phases::Phase_4;
-
-				case Stepper_28BYJ_48_Phases::Phase_6:
-					return Stepper_28BYJ_48_Phases::Phase_5;
-
-				case Stepper_28BYJ_48_Phases::Phase_7:
-					return Stepper_28BYJ_48_Phases::Phase_6;
-
-				case Stepper_28BYJ_48_Phases::Phase_8:
-					return Stepper_28BYJ_48_Phases::Phase_7;
 			}
 
-			return Stepper_28BYJ_48_Phases::Phase_8;
+			typedef typename Get_Enum_Or_Integer_Base<Stepper_28BYJ_48_Phases>::Type Stepper_28BYJ_48_Phases_Base_Type;
+
+			return static_cast<Stepper_28BYJ_48_Phases>(
+				static_cast<Stepper_28BYJ_48_Phases_Base_Type>(phase) - 1
+			);
 		}
 
 		static bool Stepper_28BYJ_48_Phases_GetPinValues(PinValues(&values)[4], Stepper_28BYJ_48_Phases phase)
