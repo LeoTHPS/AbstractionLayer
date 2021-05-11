@@ -82,7 +82,13 @@ namespace AL::GPIO::Devices
 		// @throw AL::Exceptions::Exception
 		virtual void OnRead(DataR& value) override
 		{
-			value = (pin.Read() == 1);
+			PinValues pinValue;
+
+			pin.Read(
+				pinValue
+			);
+
+			value = pinValue == PinValues::High;
 		}
 	};
 }
