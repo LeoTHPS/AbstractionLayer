@@ -114,6 +114,8 @@ namespace AL::GPIO::Devices
 		{
 			if (steps > 0)
 			{
+				auto lpSleepOrSpin = (delay.ToMicroseconds() > 1000) ? &Sleep : &Spin;
+
 				auto lpStepper_28BYJ_48_Phases_NextOrPrevious =
 					forward ? &Stepper_28BYJ_48_Phases_Next : &Stepper_28BYJ_48_Phases_Previous;
 
@@ -127,7 +129,7 @@ namespace AL::GPIO::Devices
 
 				for (uint64 i = 1; i < steps; ++i)
 				{
-					Spin(
+					lpSleepOrSpin(
 						delay
 					);
 
