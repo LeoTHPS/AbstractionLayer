@@ -2,7 +2,7 @@
 #include "AL/Common.hpp"
 
 #if defined(AL_PLATFORM_LINUX)
-	#include <chrono>
+	#include <time.h>
 #endif
 
 namespace AL::OS
@@ -10,9 +10,9 @@ namespace AL::OS
 	class Timer
 	{
 #if defined(AL_PLATFORM_LINUX)
-		typedef std::chrono::high_resolution_clock Clock;
+		timespec start;
+		mutable timespec time;
 
-		typename Clock::time_point start;
 #elif defined(AL_PLATFORM_WINDOWS)
 		double start;
 		double frequency;
@@ -45,6 +45,9 @@ namespace AL::OS
 #if defined(AL_PLATFORM_LINUX)
 			: start(
 				Move(timer.start)
+			),
+			time(
+				Move(timer.time)
 			)
 #elif defined(AL_PLATFORM_WINDOWS)
 			: start(
@@ -58,7 +61,6 @@ namespace AL::OS
 			)
 #endif
 		{
-			timer.Reset();
 		}
 
 		virtual ~Timer()
@@ -68,14 +70,29 @@ namespace AL::OS
 		auto GetElapsed() const
 		{
 #if defined(AL_PLATFORM_LINUX)
-			auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
-				Clock::now() - start
-			).count();
+			timespec_get(
+				&time,
+				TIME_UTC
+			);
+
+			timespec elapsed;
+			elapsed.tv_sec = time.tv_sec - start.tv_sec;
+			elapsed.tv_nsec = (time.tv_nsec >= start.tv_nsec) ? (time.tv_nsec - start.tv_nsec) : 0;
+
+			if (time.tv_nsec >= start.tv_nsec)
+			{
+
+				elapsed.tv_nsec = time.tv_nsec - start.tv_nsec;
+			}
+			else
+			{
+				--elapsed.tv_sec;
+
+				elapsed.tv_nsec = (1000000000 - start.tv_nsec) + time.tv_nsec;
+			}
 
 			return TimeSpan::FromMicroseconds(
-				static_cast<uint64>(
-					elapsed
-				)
+				static_cast<uint64>((elapsed.tv_sec * 1000000) + (elapsed.tv_nsec / 1000))
 			);
 #elif defined(AL_PLATFORM_WINDOWS)
 			QueryPerformanceCounter(
@@ -93,7 +110,10 @@ namespace AL::OS
 		void Reset()
 		{
 #if defined(AL_PLATFORM_LINUX)
-			start = Clock::now();
+			timespec_get(
+				&start,
+				TIME_UTC
+			);
 #elif defined(AL_PLATFORM_WINDOWS)
 			QueryPerformanceCounter(
 				&integer
@@ -111,6 +131,10 @@ namespace AL::OS
 			start = Move(
 				timer.start
 			);
+
+			time = Move(
+				timer.time
+			);
 #elif defined(AL_PLATFORM_WINDOWS)
 			start = timer.start;
 			
@@ -120,8 +144,6 @@ namespace AL::OS
 
 			frequency = timer.frequency;
 #endif
-
-			timer.Reset();
 
 			return *this;
 		}
