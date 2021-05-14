@@ -3,11 +3,6 @@
 
 #include <AL/DotNET/Marshal.hpp>
 
-namespace AL::DotNET::Collections
-{
-	ref class ByteBuffer;
-}
-
 namespace AL::DotNET
 {
 	public enum class Endians
