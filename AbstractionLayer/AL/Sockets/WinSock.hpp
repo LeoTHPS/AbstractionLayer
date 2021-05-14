@@ -17,88 +17,50 @@ namespace AL::Sockets
 {
 	class WinSock
 	{
-		WSADATA data;
+		inline static WSADATA data;
 		
-		bool isLoaded = false;
+		inline static size_t loadCount = 0;
 
-		WinSock(const WinSock&) = delete;
+		WinSock() = delete;
 
 	public:
-		WinSock()
+		static bool IsLoaded()
 		{
+			return loadCount != 0;
 		}
 
-		WinSock(WinSock&& winsock)
-			: data(
-				Move(winsock.data)
-			),
-			isLoaded(
-				winsock.isLoaded
-			)
-		{
-			winsock.isLoaded = false;
-		}
-
-		virtual ~WinSock()
-		{
-			if (IsLoaded())
-			{
-				Unload();
-			}
-		}
-
-		bool IsLoaded() const
-		{
-			return isLoaded;
-		}
-
-		auto& GetData() const
+		static auto& GetData()
 		{
 			return data;
 		}
 
+		static auto GetLoadCount()
+		{
+			return loadCount;
+		}
+
 		// @throw AL::Exceptions::Exception
-		void Load()
+		static void Load()
 		{
-			if (IsLoaded())
+			if (++loadCount == 1)
 			{
-				
-				throw Exceptions::Exception(
-					"WinSock already loaded"
-				);
+				if (WSAStartup(MAKEWORD(2, 2), &data) != NO_ERROR)
+				{
+
+					throw Exceptions::SocketException(
+						"WSAStartup"
+					);
+				}
 			}
-
-			if (WSAStartup(MAKEWORD(2, 2), &data) != NO_ERROR)
-			{
-
-				throw Exceptions::SocketException(
-					"WSAStartup"
-				);
-			}
-
-			isLoaded = true;
 		}
 
-		void Unload()
+		static void Unload()
 		{
-			if (IsLoaded())
+			if (--loadCount == 0)
 			{
+
 				WSACleanup();
-
-				isLoaded = false;
 			}
-		}
-
-		auto& operator = (WinSock&& winsock)
-		{
-			data = Move(
-				winsock.data
-			);
-
-			isLoaded = winsock.isLoaded;
-			winsock.isLoaded = false;
-
-			return *this;
 		}
 	};
 }
