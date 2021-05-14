@@ -5,7 +5,7 @@
 
 namespace AL::Collections
 {
-	template<typename T, Endians ENDIAN = Endians::Machine>
+	template<typename T>
 	class BitSet
 	{
 		static_assert(
