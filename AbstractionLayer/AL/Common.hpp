@@ -227,6 +227,17 @@ namespace AL
 		typedef Index_Sequence<I ...> Type;
 	};
 
+	template<size_t S, size_t ... I>
+	struct Make_Index_Sequence_Reverse
+		: public Make_Index_Sequence_Reverse<S - 1, I ..., S - 1>
+	{
+	};
+	template<size_t ... I>
+	struct Make_Index_Sequence_Reverse<0, I ...>
+	{
+		typedef Index_Sequence<I ...> Type;
+	};
+
 	template<size_t BEGIN, size_t END, size_t ... I>
 	struct Make_Index_Sequence_Range
 		: public Make_Index_Sequence_Range<BEGIN, END - 1, END, I ...>
@@ -236,6 +247,17 @@ namespace AL
 	struct Make_Index_Sequence_Range<BEGIN, BEGIN, I ...>
 	{
 		typedef Index_Sequence<BEGIN, I ...> Type;
+	};
+
+	template<size_t BEGIN, size_t END, size_t ... I>
+	struct Make_Index_Sequence_Range_Reverse
+		: public Make_Index_Sequence_Range_Reverse<BEGIN, END - 1, I ..., END>
+	{
+	};
+	template<size_t BEGIN, size_t ... I>
+	struct Make_Index_Sequence_Range_Reverse<BEGIN, BEGIN, I ...>
+	{
+		typedef Index_Sequence<I ..., BEGIN> Type;
 	};
 
 	template<bool CONDITION, typename CONDITION_1, typename CONDITION_2>
