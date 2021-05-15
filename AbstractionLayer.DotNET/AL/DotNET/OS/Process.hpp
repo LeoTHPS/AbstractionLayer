@@ -81,14 +81,14 @@ namespace AL::DotNET::OS
 			return pattern->Length;
 		}
 
-		property ProcessMemoryPatternEntry^ default[System::Int32]
+		property ProcessMemoryPatternEntry^ default[System::UInt32]
 		{
 		public:
-			ProcessMemoryPatternEntry^ get(System::Int32 index)
+			ProcessMemoryPatternEntry^ get(System::UInt32 index)
 			{
 				return pattern[index];
 			}
-			void set(System::Int32 index, ProcessMemoryPatternEntry^ value)
+			void set(System::UInt32 index, ProcessMemoryPatternEntry^ value)
 			{
 				pattern[index] = value;
 			}
@@ -914,10 +914,10 @@ namespace AL::DotNET::OS
 
 			for (size_t i = 0; i < _pattern.GetLength(); ++i)
 			{
-				_pattern[i].Value = pattern[i]->Value;
-				_pattern[i].Required = pattern[i]->Required;
+				_pattern[i].Value = pattern[static_cast<System::UInt32>(i)]->Value;
+				_pattern[i].Required = pattern[static_cast<System::UInt32>(i)]->Required;
 			}
-
+			
 			try
 			{
 				if (!lpProcess->SearchMemory(_address, _pattern))
@@ -954,8 +954,8 @@ namespace AL::DotNET::OS
 
 			for (size_t i = 0; i < _pattern.GetLength(); ++i)
 			{
-				_pattern[i].Value = pattern[i]->Value;
-				_pattern[i].Required = pattern[i]->Required;
+				_pattern[i].Value = pattern[static_cast<System::UInt32>(i)]->Value;
+				_pattern[i].Required = pattern[static_cast<System::UInt32>(i)]->Required;
 			}
 
 			try
