@@ -244,7 +244,7 @@ namespace AL::DotNET::OS
 
 	public:
 		/// <exception cref="AL::Exceptions::Exception" />
-		static void GetCurrentProcess(Process^% process)
+		static void GetCurrentProcess([System::Runtime::InteropServices::OutAttribute] Process^% process)
 		{
 			GetCurrentProcess(
 				process,
@@ -252,7 +252,7 @@ namespace AL::DotNET::OS
 			);
 		}
 		/// <exception cref="AL::Exceptions::Exception" />
-		static void GetCurrentProcess(Process^% process, ProcessInteropTypes interopType)
+		static void GetCurrentProcess([System::Runtime::InteropServices::OutAttribute] Process^% process, ProcessInteropTypes interopType)
 		{
 			AL::OS::Process _process;
 
@@ -280,7 +280,7 @@ namespace AL::DotNET::OS
 		/// Returns false if not found
 		/// </summary>
 		/// <exception cref="AL::Exceptions::Exception" />
-		static bool GetProcessById(Process^% process, ProcessId id)
+		static bool GetProcessById([System::Runtime::InteropServices::OutAttribute] Process^% process, ProcessId id)
 		{
 			return GetProcessById(
 				process,
@@ -292,7 +292,7 @@ namespace AL::DotNET::OS
 		/// Returns false if not found
 		/// </summary>
 		/// <exception cref="AL::Exceptions::Exception" />
-		static bool GetProcessById(Process^% process, ProcessId id, ProcessInteropTypes interopType)
+		static bool GetProcessById([System::Runtime::InteropServices::OutAttribute] Process^% process, ProcessId id, ProcessInteropTypes interopType)
 		{
 			AL::OS::Process _process;
 
@@ -323,7 +323,7 @@ namespace AL::DotNET::OS
 		/// Returns false if not found
 		/// </summary>
 		/// <exception cref="AL::Exceptions::Exception" />
-		static bool GetProcessByName(Process^% process, System::String^ name)
+		static bool GetProcessByName([System::Runtime::InteropServices::OutAttribute] Process^% process, System::String^ name)
 		{
 			return GetProcessByName(
 				process,
@@ -335,7 +335,7 @@ namespace AL::DotNET::OS
 		/// Returns false if not found
 		/// </summary>
 		/// <exception cref="AL::Exceptions::Exception" />
-		static bool GetProcessByName(Process^% process, System::String^ name, ProcessInteropTypes interopType)
+		static bool GetProcessByName([System::Runtime::InteropServices::OutAttribute] Process^% process, System::String^ name, ProcessInteropTypes interopType)
 		{
 			AL::OS::Process _process;
 
@@ -363,7 +363,7 @@ namespace AL::DotNET::OS
 		}
 
 		/// <exception cref="AL::Exceptions::Exception" />
-		static void CreateProcess(Process^% process, ProcessStartInfo^ info)
+		static void CreateProcess([System::Runtime::InteropServices::OutAttribute] Process^% process, ProcessStartInfo^ info)
 		{
 			AL::OS::Process _process;
 
@@ -472,7 +472,7 @@ namespace AL::DotNET::OS
 		/// Returns false if not found
 		/// </summary>
 		/// <exception cref="AL::Exceptions::Exception" />
-		bool GetExport(ProcessAddress% address, System::UInt16 ordinal)
+		bool GetExport([System::Runtime::InteropServices::OutAttribute] ProcessAddress% address, System::UInt16 ordinal)
 		{
 			AL::OS::ProcessAddress _address;
 
@@ -502,7 +502,7 @@ namespace AL::DotNET::OS
 		/// Returns false if not found
 		/// </summary>
 		/// <exception cref="AL::Exceptions::Exception" />
-		bool GetExport(ProcessAddress% address, System::String^ module, System::UInt16 ordinal)
+		bool GetExport([System::Runtime::InteropServices::OutAttribute] ProcessAddress% address, System::String^ module, System::UInt16 ordinal)
 		{
 			AL::OS::ProcessAddress _address;
 
@@ -533,7 +533,7 @@ namespace AL::DotNET::OS
 		/// Returns false if not found
 		/// </summary>
 		/// <exception cref="AL::Exceptions::Exception" />
-		bool GetExport(ProcessAddress% address, System::String^ name)
+		bool GetExport([System::Runtime::InteropServices::OutAttribute] ProcessAddress% address, System::String^ name)
 		{
 			AL::OS::ProcessAddress _address;
 
@@ -563,7 +563,7 @@ namespace AL::DotNET::OS
 		/// Returns false if not found
 		/// </summary>
 		/// <exception cref="AL::Exceptions::Exception" />
-		bool GetExport(ProcessAddress% address, System::String^ module, System::String^ name)
+		bool GetExport([System::Runtime::InteropServices::OutAttribute] ProcessAddress% address, System::String^ module, System::String^ name)
 		{
 			AL::OS::ProcessAddress _address;
 
@@ -904,7 +904,7 @@ namespace AL::DotNET::OS
 		/// Returns false if not found
 		/// </summary>
 		/// <exception cref="AL::Exceptions::Exception" />
-		bool SearchMemory(ProcessAddress& address, ProcessMemoryPattern^ pattern)
+		bool SearchMemory([System::Runtime::InteropServices::OutAttribute] ProcessAddress% address, ProcessMemoryPattern^ pattern)
 		{
 			AL::OS::ProcessAddress _address;
 
@@ -944,7 +944,7 @@ namespace AL::DotNET::OS
 		/// Returns false if not found
 		/// </summary>
 		/// <exception cref="AL::Exceptions::Exception" />
-		bool SearchMemory(ProcessAddress& address, ProcessMemoryPattern^ pattern, ProcessAddress offset, ProcessAddress length)
+		bool SearchMemory([System::Runtime::InteropServices::OutAttribute] ProcessAddress% address, ProcessMemoryPattern^ pattern, ProcessAddress offset, ProcessAddress length)
 		{
 			AL::OS::ProcessAddress _address;
 
