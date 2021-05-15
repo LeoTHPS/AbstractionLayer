@@ -193,6 +193,19 @@ namespace AL::OS
 	// @return false to stop enumeration
 	typedef Function<bool(ProcessAddress address, ProcessAddress size)> ProcessEnumMemoryRegionsCallback;
 
+	struct ProcessStartInfo
+	{
+		String              Path;
+		String              CommandLine;
+		String              WorkingDirectory;
+
+#if defined(AL_PLATFORM_WINDOWS)
+		ProcessStartupFlags Flags;
+#endif
+
+		ProcessInteropTypes InteropType;
+	};
+
 	class Process
 	{
 #if defined(AL_PLATFORM_WINDOWS)
@@ -242,13 +255,8 @@ namespace AL::OS
 		// @return false if not found
 		static bool GetProcessByName(Process& process, const String& name, ProcessInteropTypes interopType);
 
-#if defined(AL_PLATFORM_LINUX)
 		// @throw AL::Exceptions::Exception
-		static void CreateProcess(Process& process, ProcessInteropTypes interopType);
-#elif defined(AL_PLATFORM_WINDOWS)
-		// @throw AL::Exceptions::Exception
-		static void CreateProcess(Process& process, ProcessStartupFlags flags, ProcessInteropTypes interopType);
-#endif
+		static void CreateProcess(Process& process, const ProcessStartInfo& info);
 
 		// @throw AL::Exceptions::Exception
 		static void EnumerateProcesses(const ProcessEnumCallback& callback);
