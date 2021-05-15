@@ -207,9 +207,11 @@ namespace AL::OS
 		ProcessInteropTypes InteropType;
 	};
 
+	// @throw AL::Exceptions::Exception
 	// @return false to stop enumeration
 	typedef Function<bool(ProcessId processId, const String& processName)> ProcessEnumCallback;
 
+	// @throw AL::Exceptions::Exception
 	// @return false to stop enumeration
 	typedef Function<bool(ProcessAddress address, ProcessAddress size)> ProcessEnumMemoryRegionsCallback;
 
@@ -256,17 +258,33 @@ namespace AL::OS
 
 		// @throw AL::Exceptions::Exception
 		// @return false if not found
-		static bool GetProcessById(Process& process, ProcessId id, ProcessInteropTypes interopType);
+		static bool GetProcessById(Process& process, ProcessId id, ProcessInteropTypes interopType)
+		{
+
+			throw Exceptions::NotImplementedException();
+		}
 		
 		// @throw AL::Exceptions::Exception
 		// @return false if not found
-		static bool GetProcessByName(Process& process, const String& name, ProcessInteropTypes interopType);
+		static bool GetProcessByName(Process& process, const String& name, ProcessInteropTypes interopType)
+		{
+
+			throw Exceptions::NotImplementedException();
+		}
 
 		// @throw AL::Exceptions::Exception
-		static void CreateProcess(Process& process, const ProcessStartInfo& info);
+		static void CreateProcess(Process& process, const ProcessStartInfo& info)
+		{
+
+			throw Exceptions::NotImplementedException();
+		}
 
 		// @throw AL::Exceptions::Exception
-		static void EnumerateProcesses(const ProcessEnumCallback& callback);
+		static void EnumerateProcesses(const ProcessEnumCallback& callback)
+		{
+
+			throw Exceptions::NotImplementedException();
+		}
 
 		Process()
 		{
@@ -437,10 +455,26 @@ namespace AL::OS
 		}
 		// @throw AL::Exceptions::Exception
 		// @return false if not found
-		bool GetExport(ProcessAddress& address, const String& module, const String& name);
+		bool GetExport(ProcessAddress& address, const String& module, const String& name)
+		{
+
+			throw Exceptions::NotImplementedException();
+		}
 
 		// @throw AL::Exceptions::Exception
-		void CreateThread(ProcessAddress address, ProcessAddress param = 0);
+		void CreateThread(ProcessAddress address)
+		{
+			CreateThread(
+				address,
+				0
+			);
+		}
+		// @throw AL::Exceptions::Exception
+		void CreateThread(ProcessAddress address, ProcessAddress param)
+		{
+
+			throw Exceptions::NotImplementedException();
+		}
 
 		// @throw AL::Exceptions::Exception
 		// @return address of library
@@ -481,13 +515,25 @@ namespace AL::OS
 		}
 		// @throw AL::Exceptions::Exception
 		// @return address of library
-		ProcessAddress LoadLibrary(const void* lpBuffer, size_t size);
+		ProcessAddress LoadLibrary(const void* lpBuffer, size_t size)
+		{
+
+			throw Exceptions::NotImplementedException();
+		}
 
 		// @throw AL::Exceptions::Exception
-		void UnloadLibrary(ProcessAddress address);
+		void UnloadLibrary(ProcessAddress address)
+		{
+
+			throw Exceptions::NotImplementedException();
+		}
 
 		// @throw AL::Exceptions::Exception
-		void SetMemoryProtection(ProcessAddress address, size_t size, ProcessMemoryProtectionTypes value);
+		void SetMemoryProtection(ProcessAddress address, size_t size, ProcessMemoryProtectionTypes value)
+		{
+
+			throw Exceptions::NotImplementedException();
+		}
 
 		// @throw AL::Exceptions::Exception
 		// @return address of newly allocated memory
@@ -502,10 +548,18 @@ namespace AL::OS
 		}
 		// @throw AL::Exceptions::Exception
 		// @return address of newly allocated memory
-		ProcessAddress AllocateMemory(ProcessAddress address, size_t size, ProcessMemoryAllocationTypes type, ProcessMemoryProtectionTypes protection);
+		ProcessAddress AllocateMemory(ProcessAddress address, size_t size, ProcessMemoryAllocationTypes type, ProcessMemoryProtectionTypes protection)
+		{
+
+			throw Exceptions::NotImplementedException();
+		}
 
 		// @throw AL::Exceptions::Exception
-		void ReleaseMemory(ProcessAddress address);
+		void ReleaseMemory(ProcessAddress address)
+		{
+
+			throw Exceptions::NotImplementedException();
+		}
 #endif
 
 		// @throw AL::Exceptions::Exception
