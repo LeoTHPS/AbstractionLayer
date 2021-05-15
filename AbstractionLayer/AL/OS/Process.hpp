@@ -187,12 +187,6 @@ namespace AL::OS
 	AL_DEFINE_ENUM_FLAG_OPERATORS(ProcessMemoryProtectionTypes);
 #endif
 
-	// @return false to stop enumeration
-	typedef Function<bool(ProcessId processId, const String& processName)> ProcessEnumCallback;
-
-	// @return false to stop enumeration
-	typedef Function<bool(ProcessAddress address, ProcessAddress size)> ProcessEnumMemoryRegionsCallback;
-
 	struct ProcessStartInfo
 	{
 		String              Path;
@@ -205,6 +199,12 @@ namespace AL::OS
 
 		ProcessInteropTypes InteropType;
 	};
+
+	// @return false to stop enumeration
+	typedef Function<bool(ProcessId processId, const String& processName)> ProcessEnumCallback;
+
+	// @return false to stop enumeration
+	typedef Function<bool(ProcessAddress address, ProcessAddress size)> ProcessEnumMemoryRegionsCallback;
 
 	class Process
 	{
