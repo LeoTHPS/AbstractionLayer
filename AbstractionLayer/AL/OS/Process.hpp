@@ -49,13 +49,9 @@ namespace AL::OS
 		template<size_t SIZE>
 		ProcessMemoryPattern(const ProcessMemoryPatternEntry(&pattern)[SIZE])
 			: pattern(
-				SIZE
+				pattern
 			)
 		{
-			for (size_t i = 0; i < SIZE; ++i)
-			{
-				this->pattern[i] = pattern[i];
-			}
 		}
 
 		auto GetLength() const
