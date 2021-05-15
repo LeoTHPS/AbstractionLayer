@@ -7,6 +7,9 @@
 
 #include "AL/DotNET/Collections/ByteBuffer.hpp"
 
+#include "AL/DotNET/Exceptions/Exception.hpp"
+#include "AL/DotNET/Exceptions/NotImplementedException.hpp"
+
 #include "AL/DotNET/FileSystem/INIFile.hpp"
 #include "AL/DotNET/FileSystem/LogFile.hpp"
 
@@ -14,3 +17,6 @@
 #include "AL/DotNET/GPIO/UARTDeviceSpeeds.hpp"
 
 #include "AL/DotNET/GPIO/Devices/BN_180.hpp"
+
+#include "AL/DotNET/OS/Timer.hpp"
+#include "AL/DotNET/OS/Process.hpp"
