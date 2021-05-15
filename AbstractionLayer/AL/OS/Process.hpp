@@ -33,6 +33,13 @@ namespace AL::OS
 		Collections::Array<ProcessMemoryPatternEntry> pattern;
 
 	public:
+		explicit ProcessMemoryPattern(size_t length)
+			: pattern(
+				length
+			)
+		{
+		}
+
 		template<size_t SIZE>
 		ProcessMemoryPattern(const uint8(&pattern)[SIZE])
 			: pattern(
