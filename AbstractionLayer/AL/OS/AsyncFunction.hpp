@@ -5,6 +5,8 @@
 	#error Platform not supported
 #endif
 
+// TODO: implement linux equivalent using Thread::Detach
+
 namespace AL::OS
 {
 	template<typename F>

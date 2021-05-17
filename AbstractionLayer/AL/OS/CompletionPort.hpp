@@ -5,6 +5,8 @@
 	#error Platform not supported
 #endif
 
+// TODO: implement linux equivalent using thread pools
+
 namespace AL::OS
 {
 	template<typename KEY, typename PARAM>
