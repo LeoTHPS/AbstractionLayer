@@ -153,6 +153,66 @@ namespace AL::OS
 			return dialog.Show();
 		}
 
+#if defined(AL_PLATFORM_LINUX)
+
+#elif defined(AL_PLATFORM_WINDOWS)
+		// @throw AL::Exceptions::Exception
+		static DialogResults Show(HWND hWND, const String& title, const String& message)
+		{
+			Dialog dialog(hWND);
+			dialog.SetTitle(title);
+			dialog.SetMessage(message);
+
+			return dialog.Show();
+		}
+		// @throw AL::Exceptions::Exception
+		static DialogResults Show(HWND hWND, const String& title, const String& message, DialogIcons icon)
+		{
+			Dialog dialog(hWND);
+			dialog.SetIcon(icon);
+			dialog.SetTitle(title);
+			dialog.SetMessage(message);
+
+			return dialog.Show();
+		}
+		// @throw AL::Exceptions::Exception
+		static DialogResults Show(HWND hWND, const String& title, const String& message, DialogIcons icon, DialogButtons buttons)
+		{
+			Dialog dialog(hWND);
+			dialog.SetIcon(icon);
+			dialog.SetTitle(title);
+			dialog.SetMessage(message);
+			dialog.SetButtons(buttons);
+
+			return dialog.Show();
+		}
+		// @throw AL::Exceptions::Exception
+		static DialogResults Show(HWND hWND, const String& title, const String& message, DialogIcons icon, DialogButtons buttons, DialogDefaultButtons defaultButton)
+		{
+			Dialog dialog(hWND);
+			dialog.SetIcon(icon);
+			dialog.SetTitle(title);
+			dialog.SetMessage(message);
+			dialog.SetButtons(buttons);
+			dialog.SetDefaultButton(defaultButton);
+
+			return dialog.Show();
+		}
+		// @throw AL::Exceptions::Exception
+		static DialogResults Show(HWND hWND, const String& title, const String& message, DialogIcons icon, DialogButtons buttons, DialogDefaultButtons defaultButton, bool topMost)
+		{
+			Dialog dialog(hWND);
+			dialog.SetIcon(icon);
+			dialog.SetTitle(title);
+			dialog.SetMessage(message);
+			dialog.SetButtons(buttons);
+			dialog.SetDefaultButton(defaultButton);
+			dialog.SetTopMost(topMost);
+
+			return dialog.Show();
+		}
+#endif
+
 		Dialog()
 		{
 		}
