@@ -95,27 +95,36 @@ namespace AL::DotNET::OS
 		}
 	};
 
-#if defined(AL_PLATFORM_WINDOWS)
 	[System::FlagsAttribute]
 	public enum class ProcessStartupFlags
 		: typename Get_Enum_Base<AL::OS::ProcessStartupFlags>::Type
 	{
 		None            = static_cast<typename Get_Enum_Base<AL::OS::ProcessStartupFlags>::Type>(AL::OS::ProcessStartupFlags::None),
+
+#if defined(AL_PLATFORM_WINDOWS)
 		InheritHandles  = static_cast<typename Get_Enum_Base<AL::OS::ProcessStartupFlags>::Type>(AL::OS::ProcessStartupFlags::InheritHandles),
-		UntrustedSource = static_cast<typename Get_Enum_Base<AL::OS::ProcessStartupFlags>::Type>(AL::OS::ProcessStartupFlags::UntrustedSource),
+		UntrustedSource = static_cast<typename Get_Enum_Base<AL::OS::ProcessStartupFlags>::Type>(AL::OS::ProcessStartupFlags::UntrustedSource)
+#elif defined(AL_PLATFORM_LINUX)
+
+#endif
 	};
 	
 	public enum class ProcessMemoryReleaseTypes
 		: typename Get_Enum_Base<AL::OS::ProcessMemoryReleaseTypes>::Type
 	{
+#if defined(AL_PLATFORM_WINDOWS)
 		Decommit = static_cast<typename Get_Enum_Base<AL::OS::ProcessMemoryReleaseTypes>::Type>(AL::OS::ProcessMemoryReleaseTypes::Decommit),
 		Release  = static_cast<typename Get_Enum_Base<AL::OS::ProcessMemoryReleaseTypes>::Type>(AL::OS::ProcessMemoryReleaseTypes::Release)
+#elif defined(AL_PLATFORM_LINUX)
+
+#endif
 	};
 
 	[System::FlagsAttribute]
 	public enum class ProcessMemoryAllocationTypes
 		: typename Get_Enum_Base<AL::OS::ProcessMemoryAllocationTypes>::Type
 	{
+#if defined(AL_PLATFORM_WINDOWS)
 		Commit    = static_cast<typename Get_Enum_Base<AL::OS::ProcessMemoryAllocationTypes>::Type>(AL::OS::ProcessMemoryAllocationTypes::Commit),
 		Reserve   = static_cast<typename Get_Enum_Base<AL::OS::ProcessMemoryAllocationTypes>::Type>(AL::OS::ProcessMemoryAllocationTypes::Reserve),
 		Reset     = static_cast<typename Get_Enum_Base<AL::OS::ProcessMemoryAllocationTypes>::Type>(AL::OS::ProcessMemoryAllocationTypes::Reset),
@@ -123,12 +132,16 @@ namespace AL::DotNET::OS
 		LargePage = static_cast<typename Get_Enum_Base<AL::OS::ProcessMemoryAllocationTypes>::Type>(AL::OS::ProcessMemoryAllocationTypes::LargePage),
 		Physical  = static_cast<typename Get_Enum_Base<AL::OS::ProcessMemoryAllocationTypes>::Type>(AL::OS::ProcessMemoryAllocationTypes::Physical),
 		TopDown   = static_cast<typename Get_Enum_Base<AL::OS::ProcessMemoryAllocationTypes>::Type>(AL::OS::ProcessMemoryAllocationTypes::TopDown)
+#elif defined(AL_PLATFORM_LINUX)
+
+#endif
 	};
 	
 	[System::FlagsAttribute]
 	public enum class ProcessMemoryProtectionTypes
 		: typename Get_Enum_Base<AL::OS::ProcessMemoryProtectionTypes>::Type
 	{
+#if defined(AL_PLATFORM_WINDOWS)
 		Execute          = static_cast<typename Get_Enum_Base<AL::OS::ProcessMemoryProtectionTypes>::Type>(AL::OS::ProcessMemoryProtectionTypes::Execute),
 		ExecuteRead      = static_cast<typename Get_Enum_Base<AL::OS::ProcessMemoryProtectionTypes>::Type>(AL::OS::ProcessMemoryProtectionTypes::ExecuteRead),
 		ExecuteReadWrite = static_cast<typename Get_Enum_Base<AL::OS::ProcessMemoryProtectionTypes>::Type>(AL::OS::ProcessMemoryProtectionTypes::ExecuteReadWrite),
@@ -138,8 +151,10 @@ namespace AL::DotNET::OS
 		Guard            = static_cast<typename Get_Enum_Base<AL::OS::ProcessMemoryProtectionTypes>::Type>(AL::OS::ProcessMemoryProtectionTypes::Guard),
 		NoCache          = static_cast<typename Get_Enum_Base<AL::OS::ProcessMemoryProtectionTypes>::Type>(AL::OS::ProcessMemoryProtectionTypes::NoCache),
 		WriteCombine     = static_cast<typename Get_Enum_Base<AL::OS::ProcessMemoryProtectionTypes>::Type>(AL::OS::ProcessMemoryProtectionTypes::WriteCombine)
-	};
+#elif defined(AL_PLATFORM_LINUX)
+
 #endif
+	};
 
 	public ref class ProcessStartInfo
 	{
