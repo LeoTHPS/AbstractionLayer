@@ -3769,6 +3769,7 @@ namespace AL
 #endif
 
 #include "OS/Dialog.hpp"
+#include "OS/FileDialog.hpp"
 #include "OS/OpenFileDialog.hpp"
 #include "OS/SaveFileDialog.hpp"
 
