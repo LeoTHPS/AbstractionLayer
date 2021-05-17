@@ -87,7 +87,11 @@ namespace AL::OS
 			library.isOpen = true;
 		}
 		// @throw AL::Exceptions::Exception
-		static void LoadLibrary(Library& library, const void* lpBuffer, size_t size);
+		static void LoadLibrary(Library& library, const void* lpBuffer, size_t size)
+		{
+
+			throw Exceptions::NotImplementedException();
+		}
 
 		// @throw AL::Exceptions::Exception
 		static void EnumerateLibraries(const LibraryEnumLibrariesCallback& callback)
