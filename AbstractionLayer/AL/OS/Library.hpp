@@ -11,6 +11,7 @@
 
 namespace AL::OS
 {
+	// @throw AL::Exceptions::Exception
 	typedef Function<void(const String& name, const FileSystem::Path& path)> LibraryEnumLibrariesCallback;
 
 	class Library
@@ -118,10 +119,19 @@ namespace AL::OS
 			{
 				do
 				{
-					callback(
-						String(module.szModule),
-						FileSystem::Path(module.szExePath)
-					);
+					try
+					{
+						callback(
+							String(module.szModule),
+							FileSystem::Path(module.szExePath)
+						);
+					}
+					catch (Exceptions::Exception&)
+					{
+						CloseHandle(hSnapshot);
+
+						throw;
+					}
 				} while (Module32Next(hSnapshot, &module));
 			}
 			else if (GetLastError() != ERROR_NO_MORE_FILES)
