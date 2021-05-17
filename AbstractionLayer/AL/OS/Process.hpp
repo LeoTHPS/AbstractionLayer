@@ -76,12 +76,6 @@ namespace AL::OS
 		}
 	};
 
-	enum class ProcessInteropTypes
-	{
-		SysAPI,
-		Injection
-	};
-
 #if defined(AL_PLATFORM_WINDOWS)
 	enum class ProcessStartupFlags
 	{
@@ -218,8 +212,6 @@ namespace AL::OS
 #if defined(AL_PLATFORM_WINDOWS)
 		BitMask<ProcessStartupFlags> Flags;
 #endif
-
-		ProcessInteropTypes          InteropType;
 	};
 
 	// @throw AL::Exceptions::Exception
@@ -246,13 +238,11 @@ namespace AL::OS
 
 		mutable ProcessExitCode exitCode = 0;
 
-		ProcessInteropTypes interopType = ProcessInteropTypes::SysAPI;
-
 		Process(const Process&) = delete;
 
 	public:
 		// @throw AL::Exceptions::Exception
-		static void GetCurrentProcess(Process& process, ProcessInteropTypes interopType)
+		static void GetCurrentProcess(Process& process)
 		{
 			ProcessId processId;
 
@@ -268,7 +258,7 @@ namespace AL::OS
 			throw Exceptions::NotImplementedException();
 #endif
 
-			if (!GetProcessById(process, processId, interopType))
+			if (!GetProcessById(process, processId))
 			{
 
 				throw Exceptions::Exception(
@@ -279,7 +269,7 @@ namespace AL::OS
 
 		// @throw AL::Exceptions::Exception
 		// @return false if not found
-		static bool GetProcessById(Process& process, ProcessId id, ProcessInteropTypes interopType)
+		static bool GetProcessById(Process& process, ProcessId id)
 		{
 #if defined(AL_PLATFORM_LINUX)
 			throw Exceptions::NotImplementedException();
@@ -311,7 +301,8 @@ namespace AL::OS
 			process.isCurrentProcess = isCurrentProcess;
 
 			process.id = id;
-			process.interopType = interopType;
+
+			process.hProcess = hProcess;
 #else
 			throw Exceptions::NotImplementedException();
 #endif
@@ -321,7 +312,7 @@ namespace AL::OS
 		
 		// @throw AL::Exceptions::Exception
 		// @return false if not found
-		static bool GetProcessByName(Process& process, const String& name, ProcessInteropTypes interopType)
+		static bool GetProcessByName(Process& process, const String& name)
 		{
 			ProcessId processId;
 			bool      isProcessFound = false;
@@ -342,7 +333,7 @@ namespace AL::OS
 				}
 			);
 
-			if (!isProcessFound || !GetProcessById(process, processId, interopType))
+			if (!isProcessFound || !GetProcessById(process, processId))
 			{
 
 				return false;
@@ -398,8 +389,6 @@ namespace AL::OS
 			);
 
 			process.hProcess = _info.hProcess;
-
-			process.interopType = info.InteropType;
 #else
 			throw Exceptions::NotImplementedException();
 #endif
@@ -440,7 +429,9 @@ namespace AL::OS
 					}
 					catch (Exceptions::Exception&)
 					{
-						CloseHandle(hSnapshot);
+						CloseHandle(
+							hSnapshot
+						);
 
 						throw;
 					}
@@ -448,14 +439,18 @@ namespace AL::OS
 			}
 			else if (GetLastError() != ERROR_NO_MORE_FILES)
 			{
-				CloseHandle(hSnapshot);
+				CloseHandle(
+					hSnapshot
+				);
 
 				throw Exceptions::SystemException(
 					"Process32First"
 				);
 			}
 
-			CloseHandle(hSnapshot);
+			CloseHandle(
+				hSnapshot
+			);
 #else
 			throw Exceptions::NotImplementedException();
 #endif
@@ -480,9 +475,6 @@ namespace AL::OS
 			),
 			exitCode(
 				process.exitCode
-			),
-			interopType(
-				process.interopType
 			)
 		{
 #if defined(AL_PLATFORM_WINDOWS)
@@ -496,7 +488,6 @@ namespace AL::OS
 
 			process.id = 0;
 			process.exitCode = 0;
-			process.interopType = ProcessInteropTypes::SysAPI;
 		}
 
 		virtual ~Process()
@@ -562,11 +553,6 @@ namespace AL::OS
 		ProcessId GetId() const
 		{
 			return id;
-		}
-
-		auto GetInteropType() const
-		{
-			return interopType;
 		}
 
 #if defined(AL_PLATFORM_WINDOWS)
@@ -639,6 +625,45 @@ namespace AL::OS
 #if defined(AL_PLATFORM_LINUX)
 			throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
+			if (IsCurrentProcess())
+			{
+				HMODULE hModule;
+				FARPROC hExport;
+
+				if ((hModule = GetModuleHandleA(module.GetCString())) == NULL)
+				{
+					if (GetLastError() == ERROR_MOD_NOT_FOUND)
+					{
+
+						return false;
+					}
+
+					throw Exceptions::SystemException(
+						"GetModuleHandleA"
+					);
+				}
+				else if ((hExport = GetProcAddress(hModule, name.GetCString())) == NULL)
+				{
+					if (GetLastError() == ERROR_PROC_NOT_FOUND)
+					{
+
+						return false;
+					}
+
+					throw Exceptions::SystemException(
+						"GetProcAddress"
+					);
+				}
+
+				address = reinterpret_cast<ProcessAddress>(
+					hExport
+				);
+
+				return true;
+			}
+
+			// TODO: implement external-process logic
+
 			throw Exceptions::NotImplementedException();
 #else
 			throw Exceptions::NotImplementedException();
@@ -759,7 +784,10 @@ namespace AL::OS
 		{
 			AL_ASSERT(IsOpen(), "Process not open");
 
-			if (IsCurrentProcess() && (GetInteropType() == ProcessInteropTypes::SysAPI))
+#if defined(AL_PLATFORM_LINUX)
+			throw Exceptions::NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
+			if (IsCurrentProcess())
 			{
 				Library library;
 
@@ -773,22 +801,12 @@ namespace AL::OS
 				);
 			}
 
-			switch (GetInteropType())
-			{
-				case ProcessInteropTypes::SysAPI:
-				{
-
-				}
-				break;
-
-				case ProcessInteropTypes::Injection:
-				{
-
-				}
-				break;
-			}
+			// TODO: implement external-process logic
 
 			throw Exceptions::NotImplementedException();
+#else
+			throw Exceptions::NotImplementedException();
+#endif
 		}
 		// @throw AL::Exceptions::Exception
 		// @return address of library
@@ -799,6 +817,23 @@ namespace AL::OS
 #if defined(AL_PLATFORM_LINUX)
 			throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
+			if (IsCurrentProcess())
+			{
+				Library library;
+
+				Library::LoadLibrary(
+					library,
+					lpBuffer,
+					size
+				);
+
+				return reinterpret_cast<ProcessAddress>(
+					library.GetBaseAddress()
+				);
+			}
+
+			// TODO: implement external-process logic
+
 			throw Exceptions::NotImplementedException();
 #else
 			throw Exceptions::NotImplementedException();

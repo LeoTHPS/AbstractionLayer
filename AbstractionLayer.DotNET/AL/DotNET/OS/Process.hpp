@@ -95,13 +95,6 @@ namespace AL::DotNET::OS
 		}
 	};
 
-	public enum class ProcessInteropTypes
-		: typename Get_Enum_Base<AL::OS::ProcessInteropTypes>::Type
-	{
-		SysAPI    = static_cast<typename Get_Enum_Base<AL::OS::ProcessInteropTypes>::Type>(AL::OS::ProcessInteropTypes::SysAPI),
-		Injection = static_cast<typename Get_Enum_Base<AL::OS::ProcessInteropTypes>::Type>(AL::OS::ProcessInteropTypes::Injection)
-	};
-
 #if defined(AL_PLATFORM_WINDOWS)
 	[System::FlagsAttribute]
 	public enum class ProcessStartupFlags
@@ -158,8 +151,6 @@ namespace AL::DotNET::OS
 		ProcessStartupFlags flags            = ProcessStartupFlags::None;
 #endif
 
-		ProcessInteropTypes interopType      = ProcessInteropTypes::SysAPI;
-
 	public:
 		property System::String^ Path
 		{
@@ -210,18 +201,6 @@ namespace AL::DotNET::OS
 			}
 		}
 #endif
-
-		property ProcessInteropTypes InteropType
-		{
-			ProcessInteropTypes get()
-			{
-				return interopType;
-			}
-			void set(ProcessInteropTypes value)
-			{
-				interopType = value;
-			}
-		}
 	};
 
 	/// <summary>
@@ -311,21 +290,12 @@ namespace AL::DotNET::OS
 		/// <exception cref="AL::Exceptions::Exception" />
 		static void GetCurrentProcess([System::Runtime::InteropServices::OutAttribute] Process^% process)
 		{
-			GetCurrentProcess(
-				process,
-				ProcessInteropTypes::SysAPI
-			);
-		}
-		/// <exception cref="AL::Exceptions::Exception" />
-		static void GetCurrentProcess([System::Runtime::InteropServices::OutAttribute] Process^% process, ProcessInteropTypes interopType)
-		{
 			AL::OS::Process _process;
 
 			try
 			{
 				AL::OS::Process::GetCurrentProcess(
-					_process,
-					static_cast<AL::OS::ProcessInteropTypes>(interopType)
+					_process
 				);
 			}
 			catch (AL::Exceptions::Exception& exception)
@@ -347,23 +317,11 @@ namespace AL::DotNET::OS
 		/// <exception cref="AL::Exceptions::Exception" />
 		static bool GetProcessById([System::Runtime::InteropServices::OutAttribute] Process^% process, ProcessId id)
 		{
-			return GetProcessById(
-				process,
-				id,
-				ProcessInteropTypes::SysAPI
-			);
-		}
-		/// <summary>
-		/// Returns false if not found
-		/// </summary>
-		/// <exception cref="AL::Exceptions::Exception" />
-		static bool GetProcessById([System::Runtime::InteropServices::OutAttribute] Process^% process, ProcessId id, ProcessInteropTypes interopType)
-		{
 			AL::OS::Process _process;
 
 			try
 			{
-				if (!AL::OS::Process::GetProcessById(_process, static_cast<AL::OS::ProcessId>(id), static_cast<AL::OS::ProcessInteropTypes>(interopType)))
+				if (!AL::OS::Process::GetProcessById(_process, static_cast<AL::OS::ProcessId>(id)))
 				{
 
 					return false;
@@ -390,23 +348,11 @@ namespace AL::DotNET::OS
 		/// <exception cref="AL::Exceptions::Exception" />
 		static bool GetProcessByName([System::Runtime::InteropServices::OutAttribute] Process^% process, System::String^ name)
 		{
-			return GetProcessByName(
-				process,
-				name,
-				ProcessInteropTypes::SysAPI
-			);
-		}
-		/// <summary>
-		/// Returns false if not found
-		/// </summary>
-		/// <exception cref="AL::Exceptions::Exception" />
-		static bool GetProcessByName([System::Runtime::InteropServices::OutAttribute] Process^% process, System::String^ name, ProcessInteropTypes interopType)
-		{
 			AL::OS::Process _process;
 
 			try
 			{
-				if (!AL::OS::Process::GetProcessByName(_process, Marshal::ToNativeString(name), static_cast<AL::OS::ProcessInteropTypes>(interopType)))
+				if (!AL::OS::Process::GetProcessByName(_process, Marshal::ToNativeString(name)))
 				{
 
 					return false;
@@ -437,7 +383,6 @@ namespace AL::DotNET::OS
 			_info.CommandLine = Marshal::ToNativeString(info->CommandLine);
 			_info.WorkingDirectory = Marshal::ToNativeString(info->WorkingDirectory);
 			_info.Flags = static_cast<AL::OS::ProcessStartupFlags>(info->Flags);
-			_info.InteropType = static_cast<AL::OS::ProcessInteropTypes>(info->InteropType);
 
 			try
 			{
@@ -523,13 +468,6 @@ namespace AL::DotNET::OS
 		{
 			return static_cast<ProcessId>(
 				lpProcess->GetId()
-			);
-		}
-
-		auto GetInteropType()
-		{
-			return static_cast<ProcessInteropTypes>(
-				lpProcess->GetInteropType()
 			);
 		}
 
