@@ -218,7 +218,7 @@ namespace AL::OS
 			AL_ASSERT(IsOpen(), "Library not open");
 
 #if defined(AL_PLATFORM_LINUX)
-
+			throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
 			FARPROC lpExport;
 
@@ -242,7 +242,7 @@ namespace AL::OS
 			AL_ASSERT(IsOpen(), "Library not open");
 
 #if defined(AL_PLATFORM_LINUX)
-
+			throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
 			FARPROC lpExport;
 
@@ -274,7 +274,6 @@ namespace AL::OS
 			}
 		}
 
-		// @throw AL::Exceptions::Exception
 		void UnloadAndClose()
 		{
 			if (IsOpen())
