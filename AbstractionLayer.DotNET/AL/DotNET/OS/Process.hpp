@@ -313,7 +313,7 @@ namespace AL::DotNET::OS
 					_process
 				);
 			}
-			catch (AL::Exceptions::Exception& exception)
+			catch (const AL::Exceptions::Exception& exception)
 			{
 
 				throw gcnew Exceptions::Exception(
@@ -342,7 +342,7 @@ namespace AL::DotNET::OS
 					return false;
 				}
 			}
-			catch (AL::Exceptions::Exception& exception)
+			catch (const AL::Exceptions::Exception& exception)
 			{
 
 				throw gcnew Exceptions::Exception(
@@ -373,7 +373,7 @@ namespace AL::DotNET::OS
 					return false;
 				}
 			}
-			catch (AL::Exceptions::Exception& exception)
+			catch (const AL::Exceptions::Exception& exception)
 			{
 
 				throw gcnew Exceptions::Exception(
@@ -406,7 +406,7 @@ namespace AL::DotNET::OS
 					_info
 				);
 			}
-			catch (AL::Exceptions::Exception& exception)
+			catch (const AL::Exceptions::Exception& exception)
 			{
 
 				throw gcnew Exceptions::Exception(
@@ -465,7 +465,7 @@ namespace AL::DotNET::OS
 			{
 				return lpProcess->IsRunning();
 			}
-			catch (AL::Exceptions::Exception& exception)
+			catch (const AL::Exceptions::Exception& exception)
 			{
 
 				throw gcnew Exceptions::Exception(
@@ -495,7 +495,7 @@ namespace AL::DotNET::OS
 					lpProcess->GetExitCode()
 				);
 			}
-			catch (AL::Exceptions::Exception& exception)
+			catch (const AL::Exceptions::Exception& exception)
 			{
 
 				throw gcnew Exceptions::Exception(
@@ -520,7 +520,7 @@ namespace AL::DotNET::OS
 					return false;
 				}
 			}
-			catch (AL::Exceptions::Exception& exception)
+			catch (const AL::Exceptions::Exception& exception)
 			{
 
 				throw gcnew Exceptions::Exception(
@@ -550,7 +550,7 @@ namespace AL::DotNET::OS
 					return false;
 				}
 			}
-			catch (AL::Exceptions::Exception& exception)
+			catch (const AL::Exceptions::Exception& exception)
 			{
 
 				throw gcnew Exceptions::Exception(
@@ -581,7 +581,7 @@ namespace AL::DotNET::OS
 					return false;
 				}
 			}
-			catch (AL::Exceptions::Exception& exception)
+			catch (const AL::Exceptions::Exception& exception)
 			{
 
 				throw gcnew Exceptions::Exception(
@@ -611,7 +611,38 @@ namespace AL::DotNET::OS
 					return false;
 				}
 			}
-			catch (AL::Exceptions::Exception& exception)
+			catch (const AL::Exceptions::Exception& exception)
+			{
+
+				throw gcnew Exceptions::Exception(
+					exception
+				);
+			}
+
+			address = static_cast<ProcessAddress>(
+				_address
+			);
+
+			return true;
+		}
+
+		/// <summary>
+		/// Returns false if not found
+		/// </summary>
+		/// <exception cref="AL::Exceptions::Exception" />
+		bool GetModule([System::Runtime::InteropServices::OutAttribute] ProcessAddress& address, System::String^ name)
+		{
+			AL::OS::ProcessAddress _address;
+
+			try
+			{
+				if (!lpProcess->GetModule(_address, Marshal::ToNativeString(name)))
+				{
+
+					return false;
+				}
+			}
+			catch (const AL::Exceptions::Exception& exception)
 			{
 
 				throw gcnew Exceptions::Exception(
@@ -644,7 +675,7 @@ namespace AL::DotNET::OS
 					static_cast<AL::OS::ProcessAddress>(param)
 				);
 			}
-			catch (AL::Exceptions::Exception& exception)
+			catch (const AL::Exceptions::Exception& exception)
 			{
 
 				throw gcnew Exceptions::Exception(
@@ -671,7 +702,7 @@ namespace AL::DotNET::OS
 					static_cast<AL::OS::ProcessAddress>(param)
 				);
 			}
-			catch (AL::Exceptions::Exception& exception)
+			catch (const AL::Exceptions::Exception& exception)
 			{
 
 				throw gcnew Exceptions::Exception(
@@ -694,7 +725,7 @@ namespace AL::DotNET::OS
 					Marshal::ToNativeString(path)
 				);
 			}
-			catch (AL::Exceptions::Exception& exception)
+			catch (const AL::Exceptions::Exception& exception)
 			{
 
 				throw gcnew Exceptions::Exception(
@@ -732,7 +763,7 @@ namespace AL::DotNET::OS
 					static_cast<size_t>(buffer->Length)
 				);
 			}
-			catch (AL::Exceptions::Exception& exception)
+			catch (const AL::Exceptions::Exception& exception)
 			{
 				delete[] lpBuffer;
 
@@ -757,7 +788,7 @@ namespace AL::DotNET::OS
 					static_cast<AL::OS::ProcessAddress>(address)
 				);
 			}
-			catch (AL::Exceptions::Exception& exception)
+			catch (const AL::Exceptions::Exception& exception)
 			{
 
 				throw gcnew Exceptions::Exception(
@@ -777,7 +808,7 @@ namespace AL::DotNET::OS
 					static_cast<AL::OS::ProcessMemoryProtectionTypes>(value)
 				);
 			}
-			catch (AL::Exceptions::Exception& exception)
+			catch (const AL::Exceptions::Exception& exception)
 			{
 
 				throw gcnew Exceptions::Exception(
@@ -799,7 +830,7 @@ namespace AL::DotNET::OS
 					_oldType
 				);
 			}
-			catch (AL::Exceptions::Exception& exception)
+			catch (const AL::Exceptions::Exception& exception)
 			{
 
 				throw gcnew Exceptions::Exception(
@@ -828,7 +859,7 @@ namespace AL::DotNET::OS
 					static_cast<AL::OS::ProcessMemoryProtectionTypes>(protection)
 				);
 			}
-			catch (AL::Exceptions::Exception& exception)
+			catch (const AL::Exceptions::Exception& exception)
 			{
 
 				throw gcnew Exceptions::Exception(
@@ -857,7 +888,7 @@ namespace AL::DotNET::OS
 					static_cast<AL::OS::ProcessMemoryProtectionTypes>(protection)
 				);
 			}
-			catch (AL::Exceptions::Exception& exception)
+			catch (const AL::Exceptions::Exception& exception)
 			{
 
 				throw gcnew Exceptions::Exception(
@@ -881,7 +912,7 @@ namespace AL::DotNET::OS
 					size
 				);
 			}
-			catch (AL::Exceptions::Exception& exception)
+			catch (const AL::Exceptions::Exception& exception)
 			{
 
 				throw gcnew Exceptions::Exception(
@@ -924,7 +955,7 @@ namespace AL::DotNET::OS
 					static_cast<size_t>(buffer->Length)
 				);
 			}
-			catch (AL::Exceptions::Exception& exception)
+			catch (const AL::Exceptions::Exception& exception)
 			{
 				delete[] lpBuffer;
 
@@ -978,7 +1009,7 @@ namespace AL::DotNET::OS
 					static_cast<size_t>(buffer->Length)
 				);
 			}
-			catch (AL::Exceptions::Exception& exception)
+			catch (const AL::Exceptions::Exception& exception)
 			{
 				delete[] lpBuffer;
 
@@ -1016,7 +1047,7 @@ namespace AL::DotNET::OS
 					return false;
 				}
 			}
-			catch (AL::Exceptions::Exception& exception)
+			catch (const AL::Exceptions::Exception& exception)
 			{
 
 				throw gcnew Exceptions::Exception(
@@ -1056,7 +1087,7 @@ namespace AL::DotNET::OS
 					return false;
 				}
 			}
-			catch (AL::Exceptions::Exception& exception)
+			catch (const AL::Exceptions::Exception& exception)
 			{
 
 				throw gcnew Exceptions::Exception(
@@ -1104,7 +1135,7 @@ namespace AL::DotNET::OS
 					static_cast<AL::OS::ProcessExitCode>(exitCode)
 				);
 			}
-			catch (AL::Exceptions::Exception& exception)
+			catch (const AL::Exceptions::Exception& exception)
 			{
 
 				throw gcnew Exceptions::Exception(
