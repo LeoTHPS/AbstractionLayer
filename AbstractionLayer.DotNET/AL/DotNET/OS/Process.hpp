@@ -112,6 +112,13 @@ namespace AL::DotNET::OS
 		UntrustedSource = static_cast<typename Get_Enum_Base<AL::OS::ProcessStartupFlags>::Type>(AL::OS::ProcessStartupFlags::UntrustedSource),
 	};
 	
+	public enum class ProcessMemoryReleaseTypes
+		: typename Get_Enum_Base<AL::OS::ProcessMemoryReleaseTypes>::Type
+	{
+		Decommit = static_cast<typename Get_Enum_Base<AL::OS::ProcessMemoryReleaseTypes>::Type>(AL::OS::ProcessMemoryReleaseTypes::Decommit),
+		Release  = static_cast<typename Get_Enum_Base<AL::OS::ProcessMemoryReleaseTypes>::Type>(AL::OS::ProcessMemoryReleaseTypes::Release)
+	};
+
 	[System::FlagsAttribute]
 	public enum class ProcessMemoryAllocationTypes
 		: typename Get_Enum_Base<AL::OS::ProcessMemoryAllocationTypes>::Type
@@ -694,6 +701,33 @@ namespace AL::DotNET::OS
 			}
 		}
 
+		/// <exception cref="AL::Exceptions::Exception" />
+		System::UInt32 CreateThreadAndWait(ProcessAddress address)
+		{
+			return CreateThreadAndWait(
+				address,
+				0
+			);
+		}
+		/// <exception cref="AL::Exceptions::Exception" />
+		System::UInt32 CreateThreadAndWait(ProcessAddress address, ProcessAddress param)
+		{
+			try
+			{
+				return lpProcess->CreateThreadAndWait(
+					static_cast<AL::OS::ProcessAddress>(address),
+					static_cast<AL::OS::ProcessAddress>(param)
+				);
+			}
+			catch (AL::Exceptions::Exception& exception)
+			{
+
+				throw gcnew Exceptions::Exception(
+					exception
+				);
+			}
+		}
+
 		/// <summary>
 		/// Returns address of library
 		/// </summary>
@@ -799,6 +833,32 @@ namespace AL::DotNET::OS
 				);
 			}
 		}
+		/// <exception cref="AL::Exceptions::Exception" />
+		void SetMemoryProtection(ProcessAddress address, size_t size, ProcessMemoryProtectionTypes value, [System::Runtime::InteropServices::OutAttribute] ProcessMemoryProtectionTypes% oldType)
+		{
+			AL::OS::ProcessMemoryProtectionTypes _oldType;
+
+			try
+			{
+				lpProcess->SetMemoryProtection(
+					static_cast<AL::OS::ProcessAddress>(address),
+					size,
+					static_cast<AL::OS::ProcessMemoryProtectionTypes>(value),
+					_oldType
+				);
+			}
+			catch (AL::Exceptions::Exception& exception)
+			{
+
+				throw gcnew Exceptions::Exception(
+					exception
+				);
+			}
+
+			oldType = static_cast<ProcessMemoryProtectionTypes>(
+				_oldType
+			);
+		}
 
 		/// <summary>
 		/// Returns address of newly allocated memory
@@ -859,12 +919,14 @@ namespace AL::DotNET::OS
 		}
 
 		/// <exception cref="AL::Exceptions::Exception" />
-		void ReleaseMemory(ProcessAddress address)
+		void ReleaseMemory(ProcessAddress address, ProcessMemoryReleaseTypes type, size_t size)
 		{
 			try
 			{
 				lpProcess->ReleaseMemory(
-					address
+					address,
+					static_cast<AL::OS::ProcessMemoryReleaseTypes>(type),
+					size
 				);
 			}
 			catch (AL::Exceptions::Exception& exception)

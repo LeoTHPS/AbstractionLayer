@@ -8,7 +8,7 @@
 	#include <signal.h>
 	#include <unistd.h>
 #elif defined(AL_PLATFORM_WINDOWS)
-
+	#include <TlHelp32.h>
 #endif
 
 namespace AL::OS
@@ -85,16 +85,31 @@ namespace AL::OS
 #if defined(AL_PLATFORM_WINDOWS)
 	enum class ProcessStartupFlags
 	{
-		None = 0,
+		None            = 0,
 
 		// Inherit parent input/output/error handles
-		InheritHandles = STARTF_USESTDHANDLES,
+		InheritHandles  = STARTF_USESTDHANDLES,
 
 		// The command line came from an untrusted source.
 		UntrustedSource = STARTF_UNTRUSTEDSOURCE
 	};
 
 	AL_DEFINE_ENUM_FLAG_OPERATORS(ProcessStartupFlags);
+
+	enum class ProcessMemoryReleaseTypes
+	{
+		// Decommits the specified region of committed pages.
+		// After the operation, the pages are in the reserved state.
+		// The function does not fail if you attempt to decommit an uncommitted page.
+		// This means that you can decommit a range of pages without first determining their current commitment state.
+		Decommit = MEM_DECOMMIT,
+
+		// Releases the specified region of pages. After the operation, the pages are in the free state.
+		// If any pages in the region are committed currently, the function first decommits, and then releases them.
+		// The function does not fail if you attempt to release pages that are in different states, some reserved and some committed.
+		// This means that you can release a range of pages without first determining the current commitment state.
+		Release  = MEM_RELEASE
+	};
 
 	enum class ProcessMemoryAllocationTypes
 	{
@@ -103,12 +118,12 @@ namespace AL::OS
 		// caller later initially accesses the memory, the contents will be zero. Actual physical
 		// pages are not allocated unless/until the virtual addresses are actually accessed.
 		// To reserve and commit pages in one step, use Commit | Reserve
-		Commit = MEM_COMMIT,
+		Commit                                                                   = MEM_COMMIT,
 
 		// Reserves a range of the process's virtual address space without allocating any actual
 		// physical storage in memory or in the paging file on disk.
 		// To reserve and commit pages in one step, use Commit | Reserve
-		Reserve = MEM_RESERVE,
+		Reserve                                                                  = MEM_RESERVE,
 
 		// Indicates that data in the memory range is no longer of interest.
 		// The pages should not be read from or written to the paging file.
@@ -116,29 +131,29 @@ namespace AL::OS
 		// This value cannot be used with any other value.
 		// Using this value does not guarantee that the range operated on with Reset will contain zeros.
 		// If you want the range to contain zeros, decommit the memory and then recommit it.
-		Reset = MEM_RESET,
+		Reset                                                                    = MEM_RESET,
 
 		// MEM_RESET_UNDO should only be called on an address range to which Reset was successfully applied earlier.
 		// It indicates that the data in the specified memory range specified by lpAddress and dwSize is of interest
 		// to the caller and attempts to reverse the effects of Reset. If the function succeeds, that means all data
 		// in the specified address range is intact. If the function fails, at least some of the data in the address
 		// range has been replaced with zeroes.
-		ResetUndo = MEM_RESET_UNDO,
+		ResetUndo                                                                = MEM_RESET_UNDO,
 
 		// Allocates memory using large page support.
-		// - https://msdn.microsoft.com/en-us/library/windows/desktop/aa366720(v=vs.85).aspx
+		// - https://msdn.microsoft.com/en-us/library/windows/desktop/aa366720(v =vs.85).aspx
 		// The size and alignment must be a multiple of the large - page minimum.
 		// If you specify this value, you must also specify Reserve and Commit.
-		LargePage = MEM_LARGE_PAGES,
+		LargePage                                                                = MEM_LARGE_PAGES,
 
 		// Reserves an address range that can be used to map Address Windowing Extensions (AWE) pages.
-		// - https://msdn.microsoft.com/en-us/library/windows/desktop/aa366527(v=vs.85).aspx
+		// - https://msdn.microsoft.com/en-us/library/windows/desktop/aa366527(v =vs.85).aspx
 		// This value must be used with Reserve and no other values.
-		Physical = MEM_PHYSICAL,
+		Physical                                                                 = MEM_PHYSICAL,
 
 		// Allocates memory at the highest possible address.
 		// This can be slower than regular allocations, especially when there are many allocations.
-		TopDown = MEM_TOP_DOWN
+		TopDown                                                                  = MEM_TOP_DOWN
 	};
 
 	AL_DEFINE_ENUM_FLAG_OPERATORS(ProcessMemoryAllocationTypes);
@@ -147,29 +162,29 @@ namespace AL::OS
 	{
 		// Enables execute access to the committed region of pages.
 		// An attempt to write to the committed region results in an access violation.
-		Execute = PAGE_EXECUTE,
+		Execute          = PAGE_EXECUTE,
 
 		// Enables execute or read-only access to the committed region of pages.
 		// An attempt to write to the committed region results in an access violation.
-		ExecuteRead = PAGE_EXECUTE_READ,
+		ExecuteRead      = PAGE_EXECUTE_READ,
 
 		// Enables execute, read-only, or read/write access to the committed region of pages.
 		ExecuteReadWrite = PAGE_EXECUTE_READWRITE,
 
 		// Disables all access to the committed region of pages.
 		// An attempt to read from, write to, or execute the committed region results in an access violation.
-		NoAccess = PAGE_NOACCESS,
+		NoAccess         = PAGE_NOACCESS,
 
 		// Enables read-only access to the committed region of pages.
 		// An attempt to write to the committed region results in an access violation.
 		// If Data Execution Prevention is enabled, an attempt to execute code in the committed
 		// region results in an access violation.
-		ReadOnly = PAGE_READONLY,
+		ReadOnly         = PAGE_READONLY,
 
 		// Enables read-only or read/write access to the committed region of pages.
 		// If Data Execution Prevention is enabled, attempting to execute code in the committed
 		// region results in an access violation.
-		ReadWrite = PAGE_READWRITE,
+		ReadWrite        = PAGE_READWRITE,
 
 		// Pages in the region become guard pages. Any attempt to access a guard page causes the system
 		// to raise a STATUS_GUARD_PAGE_VIOLATION exception and turn off the guard page status.
@@ -177,18 +192,18 @@ namespace AL::OS
 		// When an access attempt leads the system to turn off guard page status, the underlying page protection takes over.
 		// If a guard page exception occurs during a system service, the service typically returns a failure status indicator.
 		// This value cannot be used with NoAccess.
-		Guard = PAGE_GUARD,
+		Guard            = PAGE_GUARD,
 
 		// Sets all pages to be non-cachable. Applications should not use this attribute except when explicitly required for a device.
 		// Using the interlocked functions with memory that is mapped with SEC_NOCACHE can result in an EXCEPTION_ILLEGAL_INSTRUCTION exception.
 		// The NoCache flag cannot be used with the Guard, NoAccess, or WriteCombine flags.
-		NoCache = PAGE_NOCACHE,
+		NoCache          = PAGE_NOCACHE,
 
 		// Sets all pages to be write-combined. 
 		// Applications should not use this attribute except when explicitly required for a device.
 		// Using the interlocked functions with memory that is mapped as write - combined can result in an EXCEPTION_ILLEGAL_INSTRUCTION exception.
 		// The WriteCombine flag cannot be specified with the NoAccess, Guard, and NoCache flags.
-		WriteCombine = PAGE_WRITECOMBINE
+		WriteCombine     = PAGE_WRITECOMBINE
 	};
 
 	AL_DEFINE_ENUM_FLAG_OPERATORS(ProcessMemoryProtectionTypes);
@@ -196,15 +211,15 @@ namespace AL::OS
 
 	struct ProcessStartInfo
 	{
-		String              Path;
-		String              CommandLine;
-		String              WorkingDirectory;
+		String                       Path;
+		String                       CommandLine;
+		String                       WorkingDirectory;
 
 #if defined(AL_PLATFORM_WINDOWS)
-		ProcessStartupFlags Flags;
+		BitMask<ProcessStartupFlags> Flags;
 #endif
 
-		ProcessInteropTypes InteropType;
+		ProcessInteropTypes          InteropType;
 	};
 
 	// @throw AL::Exceptions::Exception
@@ -217,15 +232,18 @@ namespace AL::OS
 
 	class Process
 	{
-#if defined(AL_PLATFORM_WINDOWS)
-		HANDLE hProcess = NULL;
-#endif
-
 		bool isOpen = false;
 		bool isCurrentProcess = false;
 		mutable bool isExitCodeCached = false;
 
 		ProcessId id = 0;
+
+#if defined(AL_PLATFORM_LINUX)
+
+#elif defined(AL_PLATFORM_WINDOWS)
+		HANDLE hProcess = NULL;
+#endif
+
 		mutable ProcessExitCode exitCode = 0;
 
 		ProcessInteropTypes interopType = ProcessInteropTypes::SysAPI;
@@ -236,54 +254,211 @@ namespace AL::OS
 		// @throw AL::Exceptions::Exception
 		static void GetCurrentProcess(Process& process, ProcessInteropTypes interopType)
 		{
-			process.Close();
+			ProcessId processId;
 
-#if defined(AL_PLATFORM_WINDOWS)
-			process.hProcess = ::GetCurrentProcess();
-#endif
-
-			process.isOpen = true;
-			process.isCurrentProcess = true;
-
-			process.id = static_cast<ProcessId>(
 #if defined(AL_PLATFORM_LINUX)
+			processId = static_cast<decltype(processId)>(
 				::getpid()
-#elif defined(AL_PLATFORM_WINDOWS)
-				::GetCurrentProcessId()
-#endif
 			);
+#elif defined(AL_PLATFORM_WINDOWS)
+			processId = static_cast<decltype(processId)>(
+				::GetCurrentProcessId()
+			);
+#else
+			throw Exceptions::NotImplementedException();
+#endif
 
-			process.interopType = interopType;
+			if (!GetProcessById(process, processId, interopType))
+			{
+
+				throw Exceptions::Exception(
+					"The current process could not be found"
+				);
+			}
 		}
 
 		// @throw AL::Exceptions::Exception
 		// @return false if not found
 		static bool GetProcessById(Process& process, ProcessId id, ProcessInteropTypes interopType)
 		{
-
+#if defined(AL_PLATFORM_LINUX)
 			throw Exceptions::NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
+			HANDLE hProcess;
+			bool   isCurrentProcess;
+
+			if (isCurrentProcess = (id == ::GetCurrentProcessId()))
+			{
+
+				hProcess = ::GetCurrentProcess();
+			}
+			else if (!(hProcess = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, static_cast<DWORD>(id))))
+			{
+				if (id && (GetLastError() == ERROR_INVALID_PARAMETER))
+				{
+
+					return false;
+				}
+
+				throw Exceptions::SystemException(
+					"OpenProcess"
+				);
+			}
+
+			process.Close();
+
+			process.isOpen = true;
+			process.isCurrentProcess = isCurrentProcess;
+
+			process.id = id;
+			process.interopType = interopType;
+#else
+			throw Exceptions::NotImplementedException();
+#endif
+
+			return true;
 		}
 		
 		// @throw AL::Exceptions::Exception
 		// @return false if not found
 		static bool GetProcessByName(Process& process, const String& name, ProcessInteropTypes interopType)
 		{
+			ProcessId processId;
+			bool      isProcessFound = false;
 
-			throw Exceptions::NotImplementedException();
+			EnumerateProcesses(
+				[&name, &processId, &isProcessFound](ProcessId _processId, const String& _processName)
+				{
+					if (!name.Compare(_processName, true))
+					{
+
+						return true;
+					}
+
+					processId = _processId;
+					isProcessFound = true;
+					
+					return false;
+				}
+			);
+
+			if (!isProcessFound || !GetProcessById(process, processId, interopType))
+			{
+
+				return false;
+			}
+
+			return true;
 		}
 
 		// @throw AL::Exceptions::Exception
 		static void CreateProcess(Process& process, const ProcessStartInfo& info)
 		{
-
+#if defined(AL_PLATFORM_LINUX)
 			throw Exceptions::NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
+			STARTUPINFOA startup;
+			ZeroMemory(&startup, sizeof(STARTUPINFOA));
+
+			startup.cb = sizeof(STARTUPINFOA);
+			startup.dwFlags = info.Flags.Value;
+
+			if (info.Flags.IsSet(ProcessStartupFlags::InheritHandles))
+			{
+				startup.hStdError = GetStdHandle(
+					STD_ERROR_HANDLE
+				);
+				startup.hStdInput = GetStdHandle(
+					STD_INPUT_HANDLE
+				);
+				startup.hStdOutput = GetStdHandle(
+					STD_OUTPUT_HANDLE
+				);
+			}
+
+			PROCESS_INFORMATION _info;
+
+			if (!CreateProcessA(info.Path.GetCString(), const_cast<LPSTR>(info.CommandLine.GetCString()), nullptr, nullptr, FALSE, info.Flags.Value, nullptr, info.WorkingDirectory.GetCString(), &startup, &_info))
+			{
+
+				throw Exceptions::SystemException(
+					"CreateProcessA"
+				);
+			}
+
+			CloseHandle(
+				_info.hThread
+			);
+
+			process.isOpen = true;
+			process.isCurrentProcess = false;
+
+			process.id = static_cast<ProcessId>(
+				_info.dwProcessId
+			);
+
+			process.hProcess = _info.hProcess;
+
+			process.interopType = info.InteropType;
+#else
+			throw Exceptions::NotImplementedException();
+#endif
 		}
 
 		// @throw AL::Exceptions::Exception
 		static void EnumerateProcesses(const ProcessEnumCallback& callback)
 		{
-
+#if defined(AL_PLATFORM_LINUX)
 			throw Exceptions::NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
+			HANDLE hSnapshot;
+
+			if ((hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)) == INVALID_HANDLE_VALUE)
+			{
+
+				throw Exceptions::SystemException(
+					"CreateToolhelp32Snapshot"
+				);
+			}
+
+			PROCESSENTRY32 process;
+			ZeroMemory(&process, sizeof(PROCESSENTRY32));
+
+			process.dwSize = sizeof(PROCESSENTRY32);
+
+			if (Process32First(hSnapshot, &process))
+			{
+				do
+				{
+					try
+					{
+						if (!callback(static_cast<ProcessId>(process.th32ProcessID), String(process.szExeFile)))
+						{
+
+							break;
+						}
+					}
+					catch (Exceptions::Exception&)
+					{
+						CloseHandle(hSnapshot);
+
+						throw;
+					}
+				} while (Process32Next(hSnapshot, &process));
+			}
+			else if (GetLastError() != ERROR_NO_MORE_FILES)
+			{
+				CloseHandle(hSnapshot);
+
+				throw Exceptions::SystemException(
+					"Process32First"
+				);
+			}
+
+			CloseHandle(hSnapshot);
+#else
+			throw Exceptions::NotImplementedException();
+#endif
 		}
 
 		Process()
@@ -372,6 +547,8 @@ namespace AL::OS
 
 				return true;
 			}
+#else
+			throw Exceptions::NotImplementedException();
 #endif
 
 			return false;
@@ -457,8 +634,15 @@ namespace AL::OS
 		// @return false if not found
 		bool GetExport(ProcessAddress& address, const String& module, const String& name)
 		{
+			AL_ASSERT(IsOpen(), "Process not open");
 
+#if defined(AL_PLATFORM_LINUX)
 			throw Exceptions::NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
+			throw Exceptions::NotImplementedException();
+#else
+			throw Exceptions::NotImplementedException();
+#endif
 		}
 
 		// @throw AL::Exceptions::Exception
@@ -472,8 +656,101 @@ namespace AL::OS
 		// @throw AL::Exceptions::Exception
 		void CreateThread(ProcessAddress address, ProcessAddress param)
 		{
+			AL_ASSERT(IsOpen(), "Process not open");
 
+#if defined(AL_PLATFORM_LINUX)
 			throw Exceptions::NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
+			HANDLE hThread;
+
+			if (IsCurrentProcess())
+			{
+				if (!(hThread = ::CreateThread(nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(address), reinterpret_cast<LPVOID>(param), 0, nullptr)))
+				{
+
+					throw Exceptions::SystemException(
+						"CreateThread"
+					);
+				}
+			}
+			else if (!(hThread = ::CreateRemoteThread(hProcess, nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(address), reinterpret_cast<LPVOID>(param), 0, nullptr)))
+			{
+
+				throw Exceptions::SystemException(
+					"CreateRemoteThread"
+				);
+			}
+
+			CloseHandle(
+				hThread
+			);
+#else
+			throw Exceptions::NotImplementedException();
+#endif
+		}
+
+		// @throw AL::Exceptions::Exception
+		uint32 CreateThreadAndWait(ProcessAddress address)
+		{
+			return CreateThreadAndWait(
+				address,
+				0
+			);
+		}
+		// @throw AL::Exceptions::Exception
+		uint32 CreateThreadAndWait(ProcessAddress address, ProcessAddress param)
+		{
+			AL_ASSERT(IsOpen(), "Process not open");
+
+#if defined(AL_PLATFORM_LINUX)
+			throw Exceptions::NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
+			HANDLE hThread;
+
+			if (IsCurrentProcess())
+			{
+				if (!(hThread = ::CreateThread(nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(address), reinterpret_cast<LPVOID>(param), 0, nullptr)))
+				{
+
+					throw Exceptions::SystemException(
+						"CreateThread"
+					);
+				}
+			}
+			else if (!(hThread = ::CreateRemoteThread(hProcess, nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(address), reinterpret_cast<LPVOID>(param), 0, nullptr)))
+			{
+
+				throw Exceptions::SystemException(
+					"CreateRemoteThread"
+				);
+			}
+
+			::WaitForSingleObject(
+				hThread,
+				INFINITE
+			);
+
+			DWORD exitCode;
+
+			if (!GetExitCodeThread(hThread, &exitCode))
+			{
+				CloseHandle(hThread);
+
+				throw Exceptions::SystemException(
+					"GetExitCodeThread"
+				);
+			}
+
+			CloseHandle(
+				hThread
+			);
+
+			return static_cast<uint32>(
+				exitCode
+			);
+#else
+			throw Exceptions::NotImplementedException();
+#endif
 		}
 
 		// @throw AL::Exceptions::Exception
@@ -517,22 +794,85 @@ namespace AL::OS
 		// @return address of library
 		ProcessAddress LoadLibrary(const void* lpBuffer, size_t size)
 		{
+			AL_ASSERT(IsOpen(), "Process not open");
 
+#if defined(AL_PLATFORM_LINUX)
 			throw Exceptions::NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
+			throw Exceptions::NotImplementedException();
+#else
+			throw Exceptions::NotImplementedException();
+#endif
 		}
 
 		// @throw AL::Exceptions::Exception
 		void UnloadLibrary(ProcessAddress address)
 		{
+			AL_ASSERT(IsOpen(), "Process not open");
 
+#if defined(AL_PLATFORM_LINUX)
 			throw Exceptions::NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
+			if (IsCurrentProcess())
+			{
+				FreeLibrary(
+					reinterpret_cast<HMODULE>(
+						address
+					)
+				);
+			}
+			else
+			{
+				ProcessAddress lpFreeLibrary;
+
+				if (!GetExport(lpFreeLibrary, "kernel32.dll", "FreeLibrary"))
+				{
+
+					throw Exceptions::Exception(
+						"Error locating FreeLibrary in kernel32.dll"
+					);
+				}
+
+				CreateThread(
+					lpFreeLibrary,
+					address
+				);
+			}
+#else
+			throw Exceptions::NotImplementedException();
+#endif
 		}
 
 		// @throw AL::Exceptions::Exception
 		void SetMemoryProtection(ProcessAddress address, size_t size, ProcessMemoryProtectionTypes value)
 		{
+			ProcessMemoryProtectionTypes oldValue;
 
+			SetMemoryProtection(
+				address,
+				size,
+				value,
+				oldValue
+			);
+		}
+		// @throw AL::Exceptions::Exception
+		void SetMemoryProtection(ProcessAddress address, size_t size, ProcessMemoryProtectionTypes value, ProcessMemoryProtectionTypes& oldValue)
+		{
+			AL_ASSERT(IsOpen(), "Process not open");
+
+#if defined(AL_PLATFORM_LINUX)
 			throw Exceptions::NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
+			if (!::VirtualProtectEx(hProcess, reinterpret_cast<LPVOID>(address), static_cast<SIZE_T>(size), static_cast<DWORD>(value), reinterpret_cast<PDWORD>(&oldValue)))
+			{
+
+				throw Exceptions::SystemException(
+					"VirtualProtectEx"
+				);
+			}
+#else
+			throw Exceptions::NotImplementedException();
+#endif
 		}
 
 		// @throw AL::Exceptions::Exception
@@ -550,15 +890,45 @@ namespace AL::OS
 		// @return address of newly allocated memory
 		ProcessAddress AllocateMemory(ProcessAddress address, size_t size, ProcessMemoryAllocationTypes type, ProcessMemoryProtectionTypes protection)
 		{
+			AL_ASSERT(IsOpen(), "Process not open");
 
+#if defined(AL_PLATFORM_LINUX)
 			throw Exceptions::NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
+			if (auto lpAddress = VirtualAllocEx(hProcess, reinterpret_cast<LPVOID>(address), static_cast<SIZE_T>(size), static_cast<DWORD>(type), static_cast<DWORD>(protection)))
+			{
+
+				return reinterpret_cast<ProcessAddress>(
+					lpAddress
+				);
+			}
+
+			throw Exceptions::SystemException(
+				"VirtualAllocEx"
+			);
+#else
+			throw Exceptions::NotImplementedException();
+#endif
 		}
 
 		// @throw AL::Exceptions::Exception
-		void ReleaseMemory(ProcessAddress address)
+		void ReleaseMemory(ProcessAddress address, ProcessMemoryReleaseTypes type, size_t size)
 		{
+			AL_ASSERT(IsOpen(), "Process not open");
 
+#if defined(AL_PLATFORM_LINUX)
 			throw Exceptions::NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
+			if (!VirtualFreeEx(hProcess, reinterpret_cast<LPVOID>(address), (type == ProcessMemoryReleaseTypes::Release) ? 0 : static_cast<SIZE_T>(size), static_cast<DWORD>(type)))
+			{
+
+				throw Exceptions::SystemException(
+					"VirtualFreeEx"
+				);
+			}
+#else
+			throw Exceptions::NotImplementedException();
+#endif
 		}
 #endif
 
@@ -591,6 +961,8 @@ namespace AL::OS
 					"ReadProcessMemory"
 				);
 			}
+#else
+			throw Exceptions::NotImplementedException();
 #endif
 		}
 
@@ -623,6 +995,8 @@ namespace AL::OS
 					"WriteProcessMemory"
 				);
 			}
+#else
+			throw Exceptions::NotImplementedException();
 #endif
 		}
 
@@ -747,6 +1121,8 @@ namespace AL::OS
 					}
 				}
 			} while ((address = (reinterpret_cast<size_t>(mbi.BaseAddress) + mbi.RegionSize)) < addressEnd);
+#else
+			throw Exceptions::NotImplementedException();
 #endif
 		}
 
@@ -754,7 +1130,9 @@ namespace AL::OS
 		{
 			if (IsOpen())
 			{
-#if defined(AL_PLATFORM_WINDOWS)
+#if defined(AL_PLATFORM_LINUX)
+
+#elif defined(AL_PLATFORM_WINDOWS)
 				if (!IsCurrentProcess())
 				{
 					CloseHandle(hProcess);
@@ -797,6 +1175,8 @@ namespace AL::OS
 						"TerminateProcess"
 					);
 				}
+#else
+				throw Exceptions::NotImplementedException();
 #endif
 			}
 		}
