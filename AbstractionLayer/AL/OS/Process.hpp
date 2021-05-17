@@ -5,6 +5,7 @@
 #include "AL/Collections/Array.hpp"
 
 #if defined(AL_PLATFORM_LINUX)
+	#include <fcntl.h>
 	#include <signal.h>
 	#include <unistd.h>
 #elif defined(AL_PLATFORM_WINDOWS)
@@ -231,7 +232,7 @@ namespace AL::OS
 		ProcessId id = 0;
 
 #if defined(AL_PLATFORM_LINUX)
-
+		int fdMemory = -1;
 #elif defined(AL_PLATFORM_WINDOWS)
 		HANDLE hProcess = NULL;
 #endif
@@ -273,6 +274,7 @@ namespace AL::OS
 		{
 #if defined(AL_PLATFORM_LINUX)
 			// TODO: implement
+			// TODO: open /proc/{pid}/mem (fdMemory)
 			throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
 			HANDLE hProcess;
@@ -491,7 +493,10 @@ namespace AL::OS
 				process.exitCode
 			)
 		{
-#if defined(AL_PLATFORM_WINDOWS)
+#if defined(AL_PLATFORM_LINUX)
+			fdMemory = process.fdMemory;
+			process.fdMemory = -1;
+#elif defined(AL_PLATFORM_WINDOWS)
 			hProcess = process.hProcess;
 			process.hProcess = NULL;
 #endif
@@ -1011,9 +1016,31 @@ namespace AL::OS
 			AL_ASSERT(IsOpen(), "Process not open");
 
 #if defined(AL_PLATFORM_LINUX)
-			// TODO: read /proc/{pid}/mem
+			if (lseek(fdMemory, static_cast<off_t>(address), SEEK_SET) == -1)
+			{
 
-			throw Exceptions::NotImplementedException();
+				throw Exceptions::SystemException(
+					"lseek"
+				);
+			}
+
+			ssize_t bytesRead;
+
+			if ((bytesRead = read(fdMemory, lpBuffer, size)) == -1)
+			{
+
+				throw Exceptions::SystemException(
+					"read"
+				);
+			}
+
+			if (bytesRead == 0)
+			{
+
+				throw Exceptions::Exception(
+					"EOF"
+				);
+			}
 #elif defined(AL_PLATFORM_WINDOWS)
 			SIZE_T numberOfBytesRead;
 
@@ -1045,9 +1072,21 @@ namespace AL::OS
 			AL_ASSERT(IsOpen(), "Process not open");
 
 #if defined(AL_PLATFORM_LINUX)
-			// TODO: write /proc/{pid}/mem
+			if (lseek(fdMemory, static_cast<off_t>(address), SEEK_SET) == -1)
+			{
 
-			throw Exceptions::NotImplementedException();
+				throw Exceptions::SystemException(
+					"lseek"
+				);
+			}
+
+			if (write(fdMemory, lpBuffer, size) == -1)
+			{
+
+				throw Exceptions::SystemException(
+					"write"
+				);
+			}
 #elif defined(AL_PLATFORM_WINDOWS)
 			SIZE_T numberOfBytesWritten;
 
@@ -1195,7 +1234,8 @@ namespace AL::OS
 			if (IsOpen())
 			{
 #if defined(AL_PLATFORM_LINUX)
-				// TODO: implement
+				close(fdMemory);
+				fdMemory = -1;
 #elif defined(AL_PLATFORM_WINDOWS)
 				if (!IsCurrentProcess())
 				{
@@ -1243,6 +1283,36 @@ namespace AL::OS
 				throw Exceptions::NotImplementedException();
 #endif
 			}
+		}
+
+		auto& operator = (Process&& process)
+		{
+			Close();
+
+			isOpen = process.isOpen;
+			process.isOpen = false;
+			
+			isCurrentProcess = process.isCurrentProcess;
+			process.isCurrentProcess = false;
+			
+			isExitCodeCached = process.isExitCodeCached;
+			process.isExitCodeCached = false;
+
+			id = process.id;
+			process.id = 0;
+			
+			exitCode = process.exitCode;
+			process.exitCode = 0;
+
+#if defined(AL_PLATFORM_LINUX)
+			fdMemory = process.fdMemory;
+			process.fdMemory = -1;
+#elif defined(AL_PLATFORM_WINDOWS)
+			hProcess = process.hProcess;
+			process.hProcess = NULL;
+#endif
+
+			return *this;
 		}
 	};
 
