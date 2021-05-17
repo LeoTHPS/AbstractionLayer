@@ -88,7 +88,7 @@ namespace AL::OS
 			virtual void* GetHandle() const override
 			{
 #if defined(AL_PLATFORM_LINUX)
-				return pthread;
+				return &pthread;
 #elif defined(AL_PLATFORM_WINDOWS)
 				return hThread;
 #endif
