@@ -110,4 +110,5 @@ namespace AL::DotNET
 #include "Exceptions/NotImplementedException.hpp"
 
 #include "OS/Timer.hpp"
+#include "OS/System.hpp"
 #include "OS/Process.hpp"
