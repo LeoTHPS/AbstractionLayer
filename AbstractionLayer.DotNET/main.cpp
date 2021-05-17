@@ -21,3 +21,4 @@
 #include "AL/DotNET/OS/Timer.hpp"
 #include "AL/DotNET/OS/System.hpp"
 #include "AL/DotNET/OS/Process.hpp"
+#include "AL/DotNET/OS/Environment.hpp"
