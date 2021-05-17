@@ -287,9 +287,24 @@ namespace AL::OS
 		static bool GetProcessById(Process& process, ProcessId id)
 		{
 #if defined(AL_PLATFORM_LINUX)
-			// TODO: implement
-			// TODO: open /proc/{pid}/mem (fdMemory)
-			throw Exceptions::NotImplementedException();
+			int fdMemory;
+
+			if ((fdMemory = open(String::Format("/proc/%u/mem", id).GetCString(), O_RDWR | O_DIRECT | O_SYNC)) == -1)
+			{
+
+				throw Exceptions::SystemException(
+					"open"
+				);
+			}
+
+			process.Close();
+
+			process.isOpen = true;
+			process.isCurrentProcess = (id == static_cast<ProcessId>(::getpid()));
+
+			process.id = id;
+
+			process.fdMemory = fdMemory;
 #elif defined(AL_PLATFORM_WINDOWS)
 			HANDLE hProcess;
 			bool   isCurrentProcess;
