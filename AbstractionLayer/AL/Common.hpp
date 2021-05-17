@@ -3766,6 +3766,8 @@ namespace AL
 
 #if defined(AL_PLATFORM_WINDOWS)
 	#include "OS/NamedPipe.hpp"
+	#include "OS/AsyncFunction.hpp"
+	#include "OS/CompletionPort.hpp"
 #endif
 
 #include "OS/Dialog.hpp"
