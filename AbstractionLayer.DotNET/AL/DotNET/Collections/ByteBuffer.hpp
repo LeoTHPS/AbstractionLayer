@@ -7,10 +7,10 @@ namespace AL::DotNET::Collections
 	{
 		Endians endian;
 
-		array<System::Byte>^ buffer;
+		array<::System::Byte>^ buffer;
 
-		System::UInt32 readPosition = 0;
-		System::UInt32 writePosition = 0;
+		::System::UInt32 readPosition = 0;
+		::System::UInt32 writePosition = 0;
 
 	public:
 		ByteBuffer()
@@ -28,10 +28,10 @@ namespace AL::DotNET::Collections
 		{
 		}
 		
-		ByteBuffer(Endians endian, System::UInt32 capacity)
+		ByteBuffer(Endians endian, ::System::UInt32 capacity)
 			: ByteBuffer(
 				endian,
-				gcnew array<System::Byte>(
+				gcnew array<::System::Byte>(
 					capacity
 				),
 				0,
@@ -40,7 +40,7 @@ namespace AL::DotNET::Collections
 		{
 		}
 
-		ByteBuffer(Endians endian, array<System::Byte>^ buffer, System::UInt32 offset, System::UInt32 count)
+		ByteBuffer(Endians endian, array<::System::Byte>^ buffer, ::System::UInt32 offset, ::System::UInt32 count)
 			: endian(
 				endian
 			),
@@ -70,7 +70,7 @@ namespace AL::DotNET::Collections
 
 		auto GetCapacity()
 		{
-			return static_cast<System::UInt32>(
+			return static_cast<::System::UInt32>(
 				buffer->Length
 			);
 		}
@@ -85,7 +85,7 @@ namespace AL::DotNET::Collections
 			return writePosition;
 		}
 
-		void SetCapacity(System::UInt32 value)
+		void SetCapacity(::System::UInt32 value)
 		{
 			if (readPosition > value)
 			{
@@ -99,13 +99,13 @@ namespace AL::DotNET::Collections
 				writePosition = value;
 			}
 
-			System::Array::Resize(
+			::System::Array::Resize(
 				buffer,
 				value
 			);
 		}
 
-		void SetReadPosition(System::UInt32 value)
+		void SetReadPosition(::System::UInt32 value)
 		{
 			if ((readPosition = value) > GetCapacity())
 			{
@@ -113,7 +113,7 @@ namespace AL::DotNET::Collections
 			}
 		}
 
-		void SetWritePosition(System::UInt32 value)
+		void SetWritePosition(::System::UInt32 value)
 		{
 			if ((writePosition = value) > GetCapacity())
 			{
@@ -127,12 +127,12 @@ namespace AL::DotNET::Collections
 			if (!T::typeid->IsEnum)
 			{
 
-				throw gcnew System::ArgumentException(
+				throw gcnew ::System::ArgumentException(
 					"T is not an Enum"
 				);
 			}
 
-			auto buffer = gcnew array<System::Byte>(
+			auto buffer = gcnew array<::System::Byte>(
 				Marshal::SizeOf<T>()
 			);
 
@@ -150,10 +150,10 @@ namespace AL::DotNET::Collections
 			return false;
 		}
 
-		bool PeekBool(System::Boolean% value)
+		bool PeekBool(::System::Boolean% value)
 		{
-			auto buffer = gcnew array<System::Byte>(
-				Marshal::SizeOf<System::Boolean>()
+			auto buffer = gcnew array<::System::Byte>(
+				Marshal::SizeOf<::System::Boolean>()
 			);
 
 			if (Peek(buffer, 0, buffer->Length))
@@ -170,10 +170,10 @@ namespace AL::DotNET::Collections
 			return false;
 		}
 
-		bool PeekInt8(System::SByte% value)
+		bool PeekInt8(::System::SByte% value)
 		{
-			auto buffer = gcnew array<System::Byte>(
-				Marshal::SizeOf<System::SByte>()
+			auto buffer = gcnew array<::System::Byte>(
+				Marshal::SizeOf<::System::SByte>()
 			);
 
 			if (Peek(buffer, 0, buffer->Length))
@@ -189,10 +189,10 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool PeekInt16(System::Int16% value)
+		bool PeekInt16(::System::Int16% value)
 		{
-			auto buffer = gcnew array<System::Byte>(
-				Marshal::SizeOf<System::Int16>()
+			auto buffer = gcnew array<::System::Byte>(
+				Marshal::SizeOf<::System::Int16>()
 			);
 
 			if (Peek(buffer, 0, buffer->Length))
@@ -208,10 +208,10 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool PeekInt32(System::Int32% value)
+		bool PeekInt32(::System::Int32% value)
 		{
-			auto buffer = gcnew array<System::Byte>(
-				Marshal::SizeOf<System::Int32>()
+			auto buffer = gcnew array<::System::Byte>(
+				Marshal::SizeOf<::System::Int32>()
 			);
 
 			if (Peek(buffer, 0, buffer->Length))
@@ -227,10 +227,10 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool PeekInt64(System::Int64% value)
+		bool PeekInt64(::System::Int64% value)
 		{
-			auto buffer = gcnew array<System::Byte>(
-				Marshal::SizeOf<System::Int64>()
+			auto buffer = gcnew array<::System::Byte>(
+				Marshal::SizeOf<::System::Int64>()
 			);
 
 			if (Peek(buffer, 0, buffer->Length))
@@ -247,10 +247,10 @@ namespace AL::DotNET::Collections
 			return false;
 		}
 
-		bool PeekUInt8(System::Byte% value)
+		bool PeekUInt8(::System::Byte% value)
 		{
-			auto buffer = gcnew array<System::Byte>(
-				Marshal::SizeOf<System::Byte>()
+			auto buffer = gcnew array<::System::Byte>(
+				Marshal::SizeOf<::System::Byte>()
 			);
 
 			if (Peek(buffer, 0, buffer->Length))
@@ -266,10 +266,10 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool PeekUInt16(System::UInt16% value)
+		bool PeekUInt16(::System::UInt16% value)
 		{
-			auto buffer = gcnew array<System::Byte>(
-				Marshal::SizeOf<System::UInt16>()
+			auto buffer = gcnew array<::System::Byte>(
+				Marshal::SizeOf<::System::UInt16>()
 			);
 
 			if (Peek(buffer, 0, buffer->Length))
@@ -285,10 +285,10 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool PeekUInt32(System::UInt32% value)
+		bool PeekUInt32(::System::UInt32% value)
 		{
-			auto buffer = gcnew array<System::Byte>(
-				Marshal::SizeOf<System::UInt32>()
+			auto buffer = gcnew array<::System::Byte>(
+				Marshal::SizeOf<::System::UInt32>()
 			);
 
 			if (Peek(buffer, 0, buffer->Length))
@@ -304,10 +304,10 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool PeekUInt64(System::UInt64% value)
+		bool PeekUInt64(::System::UInt64% value)
 		{
-			auto buffer = gcnew array<System::Byte>(
-				Marshal::SizeOf<System::UInt64>()
+			auto buffer = gcnew array<::System::Byte>(
+				Marshal::SizeOf<::System::UInt64>()
 			);
 
 			if (Peek(buffer, 0, buffer->Length))
@@ -324,10 +324,10 @@ namespace AL::DotNET::Collections
 			return false;
 		}
 		
-		bool PeekFloat(System::Single% value)
+		bool PeekFloat(::System::Single% value)
 		{
-			auto buffer = gcnew array<System::Byte>(
-				Marshal::SizeOf<System::Single>()
+			auto buffer = gcnew array<::System::Byte>(
+				Marshal::SizeOf<::System::Single>()
 			);
 
 			if (Peek(buffer, 0, buffer->Length))
@@ -343,10 +343,10 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool PeekDouble(System::Double% value)
+		bool PeekDouble(::System::Double% value)
 		{
-			auto buffer = gcnew array<System::Byte>(
-				Marshal::SizeOf<System::Double>()
+			auto buffer = gcnew array<::System::Byte>(
+				Marshal::SizeOf<::System::Double>()
 			);
 
 			if (Peek(buffer, 0, buffer->Length))
@@ -363,20 +363,20 @@ namespace AL::DotNET::Collections
 			return false;
 		}
 
-		bool PeekString(System::String^% value)
+		bool PeekString(::System::String^% value)
 		{
 			return PeekString(
 				value,
-				System::Text::Encoding::Default
+				::System::Text::Encoding::Default
 			);
 		}
-		bool PeekString(System::String^% value, System::Text::Encoding^ encoding)
+		bool PeekString(::System::String^% value, ::System::Text::Encoding^ encoding)
 		{
-			System::UInt32 length;
+			::System::UInt32 length;
 
 			if (PeekUInt32(length))
 			{
-				System::UInt32 readPosition = GetReadPosition() + Marshal::SizeOf<System::UInt32>();
+				::System::UInt32 readPosition = GetReadPosition() + Marshal::SizeOf<::System::UInt32>();
 
 				if (readPosition < GetSize())
 				{
@@ -393,7 +393,7 @@ namespace AL::DotNET::Collections
 			return false;
 		}
 
-		bool Peek(array<System::Byte>^% buffer, System::UInt32 offset, System::UInt32 count)
+		bool Peek(array<::System::Byte>^% buffer, ::System::UInt32 offset, ::System::UInt32 count)
 		{
 			return Peek(
 				buffer,
@@ -402,11 +402,11 @@ namespace AL::DotNET::Collections
 				GetReadPosition()
 			);
 		}
-		bool Peek(array<System::Byte>^% buffer, System::UInt32 offset, System::UInt32 count, System::UInt32 index)
+		bool Peek(array<::System::Byte>^% buffer, ::System::UInt32 offset, ::System::UInt32 count, ::System::UInt32 index)
 		{
 			if ((index + count) <= GetCapacity())
 			{
-				System::Buffer::BlockCopy(
+				::System::Buffer::BlockCopy(
 					this->buffer,
 					index,
 					buffer,
@@ -426,12 +426,12 @@ namespace AL::DotNET::Collections
 			if (!T::typeid->IsEnum)
 			{
 
-				throw gcnew System::ArgumentException(
+				throw gcnew ::System::ArgumentException(
 					"T is not an Enum"
 				);
 			}
 
-			auto buffer = gcnew array<System::Byte>(
+			auto buffer = gcnew array<::System::Byte>(
 				Marshal::SizeOf<T>()
 			);
 
@@ -449,10 +449,10 @@ namespace AL::DotNET::Collections
 			return false;
 		}
 
-		bool ReadBool(System::Boolean% value)
+		bool ReadBool(::System::Boolean% value)
 		{
-			auto buffer = gcnew array<System::Byte>(
-				Marshal::SizeOf<System::Boolean>()
+			auto buffer = gcnew array<::System::Byte>(
+				Marshal::SizeOf<::System::Boolean>()
 			);
 
 			if (Read(buffer, 0, buffer->Length))
@@ -469,10 +469,10 @@ namespace AL::DotNET::Collections
 			return false;
 		}
 
-		bool ReadInt8(System::SByte% value)
+		bool ReadInt8(::System::SByte% value)
 		{
-			auto buffer = gcnew array<System::Byte>(
-				Marshal::SizeOf<System::SByte>()
+			auto buffer = gcnew array<::System::Byte>(
+				Marshal::SizeOf<::System::SByte>()
 			);
 
 			if (Peek(buffer, 0, buffer->Length))
@@ -488,10 +488,10 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool ReadInt16(System::Int16% value)
+		bool ReadInt16(::System::Int16% value)
 		{
-			auto buffer = gcnew array<System::Byte>(
-				Marshal::SizeOf<System::Int16>()
+			auto buffer = gcnew array<::System::Byte>(
+				Marshal::SizeOf<::System::Int16>()
 			);
 
 			if (Peek(buffer, 0, buffer->Length))
@@ -507,10 +507,10 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool ReadInt32(System::Int32% value)
+		bool ReadInt32(::System::Int32% value)
 		{
-			auto buffer = gcnew array<System::Byte>(
-				Marshal::SizeOf<System::Int32>()
+			auto buffer = gcnew array<::System::Byte>(
+				Marshal::SizeOf<::System::Int32>()
 			);
 
 			if (Peek(buffer, 0, buffer->Length))
@@ -526,10 +526,10 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool ReadInt64(System::Int64% value)
+		bool ReadInt64(::System::Int64% value)
 		{
-			auto buffer = gcnew array<System::Byte>(
-				Marshal::SizeOf<System::Int64>()
+			auto buffer = gcnew array<::System::Byte>(
+				Marshal::SizeOf<::System::Int64>()
 			);
 
 			if (Peek(buffer, 0, buffer->Length))
@@ -546,10 +546,10 @@ namespace AL::DotNET::Collections
 			return false;
 		}
 
-		bool ReadUInt8(System::Byte% value)
+		bool ReadUInt8(::System::Byte% value)
 		{
-			auto buffer = gcnew array<System::Byte>(
-				Marshal::SizeOf<System::Byte>()
+			auto buffer = gcnew array<::System::Byte>(
+				Marshal::SizeOf<::System::Byte>()
 			);
 
 			if (Peek(buffer, 0, buffer->Length))
@@ -565,10 +565,10 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool ReadUInt16(System::UInt16% value)
+		bool ReadUInt16(::System::UInt16% value)
 		{
-			auto buffer = gcnew array<System::Byte>(
-				Marshal::SizeOf<System::UInt16>()
+			auto buffer = gcnew array<::System::Byte>(
+				Marshal::SizeOf<::System::UInt16>()
 			);
 
 			if (Peek(buffer, 0, buffer->Length))
@@ -584,10 +584,10 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool ReadUInt32(System::UInt32% value)
+		bool ReadUInt32(::System::UInt32% value)
 		{
-			auto buffer = gcnew array<System::Byte>(
-				Marshal::SizeOf<System::UInt32>()
+			auto buffer = gcnew array<::System::Byte>(
+				Marshal::SizeOf<::System::UInt32>()
 			);
 
 			if (Peek(buffer, 0, buffer->Length))
@@ -603,10 +603,10 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool ReadUInt64(System::UInt64% value)
+		bool ReadUInt64(::System::UInt64% value)
 		{
-			auto buffer = gcnew array<System::Byte>(
-				Marshal::SizeOf<System::UInt64>()
+			auto buffer = gcnew array<::System::Byte>(
+				Marshal::SizeOf<::System::UInt64>()
 			);
 
 			if (Peek(buffer, 0, buffer->Length))
@@ -623,10 +623,10 @@ namespace AL::DotNET::Collections
 			return false;
 		}
 		
-		bool ReadFloat(System::Single% value)
+		bool ReadFloat(::System::Single% value)
 		{
-			auto buffer = gcnew array<System::Byte>(
-				Marshal::SizeOf<System::Single>()
+			auto buffer = gcnew array<::System::Byte>(
+				Marshal::SizeOf<::System::Single>()
 			);
 
 			if (Peek(buffer, 0, buffer->Length))
@@ -642,10 +642,10 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool ReadDouble(System::Double% value)
+		bool ReadDouble(::System::Double% value)
 		{
-			auto buffer = gcnew array<System::Byte>(
-				Marshal::SizeOf<System::Double>()
+			auto buffer = gcnew array<::System::Byte>(
+				Marshal::SizeOf<::System::Double>()
 			);
 
 			if (Peek(buffer, 0, buffer->Length))
@@ -662,20 +662,20 @@ namespace AL::DotNET::Collections
 			return false;
 		}
 
-		bool ReadString(System::String^% value)
+		bool ReadString(::System::String^% value)
 		{
 			return ReadString(
 				value,
-				System::Text::Encoding::Default
+				::System::Text::Encoding::Default
 			);
 		}
-		bool ReadString(System::String^% value, System::Text::Encoding^ encoding)
+		bool ReadString(::System::String^% value, ::System::Text::Encoding^ encoding)
 		{
-			System::UInt32 length;
+			::System::UInt32 length;
 
 			if (ReadUInt32(length))
 			{
-				System::UInt32 readPosition = GetReadPosition() + Marshal::SizeOf<System::UInt32>();
+				::System::UInt32 readPosition = GetReadPosition() + Marshal::SizeOf<::System::UInt32>();
 
 				if (readPosition < GetSize())
 				{
@@ -689,18 +689,18 @@ namespace AL::DotNET::Collections
 				}
 
 				SetReadPosition(
-					readPosition - Marshal::SizeOf<System::UInt32>()
+					readPosition - Marshal::SizeOf<::System::UInt32>()
 				);
 			}
 
 			return false;
 		}
 
-		bool Read(array<System::Byte>^% buffer, System::UInt32 offset, System::UInt32 count)
+		bool Read(array<::System::Byte>^% buffer, ::System::UInt32 offset, ::System::UInt32 count)
 		{
 			if (count && ((GetReadPosition() + count) <= GetCapacity()))
 			{
-				System::Buffer::BlockCopy(
+				::System::Buffer::BlockCopy(
 					this->buffer,
 					readPosition,
 					buffer,
@@ -719,91 +719,91 @@ namespace AL::DotNET::Collections
 		generic<typename T>
 		void WriteEnum(T value)
 		{
-			array<System::Byte>^ buffer;
+			array<::System::Byte>^ buffer;
 			ToEndian(GetEndian(), buffer, value);
 			Write(buffer, 0, buffer->Length);
 		}
 
-		void WriteBool(System::Boolean value)
+		void WriteBool(::System::Boolean value)
 		{
-			array<System::Byte>^ buffer;
+			array<::System::Byte>^ buffer;
 			ToEndian(GetEndian(), buffer, value);
 			Write(buffer, 0, buffer->Length);
 		}
 
-		void WriteInt8(System::SByte value)
+		void WriteInt8(::System::SByte value)
 		{
-			array<System::Byte>^ buffer;
+			array<::System::Byte>^ buffer;
 			ToEndian(GetEndian(), buffer, value);
 			Write(buffer, 0, buffer->Length);
 		}
-		void WriteInt16(System::Int16 value)
+		void WriteInt16(::System::Int16 value)
 		{
-			array<System::Byte>^ buffer;
+			array<::System::Byte>^ buffer;
 			ToEndian(GetEndian(), buffer, value);
 			Write(buffer, 0, buffer->Length);
 		}
-		void WriteInt32(System::Int32 value)
+		void WriteInt32(::System::Int32 value)
 		{
-			array<System::Byte>^ buffer;
+			array<::System::Byte>^ buffer;
 			ToEndian(GetEndian(), buffer, value);
 			Write(buffer, 0, buffer->Length);
 		}
-		void WriteInt64(System::Int64 value)
+		void WriteInt64(::System::Int64 value)
 		{
-			array<System::Byte>^ buffer;
+			array<::System::Byte>^ buffer;
 			ToEndian(GetEndian(), buffer, value);
 			Write(buffer, 0, buffer->Length);
 		}
 		
-		void WriteUInt8(System::Byte value)
+		void WriteUInt8(::System::Byte value)
 		{
-			array<System::Byte>^ buffer;
+			array<::System::Byte>^ buffer;
 			ToEndian(GetEndian(), buffer, value);
 			Write(buffer, 0, buffer->Length);
 		}
-		void WriteUInt16(System::UInt16 value)
+		void WriteUInt16(::System::UInt16 value)
 		{
-			array<System::Byte>^ buffer;
+			array<::System::Byte>^ buffer;
 			ToEndian(GetEndian(), buffer, value);
 			Write(buffer, 0, buffer->Length);
 		}
-		void WriteUInt32(System::UInt32 value)
+		void WriteUInt32(::System::UInt32 value)
 		{
-			array<System::Byte>^ buffer;
+			array<::System::Byte>^ buffer;
 			ToEndian(GetEndian(), buffer, value);
 			Write(buffer, 0, buffer->Length);
 		}
-		void WriteUInt64(System::UInt64 value)
+		void WriteUInt64(::System::UInt64 value)
 		{
-			array<System::Byte>^ buffer;
-			ToEndian(GetEndian(), buffer, value);
-			Write(buffer, 0, buffer->Length);
-		}
-
-		void WriteFloat(System::Single value)
-		{
-			array<System::Byte>^ buffer;
-			ToEndian(GetEndian(), buffer, value);
-			Write(buffer, 0, buffer->Length);
-		}
-		void WriteDouble(System::Double value)
-		{
-			array<System::Byte>^ buffer;
+			array<::System::Byte>^ buffer;
 			ToEndian(GetEndian(), buffer, value);
 			Write(buffer, 0, buffer->Length);
 		}
 
-		void WriteString(System::String^ value)
+		void WriteFloat(::System::Single value)
+		{
+			array<::System::Byte>^ buffer;
+			ToEndian(GetEndian(), buffer, value);
+			Write(buffer, 0, buffer->Length);
+		}
+		void WriteDouble(::System::Double value)
+		{
+			array<::System::Byte>^ buffer;
+			ToEndian(GetEndian(), buffer, value);
+			Write(buffer, 0, buffer->Length);
+		}
+
+		void WriteString(::System::String^ value)
 		{
 			WriteString(
 				value,
-				System::Text::Encoding::Default
+				::System::Text::Encoding::Default
 			);
 		}
-		void WriteString(System::String^ value, System::Text::Encoding^ encoding)
+		void WriteString(::System::String^ value, ::System::Text::Encoding^ encoding)
 		{
-			auto length = static_cast<System::UInt32>(
+			auto length = static_cast<::System::UInt32>(
 				value->Length
 			);
 
@@ -822,19 +822,19 @@ namespace AL::DotNET::Collections
 			);
 		}
 
-		void Write(array<System::Byte>^ buffer, System::UInt32 offset, System::UInt32 count)
+		void Write(array<::System::Byte>^ buffer, ::System::UInt32 offset, ::System::UInt32 count)
 		{
 			if (count)
 			{
 				if ((writePosition += count) >= GetCapacity())
 				{
-					System::Array::Resize(
+					::System::Array::Resize(
 						this->buffer,
 						writePosition
 					);
 				}
 
-				System::Buffer::BlockCopy(
+				::System::Buffer::BlockCopy(
 					buffer,
 					offset,
 					this->buffer,
@@ -844,13 +844,13 @@ namespace AL::DotNET::Collections
 			}
 		}
 
-		virtual array<System::Byte>^ ToArray()
+		virtual array<::System::Byte>^ ToArray()
 		{
-			auto _array = gcnew array<System::Byte>(
+			auto _array = gcnew array<::System::Byte>(
 				GetSize()
 			);
 
-			for (System::UInt32 i = 0; i < GetSize(); ++i)
+			for (::System::UInt32 i = 0; i < GetSize(); ++i)
 			{
 				_array[i] = buffer[i];
 			}
@@ -858,15 +858,15 @@ namespace AL::DotNET::Collections
 			return _array;
 		}
 
-		virtual System::String^ ToString() override
+		virtual ::System::String^ ToString() override
 		{
 			auto buffer = ToArray();
 
-			auto string = gcnew System::String(
+			auto string = gcnew ::System::String(
 				""
 			);
 
-			for (System::Int32 i = 0; i < buffer->Length; ++i)
+			for (::System::Int32 i = 0; i < buffer->Length; ++i)
 			{
 				string += buffer[i].ToString(
 					"X2"
@@ -910,7 +910,7 @@ namespace AL::DotNET::Collections
 				return;
 			}
 
-			array<System::Byte>^ buffer;
+			array<::System::Byte>^ buffer;
 			ToEndian(endian, buffer, value);
 
 			result = Marshal::FromArray<T>(
@@ -920,7 +920,7 @@ namespace AL::DotNET::Collections
 			);
 		}
 		generic<typename T>
-		static void ToEndian(Endians endian, array<System::Byte>^% result, T value)
+		static void ToEndian(Endians endian, array<::System::Byte>^% result, T value)
 		{
 			result = Marshal::ToArray(
 				value
@@ -928,7 +928,7 @@ namespace AL::DotNET::Collections
 
 			if (endian != Endians::Machine)
 			{
-				System::Array::Reverse(
+				::System::Array::Reverse(
 					result
 				);
 			}
@@ -944,7 +944,7 @@ namespace AL::DotNET::Collections
 				return;
 			}
 
-			array<System::Byte>^ buffer;
+			array<::System::Byte>^ buffer;
 			FromEndian(endian, buffer, value);
 
 			result = Marshal::FromArray<T>(
@@ -954,7 +954,7 @@ namespace AL::DotNET::Collections
 			);
 		}
 		generic<typename T>
-		static void FromEndian(Endians endian, array<System::Byte>^% result, T value)
+		static void FromEndian(Endians endian, array<::System::Byte>^% result, T value)
 		{
 			result = Marshal::ToArray(
 				value
@@ -962,7 +962,7 @@ namespace AL::DotNET::Collections
 
 			if (endian != Endians::Machine)
 			{
-				System::Array::Reverse(
+				::System::Array::Reverse(
 					result
 				);
 			}
@@ -980,15 +980,15 @@ namespace AL::DotNET::Collections
 			);
 		}
 
-		static array<System::Byte>^ CreateBuffer(array<System::Byte>^ buffer, System::UInt32 offset, System::UInt32 count)
+		static array<::System::Byte>^ CreateBuffer(array<::System::Byte>^ buffer, ::System::UInt32 offset, ::System::UInt32 count)
 		{
 			if (buffer->Length != count)
 			{
-				auto _buffer = gcnew array<System::Byte>(
+				auto _buffer = gcnew array<::System::Byte>(
 					count
 				);
 
-				System::Buffer::BlockCopy(
+				::System::Buffer::BlockCopy(
 					buffer,
 					offset,
 					_buffer,

@@ -12,14 +12,14 @@ namespace AL::DotNET::Algorithms
 		}
 
 	public:
-		static System::UInt32 Calculate(System::String^ string)
+		static ::System::UInt32 Calculate(::System::String^ string)
 		{
-			System::UInt32 hash = AL::Algorithms::_FNV_Constants<uint32>::Offset;
+			::System::UInt32 hash = AL::Algorithms::_FNV_Constants<uint32>::Offset;
 
-			for (System::Int32 index = 0; index < string->Length; ++index)
+			for (::System::Int32 index = 0; index < string->Length; ++index)
 			{
-				hash ^= static_cast<System::UInt32>(
-					static_cast<System::Byte>(string[index])
+				hash ^= static_cast<::System::UInt32>(
+					static_cast<::System::Byte>(string[index])
 				);
 
 				hash *= AL::Algorithms::_FNV_Constants<uint32>::Prime;
@@ -28,13 +28,13 @@ namespace AL::DotNET::Algorithms
 			return hash;
 		}
 
-		static System::UInt32 Calculate(array<System::Byte>^ array, System::Int32 index, System::Int32 count)
+		static ::System::UInt32 Calculate(array<::System::Byte>^ array, ::System::Int32 index, ::System::Int32 count)
 		{
-			System::UInt32 hash = AL::Algorithms::_FNV_Constants<uint32>::Offset;
+			::System::UInt32 hash = AL::Algorithms::_FNV_Constants<uint32>::Offset;
 
 			for (; index < count; ++index)
 			{
-				hash ^= static_cast<System::UInt32>(
+				hash ^= static_cast<::System::UInt32>(
 					array[index]
 				);
 
@@ -52,14 +52,14 @@ namespace AL::DotNET::Algorithms
 		}
 
 	public:
-		static System::UInt64 Calculate(System::String^ string)
+		static ::System::UInt64 Calculate(::System::String^ string)
 		{
-			System::UInt64 hash = AL::Algorithms::_FNV_Constants<uint64>::Offset;
+			::System::UInt64 hash = AL::Algorithms::_FNV_Constants<uint64>::Offset;
 
-			for (System::Int32 index = 0; index < string->Length; ++index)
+			for (::System::Int32 index = 0; index < string->Length; ++index)
 			{
-				hash ^= static_cast<System::UInt64>(
-					static_cast<System::Byte>(string[index])
+				hash ^= static_cast<::System::UInt64>(
+					static_cast<::System::Byte>(string[index])
 				);
 
 				hash *= AL::Algorithms::_FNV_Constants<uint64>::Prime;
@@ -68,13 +68,13 @@ namespace AL::DotNET::Algorithms
 			return hash;
 		}
 
-		static System::UInt64 Calculate(array<System::Byte>^ array, System::Int32 index, System::Int32 count)
+		static ::System::UInt64 Calculate(array<::System::Byte>^ array, ::System::Int32 index, ::System::Int32 count)
 		{
-			System::UInt64 hash = AL::Algorithms::_FNV_Constants<uint64>::Offset;
+			::System::UInt64 hash = AL::Algorithms::_FNV_Constants<uint64>::Offset;
 
 			for (; index < count; ++index)
 			{
-				hash ^= static_cast<System::UInt64>(
+				hash ^= static_cast<::System::UInt64>(
 					array[index]
 				);
 

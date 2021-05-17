@@ -4,11 +4,11 @@
 namespace AL::DotNET::Exceptions
 {
 	public ref class Exception
-		: public System::Exception
+		: public ::System::Exception
 	{
 	public:
-		explicit Exception(System::String^ message)
-			: System::Exception(
+		explicit Exception(::System::String^ message)
+			: ::System::Exception(
 				message
 			)
 		{
@@ -27,17 +27,17 @@ namespace AL::DotNET::Exceptions
 		}
 
 		Exception(Exception^ exception, Exception^ innerException)
-			: System::Exception(
+			: ::System::Exception(
 				exception->Message,
 				innerException
 			)
 		{
 		}
 
-		Exception(System::String^ message, Exception^ innerException)
-			: System::Exception(
+		Exception(::System::String^ message, Exception^ innerException)
+			: ::System::Exception(
 				message,
-				static_cast<System::Exception^>(innerException)
+				static_cast<::System::Exception^>(innerException)
 			)
 		{
 		}

@@ -53,7 +53,7 @@ namespace AL::DotNET::OS
 				)
 			)
 		{
-			for (System::Int32 i = 0; i < pattern->Length; ++i)
+			for (::System::Int32 i = 0; i < pattern->Length; ++i)
 			{
 				this->pattern[i]->Value = pattern[i];
 				this->pattern[i]->Required = true;
@@ -67,7 +67,7 @@ namespace AL::DotNET::OS
 		{
 		}
 
-		explicit ProcessMemoryPattern(System::Int32 length)
+		explicit ProcessMemoryPattern(::System::Int32 length)
 			: ProcessMemoryPattern(
 				gcnew array<ProcessMemoryPatternEntry^>(
 					length
@@ -81,21 +81,21 @@ namespace AL::DotNET::OS
 			return pattern->Length;
 		}
 
-		property ProcessMemoryPatternEntry^ default[System::UInt32]
+		property ProcessMemoryPatternEntry^ default[::System::UInt32]
 		{
 		public:
-			ProcessMemoryPatternEntry^ get(System::UInt32 index)
+			ProcessMemoryPatternEntry^ get(::System::UInt32 index)
 			{
 				return pattern[index];
 			}
-			void set(System::UInt32 index, ProcessMemoryPatternEntry^ value)
+			void set(::System::UInt32 index, ProcessMemoryPatternEntry^ value)
 			{
 				pattern[index] = value;
 			}
 		}
 	};
 
-	[System::FlagsAttribute]
+	[::System::FlagsAttribute]
 	public enum class ProcessStartupFlags
 		: typename Get_Enum_Base<AL::OS::ProcessStartupFlags>::Type
 	{
@@ -120,7 +120,7 @@ namespace AL::DotNET::OS
 #endif
 	};
 
-	[System::FlagsAttribute]
+	[::System::FlagsAttribute]
 	public enum class ProcessMemoryAllocationTypes
 		: typename Get_Enum_Base<AL::OS::ProcessMemoryAllocationTypes>::Type
 	{
@@ -137,7 +137,7 @@ namespace AL::DotNET::OS
 #endif
 	};
 	
-	[System::FlagsAttribute]
+	[::System::FlagsAttribute]
 	public enum class ProcessMemoryProtectionTypes
 		: typename Get_Enum_Base<AL::OS::ProcessMemoryProtectionTypes>::Type
 	{
@@ -158,46 +158,46 @@ namespace AL::DotNET::OS
 
 	public ref class ProcessStartInfo
 	{
-		System::String^     path             = System::String::Empty;
-		System::String^     commandLine      = System::String::Empty;
-		System::String^     workingDirectory = System::String::Empty;
+		::System::String^     path             = ::System::String::Empty;
+		::System::String^     commandLine      = ::System::String::Empty;
+		::System::String^     workingDirectory = ::System::String::Empty;
 
 #if defined(AL_PLATFORM_WINDOWS)
 		ProcessStartupFlags flags            = ProcessStartupFlags::None;
 #endif
 
 	public:
-		property System::String^ Path
+		property ::System::String^ Path
 		{
-			System::String^ get()
+			::System::String^ get()
 			{
 				return path;
 			}
-			void set(System::String^ value)
+			void set(::System::String^ value)
 			{
 				path = value;
 			}
 		}
 		
-		property System::String^ CommandLine
+		property ::System::String^ CommandLine
 		{
-			System::String^ get()
+			::System::String^ get()
 			{
 				return commandLine;
 			}
-			void set(System::String^ value)
+			void set(::System::String^ value)
 			{
 				commandLine = value;
 			}
 		}
 
-		property System::String^ WorkingDirectory
+		property ::System::String^ WorkingDirectory
 		{
-			System::String^ get()
+			::System::String^ get()
 			{
 				return workingDirectory;
 			}
-			void set(System::String^ value)
+			void set(::System::String^ value)
 			{
 				workingDirectory = value;
 			}
@@ -222,7 +222,7 @@ namespace AL::DotNET::OS
 	/// Return false to stop enumeration
 	/// </summary>
 	/// <exception cref="AL::Exceptions::Exception" />
-	public delegate bool ProcessEnumCallback(ProcessId processId, System::String^ processName);
+	public delegate bool ProcessEnumCallback(ProcessId processId, ::System::String^ processName);
 
 	class ProcessEnumNativeCallback
 	{
@@ -234,7 +234,7 @@ namespace AL::DotNET::OS
 		explicit ProcessEnumNativeCallback(ProcessEnumCallback^ callback)
 			: lpCallback(
 				reinterpret_cast<NativeCallback*>(
-					System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(callback).ToPointer()
+					::System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(callback).ToPointer()
 				)
 			)
 		{
@@ -269,7 +269,7 @@ namespace AL::DotNET::OS
 		explicit ProcessEnumMemoryRegionsNativeCallback(ProcessEnumMemoryRegionsCallback^ callback)
 			: lpCallback(
 				reinterpret_cast<NativeCallback*>(
-					System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(callback).ToPointer()
+					::System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(callback).ToPointer()
 				)
 			)
 		{
@@ -303,7 +303,7 @@ namespace AL::DotNET::OS
 
 	public:
 		/// <exception cref="AL::Exceptions::Exception" />
-		static void GetCurrentProcess([System::Runtime::InteropServices::OutAttribute] Process^% process)
+		static void GetCurrentProcess([::System::Runtime::InteropServices::OutAttribute] Process^% process)
 		{
 			AL::OS::Process _process;
 
@@ -330,7 +330,7 @@ namespace AL::DotNET::OS
 		/// Returns false if not found
 		/// </summary>
 		/// <exception cref="AL::Exceptions::Exception" />
-		static bool GetProcessById([System::Runtime::InteropServices::OutAttribute] Process^% process, ProcessId id)
+		static bool GetProcessById([::System::Runtime::InteropServices::OutAttribute] Process^% process, ProcessId id)
 		{
 			AL::OS::Process _process;
 
@@ -361,7 +361,7 @@ namespace AL::DotNET::OS
 		/// Returns false if not found
 		/// </summary>
 		/// <exception cref="AL::Exceptions::Exception" />
-		static bool GetProcessByName([System::Runtime::InteropServices::OutAttribute] Process^% process, System::String^ name)
+		static bool GetProcessByName([::System::Runtime::InteropServices::OutAttribute] Process^% process, ::System::String^ name)
 		{
 			AL::OS::Process _process;
 
@@ -389,7 +389,7 @@ namespace AL::DotNET::OS
 		}
 
 		/// <exception cref="AL::Exceptions::Exception" />
-		static void CreateProcess([System::Runtime::InteropServices::OutAttribute] Process^% process, ProcessStartInfo^ info)
+		static void CreateProcess([::System::Runtime::InteropServices::OutAttribute] Process^% process, ProcessStartInfo^ info)
 		{
 			AL::OS::Process _process;
 
@@ -422,7 +422,7 @@ namespace AL::DotNET::OS
 		/// <exception cref="AL::Exceptions::Exception" />
 		static void EnumerateProcesses(ProcessEnumCallback^ callback)
 		{
-			System::GC::KeepAlive(
+			::System::GC::KeepAlive(
 				callback
 			);
 
@@ -508,7 +508,7 @@ namespace AL::DotNET::OS
 		/// Returns false if not found
 		/// </summary>
 		/// <exception cref="AL::Exceptions::Exception" />
-		bool GetExport([System::Runtime::InteropServices::OutAttribute] ProcessAddress% address, System::UInt16 ordinal)
+		bool GetExport([::System::Runtime::InteropServices::OutAttribute] ProcessAddress% address, ::System::UInt16 ordinal)
 		{
 			AL::OS::ProcessAddress _address;
 
@@ -538,7 +538,7 @@ namespace AL::DotNET::OS
 		/// Returns false if not found
 		/// </summary>
 		/// <exception cref="AL::Exceptions::Exception" />
-		bool GetExport([System::Runtime::InteropServices::OutAttribute] ProcessAddress% address, System::String^ module, System::UInt16 ordinal)
+		bool GetExport([::System::Runtime::InteropServices::OutAttribute] ProcessAddress% address, ::System::String^ module, ::System::UInt16 ordinal)
 		{
 			AL::OS::ProcessAddress _address;
 
@@ -569,7 +569,7 @@ namespace AL::DotNET::OS
 		/// Returns false if not found
 		/// </summary>
 		/// <exception cref="AL::Exceptions::Exception" />
-		bool GetExport([System::Runtime::InteropServices::OutAttribute] ProcessAddress% address, System::String^ name)
+		bool GetExport([::System::Runtime::InteropServices::OutAttribute] ProcessAddress% address, ::System::String^ name)
 		{
 			AL::OS::ProcessAddress _address;
 
@@ -599,7 +599,7 @@ namespace AL::DotNET::OS
 		/// Returns false if not found
 		/// </summary>
 		/// <exception cref="AL::Exceptions::Exception" />
-		bool GetExport([System::Runtime::InteropServices::OutAttribute] ProcessAddress% address, System::String^ module, System::String^ name)
+		bool GetExport([::System::Runtime::InteropServices::OutAttribute] ProcessAddress% address, ::System::String^ module, ::System::String^ name)
 		{
 			AL::OS::ProcessAddress _address;
 
@@ -630,7 +630,7 @@ namespace AL::DotNET::OS
 		/// Returns false if not found
 		/// </summary>
 		/// <exception cref="AL::Exceptions::Exception" />
-		bool GetModule([System::Runtime::InteropServices::OutAttribute] ProcessAddress% address, System::String^ name)
+		bool GetModule([::System::Runtime::InteropServices::OutAttribute] ProcessAddress% address, ::System::String^ name)
 		{
 			AL::OS::ProcessAddress _address;
 
@@ -685,7 +685,7 @@ namespace AL::DotNET::OS
 		}
 
 		/// <exception cref="AL::Exceptions::Exception" />
-		System::UInt32 CreateThreadAndWait(ProcessAddress address)
+		::System::UInt32 CreateThreadAndWait(ProcessAddress address)
 		{
 			return CreateThreadAndWait(
 				address,
@@ -693,7 +693,7 @@ namespace AL::DotNET::OS
 			);
 		}
 		/// <exception cref="AL::Exceptions::Exception" />
-		System::UInt32 CreateThreadAndWait(ProcessAddress address, ProcessAddress param)
+		::System::UInt32 CreateThreadAndWait(ProcessAddress address, ProcessAddress param)
 		{
 			try
 			{
@@ -715,7 +715,7 @@ namespace AL::DotNET::OS
 		/// Returns address of library
 		/// </summary>
 		/// <exception cref="AL::Exceptions::Exception" />
-		ProcessAddress LoadLibrary(System::String^ path)
+		ProcessAddress LoadLibrary(::System::String^ path)
 		{
 			AL::OS::ProcessAddress address;
 
@@ -741,7 +741,7 @@ namespace AL::DotNET::OS
 		/// Returns address of library
 		/// </summary>
 		/// <exception cref="AL::Exceptions::Exception" />
-		ProcessAddress LoadLibrary(array<System::Byte>^ buffer)
+		ProcessAddress LoadLibrary(array<::System::Byte>^ buffer)
 		{
 			auto lpBuffer = new uint8[
 				static_cast<size_t>(buffer->Length)
@@ -751,7 +751,7 @@ namespace AL::DotNET::OS
 				buffer,
 				lpBuffer,
 				0,
-				static_cast<System::UInt32>(buffer->Length)
+				static_cast<::System::UInt32>(buffer->Length)
 			);
 
 			AL::OS::ProcessAddress address;
@@ -817,7 +817,7 @@ namespace AL::DotNET::OS
 			}
 		}
 		/// <exception cref="AL::Exceptions::Exception" />
-		void SetMemoryProtection(ProcessAddress address, size_t size, ProcessMemoryProtectionTypes value, [System::Runtime::InteropServices::OutAttribute] ProcessMemoryProtectionTypes% oldType)
+		void SetMemoryProtection(ProcessAddress address, size_t size, ProcessMemoryProtectionTypes value, [::System::Runtime::InteropServices::OutAttribute] ProcessMemoryProtectionTypes% oldType)
 		{
 			AL::OS::ProcessMemoryProtectionTypes _oldType;
 
@@ -925,7 +925,7 @@ namespace AL::DotNET::OS
 		generic<typename T>
 		void ReadMemory(ProcessAddress address, T% value)
 		{
-			auto buffer = gcnew array<System::Byte>(
+			auto buffer = gcnew array<::System::Byte>(
 				Marshal::SizeOf<T>()
 			);
 
@@ -941,7 +941,7 @@ namespace AL::DotNET::OS
 			);
 		}
 		/// <exception cref="AL::Exceptions::Exception" />
-		void ReadMemory(ProcessAddress address, array<System::Byte>^% buffer)
+		void ReadMemory(ProcessAddress address, array<::System::Byte>^% buffer)
 		{
 			auto lpBuffer = new uint8[
 				static_cast<size_t>(buffer->Length)
@@ -968,7 +968,7 @@ namespace AL::DotNET::OS
 				lpBuffer,
 				buffer,
 				0,
-				static_cast<System::UInt32>(buffer->Length)
+				static_cast<::System::UInt32>(buffer->Length)
 			);
 
 			delete[] lpBuffer;
@@ -988,7 +988,7 @@ namespace AL::DotNET::OS
 			);
 		}
 		/// <exception cref="AL::Exceptions::Exception" />
-		void WriteMemory(ProcessAddress address, array<System::Byte>^ buffer)
+		void WriteMemory(ProcessAddress address, array<::System::Byte>^ buffer)
 		{
 			auto lpBuffer = new uint8[
 				static_cast<size_t>(buffer->Length)
@@ -998,7 +998,7 @@ namespace AL::DotNET::OS
 				buffer,
 				lpBuffer,
 				0,
-				static_cast<System::UInt32>(buffer->Length)
+				static_cast<::System::UInt32>(buffer->Length)
 			);
 
 			try
@@ -1025,7 +1025,7 @@ namespace AL::DotNET::OS
 		/// Returns false if not found
 		/// </summary>
 		/// <exception cref="AL::Exceptions::Exception" />
-		bool SearchMemory([System::Runtime::InteropServices::OutAttribute] ProcessAddress% address, ProcessMemoryPattern^ pattern)
+		bool SearchMemory([::System::Runtime::InteropServices::OutAttribute] ProcessAddress% address, ProcessMemoryPattern^ pattern)
 		{
 			AL::OS::ProcessAddress _address;
 
@@ -1035,8 +1035,8 @@ namespace AL::DotNET::OS
 
 			for (size_t i = 0; i < _pattern.GetLength(); ++i)
 			{
-				_pattern[i].Value = pattern[static_cast<System::UInt32>(i)]->Value;
-				_pattern[i].Required = pattern[static_cast<System::UInt32>(i)]->Required;
+				_pattern[i].Value = pattern[static_cast<::System::UInt32>(i)]->Value;
+				_pattern[i].Required = pattern[static_cast<::System::UInt32>(i)]->Required;
 			}
 			
 			try
@@ -1065,7 +1065,7 @@ namespace AL::DotNET::OS
 		/// Returns false if not found
 		/// </summary>
 		/// <exception cref="AL::Exceptions::Exception" />
-		bool SearchMemory([System::Runtime::InteropServices::OutAttribute] ProcessAddress% address, ProcessMemoryPattern^ pattern, ProcessAddress offset, ProcessAddress length)
+		bool SearchMemory([::System::Runtime::InteropServices::OutAttribute] ProcessAddress% address, ProcessMemoryPattern^ pattern, ProcessAddress offset, ProcessAddress length)
 		{
 			AL::OS::ProcessAddress _address;
 
@@ -1075,8 +1075,8 @@ namespace AL::DotNET::OS
 
 			for (size_t i = 0; i < _pattern.GetLength(); ++i)
 			{
-				_pattern[i].Value = pattern[static_cast<System::UInt32>(i)]->Value;
-				_pattern[i].Required = pattern[static_cast<System::UInt32>(i)]->Required;
+				_pattern[i].Value = pattern[static_cast<::System::UInt32>(i)]->Value;
+				_pattern[i].Required = pattern[static_cast<::System::UInt32>(i)]->Required;
 			}
 
 			try
@@ -1105,7 +1105,7 @@ namespace AL::DotNET::OS
 		/// <exception cref="AL::Exceptions::Exception" />
 		void EnumerateMemoryRegions(ProcessEnumMemoryRegionsCallback^ callback)
 		{
-			System::GC::KeepAlive(
+			::System::GC::KeepAlive(
 				callback
 			);
 

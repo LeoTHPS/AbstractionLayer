@@ -17,7 +17,7 @@ namespace AL::DotNET::Algorithms
 		{
 		}
 
-		explicit Isaac(System::UInt32 seed)
+		explicit Isaac(::System::UInt32 seed)
 			: lpIsaac(
 				new AL::Algorithms::Isaac(
 					seed
@@ -31,11 +31,11 @@ namespace AL::DotNET::Algorithms
 			delete lpIsaac;
 		}
 
-		System::UInt32 Next()
+		::System::UInt32 Next()
 		{
 			return lpIsaac->Next();
 		}
-		System::UInt32 Next(System::UInt32 min, System::UInt32 max)
+		::System::UInt32 Next(::System::UInt32 min, ::System::UInt32 max)
 		{
 			return lpIsaac->Next(
 				min,
@@ -56,7 +56,7 @@ namespace AL::DotNET::Algorithms
 		{
 		}
 
-		explicit Isaac64(System::UInt32 seed)
+		explicit Isaac64(::System::UInt32 seed)
 			: lpIsaac(
 				new AL::Algorithms::Isaac64(
 					seed
@@ -70,11 +70,11 @@ namespace AL::DotNET::Algorithms
 			delete lpIsaac;
 		}
 
-		System::UInt64 Next()
+		::System::UInt64 Next()
 		{
 			return lpIsaac->Next();
 		}
-		System::UInt64 Next(System::UInt64 min, System::UInt64 max)
+		::System::UInt64 Next(::System::UInt64 min, ::System::UInt64 max)
 		{
 			return lpIsaac->Next(
 				min,

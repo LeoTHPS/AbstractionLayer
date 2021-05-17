@@ -26,7 +26,7 @@ namespace AL::DotNET::OS
 			auto milliseconds = elapsed.ToMilliseconds();
 			auto millisecondFractionInUS = elapsed.ToMicroseconds() - (milliseconds * 1000);
 
-			return System::TimeSpan::FromMilliseconds(
+			return ::System::TimeSpan::FromMilliseconds(
 				(milliseconds * 1.0) + (millisecondFractionInUS / 1000.0)
 			);
 		}

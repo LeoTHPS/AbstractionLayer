@@ -12,19 +12,19 @@ namespace AL::DotNET::Algorithms
 
 		int computed;
 		int corrupted;
-		System::UInt32 lengthLow;
-		System::UInt32 lengthHigh;
-		array<System::Byte>^ messageBlock;
+		::System::UInt32 lengthLow;
+		::System::UInt32 lengthHigh;
+		array<::System::Byte>^ messageBlock;
 		uint16 messageBlockIndex;
-		array<System::UInt32>^ intermediateHash;
+		array<::System::UInt32>^ intermediateHash;
 
 	public:
 		Sha1()
 			: messageBlock(
-				gcnew array<System::Byte>(64)
+				gcnew array<::System::Byte>(64)
 			),
 			intermediateHash(
-				gcnew array<System::UInt32>(5)
+				gcnew array<::System::UInt32>(5)
 			)
 		{
 			Reset();
@@ -47,7 +47,7 @@ namespace AL::DotNET::Algorithms
 			intermediateHash[4] = 0xC3D2E1F0;
 		}
 
-		bool Add(array<System::Byte>^% buffer, System::UInt32 offset, System::UInt32 count)
+		bool Add(array<::System::Byte>^% buffer, ::System::UInt32 offset, ::System::UInt32 count)
 		{
 			if (computed != 0)
 			{
@@ -62,7 +62,7 @@ namespace AL::DotNET::Algorithms
 				return false;
 			}
 
-			for (System::UInt32 i = offset, size = buffer->Length; (size-- != 0) && (corrupted == 0); ++i)
+			for (::System::UInt32 i = offset, size = buffer->Length; (size-- != 0) && (corrupted == 0); ++i)
 			{
 				messageBlock[messageBlockIndex++] = (byte)(buffer[i] & 0xFF);
 
@@ -89,13 +89,13 @@ namespace AL::DotNET::Algorithms
 			return true;
 		}
 
-		bool Calculate(System::String^% result)
+		bool Calculate(::System::String^% result)
 		{
-			array<System::Byte>^ buffer;
+			array<::System::Byte>^ buffer;
 
 			if (Calculate(buffer))
 			{
-				result = System::BitConverter::ToString(
+				result = ::System::BitConverter::ToString(
 					buffer,
 					0,
 					buffer->Length
@@ -106,7 +106,7 @@ namespace AL::DotNET::Algorithms
 
 			return false;
 		}
-		bool Calculate(array<System::Byte>^% buffer)
+		bool Calculate(array<::System::Byte>^% buffer)
 		{
 			int i;
 
@@ -116,7 +116,7 @@ namespace AL::DotNET::Algorithms
 				return false;
 			}
 
-			buffer = gcnew array<System::Byte>(
+			buffer = gcnew array<::System::Byte>(
 				20
 			);
 
@@ -145,7 +145,7 @@ namespace AL::DotNET::Algorithms
 			return true;
 		}
 
-		static bool Calculate(System::String^% result, array<System::Byte>^ buffer, System::UInt32 offset, System::UInt32 count)
+		static bool Calculate(::System::String^% result, array<::System::Byte>^ buffer, ::System::UInt32 offset, ::System::UInt32 count)
 		{
 			Sha1 sha1;
 
@@ -163,7 +163,7 @@ namespace AL::DotNET::Algorithms
 
 			return true;
 		}
-		static bool Calculate(array<System::Byte>^% result, array<System::Byte>^ buffer, System::UInt32 offset, System::UInt32 count)
+		static bool Calculate(array<::System::Byte>^% result, array<::System::Byte>^ buffer, ::System::UInt32 offset, ::System::UInt32 count)
 		{
 			Sha1 sha1;
 
@@ -219,7 +219,7 @@ namespace AL::DotNET::Algorithms
 
 		void ProcessMessageBlock()
 		{
-			System::UInt32 K[4] =
+			::System::UInt32 K[4] =
 			{
 				0x5A827999,
 				0x6ED9EBA1,
@@ -228,16 +228,16 @@ namespace AL::DotNET::Algorithms
 			};
 
 			int t;
-			System::UInt32 temp;
-			System::UInt32 W[80];
-			System::UInt32 A, B, C, D, E;
+			::System::UInt32 temp;
+			::System::UInt32 W[80];
+			::System::UInt32 A, B, C, D, E;
 
 			for (t = 0; t < 16; t++)
 			{
-				W[t] = (System::UInt32)(messageBlock[t * 4] << 24);
-				W[t] |= (System::UInt32)(messageBlock[t * 4 + 1] << 16);
-				W[t] |= (System::UInt32)(messageBlock[t * 4 + 2] << 8);
-				W[t] |= (System::UInt32)(messageBlock[t * 4 + 3]);
+				W[t] = (::System::UInt32)(messageBlock[t * 4] << 24);
+				W[t] |= (::System::UInt32)(messageBlock[t * 4 + 1] << 16);
+				W[t] |= (::System::UInt32)(messageBlock[t * 4 + 2] << 8);
+				W[t] |= (::System::UInt32)(messageBlock[t * 4 + 3]);
 			}
 
 			for (t = 16; t < 80; t++)
@@ -304,9 +304,9 @@ namespace AL::DotNET::Algorithms
 			intermediateHash[4] += E;
 		}
 
-		static System::UInt32 CircularShift(System::UInt32 bits, System::UInt32 word)
+		static ::System::UInt32 CircularShift(::System::UInt32 bits, ::System::UInt32 word)
 		{
-			return (System::UInt32)(((int)word << (int)bits) | ((int)word >> (int)(32 - bits)));
+			return (::System::UInt32)(((int)word << (int)bits) | ((int)word >> (int)(32 - bits)));
 		}
 	};
 }

@@ -5,7 +5,7 @@
 
 namespace AL::DotNET::FileSystem
 {
-	[System::FlagsAttribute]
+	[::::System::FlagsAttribute]
 	public enum class INIFileFieldAttributes
 		: typename Get_Enum_Base<AL::FileSystem::INIFileFieldAttributes>::Type
 	{
@@ -33,7 +33,7 @@ namespace AL::DotNET::FileSystem
 		{
 		}
 
-		INIFileField(System::String^ name, System::String^ value)
+		INIFileField(::System::String^ name, ::System::String^ value)
 			: lpField(
 				new AL::FileSystem::INIFileField(
 					Marshal::ToNativeString(
@@ -108,15 +108,15 @@ namespace AL::DotNET::FileSystem
 			if (!IsStruct())
 			{
 
-				throw gcnew System::InvalidOperationException(
+				throw gcnew ::System::InvalidOperationException(
 					"INIFileField type is not struct"
 				);
 			}
 
 			auto nativeBuffer = lpField->GetStructAsBuffer();
 			
-			auto buffer = gcnew array<System::Byte>(
-				static_cast<System::UInt32>(
+			auto buffer = gcnew array<::System::Byte>(
+				static_cast<::System::UInt32>(
 					nativeBuffer.GetSize()
 				)
 			);
@@ -141,15 +141,15 @@ namespace AL::DotNET::FileSystem
 			if (!IsStruct())
 			{
 
-				throw gcnew System::InvalidOperationException(
+				throw gcnew ::System::InvalidOperationException(
 					"INIFileField type is not struct"
 				);
 			}
 
 			auto nativeBuffer = lpField->GetStructAsBuffer();
 			
-			auto buffer = gcnew array<System::Byte>(
-				static_cast<System::UInt32>(
+			auto buffer = gcnew array<::System::Byte>(
+				static_cast<::System::UInt32>(
 					nativeBuffer.GetSize()
 				)
 			);
@@ -170,7 +170,7 @@ namespace AL::DotNET::FileSystem
 			if (!IsString())
 			{
 
-				throw gcnew System::InvalidOperationException(
+				throw gcnew ::System::InvalidOperationException(
 					"INIFileField type is not string"
 				);
 			}
@@ -189,7 +189,7 @@ namespace AL::DotNET::FileSystem
 			if (!IsInteger())
 			{
 
-				throw gcnew System::InvalidOperationException(
+				throw gcnew ::System::InvalidOperationException(
 					"INIFileField type is not integer"
 				);
 			}
@@ -229,7 +229,7 @@ namespace AL::DotNET::FileSystem
 				return T(lpField->GetInteger<int64>());
 			}
 
-			throw gcnew System::ArgumentException(
+			throw gcnew ::System::ArgumentException(
 				"T is an unsupported type"
 			);
 		}
@@ -241,7 +241,7 @@ namespace AL::DotNET::FileSystem
 			if (!IsDecimal())
 			{
 
-				throw gcnew System::InvalidOperationException(
+				throw gcnew ::System::InvalidOperationException(
 					"INIFileField type is not decimal"
 				);
 			}
@@ -257,7 +257,7 @@ namespace AL::DotNET::FileSystem
 				return T(lpField->GetDecimal<double>());
 			}
 
-			throw gcnew System::ArgumentException(
+			throw gcnew ::System::ArgumentException(
 				"T is an unsupported type"
 			);
 		}
@@ -276,7 +276,7 @@ namespace AL::DotNET::FileSystem
 			);
 		}
 
-		void SetStructAsBuffer(array<System::Byte>^ buffer, System::UInt32 offset, System::UInt32 count)
+		void SetStructAsBuffer(array<::System::Byte>^ buffer, ::System::UInt32 offset, ::System::UInt32 count)
 		{
 			AL::Collections::Array<uint8> nativeBuffer(
 				count
@@ -295,7 +295,7 @@ namespace AL::DotNET::FileSystem
 			);
 		}
 
-		void SetString(System::String^ value)
+		void SetString(::System::String^ value)
 		{
 			auto nativeString = Marshal::ToNativeString(
 				value
@@ -306,62 +306,62 @@ namespace AL::DotNET::FileSystem
 			);
 		}
 
-		void SetInteger(System::Byte value)
+		void SetInteger(::System::Byte value)
 		{
 			lpField->SetInteger<uint8>(
 				value
 			);
 		}
-		void SetInteger(System::UInt16 value)
+		void SetInteger(::System::UInt16 value)
 		{
 			lpField->SetInteger<uint16>(
 				value
 			);
 		}
-		void SetInteger(System::UInt32 value)
+		void SetInteger(::System::UInt32 value)
 		{
 			lpField->SetInteger<uint32>(
 				value
 			);
 		}
-		void SetInteger(System::UInt64 value)
+		void SetInteger(::System::UInt64 value)
 		{
 			lpField->SetInteger<uint64>(
 				value
 			);
 		}
-		void SetInteger(System::SByte value)
+		void SetInteger(::System::SByte value)
 		{
 			lpField->SetInteger<int8>(
 				value
 			);
 		}
-		void SetInteger(System::Int16 value)
+		void SetInteger(::System::Int16 value)
 		{
 			lpField->SetInteger<int16>(
 				value
 			);
 		}
-		void SetInteger(System::Int32 value)
+		void SetInteger(::System::Int32 value)
 		{
 			lpField->SetInteger<int32>(
 				value
 			);
 		}
-		void SetInteger(System::Int64 value)
+		void SetInteger(::System::Int64 value)
 		{
 			lpField->SetInteger<int64>(
 				value
 			);
 		}
 
-		void SetDecimal(System::Single value)
+		void SetDecimal(::System::Single value)
 		{
 			lpField->SetDecimal<float>(
 				value
 			);
 		}
-		void SetDecimal(System::Double value)
+		void SetDecimal(::System::Double value)
 		{
 			lpField->SetDecimal<double>(
 				value
@@ -384,7 +384,7 @@ namespace AL::DotNET::FileSystem
 		AL::FileSystem::INIFileSection* const lpSection;
 
 	public:
-		explicit INIFileSection(System::String^ name)
+		explicit INIFileSection(::System::String^ name)
 			: isSectionAllocated(
 				true
 			),
@@ -440,9 +440,9 @@ namespace AL::DotNET::FileSystem
 			}
 		}
 
-		property INIFileField^ default[System::String^]
+		property INIFileField^ default[::System::String^]
 		{
-			INIFileField^ get(System::String^ fieldName)
+			INIFileField^ get(::System::String^ fieldName)
 			{
 				auto& field = lpSection->operator[](
 					Marshal::ToNativeString(
@@ -454,7 +454,7 @@ namespace AL::DotNET::FileSystem
 					field
 				);
 			}
-			void set(System::String^ fieldName, INIFileField^ field)
+			void set(::System::String^ fieldName, INIFileField^ field)
 			{
 				auto nativeFieldName = Marshal::ToNativeString(
 					fieldName
@@ -477,12 +477,12 @@ namespace AL::DotNET::FileSystem
 
 	public ref class INIFile
 	{
-		System::String^ const path;
+		::System::String^ const path;
 
 		AL::FileSystem::INIFile* const lpINIFile;
 
 	public:
-		explicit INIFile(System::String^ path)
+		explicit INIFile(::System::String^ path)
 			: path(
 				path
 			),
@@ -593,9 +593,9 @@ namespace AL::DotNET::FileSystem
 			}
 		}
 
-		property INIFileSection^ default[System::String^]
+		property INIFileSection^ default[::System::String^]
 		{
-			INIFileSection^ get(System::String^ sectionName)
+			INIFileSection^ get(::System::String^ sectionName)
 			{
 				auto& section = lpINIFile->operator[](
 					Marshal::ToNativeString(
@@ -607,7 +607,7 @@ namespace AL::DotNET::FileSystem
 					section
 				);
 			}
-			void set(System::String^ sectionName, INIFileSection^ section)
+			void set(::System::String^ sectionName, INIFileSection^ section)
 			{
 				auto sectionNameNative = Marshal::ToNativeString(
 					sectionName
