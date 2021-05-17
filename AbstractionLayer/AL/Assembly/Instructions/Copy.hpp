@@ -164,8 +164,8 @@ namespace AL::Assembly::Instructions
 
 			return Copy(
 				Types::CopyAddressToMemory,
-				Move(_source),
-				Move(_destination)
+				AL::Move(_source),
+				AL::Move(_destination)
 			);
 		}
 		static Copy AddressToRegister(Address source, Registers destination)
@@ -178,8 +178,8 @@ namespace AL::Assembly::Instructions
 
 			return Copy(
 				Types::CopyAddressToRegister,
-				Move(_source),
-				Move(_destination)
+				AL::Move(_source),
+				AL::Move(_destination)
 			);
 		}
 
@@ -193,8 +193,8 @@ namespace AL::Assembly::Instructions
 
 			return Copy(
 				Types::CopyMemoryToMemory,
-				Move(_source),
-				Move(_destination)
+				AL::Move(_source),
+				AL::Move(_destination)
 			);
 		}
 		static Copy MemoryToRegister(Address source, Registers destination)
@@ -207,8 +207,8 @@ namespace AL::Assembly::Instructions
 
 			return Copy(
 				Types::CopyMemoryToRegister,
-				Move(_source),
-				Move(_destination)
+				AL::Move(_source),
+				AL::Move(_destination)
 			);
 		}
 
@@ -222,8 +222,8 @@ namespace AL::Assembly::Instructions
 
 			return Copy(
 				Types::CopyRegisterToMemory,
-				Move(_source),
-				Move(_destination)
+				AL::Move(_source),
+				AL::Move(_destination)
 			);
 		}
 		static Copy RegisterToRegister(Registers source, Registers destination)
@@ -236,8 +236,8 @@ namespace AL::Assembly::Instructions
 
 			return Copy(
 				Types::CopyRegisterToRegister,
-				Move(_source),
-				Move(_destination)
+				AL::Move(_source),
+				AL::Move(_destination)
 			);
 		}
 
@@ -250,9 +250,10 @@ namespace AL::Assembly::Instructions
 			return buffer.GetSize();
 		}
 
-		virtual bool Assemble(uint8* lpBuffer, size_t offset, size_t size) const override
+		// @throw AL::Exceptions::Exception
+		virtual void Assemble(uint8* lpBuffer, size_t offset, size_t size) const override
 		{
-			return CopyBuffer(
+			CopyBuffer(
 				buffer,
 				lpBuffer,
 				offset,

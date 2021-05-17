@@ -5,13 +5,13 @@
 
 namespace AL::Assembly::Instructions
 {
-	class JumpIfEqual
+	class Move
 		: public Instruction
 	{
 		Buffer buffer;
 
 	public:
-		JumpIfEqual()
+		Move()
 		{
 		}
 

@@ -20,9 +20,10 @@ namespace AL::Assembly::Instructions
 			return buffer.GetSize();
 		}
 
-		virtual bool Assemble(uint8* lpBuffer, size_t offset, size_t size) const override
+		// @throw AL::Exceptions::Exception
+		virtual void Assemble(uint8* lpBuffer, size_t offset, size_t size) const override
 		{
-			return CopyBuffer(
+			CopyBuffer(
 				buffer,
 				lpBuffer,
 				offset,
