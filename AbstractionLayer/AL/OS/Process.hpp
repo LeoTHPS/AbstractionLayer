@@ -1330,9 +1330,6 @@ namespace AL::OS
 			id = process.id;
 			process.id = 0;
 			
-			exitCode = process.exitCode;
-			process.exitCode = 0;
-
 #if defined(AL_PLATFORM_LINUX)
 			fdMemory = process.fdMemory;
 			process.fdMemory = -1;
@@ -1340,6 +1337,9 @@ namespace AL::OS
 			hProcess = process.hProcess;
 			process.hProcess = NULL;
 #endif
+
+			exitCode = process.exitCode;
+			process.exitCode = 0;
 
 			return *this;
 		}
