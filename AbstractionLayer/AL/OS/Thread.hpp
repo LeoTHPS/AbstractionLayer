@@ -32,6 +32,8 @@ namespace AL::OS
 
 			virtual bool IsDetatched() const = 0;
 
+			virtual void* GetHandle() const = 0;
+
 			// @throw AL::Exceptions::Exception
 			virtual void Start() = 0;
 
@@ -81,6 +83,15 @@ namespace AL::OS
 			virtual bool IsDetatched() const override
 			{
 				return isDetatched;
+			}
+
+			virtual void* GetHandle() const override
+			{
+#if defined(AL_PLATFORM_LINUX)
+				return pthread;
+#elif defined(AL_PLATFORM_WINDOWS)
+				return hThread;
+#endif
 			}
 
 			// @throw AL::Exceptions::Exception
@@ -334,6 +345,11 @@ namespace AL::OS
 		bool IsRunning() const
 		{
 			return (lpNativeThread != nullptr) ? lpNativeThread->IsRunning() : false;
+		}
+
+		auto GetHandle() const
+		{
+			return (lpNativeThread != nullptr) ? lpNativeThread->GetHandle() : nullptr;
 		}
 
 		// @throw AL::Exceptions::Exception
