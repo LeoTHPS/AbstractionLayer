@@ -630,7 +630,7 @@ namespace AL::DotNET::OS
 		/// Returns false if not found
 		/// </summary>
 		/// <exception cref="AL::Exceptions::Exception" />
-		bool GetModule([System::Runtime::InteropServices::OutAttribute] ProcessAddress& address, System::String^ name)
+		bool GetModule([System::Runtime::InteropServices::OutAttribute] ProcessAddress% address, System::String^ name)
 		{
 			AL::OS::ProcessAddress _address;
 
