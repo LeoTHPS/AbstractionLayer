@@ -5,7 +5,7 @@
 
 namespace AL::DotNET::FileSystem
 {
-	[::::System::FlagsAttribute]
+	[::System::FlagsAttribute]
 	public enum class INIFileFieldAttributes
 		: typename Get_Enum_Base<AL::FileSystem::INIFileFieldAttributes>::Type
 	{
