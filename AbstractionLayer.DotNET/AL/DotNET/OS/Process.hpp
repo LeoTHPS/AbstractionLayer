@@ -220,14 +220,72 @@ namespace AL::DotNET::OS
 	/// <summary>
 	/// Return false to stop enumeration
 	/// </summary>
-		/// <exception cref="AL::Exceptions::Exception" />
+	/// <exception cref="AL::Exceptions::Exception" />
 	public delegate bool ProcessEnumCallback(ProcessId processId, System::String^ processName);
+
+	class ProcessEnumNativeCallback
+	{
+		typedef bool(NativeCallback)(ProcessId, const char*);
+
+		NativeCallback* const lpCallback;
+
+	public:
+		explicit ProcessEnumNativeCallback(ProcessEnumCallback^ callback)
+			: lpCallback(
+				reinterpret_cast<NativeCallback*>(
+					System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(callback).ToPointer()
+				)
+			)
+		{
+		}
+
+		virtual ~ProcessEnumNativeCallback()
+		{
+		}
+
+		bool Execute(AL::OS::ProcessId processId, const String& processName) const
+		{
+			return lpCallback(
+				static_cast<ProcessId>(processId),
+				processName.GetCString()
+			);
+		}
+	};
 
 	/// <summary>
 	/// Return false to stop enumeration
 	/// </summary>
-		/// <exception cref="AL::Exceptions::Exception" />
+	/// <exception cref="AL::Exceptions::Exception" />
 	public delegate bool ProcessEnumMemoryRegionsCallback(ProcessAddress address, ProcessAddress size);
+
+	class ProcessEnumMemoryRegionsNativeCallback
+	{
+		typedef bool(NativeCallback)(ProcessAddress, ProcessAddress);
+
+		NativeCallback* const lpCallback;
+
+	public:
+		explicit ProcessEnumMemoryRegionsNativeCallback(ProcessEnumMemoryRegionsCallback^ callback)
+			: lpCallback(
+				reinterpret_cast<NativeCallback*>(
+					System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(callback).ToPointer()
+				)
+			)
+		{
+		}
+
+		virtual ~ProcessEnumMemoryRegionsNativeCallback()
+		{
+		}
+
+		bool Execute(AL::OS::ProcessAddress address, AL::OS::ProcessAddress size) const
+		{
+			return lpCallback(
+				static_cast<ProcessAddress>(address),
+				static_cast<ProcessAddress>(size)
+			);
+		}
+	};
 
 	public ref class Process
 	{
@@ -395,7 +453,23 @@ namespace AL::DotNET::OS
 		}
 
 		/// <exception cref="AL::Exceptions::Exception" />
-//		static void EnumerateProcesses(ProcessEnumCallback^ callback);
+		static void EnumerateProcesses(ProcessEnumCallback^ callback)
+		{
+			System::GC::KeepAlive(
+				callback
+			);
+
+			ProcessEnumNativeCallback nativeCallback(
+				callback
+			);
+
+			AL::OS::Process::EnumerateProcesses(
+				AL::OS::ProcessEnumCallback(
+					&ProcessEnumNativeCallback::Execute,
+					nativeCallback
+				)
+			);
+		}
 
 		Process()
 			: Process(
@@ -406,7 +480,10 @@ namespace AL::DotNET::OS
 
 		virtual ~Process()
 		{
-			delete lpProcess;
+			if (lpProcess != nullptr)
+			{
+				delete lpProcess;
+			}
 		}
 
 		bool IsOpen()
@@ -982,7 +1059,23 @@ namespace AL::DotNET::OS
 		}
 
 		/// <exception cref="AL::Exceptions::Exception" />
-//		void EnumerateMemoryRegions(ProcessEnumMemoryRegionsCallback^ callback);
+		void EnumerateMemoryRegions(ProcessEnumMemoryRegionsCallback^ callback)
+		{
+			System::GC::KeepAlive(
+				callback
+			);
+
+			ProcessEnumMemoryRegionsNativeCallback nativeCallback(
+				callback
+			);
+
+			lpProcess->EnumerateMemoryRegions(
+				AL::OS::ProcessEnumMemoryRegionsCallback(
+					&ProcessEnumMemoryRegionsNativeCallback::Execute,
+					nativeCallback
+				)
+			);
+		}
 
 		void Close()
 		{
