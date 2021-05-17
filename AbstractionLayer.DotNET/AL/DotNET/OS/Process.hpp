@@ -471,7 +471,6 @@ namespace AL::DotNET::OS
 			);
 		}
 
-#if defined(AL_PLATFORM_WINDOWS)
 		/// <exception cref="AL::Exceptions::Exception" />
 		auto GetExitCode()
 		{
@@ -875,7 +874,6 @@ namespace AL::DotNET::OS
 				);
 			}
 		}
-#endif
 
 		/// <exception cref="AL::Exceptions::Exception" />
 		generic<typename T>

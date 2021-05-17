@@ -555,12 +555,14 @@ namespace AL::OS
 			return id;
 		}
 
-#if defined(AL_PLATFORM_WINDOWS)
 		// @throw AL::Exceptions::Exception
 		ProcessExitCode GetExitCode() const
 		{
 			AL_ASSERT(IsOpen(), "Process not open");
 
+#if defined(AL_PLATFORM_LINUX)
+			throw Exceptions::NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
 			if (!isExitCodeCached)
 			{
 				DWORD _exitCode;
@@ -575,12 +577,15 @@ namespace AL::OS
 
 				exitCode = static_cast<ProcessExitCode>(
 					_exitCode
-					);
+				);
 
 				isExitCodeCached = true;
 			}
 
 			return exitCode;
+#else
+			throw Exceptions::NotImplementedException();
+#endif
 		}
 
 		// @throw AL::Exceptions::Exception
@@ -965,7 +970,6 @@ namespace AL::OS
 			throw Exceptions::NotImplementedException();
 #endif
 		}
-#endif
 
 		// @throw AL::Exceptions::Exception
 		template<typename T>
