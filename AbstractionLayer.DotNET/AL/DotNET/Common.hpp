@@ -112,3 +112,4 @@ namespace AL::DotNET
 #include "OS/Timer.hpp"
 #include "OS/System.hpp"
 #include "OS/Process.hpp"
+#include "OS/Environment.hpp"
