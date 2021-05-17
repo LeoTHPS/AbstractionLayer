@@ -77,22 +77,26 @@ namespace AL::OS
 		}
 	};
 
-#if defined(AL_PLATFORM_WINDOWS)
-	enum class ProcessStartupFlags
+	enum class ProcessStartupFlags : uint32
 	{
 		None            = 0,
 
+#if defined(AL_PLATFORM_WINDOWS)
 		// Inherit parent input/output/error handles
 		InheritHandles  = STARTF_USESTDHANDLES,
 
 		// The command line came from an untrusted source.
 		UntrustedSource = STARTF_UNTRUSTEDSOURCE
+#elif defined(AL_PLATFORM_LINUX)
+
+#endif
 	};
 
 	AL_DEFINE_ENUM_FLAG_OPERATORS(ProcessStartupFlags);
 
-	enum class ProcessMemoryReleaseTypes
+	enum class ProcessMemoryReleaseTypes : uint32
 	{
+#if defined(AL_PLATFORM_WINDOWS)
 		// Decommits the specified region of committed pages.
 		// After the operation, the pages are in the reserved state.
 		// The function does not fail if you attempt to decommit an uncommitted page.
@@ -104,10 +108,14 @@ namespace AL::OS
 		// The function does not fail if you attempt to release pages that are in different states, some reserved and some committed.
 		// This means that you can release a range of pages without first determining the current commitment state.
 		Release  = MEM_RELEASE
+#elif defined(AL_PLATFORM_LINUX)
+
+#endif
 	};
 
-	enum class ProcessMemoryAllocationTypes
+	enum class ProcessMemoryAllocationTypes : uint32
 	{
+#if defined(AL_PLATFORM_WINDOWS)
 		// Allocates memory charges (from the overall size of memory and the paging files on disk)
 		// for the specified reserved memory pages. The function also guarantees that when the
 		// caller later initially accesses the memory, the contents will be zero. Actual physical
@@ -149,12 +157,16 @@ namespace AL::OS
 		// Allocates memory at the highest possible address.
 		// This can be slower than regular allocations, especially when there are many allocations.
 		TopDown                                                                  = MEM_TOP_DOWN
+#elif defined(AL_PLATFORM_LINUX)
+
+#endif
 	};
 
 	AL_DEFINE_ENUM_FLAG_OPERATORS(ProcessMemoryAllocationTypes);
 
-	enum class ProcessMemoryProtectionTypes
+	enum class ProcessMemoryProtectionTypes : uint32
 	{
+#if defined(AL_PLATFORM_WINDOWS)
 		// Enables execute access to the committed region of pages.
 		// An attempt to write to the committed region results in an access violation.
 		Execute          = PAGE_EXECUTE,
@@ -199,10 +211,12 @@ namespace AL::OS
 		// Using the interlocked functions with memory that is mapped as write - combined can result in an EXCEPTION_ILLEGAL_INSTRUCTION exception.
 		// The WriteCombine flag cannot be specified with the NoAccess, Guard, and NoCache flags.
 		WriteCombine     = PAGE_WRITECOMBINE
+#elif defined(AL_PLATFORM_LINUX)
+
+#endif
 	};
 
 	AL_DEFINE_ENUM_FLAG_OPERATORS(ProcessMemoryProtectionTypes);
-#endif
 
 	struct ProcessStartInfo
 	{
