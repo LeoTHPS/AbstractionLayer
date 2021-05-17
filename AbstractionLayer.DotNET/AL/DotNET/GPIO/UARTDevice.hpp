@@ -14,7 +14,7 @@ namespace AL::DotNET::GPIO
 		AL::GPIO::UARTDevice* const lpDevice;
 
 	public:
-		/// <exception cref="AL::Exceptions::Exception" />
+		/// <exception cref="AL::DotNET::Exceptions::Exception" />
 		static void Open([System::Runtime::InteropServices::Out] UARTDevice^% device, System::String^ name, UARTDeviceSpeeds speed)
 		{
 			device = gcnew UARTDevice();
@@ -71,7 +71,7 @@ namespace AL::DotNET::GPIO
 		/// <summary>
 		/// Returns number of bytes read
 		/// </summary>
-		/// <exception cref="AL::Exceptions::Exception" />
+		/// <exception cref="AL::DotNET::Exceptions::Exception" />
 		System::UInt32 Read(array<System::Byte>^% buffer, System::UInt32 offset, System::UInt32 count)
 		{
 			size_t bytesReceived = 0;
@@ -107,7 +107,7 @@ namespace AL::DotNET::GPIO
 			);
 		}
 
-		/// <exception cref="AL::Exceptions::Exception" />
+		/// <exception cref="AL::DotNET::Exceptions::Exception" />
 		void Write(array<System::Byte>^ buffer, System::UInt32 offset, System::UInt32 count)
 		{
 			AL::Collections::Array<uint8> _buffer(

@@ -31,7 +31,7 @@ namespace AL::DotNET::GPIO::Devices
 			return lpDevice->IsOpen();
 		}
 
-		/// <exception cref="AL::Exceptions::Exception" />
+		/// <exception cref="AL::DotNET::Exceptions::Exception" />
 		void Open()
 		{
 			try
@@ -52,7 +52,7 @@ namespace AL::DotNET::GPIO::Devices
 			lpDevice->Close();
 		}
 
-		/// <exception cref="AL::Exceptions::Exception" />
+		/// <exception cref="AL::DotNET::Exceptions::Exception" />
 		void Read([System::Runtime::InteropServices::Out] System::String^% value)
 		{
 			String _value;

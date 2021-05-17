@@ -6,7 +6,7 @@ namespace AL::DotNET::OS
 	public ref class Environment sealed abstract
 	{
 	public:
-		/// <exception cref="AL::Exceptions::Exception" />
+		/// <exception cref="AL::DotNET::Exceptions::Exception" />
 		static bool TryGetVariable(::System::String^ name, [::System::Runtime::InteropServices::OutAttribute] ::System::String^% value)
 		{
 			String _value;
@@ -34,7 +34,7 @@ namespace AL::DotNET::OS
 			return true;
 		}
 
-		/// <exception cref="AL::Exceptions::Exception" />
+		/// <exception cref="AL::DotNET::Exceptions::Exception" />
 		static void SetVariable(::System::String^ name, ::System::String^ value)
 		{
 			try

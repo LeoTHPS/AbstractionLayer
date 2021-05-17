@@ -59,7 +59,7 @@ namespace AL::DotNET::FileSystem
 			lpLogFile->Close();
 		}
 
-		/// <exception cref="AL::Exceptions::Exception" />
+		/// <exception cref="AL::DotNET::Exceptions::Exception" />
 		void WriteLine(System::String^ format, ... array<System::Object^>^ args)
 		{
 			auto line = System::String::Format(

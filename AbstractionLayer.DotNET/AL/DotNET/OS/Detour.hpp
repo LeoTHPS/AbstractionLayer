@@ -6,7 +6,7 @@ namespace AL::DotNET::OS
 	public ref class Detour sealed abstract
 	{
 	public:
-		/// <exception cref="AL::Exceptions::Exception" />
+		/// <exception cref="AL::DotNET::Exceptions::Exception" />
 		static void HookFunction(::System::IntPtr source, ::System::IntPtr destination)
 		{
 			try

@@ -57,7 +57,7 @@ namespace AL::DotNET::OS
 			return AL::OS::System::GetProcessorCount();
 		}
 
-		/// <exception cref="AL::Exceptions::Exception" />
+		/// <exception cref="AL::DotNET::Exceptions::Exception" />
 		static auto GetProcessorCacheCount()
 		{
 			try
@@ -73,7 +73,7 @@ namespace AL::DotNET::OS
 			}
 		}
 
-		/// <exception cref="AL::Exceptions::Exception" />
+		/// <exception cref="AL::DotNET::Exceptions::Exception" />
 		static auto GetProcessorCacheSize(::System::UInt32 cacheLevel)
 		{
 			try
@@ -91,7 +91,7 @@ namespace AL::DotNET::OS
 			}
 		}
 
-		/// <exception cref="AL::Exceptions::Exception" />
+		/// <exception cref="AL::DotNET::Exceptions::Exception" />
 		static auto GetProcessorCacheLineSize(::System::UInt32 cacheLevel)
 		{
 			try

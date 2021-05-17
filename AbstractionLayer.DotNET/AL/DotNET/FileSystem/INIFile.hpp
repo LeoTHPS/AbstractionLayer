@@ -101,7 +101,7 @@ namespace AL::DotNET::FileSystem
 			);
 		}
 
-		/// <exception cref="AL::Exceptions::Exception" />
+		/// <exception cref="AL::DotNET::Exceptions::Exception" />
 		generic<typename T>
 		auto GetStruct()
 		{
@@ -135,7 +135,7 @@ namespace AL::DotNET::FileSystem
 			);
 		}
 
-		/// <exception cref="AL::Exceptions::Exception" />
+		/// <exception cref="AL::DotNET::Exceptions::Exception" />
 		auto GetStructAsBuffer()
 		{
 			if (!IsStruct())
@@ -164,7 +164,7 @@ namespace AL::DotNET::FileSystem
 			return buffer;
 		}
 
-		/// <exception cref="AL::Exceptions::Exception" />
+		/// <exception cref="AL::DotNET::Exceptions::Exception" />
 		auto GetString()
 		{
 			if (!IsString())
@@ -182,7 +182,7 @@ namespace AL::DotNET::FileSystem
 			);
 		}
 
-		/// <exception cref="AL::Exceptions::Exception" />
+		/// <exception cref="AL::DotNET::Exceptions::Exception" />
 		generic<typename T>
 		T GetInteger()
 		{
@@ -234,7 +234,7 @@ namespace AL::DotNET::FileSystem
 			);
 		}
 
-		/// <exception cref="AL::Exceptions::Exception" />
+		/// <exception cref="AL::DotNET::Exceptions::Exception" />
 		generic<typename T>
 		auto GetDecimal()
 		{
@@ -511,7 +511,7 @@ namespace AL::DotNET::FileSystem
 			return lpINIFile->GetSectionCount();
 		}
 
-		/// <exception cref="AL::Exceptions::Exception" />
+		/// <exception cref="AL::DotNET::Exceptions::Exception" />
 		bool Exists()
 		{
 			try
@@ -530,7 +530,7 @@ namespace AL::DotNET::FileSystem
 		/// <summary>
 		/// Returns false if not found
 		/// </summary>
-		/// <exception cref="AL::Exceptions::Exception" />
+		/// <exception cref="AL::DotNET::Exceptions::Exception" />
 		bool Read()
 		{
 			try
@@ -546,7 +546,7 @@ namespace AL::DotNET::FileSystem
 			}
 		}
 
-		/// <exception cref="AL::Exceptions::Exception" />
+		/// <exception cref="AL::DotNET::Exceptions::Exception" />
 		void Write()
 		{
 			try
@@ -567,7 +567,7 @@ namespace AL::DotNET::FileSystem
 			lpINIFile->Clear();
 		}
 
-		/// <exception cref="AL::Exceptions::Exception" />
+		/// <exception cref="AL::DotNET::Exceptions::Exception" />
 		void Delete()
 		{
 			try
