@@ -30,7 +30,7 @@ namespace AL::OS
 				);
 			}
 
-			value.SetSize(
+			value.SetCapacity(
 				bufferSize
 			);
 
@@ -46,6 +46,8 @@ namespace AL::OS
 					"GetEnvironmentVariableA"
 				);
 			}
+
+			value.RefreshLength();
 #endif
 
 			return true;
