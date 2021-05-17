@@ -639,7 +639,7 @@ namespace AL::OS
 
 		// @throw AL::Exceptions::Exception
 		// @return false if not found
-		bool GetExport(ProcessAddress& address, uint16 ordinal)
+		bool GetExport(ProcessAddress& address, uint16 ordinal) const
 		{
 			return GetExport(
 				address,
@@ -649,7 +649,7 @@ namespace AL::OS
 		}
 		// @throw AL::Exceptions::Exception
 		// @return false if not found
-		bool GetExport(ProcessAddress& address, const String& module, uint16 ordinal)
+		bool GetExport(ProcessAddress& address, const String& module, uint16 ordinal) const
 		{
 			return GetExport(
 				address,
@@ -662,7 +662,7 @@ namespace AL::OS
 
 		// @throw AL::Exceptions::Exception
 		// @return false if not found
-		bool GetExport(ProcessAddress& address, const String& name)
+		bool GetExport(ProcessAddress& address, const String& name) const
 		{
 			return GetExport(
 				address,
@@ -672,7 +672,7 @@ namespace AL::OS
 		}
 		// @throw AL::Exceptions::Exception
 		// @return false if not found
-		bool GetExport(ProcessAddress& address, const String& module, const String& name)
+		bool GetExport(ProcessAddress& address, const String& module, const String& name) const
 		{
 			AL_ASSERT(IsOpen(), "Process not open");
 
@@ -712,6 +712,47 @@ namespace AL::OS
 
 				address = reinterpret_cast<ProcessAddress>(
 					hExport
+				);
+
+				return true;
+			}
+
+			// TODO: implement external-process logic
+
+			throw Exceptions::NotImplementedException();
+#else
+			throw Exceptions::NotImplementedException();
+#endif
+		}
+
+		// @throw AL::Exceptions::Exception
+		bool GetModule(ProcessAddress& address, const String& name) const
+		{
+			AL_ASSERT(IsOpen(), "Process not open");
+
+#if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
+			throw Exceptions::NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
+			if (IsCurrentProcess())
+			{
+				HMODULE hModule;
+
+				if ((hModule = GetModuleHandleA(name.GetCString())) == NULL)
+				{
+					if (GetLastError() == ERROR_MOD_NOT_FOUND)
+					{
+
+						return false;
+					}
+
+					throw Exceptions::SystemException(
+						"GetModuleHandleA"
+					);
+				}
+
+				address = reinterpret_cast<ProcessAddress>(
+					hModule
 				);
 
 				return true;
