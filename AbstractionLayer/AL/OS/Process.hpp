@@ -272,6 +272,7 @@ namespace AL::OS
 		static bool GetProcessById(Process& process, ProcessId id)
 		{
 #if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
 			throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
 			HANDLE hProcess;
@@ -317,21 +318,32 @@ namespace AL::OS
 			ProcessId processId;
 			bool      isProcessFound = false;
 
-			EnumerateProcesses(
-				[&name, &processId, &isProcessFound](ProcessId _processId, const String& _processName)
-				{
-					if (!name.Compare(_processName, true))
+			try
+			{
+				EnumerateProcesses(
+					[&name, &processId, &isProcessFound](ProcessId _processId, const String& _processName)
 					{
+						if (!name.Compare(_processName, true))
+						{
 
-						return true;
+							return true;
+						}
+
+						processId = _processId;
+						isProcessFound = true;
+
+						return false;
 					}
+				);
+			}
+			catch (AL::Exceptions::Exception& exception)
+			{
 
-					processId = _processId;
-					isProcessFound = true;
-					
-					return false;
-				}
-			);
+				throw AL::Exceptions::Exception(
+					AL::Move(exception),
+					"Error enumerating processes"
+				);
+			}
 
 			if (!isProcessFound || !GetProcessById(process, processId))
 			{
@@ -346,6 +358,7 @@ namespace AL::OS
 		static void CreateProcess(Process& process, const ProcessStartInfo& info)
 		{
 #if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
 			throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
 			STARTUPINFOA startup;
@@ -398,6 +411,7 @@ namespace AL::OS
 		static void EnumerateProcesses(const ProcessEnumCallback& callback)
 		{
 #if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
 			throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
 			HANDLE hSnapshot;
@@ -561,6 +575,7 @@ namespace AL::OS
 			AL_ASSERT(IsOpen(), "Process not open");
 
 #if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
 			throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
 			if (!isExitCodeCached)
@@ -628,6 +643,7 @@ namespace AL::OS
 			AL_ASSERT(IsOpen(), "Process not open");
 
 #if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
 			throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
 			if (IsCurrentProcess())
@@ -689,6 +705,7 @@ namespace AL::OS
 			AL_ASSERT(IsOpen(), "Process not open");
 
 #if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
 			throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
 			HANDLE hThread;
@@ -733,6 +750,7 @@ namespace AL::OS
 			AL_ASSERT(IsOpen(), "Process not open");
 
 #if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
 			throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
 			HANDLE hThread;
@@ -790,6 +808,7 @@ namespace AL::OS
 			AL_ASSERT(IsOpen(), "Process not open");
 
 #if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
 			throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
 			if (IsCurrentProcess())
@@ -820,6 +839,7 @@ namespace AL::OS
 			AL_ASSERT(IsOpen(), "Process not open");
 
 #if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
 			throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
 			if (IsCurrentProcess())
@@ -851,6 +871,7 @@ namespace AL::OS
 			AL_ASSERT(IsOpen(), "Process not open");
 
 #if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
 			throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
 			if (IsCurrentProcess())
@@ -901,6 +922,7 @@ namespace AL::OS
 			AL_ASSERT(IsOpen(), "Process not open");
 
 #if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
 			throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
 			if (!::VirtualProtectEx(hProcess, reinterpret_cast<LPVOID>(address), static_cast<SIZE_T>(size), static_cast<DWORD>(value), reinterpret_cast<PDWORD>(&oldValue)))
@@ -933,6 +955,7 @@ namespace AL::OS
 			AL_ASSERT(IsOpen(), "Process not open");
 
 #if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
 			throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
 			if (auto lpAddress = VirtualAllocEx(hProcess, reinterpret_cast<LPVOID>(address), static_cast<SIZE_T>(size), static_cast<DWORD>(type), static_cast<DWORD>(protection)))
@@ -957,6 +980,7 @@ namespace AL::OS
 			AL_ASSERT(IsOpen(), "Process not open");
 
 #if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
 			throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
 			if (!VirtualFreeEx(hProcess, reinterpret_cast<LPVOID>(address), (type == ProcessMemoryReleaseTypes::Release) ? 0 : static_cast<SIZE_T>(size), static_cast<DWORD>(type)))
@@ -1134,6 +1158,7 @@ namespace AL::OS
 			AL_ASSERT(IsOpen(), "Process not open");
 
 #if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
 			throw Exceptions::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
 			ProcessAddress address = System::GetMinimumAddress();
@@ -1170,7 +1195,7 @@ namespace AL::OS
 			if (IsOpen())
 			{
 #if defined(AL_PLATFORM_LINUX)
-
+				// TODO: implement
 #elif defined(AL_PLATFORM_WINDOWS)
 				if (!IsCurrentProcess())
 				{
