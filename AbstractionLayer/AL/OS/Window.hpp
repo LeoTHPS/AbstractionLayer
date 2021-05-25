@@ -416,7 +416,17 @@ namespace AL::OS
 		{
 			if (IsOpen())
 			{
-				Close();
+				Destroy();
+
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_X11)
+
+	#endif
+#elif defined(AL_PLATFORM_WINDOWS)
+				DestroyWindow(
+					handle
+				);
+#endif
 			}
 
 #if defined(AL_PLATFORM_WINDOWS)
