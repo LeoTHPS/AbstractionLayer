@@ -1545,131 +1545,264 @@ namespace AL::OS
 				}
 				break;
 
+				case WM_KEYUP:
 				case WM_KEYDOWN:
 				{
-					lastKeyboardEvent.Key = static_cast<Input::Keys>(wParam);
-					lastKeyboardEvent.Event = Input::KeyboardEvents::KeyDown;
+					auto VirtualKeyToInputKey = [](Input::Keys& _key, WPARAM _wParam)->bool
+					{
+						switch (_wParam)
+						{
+							case 0x41:
+								_key = Input::Keys::A;
+								return true;
+							case 0x42:
+								_key = Input::Keys::B;
+								return true;
+							case 0x43:
+								_key = Input::Keys::C;
+								return true;
+							case 0x44:
+								_key = Input::Keys::D;
+								return true;
+							case 0x45:
+								_key = Input::Keys::E;
+								return true;
+							case 0x46:
+								_key = Input::Keys::F;
+								return true;
+							case 0x47:
+								_key = Input::Keys::G;
+								return true;
+							case 0x48:
+								_key = Input::Keys::H;
+								return true;
+							case 0x49:
+								_key = Input::Keys::I;
+								return true;
+							case 0x4A:
+								_key = Input::Keys::J;
+								return true;
+							case 0x4B:
+								_key = Input::Keys::K;
+								return true;
+							case 0x4C:
+								_key = Input::Keys::L;
+								return true;
+							case 0x4D:
+								_key = Input::Keys::M;
+								return true;
+							case 0x4E:
+								_key = Input::Keys::N;
+								return true;
+							case 0x4F:
+								_key = Input::Keys::O;
+								return true;
+							case 0x50:
+								_key = Input::Keys::P;
+								return true;
+							case 0x51:
+								_key = Input::Keys::Q;
+								return true;
+							case 0x52:
+								_key = Input::Keys::R;
+								return true;
+							case 0x53:
+								_key = Input::Keys::S;
+								return true;
+							case 0x54:
+								_key = Input::Keys::T;
+								return true;
+							case 0x55:
+								_key = Input::Keys::U;
+								return true;
+							case 0x56:
+								_key = Input::Keys::V;
+								return true;
+							case 0x57:
+								_key = Input::Keys::W;
+								return true;
+							case 0x58:
+								_key = Input::Keys::X;
+								return true;
+							case 0x59:
+								_key = Input::Keys::Y;
+								return true;
+							case 0x5A:
+								_key = Input::Keys::Z;
+								return true;
 
-					// handle generic alt
-					if (lastKeyboardEvent.Key == static_cast<Input::Keys>(VK_MENU))
+							case 0x30:
+								_key = Input::Keys::Num0;
+								return true;
+							case 0x31:
+								_key = Input::Keys::Num1;
+								return true;
+							case 0x32:
+								_key = Input::Keys::Num2;
+								return true;
+							case 0x33:
+								_key = Input::Keys::Num3;
+								return true;
+							case 0x34:
+								_key = Input::Keys::Num4;
+								return true;
+							case 0x35:
+								_key = Input::Keys::Num5;
+								return true;
+							case 0x36:
+								_key = Input::Keys::Num6;
+								return true;
+							case 0x37:
+								_key = Input::Keys::Num7;
+								return true;
+							case 0x38:
+								_key = Input::Keys::Num8;
+								return true;
+							case 0x39:
+								_key = Input::Keys::Num9;
+								return true;
+
+							case VK_NUMPAD0:
+								_key = Input::Keys::NumPad0;
+								return true;
+							case VK_NUMPAD1:
+								_key = Input::Keys::NumPad1;
+								return true;
+							case VK_NUMPAD2:
+								_key = Input::Keys::NumPad2;
+								return true;
+							case VK_NUMPAD3:
+								_key = Input::Keys::NumPad3;
+								return true;
+							case VK_NUMPAD4:
+								_key = Input::Keys::NumPad4;
+								return true;
+							case VK_NUMPAD5:
+								_key = Input::Keys::NumPad5;
+								return true;
+							case VK_NUMPAD6:
+								_key = Input::Keys::NumPad6;
+								return true;
+							case VK_NUMPAD7:
+								_key = Input::Keys::NumPad7;
+								return true;
+							case VK_NUMPAD8:
+								_key = Input::Keys::NumPad8;
+								return true;
+							case VK_NUMPAD9:
+								_key = Input::Keys::NumPad9;
+								return true;
+								
+							case VK_OEM_3:
+								_key = Input::Keys::Tilde;
+								return true;
+							case VK_MENU:
+								_key = Input::Keys::Alt;
+								return true;
+							case VK_LMENU:
+								_key = Input::Keys::LAlt;
+								return true;
+							case VK_RMENU:
+								_key = Input::Keys::RAlt;
+								return true;
+							case VK_CLEAR:
+								_key = Input::Keys::Clear;
+								return true;
+							case VK_DELETE:
+								_key = Input::Keys::Delete;
+								return true;
+							case VK_RETURN:
+								_key = Input::Keys::Enter;
+								return true;
+							case VK_ESCAPE:
+								_key = Input::Keys::Escape;
+								return true;
+							case VK_BACK:
+								_key = Input::Keys::Backspace;
+								return true;
+							case VK_CONTROL:
+								_key = Input::Keys::Control;
+								return true;
+							case VK_LCONTROL:
+								_key = Input::Keys::LControl;
+								return true;
+							case VK_RCONTROL:
+								_key = Input::Keys::RControl;
+								return true;
+							case VK_SHIFT:
+								_key = Input::Keys::Shift;
+								return true;
+							case VK_LSHIFT:
+								_key = Input::Keys::LShift;
+								return true;
+							case VK_RSHIFT:
+								_key = Input::Keys::RShift;
+								return true;
+							case VK_SPACE:
+								_key = Input::Keys::Spacebar;
+								return true;
+							case VK_TAB:
+								_key = Input::Keys::Tab;
+								return true;
+
+							case VK_UP:
+								_key = Input::Keys::Up;
+								return true;
+							case VK_DOWN:
+								_key = Input::Keys::Down;
+								return true;
+							case VK_LEFT:
+								_key = Input::Keys::Left;
+								return true;
+							case VK_RIGHT:
+								_key = Input::Keys::Right;
+								return true;
+						}
+
+						return false;
+					};
+
+					bool isKeyDown = (message == WM_KEYDOWN);
+
+					lastKeyboardEvent.Event = isKeyDown ? Input::KeyboardEvents::KeyDown : Input::KeyboardEvents::KeyUp;
+					
+					if (VirtualKeyToInputKey(lastKeyboardEvent.Key, wParam))
 					{
 						keyboardState.SetPressed(
 							lastKeyboardEvent.Key,
-							true
+							isKeyDown
 						);
 
-						lastKeyboardEvent.Key = static_cast<Input::Keys>(
-							MapVirtualKey(
-								static_cast<UINT>((lParam & 0x00FF0000) >> 16),
-								MAPVK_VSC_TO_VK_EX
-							)
+						OnKeyboardEvent(
+							lastKeyboardEvent
 						);
 					}
 
-					// handle generic shift
-					else if (lastKeyboardEvent.Key == static_cast<Input::Keys>(VK_SHIFT))
+					switch (wParam)
 					{
-						keyboardState.SetPressed(
-							lastKeyboardEvent.Key,
-							true
-						);
-
-						lastKeyboardEvent.Key = static_cast<Input::Keys>(
-							MapVirtualKey(
+						case VK_MENU:
+						case VK_SHIFT:
+						case VK_CONTROL:
+						{
+							wParam = MapVirtualKey(
 								static_cast<UINT>((lParam & 0x00FF0000) >> 16),
 								MAPVK_VSC_TO_VK_EX
-							)
-						);
+							);
+
+							if (VirtualKeyToInputKey(lastKeyboardEvent.Key, wParam))
+							{
+								keyboardState.SetPressed(
+									lastKeyboardEvent.Key,
+									isKeyDown
+								);
+
+								OnKeyboardEvent(
+									lastKeyboardEvent
+								);
+							}
+						}
+						break;
 					}
-
-					// handle generic control
-					else if (lastKeyboardEvent.Key == static_cast<Input::Keys>(VK_CONTROL))
-					{
-						keyboardState.SetPressed(
-							lastKeyboardEvent.Key,
-							true
-						);
-
-						lastKeyboardEvent.Key = static_cast<Input::Keys>(
-							MapVirtualKey(
-								static_cast<UINT>((lParam & 0x00FF0000) >> 16),
-								MAPVK_VSC_TO_VK_EX
-							)
-						);
-					}
-
-					keyboardState.SetPressed(
-						lastKeyboardEvent.Key,
-						true
-					);
-
-					OnKeyboardEvent(
-						lastKeyboardEvent
-					);
-				}
-				break;
-
-				case WM_KEYUP:
-				{
-					lastKeyboardEvent.Key = static_cast<Input::Keys>(wParam);
-					lastKeyboardEvent.Event = Input::KeyboardEvents::KeyUp;
-
-					// handle generic alt
-					if (lastKeyboardEvent.Key == static_cast<Input::Keys>(VK_MENU))
-					{
-						keyboardState.SetPressed(
-							lastKeyboardEvent.Key,
-							false
-						);
-
-						lastKeyboardEvent.Key = static_cast<Input::Keys>(
-							MapVirtualKey(
-								static_cast<UINT>((lParam & 0x00FF0000) >> 16),
-								MAPVK_VSC_TO_VK_EX
-							)
-						);
-					}
-
-					// handle generic shift
-					else if (lastKeyboardEvent.Key == static_cast<Input::Keys>(VK_SHIFT))
-					{
-						keyboardState.SetPressed(
-							lastKeyboardEvent.Key,
-							false
-						);
-
-						lastKeyboardEvent.Key = static_cast<Input::Keys>(
-							MapVirtualKey(
-								static_cast<UINT>((lParam & 0x00FF0000) >> 16),
-								MAPVK_VSC_TO_VK_EX
-							)
-						);
-					}
-
-					// handle generic control
-					else if (lastKeyboardEvent.Key == static_cast<Input::Keys>(VK_CONTROL))
-					{
-						keyboardState.SetPressed(
-							lastKeyboardEvent.Key,
-							false
-						);
-
-						lastKeyboardEvent.Key = static_cast<Input::Keys>(
-							MapVirtualKey(
-								static_cast<UINT>((lParam & 0x00FF0000) >> 16),
-								MAPVK_VSC_TO_VK_EX
-							)
-						);
-					}
-
-					keyboardState.SetPressed(
-						lastKeyboardEvent.Key,
-						false
-					);
-
-					OnKeyboardEvent(
-						lastKeyboardEvent
-					);
 				}
 				break;
 
