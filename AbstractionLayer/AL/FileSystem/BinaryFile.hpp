@@ -207,7 +207,7 @@ namespace AL::FileSystem
 				length
 			);
 
-			value.SetSize(
+			value.SetCapacity(
 				length + 1
 			);
 
@@ -216,6 +216,8 @@ namespace AL::FileSystem
 
 				return false;
 			}
+
+			value.RefreshLength();
 
 			return true;
 		}
@@ -235,7 +237,7 @@ namespace AL::FileSystem
 				length
 			);
 
-			value.SetSize(
+			value.SetCapacity(
 				length + 1
 			);
 
@@ -244,6 +246,8 @@ namespace AL::FileSystem
 
 				return false;
 			}
+
+			value.RefreshLength();
 
 			return true;
 		}
