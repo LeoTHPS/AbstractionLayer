@@ -426,9 +426,9 @@ namespace AL::Sockets
 		}
 
 		// @throw AL::Exceptions::Exception
-		void SetBlocking(bool set = true)
+		void SetBlocking(bool set = true, bool ignoreCurrentState = false)
 		{
-			if (set != IsBlocking())
+			if ((set != IsBlocking()) || ignoreCurrentState)
 			{
 				if (IsOpen())
 				{
@@ -490,6 +490,20 @@ namespace AL::Sockets
 
 			localEndPoint = IPEndPoint();
 			remoteEndPoint = IPEndPoint();
+
+			try
+			{
+				SetBlocking(
+					IsBlocking(),
+					true
+				);
+			}
+			catch (Exceptions::Exception&)
+			{
+				Close();
+
+				throw;
+			}
 		}
 
 		void Close()
