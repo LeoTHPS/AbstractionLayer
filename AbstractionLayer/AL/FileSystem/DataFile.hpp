@@ -4,14 +4,14 @@
 #include "AL/Algorithms/FNV.hpp"
 
 #include "AL/Collections/Map.hpp"
-#include "AL/Collections/Array.hpp"
+#include "AL/Collections/ByteBuffer.hpp"
 
 #include "AL/FileSystem/BinaryFile.hpp"
 
 namespace AL::FileSystem
 {
-	typedef uint64 DataFileSectionID;
-	typedef Collections::Array<uint8> DataFileSectionBuffer;
+	typedef uint64                                   DataFileSectionID;
+	typedef Collections::ByteBuffer<Endians::Little> DataFileSectionBuffer;
 
 	class DataFile
 	{
@@ -375,7 +375,7 @@ namespace AL::FileSystem
 				);
 			}
 
-			sectionBuffer.SetSize(
+			sectionBuffer.SetCapacity(
 				static_cast<size_t>(sectionHeader.BufferSize)
 			);
 
