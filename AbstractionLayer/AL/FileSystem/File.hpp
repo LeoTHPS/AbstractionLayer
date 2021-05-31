@@ -13,7 +13,7 @@
 
 namespace AL::FileSystem
 {
-	enum class FileOpenModes : uint32
+	enum class FileOpenModes : uint8
 	{
 		Binary   = 0x1,
 
@@ -476,26 +476,30 @@ namespace AL::FileSystem
 			accessMask.Set(GENERIC_READ, mode.IsSet(FileOpenModes::Read));
 			accessMask.Set(GENERIC_WRITE, mode.IsSet(FileOpenModes::Write));
 
-			if ((hFile = CreateFileA(
-				GetPath().GetString().GetCString(),
-				accessMask.Mask,
-				FILE_SHARE_READ,
-				nullptr,
-				(mode.IsSet(FileOpenModes::Truncate) ? CREATE_ALWAYS : OPEN_EXISTING),
-				FILE_ATTRIBUTE_NORMAL,
-				nullptr
-			)) == INVALID_HANDLE_VALUE)
+			DWORD dwCreationDisposition = OPEN_EXISTING;
+
+			if (mode.IsSet(FileOpenModes::Truncate))
 			{
+
+				dwCreationDisposition = CREATE_ALWAYS;
+			}
+
+			if ((hFile = CreateFileA(GetPath().GetString().GetCString(), accessMask.Mask, FILE_SHARE_READ, nullptr, dwCreationDisposition, FILE_ATTRIBUTE_NORMAL, nullptr)) == INVALID_HANDLE_VALUE)
+			{
+				hFile = INVALID_FILE_HANDLE_VALUE;
+
 				auto lastErrorCode = GetLastError();
 
-				if (lastErrorCode != ERROR_ALREADY_EXISTS)
+				if (lastErrorCode == ERROR_FILE_NOT_FOUND)
 				{
 
-					throw Exceptions::SystemException(
-						"CreateFileA",
-						lastErrorCode
-					);
+					return false;
 				}
+
+				throw Exceptions::SystemException(
+					"CreateFileA",
+					lastErrorCode
+				);
 			}
 #endif
 
