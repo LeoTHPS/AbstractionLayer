@@ -163,12 +163,22 @@ namespace AL
 
 	enum class Platforms : uint8
 	{
-		Win32,
-		Win64,
-		Linux32,
-		Linux64,
-		LinuxARM,
-		LinuxARM64,
+		x86        = 0x1,
+		x86_64     = 0x2,
+
+		ARM        = 0x4,
+		ARM64      = 0x8,
+
+		Linux      = 0x10,
+		Windows    = 0x20,
+
+		Win32      = Windows | x86,
+		Win64      = Windows | x86_64,
+
+		Linux32    = Linux | x86,
+		Linux64    = Linux | x86_64,
+		LinuxARM   = Linux | ARM,
+		LinuxARM64 = Linux | ARM64,
 
 #if defined(AL_PLATFORM_WIN32)
 		Machine = Win32
@@ -655,6 +665,8 @@ namespace AL
 			size
 		) == 0;
 	}
+
+	AL_DEFINE_ENUM_FLAG_OPERATORS(Platforms);
 }
 
 #include "Collections/List.hpp"
