@@ -323,7 +323,7 @@ namespace AL::FileSystem
 				}
 
 #if defined(AL_PLATFORM_LINUX)
-				if (fseek(hFile, static_cast<long>(index), SEEK_SET) == -1)
+				if (fseek(GetHandle(), static_cast<long>(index), SEEK_SET) == -1)
 				{
 
 					throw Exceptions::SystemException(
@@ -630,6 +630,10 @@ namespace AL::FileSystem
 					"fflush"
 				);
 			}
+
+			clearerr(
+				GetHandle()
+			);
 #elif defined(AL_PLATFORM_WINDOWS)
 			DWORD _bytesWritten = 0;
 
