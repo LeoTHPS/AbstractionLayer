@@ -622,6 +622,14 @@ namespace AL::FileSystem
 					"fwrite"
 				);
 			}
+
+			if (fflush(GetHandle()) == EOF)
+			{
+
+				throw Exceptions::SystemException(
+					"fflush"
+				);
+			}
 #elif defined(AL_PLATFORM_WINDOWS)
 			DWORD _bytesWritten = 0;
 
