@@ -113,7 +113,7 @@ namespace AL::FileSystem
 				size_t endOfLineChunk2;
 				bool endOfLineChunk2Found;
 
-				if (endOfLineChunk2Found = lineChunkBuffer.Find(endOfLineChunk2, '\r'))
+				if ((endOfLineChunk2Found = lineChunkBuffer.Find(endOfLineChunk2, '\r')) == true)
 				{
 					if ((endOfLineChunk - endOfLineChunk2) == 1)
 					{
