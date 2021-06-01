@@ -98,6 +98,7 @@ namespace AL::FileSystem
 			{
 				totalBytesRead += bytesRead;
 				lineChunkBuffer[static_cast<size_t>(bytesRead / sizeof(String::Char))] = String::END;
+				lineChunkBuffer.RefreshLength();
 
 				size_t endOfLineChunk;
 				
