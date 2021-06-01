@@ -24,3 +24,7 @@
 #include "AL/DotNET/OS/Library.hpp"
 #include "AL/DotNET/OS/Process.hpp"
 #include "AL/DotNET/OS/Environment.hpp"
+
+#if defined(AL_PLATFORM_WINDOWS)
+	#include "AL/DotNET/OS/ntdll.hpp"
+#endif

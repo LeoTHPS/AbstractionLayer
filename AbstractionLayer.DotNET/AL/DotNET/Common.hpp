@@ -120,6 +120,10 @@ namespace AL::DotNET
 #include "Exceptions/Exception.hpp"
 #include "Exceptions/NotImplementedException.hpp"
 
+#if defined(AL_PLATFORM_WINDOWS)
+	#include "OS/ntdll.hpp"
+#endif
+
 #include "OS/Timer.hpp"
 #include "OS/Detour.hpp"
 #include "OS/System.hpp"
