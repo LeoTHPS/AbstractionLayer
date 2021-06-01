@@ -965,8 +965,7 @@ namespace AL::DotNET::OS
 
 			value = Marshal::FromArray<T>(
 				buffer,
-				0,
-				Marshal::SizeOf<T>()
+				0
 			);
 		}
 		/// <exception cref="AL::DotNET::Exceptions::Exception" />

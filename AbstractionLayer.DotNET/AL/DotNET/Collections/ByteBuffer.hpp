@@ -915,14 +915,13 @@ namespace AL::DotNET::Collections
 
 			result = Marshal::FromArray<T>(
 				buffer,
-				0,
-				buffer->Length
+				0
 			);
 		}
 		generic<typename T>
 		static void ToEndian(Endians endian, [::System::Runtime::InteropServices::OutAttribute] array<::System::Byte>^% result, T value)
 		{
-			result = Marshal::ToArray(
+			result = Marshal::ToArray<T>(
 				value
 			);
 
@@ -949,8 +948,7 @@ namespace AL::DotNET::Collections
 
 			result = Marshal::FromArray<T>(
 				buffer,
-				0,
-				buffer->Length
+				0
 			);
 		}
 		generic<typename T>

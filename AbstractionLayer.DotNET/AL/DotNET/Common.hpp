@@ -101,8 +101,7 @@ namespace AL::DotNET
 		{
 			return Marshal::FromArray<T>(
 				buffer,
-				0,
-				buffer->Length
+				0
 			);
 		}
 

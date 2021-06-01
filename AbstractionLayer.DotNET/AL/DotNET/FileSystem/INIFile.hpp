@@ -130,8 +130,7 @@ namespace AL::DotNET::FileSystem
 
 			return Marshal::FromArray<T>(
 				buffer,
-				0,
-				buffer->Length
+				0
 			);
 		}
 

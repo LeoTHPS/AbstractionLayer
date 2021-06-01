@@ -94,84 +94,116 @@ namespace AL::DotNET
 		}
 
 		generic<typename T>
-		static array<System::Byte>^ ToArray(T value)
+		static array<::System::Byte>^ ToArray(T value)
 		{
-			auto hBuffer = System::Runtime::InteropServices::Marshal::AllocHGlobal(
-				SizeOf<T>()
-			);
+			if (T::typeid->IsEnum)
+			{
+				switch (SizeOf<T>())
+				{
+					case 1: return ::System::BitConverter::GetBytes(static_cast<::System::Byte>(value));
+					case 2: return ::System::BitConverter::GetBytes(static_cast<::System::UInt16>(value));
+					case 4: return ::System::BitConverter::GetBytes(static_cast<::System::UInt32>(value));
+					case 8: return ::System::BitConverter::GetBytes(static_cast<::System::UInt64>(value));
+				}
+			}
+			else
+			{
+				auto T_Size = SizeOf<T>();
 
-			System::Runtime::InteropServices::Marshal::StructureToPtr(
-				value,
-				hBuffer,
-				false
-			);
+				auto hBuffer = ::System::Runtime::InteropServices::Marshal::AllocHGlobal(
+					T_Size
+				);
 
-			auto buffer = gcnew array<System::Byte>(
-				SizeOf<T>()
-			);
+				::System::Runtime::InteropServices::Marshal::StructureToPtr(
+					value,
+					hBuffer,
+					false
+				);
 
-			System::Runtime::InteropServices::Marshal::Copy(
-				hBuffer,
-				buffer,
-				0,
-				SizeOf<T>()
-			);
+				auto buffer = gcnew array<::System::Byte>(
+					T_Size
+				);
 
-			System::Runtime::InteropServices::Marshal::FreeHGlobal(
-				hBuffer
-			);
+				::System::Runtime::InteropServices::Marshal::Copy(
+					hBuffer,
+					buffer,
+					0,
+					T_Size
+				);
 
-			return buffer;
+				::System::Runtime::InteropServices::Marshal::FreeHGlobal(
+					hBuffer
+				);
+
+				return buffer;
+			}
+
+			throw gcnew ::System::NotImplementedException();
 		}
 
 		generic<typename T>
-		static T FromArray(array<System::Byte>^ buffer, System::UInt32 offset, System::UInt32 count)
+		static T FromArray(array<::System::Byte>^ buffer, ::System::UInt32 offset)
 		{
-			auto hBuffer = System::Runtime::InteropServices::Marshal::AllocHGlobal(
-				buffer->Length
-			);
+			if (T::typeid->IsEnum)
+			{
+				switch (SizeOf<T>())
+				{
+					case 1: return T(buffer[static_cast<::System::Int32>(offset)]);
+					case 2: return T(::System::BitConverter::ToUInt16(buffer, static_cast<::System::Int32>(offset)));
+					case 4: return T(::System::BitConverter::ToUInt32(buffer, static_cast<::System::Int32>(offset)));
+					case 8: return T(::System::BitConverter::ToUInt64(buffer, static_cast<::System::Int32>(offset)));
+				}
+			}
+			else
+			{
+				auto hBuffer = ::System::Runtime::InteropServices::Marshal::AllocHGlobal(
+					buffer->Length
+				);
 
-			System::Runtime::InteropServices::Marshal::Copy(
-				buffer,
-				offset,
-				hBuffer,
-				count
-			);
+				::System::Runtime::InteropServices::Marshal::Copy(
+					buffer,
+					offset,
+					hBuffer,
+					SizeOf<T>()
+				);
 
-			auto obj = System::Runtime::InteropServices::Marshal::PtrToStructure(
-				hBuffer,
-				T::typeid
-			);
+				auto obj = ::System::Runtime::InteropServices::Marshal::PtrToStructure(
+					hBuffer,
+					T::typeid
+				);
 
-			System::Runtime::InteropServices::Marshal::FreeHGlobal(
-				hBuffer
-			);
+				::System::Runtime::InteropServices::Marshal::FreeHGlobal(
+					hBuffer
+				);
 
-			return static_cast<T>(
-				obj
-			);
+				return static_cast<T>(
+					obj
+				);
+			}
+
+			throw gcnew ::System::NotImplementedException();
 		}
 
-		static void Copy(void* source, array<System::Byte>^% destination, System::UInt32 offset, System::UInt32 count)
+		static void Copy(void* source, array<::System::Byte>^% destination, ::System::UInt32 offset, ::System::UInt32 count)
 		{
-			Copy(System::IntPtr(source), destination, offset, count);
+			Copy(::System::IntPtr(source), destination, offset, count);
 		}
-		static void Copy(System::IntPtr source, array<System::Byte>^% destination, System::UInt32 offset, System::UInt32 count)
+		static void Copy(::System::IntPtr source, array<::System::Byte>^% destination, ::System::UInt32 offset, ::System::UInt32 count)
 		{
-			System::Runtime::InteropServices::Marshal::Copy(
+			::System::Runtime::InteropServices::Marshal::Copy(
 				source,
 				destination,
 				static_cast<int>(offset),
 				static_cast<int>(count)
 			);
 		}
-		static void Copy(array<System::Byte>^ source, void* destination, System::UInt32 offset, System::UInt32 count)
+		static void Copy(array<::System::Byte>^ source, void* destination, ::System::UInt32 offset, ::System::UInt32 count)
 		{
-			Copy(source, System::IntPtr(destination), offset, count);
+			Copy(source, ::System::IntPtr(destination), offset, count);
 		}
-		static void Copy(array<System::Byte>^ source, System::IntPtr destination, System::UInt32 offset, System::UInt32 count)
+		static void Copy(array<::System::Byte>^ source, ::System::IntPtr destination, ::System::UInt32 offset, ::System::UInt32 count)
 		{
-			System::Runtime::InteropServices::Marshal::Copy(
+			::System::Runtime::InteropServices::Marshal::Copy(
 				source,
 				static_cast<int>(offset),
 				destination,
@@ -180,9 +212,18 @@ namespace AL::DotNET
 		}
 
 		generic<typename T>
-		static System::UInt32 SizeOf()
+		static ::System::UInt32 SizeOf()
 		{
-			return System::Runtime::InteropServices::Marshal::SizeOf(
+			// rhetorical: why is this even needed?
+			if (T::typeid->IsEnum)
+			{
+
+				return sizeof(
+					T
+				);
+			}
+			
+			return ::System::Runtime::InteropServices::Marshal::SizeOf(
 				T::typeid
 			);
 		}
