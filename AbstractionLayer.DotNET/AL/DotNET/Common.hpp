@@ -14,11 +14,22 @@ namespace AL::DotNET
 		Machine = static_cast<typename Get_Enum_Base<AL::Endians>::Type>(AL::Endians::Machine)
 	};
 
+	[::System::FlagsAttribute]
 	public enum class Platforms
 		: typename Get_Enum_Base<AL::Platforms>::Type
 	{
+		x86        = static_cast<typename Get_Enum_Base<AL::Platforms>::Type>(AL::Platforms::x86),
+		x86_64     = static_cast<typename Get_Enum_Base<AL::Platforms>::Type>(AL::Platforms::x86_64),
+
+		ARM        = static_cast<typename Get_Enum_Base<AL::Platforms>::Type>(AL::Platforms::ARM),
+		ARM64      = static_cast<typename Get_Enum_Base<AL::Platforms>::Type>(AL::Platforms::ARM64),
+
+		Linux      = static_cast<typename Get_Enum_Base<AL::Platforms>::Type>(AL::Platforms::Linux),
+		Windows    = static_cast<typename Get_Enum_Base<AL::Platforms>::Type>(AL::Platforms::Windows),
+
 		Win32      = static_cast<typename Get_Enum_Base<AL::Platforms>::Type>(AL::Platforms::Win32),
 		Win64      = static_cast<typename Get_Enum_Base<AL::Platforms>::Type>(AL::Platforms::Win64),
+
 		Linux32    = static_cast<typename Get_Enum_Base<AL::Platforms>::Type>(AL::Platforms::Linux32),
 		Linux64    = static_cast<typename Get_Enum_Base<AL::Platforms>::Type>(AL::Platforms::Linux64),
 		LinuxARM   = static_cast<typename Get_Enum_Base<AL::Platforms>::Type>(AL::Platforms::LinuxARM),
@@ -32,7 +43,7 @@ namespace AL::DotNET
     {
 	public:
 		generic<typename T>
-        [::System::Runtime::CompilerServices::Extension]
+		[::System::Runtime::CompilerServices::Extension]
 		static T GetAttribute(::System::Type^ type)
         {
             return (T)::System::Attribute::GetCustomAttribute(
@@ -41,7 +52,7 @@ namespace AL::DotNET
             );
         }
 		generic<typename T>
-        [::System::Runtime::CompilerServices::Extension]
+		[::System::Runtime::CompilerServices::Extension]
 		static T GetAttribute(::System::Object^ object)
         {
             return (T)::System::Attribute::GetCustomAttribute(
