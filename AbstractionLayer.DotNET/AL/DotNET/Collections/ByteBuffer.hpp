@@ -122,7 +122,7 @@ namespace AL::DotNET::Collections
 		}
 
 		generic<typename T>
-		bool PeekEnum(T% value)
+		bool PeekEnum([::System::Runtime::InteropServices::OutAttribute] T% value)
 		{
 			if (!T::typeid->IsEnum)
 			{
@@ -150,7 +150,7 @@ namespace AL::DotNET::Collections
 			return false;
 		}
 
-		bool PeekBool(::System::Boolean% value)
+		bool PeekBool([::System::Runtime::InteropServices::OutAttribute] ::System::Boolean% value)
 		{
 			auto buffer = gcnew array<::System::Byte>(
 				Marshal::SizeOf<::System::Boolean>()
@@ -170,7 +170,7 @@ namespace AL::DotNET::Collections
 			return false;
 		}
 
-		bool PeekInt8(::System::SByte% value)
+		bool PeekInt8([::System::Runtime::InteropServices::OutAttribute] ::System::SByte% value)
 		{
 			auto buffer = gcnew array<::System::Byte>(
 				Marshal::SizeOf<::System::SByte>()
@@ -189,7 +189,7 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool PeekInt16(::System::Int16% value)
+		bool PeekInt16([::System::Runtime::InteropServices::OutAttribute] ::System::Int16% value)
 		{
 			auto buffer = gcnew array<::System::Byte>(
 				Marshal::SizeOf<::System::Int16>()
@@ -208,7 +208,7 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool PeekInt32(::System::Int32% value)
+		bool PeekInt32([::System::Runtime::InteropServices::OutAttribute] ::System::Int32% value)
 		{
 			auto buffer = gcnew array<::System::Byte>(
 				Marshal::SizeOf<::System::Int32>()
@@ -227,7 +227,7 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool PeekInt64(::System::Int64% value)
+		bool PeekInt64([::System::Runtime::InteropServices::OutAttribute] ::System::Int64% value)
 		{
 			auto buffer = gcnew array<::System::Byte>(
 				Marshal::SizeOf<::System::Int64>()
@@ -247,7 +247,7 @@ namespace AL::DotNET::Collections
 			return false;
 		}
 
-		bool PeekUInt8(::System::Byte% value)
+		bool PeekUInt8([::System::Runtime::InteropServices::OutAttribute] ::System::Byte% value)
 		{
 			auto buffer = gcnew array<::System::Byte>(
 				Marshal::SizeOf<::System::Byte>()
@@ -266,7 +266,7 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool PeekUInt16(::System::UInt16% value)
+		bool PeekUInt16([::System::Runtime::InteropServices::OutAttribute] ::System::UInt16% value)
 		{
 			auto buffer = gcnew array<::System::Byte>(
 				Marshal::SizeOf<::System::UInt16>()
@@ -285,7 +285,7 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool PeekUInt32(::System::UInt32% value)
+		bool PeekUInt32([::System::Runtime::InteropServices::OutAttribute] ::System::UInt32% value)
 		{
 			auto buffer = gcnew array<::System::Byte>(
 				Marshal::SizeOf<::System::UInt32>()
@@ -304,7 +304,7 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool PeekUInt64(::System::UInt64% value)
+		bool PeekUInt64([::System::Runtime::InteropServices::OutAttribute] ::System::UInt64% value)
 		{
 			auto buffer = gcnew array<::System::Byte>(
 				Marshal::SizeOf<::System::UInt64>()
@@ -324,7 +324,7 @@ namespace AL::DotNET::Collections
 			return false;
 		}
 		
-		bool PeekFloat(::System::Single% value)
+		bool PeekFloat([::System::Runtime::InteropServices::OutAttribute] ::System::Single% value)
 		{
 			auto buffer = gcnew array<::System::Byte>(
 				Marshal::SizeOf<::System::Single>()
@@ -343,7 +343,7 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool PeekDouble(::System::Double% value)
+		bool PeekDouble([::System::Runtime::InteropServices::OutAttribute] ::System::Double% value)
 		{
 			auto buffer = gcnew array<::System::Byte>(
 				Marshal::SizeOf<::System::Double>()
@@ -363,14 +363,14 @@ namespace AL::DotNET::Collections
 			return false;
 		}
 
-		bool PeekString(::System::String^% value)
+		bool PeekString([::System::Runtime::InteropServices::OutAttribute] ::System::String^% value)
 		{
 			return PeekString(
 				value,
 				::System::Text::Encoding::Default
 			);
 		}
-		bool PeekString(::System::String^% value, ::System::Text::Encoding^ encoding)
+		bool PeekString([::System::Runtime::InteropServices::OutAttribute] ::System::String^% value, ::System::Text::Encoding^ encoding)
 		{
 			::System::UInt32 length;
 
@@ -421,7 +421,7 @@ namespace AL::DotNET::Collections
 		}
 
 		generic<typename T>
-		bool ReadEnum(T% value)
+		bool ReadEnum([::System::Runtime::InteropServices::OutAttribute] T% value)
 		{
 			if (!T::typeid->IsEnum)
 			{
@@ -449,7 +449,7 @@ namespace AL::DotNET::Collections
 			return false;
 		}
 
-		bool ReadBool(::System::Boolean% value)
+		bool ReadBool([::System::Runtime::InteropServices::OutAttribute] ::System::Boolean% value)
 		{
 			auto buffer = gcnew array<::System::Byte>(
 				Marshal::SizeOf<::System::Boolean>()
@@ -469,7 +469,7 @@ namespace AL::DotNET::Collections
 			return false;
 		}
 
-		bool ReadInt8(::System::SByte% value)
+		bool ReadInt8([::System::Runtime::InteropServices::OutAttribute] ::System::SByte% value)
 		{
 			auto buffer = gcnew array<::System::Byte>(
 				Marshal::SizeOf<::System::SByte>()
@@ -488,7 +488,7 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool ReadInt16(::System::Int16% value)
+		bool ReadInt16([::System::Runtime::InteropServices::OutAttribute] ::System::Int16% value)
 		{
 			auto buffer = gcnew array<::System::Byte>(
 				Marshal::SizeOf<::System::Int16>()
@@ -507,7 +507,7 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool ReadInt32(::System::Int32% value)
+		bool ReadInt32([::System::Runtime::InteropServices::OutAttribute] ::System::Int32% value)
 		{
 			auto buffer = gcnew array<::System::Byte>(
 				Marshal::SizeOf<::System::Int32>()
@@ -526,7 +526,7 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool ReadInt64(::System::Int64% value)
+		bool ReadInt64([::System::Runtime::InteropServices::OutAttribute] ::System::Int64% value)
 		{
 			auto buffer = gcnew array<::System::Byte>(
 				Marshal::SizeOf<::System::Int64>()
@@ -546,7 +546,7 @@ namespace AL::DotNET::Collections
 			return false;
 		}
 
-		bool ReadUInt8(::System::Byte% value)
+		bool ReadUInt8([::System::Runtime::InteropServices::OutAttribute] ::System::Byte% value)
 		{
 			auto buffer = gcnew array<::System::Byte>(
 				Marshal::SizeOf<::System::Byte>()
@@ -565,7 +565,7 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool ReadUInt16(::System::UInt16% value)
+		bool ReadUInt16([::System::Runtime::InteropServices::OutAttribute] ::System::UInt16% value)
 		{
 			auto buffer = gcnew array<::System::Byte>(
 				Marshal::SizeOf<::System::UInt16>()
@@ -584,7 +584,7 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool ReadUInt32(::System::UInt32% value)
+		bool ReadUInt32([::System::Runtime::InteropServices::OutAttribute] ::System::UInt32% value)
 		{
 			auto buffer = gcnew array<::System::Byte>(
 				Marshal::SizeOf<::System::UInt32>()
@@ -603,7 +603,7 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool ReadUInt64(::System::UInt64% value)
+		bool ReadUInt64([::System::Runtime::InteropServices::OutAttribute] ::System::UInt64% value)
 		{
 			auto buffer = gcnew array<::System::Byte>(
 				Marshal::SizeOf<::System::UInt64>()
@@ -623,7 +623,7 @@ namespace AL::DotNET::Collections
 			return false;
 		}
 		
-		bool ReadFloat(::System::Single% value)
+		bool ReadFloat([::System::Runtime::InteropServices::OutAttribute] ::System::Single% value)
 		{
 			auto buffer = gcnew array<::System::Byte>(
 				Marshal::SizeOf<::System::Single>()
@@ -642,7 +642,7 @@ namespace AL::DotNET::Collections
 
 			return false;
 		}
-		bool ReadDouble(::System::Double% value)
+		bool ReadDouble([::System::Runtime::InteropServices::OutAttribute] ::System::Double% value)
 		{
 			auto buffer = gcnew array<::System::Byte>(
 				Marshal::SizeOf<::System::Double>()
@@ -662,14 +662,14 @@ namespace AL::DotNET::Collections
 			return false;
 		}
 
-		bool ReadString(::System::String^% value)
+		bool ReadString([::System::Runtime::InteropServices::OutAttribute] ::System::String^% value)
 		{
 			return ReadString(
 				value,
 				::System::Text::Encoding::Default
 			);
 		}
-		bool ReadString(::System::String^% value, ::System::Text::Encoding^ encoding)
+		bool ReadString([::System::Runtime::InteropServices::OutAttribute] ::System::String^% value, ::System::Text::Encoding^ encoding)
 		{
 			::System::UInt32 length;
 
@@ -901,7 +901,7 @@ namespace AL::DotNET::Collections
 		}
 
 		generic<typename T>
-		static void ToEndian(Endians endian, T% result, T value)
+		static void ToEndian(Endians endian, [::System::Runtime::InteropServices::OutAttribute] T% result, T value)
 		{
 			if (endian == Endians::Machine)
 			{
@@ -920,7 +920,7 @@ namespace AL::DotNET::Collections
 			);
 		}
 		generic<typename T>
-		static void ToEndian(Endians endian, array<::System::Byte>^% result, T value)
+		static void ToEndian(Endians endian, [::System::Runtime::InteropServices::OutAttribute] array<::System::Byte>^% result, T value)
 		{
 			result = Marshal::ToArray(
 				value
@@ -935,7 +935,7 @@ namespace AL::DotNET::Collections
 		}
 
 		generic<typename T>
-		static void FromEndian(Endians endian, T% result, T value)
+		static void FromEndian(Endians endian, [::System::Runtime::InteropServices::OutAttribute] T% result, T value)
 		{
 			if (endian == Endians::Machine)
 			{
@@ -954,7 +954,7 @@ namespace AL::DotNET::Collections
 			);
 		}
 		generic<typename T>
-		static void FromEndian(Endians endian, array<::System::Byte>^% result, T value)
+		static void FromEndian(Endians endian, [::System::Runtime::InteropServices::OutAttribute] array<::System::Byte>^% result, T value)
 		{
 			result = Marshal::ToArray(
 				value
