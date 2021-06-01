@@ -8,12 +8,6 @@ namespace AL::FileSystem
 	class TextFile
 		: public File
 	{
-#if defined(AL_PLATFORM_LINUX)
-		static constexpr const char LINE_TERMINATOR[] = "\n";
-#elif defined(AL_PLATFORM_WINDOWS)
-		static constexpr const char LINE_TERMINATOR[] = "\r\n";
-#endif
-
 	public:
 		using File::File;
 
@@ -106,14 +100,25 @@ namespace AL::FileSystem
 				lineChunkBuffer[static_cast<size_t>(bytesRead / sizeof(String::Char))] = String::END;
 
 				size_t endOfLineChunk;
-
-				if (!lineChunkBuffer.Find(endOfLineChunk, LINE_TERMINATOR[0]))
+				
+				if (!lineChunkBuffer.Find(endOfLineChunk, '\n'))
 				{
 					value.Append(
 						lineChunkBuffer
 					);
 
 					continue;
+				}
+
+				size_t endOfLineChunk2;
+				bool endOfLineChunk2Found;
+
+				if (endOfLineChunk2Found = lineChunkBuffer.Find(endOfLineChunk2, '\r'))
+				{
+					if ((endOfLineChunk - endOfLineChunk2) == 1)
+					{
+						endOfLineChunk = endOfLineChunk2;
+					}
 				}
 
 				value.Append(
@@ -123,20 +128,11 @@ namespace AL::FileSystem
 					)
 				);
 
-#if defined(AL_PLATFORM_WINDOWS)
-				size_t endOfLineChunk2;
-
-				if (lineChunkBuffer.Find(endOfLineChunk2, LINE_TERMINATOR[1]) && (endOfLineChunk2 > endOfLineChunk))
-				{
-
-					endOfLineChunk = endOfLineChunk2;
-				}
-#endif
-
 				if (auto diff = (bytesRead - endOfLineChunk))
 				{
+
 					SetReadPosition(
-						(GetReadPosition() - diff) + 1
+						(GetReadPosition() - diff) + (endOfLineChunk2Found ? 2 : 1)
 					);
 				}
 
@@ -172,15 +168,13 @@ namespace AL::FileSystem
 		// @throw AL::Exceptions::Exception
 		void WriteLine(const String& value)
 		{
-			auto line = String::Format(
-				"%s%s",
-				value.GetCString(),
-				LINE_TERMINATOR
-			);
+			Write(value);
 
-			Write(
-				line
-			);
+#if defined(AL_PLATFORM_WINDOWS)
+			Write('\r');
+#endif
+
+			Write('\n');
 		}
 	};
 }
