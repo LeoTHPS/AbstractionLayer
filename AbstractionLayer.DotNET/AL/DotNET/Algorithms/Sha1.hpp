@@ -89,7 +89,7 @@ namespace AL::DotNET::Algorithms
 			return true;
 		}
 
-		bool Calculate(::System::String^% result)
+		bool Calculate([::System::Runtime::InteropServices::OutAttribute] ::System::String^% result)
 		{
 			array<::System::Byte>^ buffer;
 
@@ -106,7 +106,7 @@ namespace AL::DotNET::Algorithms
 
 			return false;
 		}
-		bool Calculate(array<::System::Byte>^% buffer)
+		bool Calculate([::System::Runtime::InteropServices::OutAttribute] array<::System::Byte>^% buffer)
 		{
 			int i;
 
@@ -145,7 +145,7 @@ namespace AL::DotNET::Algorithms
 			return true;
 		}
 
-		static bool Calculate(::System::String^% result, array<::System::Byte>^ buffer, ::System::UInt32 offset, ::System::UInt32 count)
+		static bool Calculate([::System::Runtime::InteropServices::OutAttribute] ::System::String^% result, array<::System::Byte>^ buffer, ::System::UInt32 offset, ::System::UInt32 count)
 		{
 			Sha1 sha1;
 
@@ -163,7 +163,7 @@ namespace AL::DotNET::Algorithms
 
 			return true;
 		}
-		static bool Calculate(array<::System::Byte>^% result, array<::System::Byte>^ buffer, ::System::UInt32 offset, ::System::UInt32 count)
+		static bool Calculate([::System::Runtime::InteropServices::OutAttribute] array<::System::Byte>^% result, array<::System::Byte>^ buffer, ::System::UInt32 offset, ::System::UInt32 count)
 		{
 			Sha1 sha1;
 
