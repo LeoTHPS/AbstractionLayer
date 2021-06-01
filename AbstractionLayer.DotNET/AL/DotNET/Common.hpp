@@ -40,80 +40,80 @@ namespace AL::DotNET
 
 	[::System::Runtime::CompilerServices::Extension]
 	public ref class Extensions abstract sealed
-    {
+	{
 	public:
 		generic<typename T>
 		[::System::Runtime::CompilerServices::Extension]
 		static T GetAttribute(::System::Type^ type)
-        {
-            return (T)::System::Attribute::GetCustomAttribute(
-                type,
-                T::typeid
-            );
-        }
+		{
+			return (T)::System::Attribute::GetCustomAttribute(
+				type,
+				T::typeid
+			);
+		}
 		generic<typename T>
 		[::System::Runtime::CompilerServices::Extension]
 		static T GetAttribute(::System::Object^ object)
-        {
-            return (T)::System::Attribute::GetCustomAttribute(
-                object->GetType(),
-                T::typeid
-            );
-        }
+		{
+			return (T)::System::Attribute::GetCustomAttribute(
+				object->GetType(),
+				T::typeid
+			);
+		}
 
 		[::System::Runtime::CompilerServices::Extension]
-        static array<::System::Attribute^>^ GetAttributes(::System::Type^ type)
-        {
-            return ::System::Attribute::GetCustomAttributes(
-                type
-            );
-        }
+		static array<::System::Attribute^>^ GetAttributes(::System::Type^ type)
+		{
+			return ::System::Attribute::GetCustomAttributes(
+				type
+			);
+		}
 		[::System::Runtime::CompilerServices::Extension]
 		static array<::System::Attribute^>^ GetAttributes(::System::Object^ object)
-        {
-            return ::System::Attribute::GetCustomAttributes(
-                object->GetType()
-            );
-        }
+		{
+			return ::System::Attribute::GetCustomAttributes(
+				object->GetType()
+			);
+		}
 
 		generic<typename T>
-        [::System::Runtime::CompilerServices::Extension]
+		[::System::Runtime::CompilerServices::Extension]
 		static array<T>^ GetAttributes(::System::Type^ type)
-        {
-            return (array<T>^)::System::Attribute::GetCustomAttributes(
-                type,
+		{
+			return (array<T>^)::System::Attribute::GetCustomAttributes(
+				type,
 				T::typeid
-            );
-        }
+			);
+		}
 		generic<typename T>
-        [::System::Runtime::CompilerServices::Extension]
+		[::System::Runtime::CompilerServices::Extension]
 		static array<T>^ GetAttributes(::System::Object^ object)
-        {
-            return (array<T>^)::System::Attribute::GetCustomAttributes(
-                object->GetType(),
-                T::typeid
-            );
-        }
-        
+		{
+			return (array<T>^)::System::Attribute::GetCustomAttributes(
+				object->GetType(),
+				T::typeid
+			);
+		}
+    
 		generic<typename T>
-        [::System::Runtime::CompilerServices::Extension]
+		[::System::Runtime::CompilerServices::Extension]
 		static T MarshalToStruct(array<::System::Byte>^ buffer)
-        {
+		{
 			return Marshal::FromArray<T>(
 				buffer,
 				0,
 				buffer->Length
 			);
-        }
-		
+		}
+
 		generic<typename T>
-        [::System::Runtime::CompilerServices::Extension]
+		[::System::Runtime::CompilerServices::Extension]
 		static array<::System::Byte>^ MarshalFromStruct(T value)
-        {
+		{
 			return Marshal::ToArray(
 				value
 			);
-        }
+		}
 	};
 }
 
