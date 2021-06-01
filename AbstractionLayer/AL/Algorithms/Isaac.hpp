@@ -158,7 +158,7 @@ namespace AL::Algorithms
 		}
 		uint32 Next(uint32 min, uint32 max)
 		{
-			if ((min == 0) && (max == ~0))
+			if ((min == 0) && (max == Integer<uint32>::Maximum))
 				return Next();
 
 			return min + (Next() % (max - min + 1));
@@ -173,7 +173,10 @@ namespace AL::Algorithms
 
 		uint64 Next()
 		{
-			return Isaac::Next();
+			return Next(
+				0,
+				Integer<uint64>::Maximum
+			);
 		}
 		uint64 Next(uint64 min, uint64 max)
 		{
