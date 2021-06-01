@@ -564,7 +564,7 @@ namespace AL::FileSystem
 
 			if (!feof(hFile))
 			{
-				if ((bytesRead = fread(lpBuffer, size, 1, hFile)) == 0)
+				if ((bytesRead = fread(lpBuffer, 1, size, hFile)) == 0)
 				{
 					if (!feof(hFile))
 					{
