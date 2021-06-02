@@ -1603,10 +1603,12 @@ namespace AL::DotNET::Collections
 					break;
 			}
 
-			for (::System::UInt32 i = 0; i < GetSize(); ++i)
-			{
-				_array[i] = lpBuffer[i];
-			}
+			Marshal::Copy(
+				lpBuffer,
+				_array,
+				0,
+				static_cast<::System::UInt32>(_array->Length)
+			);
 
 			return _array;
 		}
