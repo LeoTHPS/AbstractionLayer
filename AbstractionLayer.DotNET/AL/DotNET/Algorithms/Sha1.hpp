@@ -88,7 +88,7 @@ namespace AL::DotNET::Algorithms
 			}
 
 			buffer = gcnew array<::System::Byte>(
-				hash.GetSize()
+				static_cast<::System::UInt32>(hash.GetSize())
 			);
 
 			Marshal::Copy(
