@@ -184,9 +184,9 @@ namespace AL::DotNET
 			throw gcnew ::System::NotImplementedException();
 		}
 
-		static void Copy(void* source, array<::System::Byte>^% destination, ::System::UInt32 offset, ::System::UInt32 count)
+		static void Copy(const void* source, array<::System::Byte>^% destination, ::System::UInt32 offset, ::System::UInt32 count)
 		{
-			Copy(::System::IntPtr(source), destination, offset, count);
+			Copy(::System::IntPtr(const_cast<void*>(source)), destination, offset, count);
 		}
 		static void Copy(::System::IntPtr source, array<::System::Byte>^% destination, ::System::UInt32 offset, ::System::UInt32 count)
 		{
