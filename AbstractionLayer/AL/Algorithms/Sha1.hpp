@@ -116,7 +116,7 @@ namespace AL::Algorithms
 				memset(
 					&result[0],
 					0,
-					result.GetSize()
+					result.GetCapacity()
 				);
 
 				for (i = 0; i < 64; ++i)
@@ -132,8 +132,10 @@ namespace AL::Algorithms
 
 			for (i = 0; i < 20; ++i)
 			{
-				result[i] = static_cast<uint8>(
-					intermediateHash[i >> 2] >> 8 * (3 - (i & 0x03))
+				result.PushBack(
+					static_cast<uint8>(
+						intermediateHash[i >> 2] >> 8 * (3 - (i & 0x03))
+					)
 				);
 			}
 
