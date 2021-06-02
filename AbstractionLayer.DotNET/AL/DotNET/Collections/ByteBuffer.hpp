@@ -140,8 +140,8 @@ namespace AL::DotNET::Collections
 			{
 				FromEndian(
 					GetEndian(),
-					buffer,
-					value
+					value,
+					buffer
 				);
 
 				return true;
@@ -160,8 +160,8 @@ namespace AL::DotNET::Collections
 			{
 				FromEndian(
 					GetEndian(),
-					buffer,
-					value
+					value,
+					buffer
 				);
 
 				return true;
@@ -180,8 +180,8 @@ namespace AL::DotNET::Collections
 			{
 				FromEndian(
 					GetEndian(),
-					buffer,
-					value
+					value,
+					buffer
 				);
 
 				return true;
@@ -199,8 +199,8 @@ namespace AL::DotNET::Collections
 			{
 				FromEndian(
 					GetEndian(),
-					buffer,
-					value
+					value,
+					buffer
 				);
 
 				return true;
@@ -218,8 +218,8 @@ namespace AL::DotNET::Collections
 			{
 				FromEndian(
 					GetEndian(),
-					buffer,
-					value
+					value,
+					buffer
 				);
 
 				return true;
@@ -237,8 +237,8 @@ namespace AL::DotNET::Collections
 			{
 				FromEndian(
 					GetEndian(),
-					buffer,
-					value
+					value,
+					buffer
 				);
 
 				return true;
@@ -257,8 +257,8 @@ namespace AL::DotNET::Collections
 			{
 				FromEndian(
 					GetEndian(),
-					buffer,
-					value
+					value,
+					buffer
 				);
 
 				return true;
@@ -276,8 +276,8 @@ namespace AL::DotNET::Collections
 			{
 				FromEndian(
 					GetEndian(),
-					buffer,
-					value
+					value,
+					buffer
 				);
 
 				return true;
@@ -295,8 +295,8 @@ namespace AL::DotNET::Collections
 			{
 				FromEndian(
 					GetEndian(),
-					buffer,
-					value
+					value,
+					buffer
 				);
 
 				return true;
@@ -314,8 +314,8 @@ namespace AL::DotNET::Collections
 			{
 				FromEndian(
 					GetEndian(),
-					buffer,
-					value
+					value,
+					buffer
 				);
 
 				return true;
@@ -334,8 +334,8 @@ namespace AL::DotNET::Collections
 			{
 				FromEndian(
 					GetEndian(),
-					buffer,
-					value
+					value,
+					buffer
 				);
 
 				return true;
@@ -353,8 +353,8 @@ namespace AL::DotNET::Collections
 			{
 				FromEndian(
 					GetEndian(),
-					buffer,
-					value
+					value,
+					buffer
 				);
 
 				return true;
@@ -439,8 +439,8 @@ namespace AL::DotNET::Collections
 			{
 				FromEndian(
 					GetEndian(),
-					buffer,
-					value
+					value,
+					buffer
 				);
 
 				return true;
@@ -459,8 +459,8 @@ namespace AL::DotNET::Collections
 			{
 				FromEndian(
 					GetEndian(),
-					buffer,
-					value
+					value,
+					buffer
 				);
 
 				return true;
@@ -475,12 +475,12 @@ namespace AL::DotNET::Collections
 				Marshal::SizeOf<::System::SByte>()
 			);
 
-			if (Peek(buffer, 0, buffer->Length))
+			if (Read(buffer, 0, buffer->Length))
 			{
 				FromEndian(
 					GetEndian(),
-					buffer,
-					value
+					value,
+					buffer
 				);
 
 				return true;
@@ -494,12 +494,12 @@ namespace AL::DotNET::Collections
 				Marshal::SizeOf<::System::Int16>()
 			);
 
-			if (Peek(buffer, 0, buffer->Length))
+			if (Read(buffer, 0, buffer->Length))
 			{
 				FromEndian(
 					GetEndian(),
-					buffer,
-					value
+					value,
+					buffer
 				);
 
 				return true;
@@ -513,12 +513,12 @@ namespace AL::DotNET::Collections
 				Marshal::SizeOf<::System::Int32>()
 			);
 
-			if (Peek(buffer, 0, buffer->Length))
+			if (Read(buffer, 0, buffer->Length))
 			{
 				FromEndian(
 					GetEndian(),
-					buffer,
-					value
+					value,
+					buffer
 				);
 
 				return true;
@@ -532,12 +532,12 @@ namespace AL::DotNET::Collections
 				Marshal::SizeOf<::System::Int64>()
 			);
 
-			if (Peek(buffer, 0, buffer->Length))
+			if (Read(buffer, 0, buffer->Length))
 			{
 				FromEndian(
 					GetEndian(),
-					buffer,
-					value
+					value,
+					buffer
 				);
 
 				return true;
@@ -552,12 +552,12 @@ namespace AL::DotNET::Collections
 				Marshal::SizeOf<::System::Byte>()
 			);
 
-			if (Peek(buffer, 0, buffer->Length))
+			if (Read(buffer, 0, buffer->Length))
 			{
 				FromEndian(
 					GetEndian(),
-					buffer,
-					value
+					value,
+					buffer
 				);
 
 				return true;
@@ -571,12 +571,12 @@ namespace AL::DotNET::Collections
 				Marshal::SizeOf<::System::UInt16>()
 			);
 
-			if (Peek(buffer, 0, buffer->Length))
+			if (Read(buffer, 0, buffer->Length))
 			{
 				FromEndian(
 					GetEndian(),
-					buffer,
-					value
+					value,
+					buffer
 				);
 
 				return true;
@@ -590,12 +590,12 @@ namespace AL::DotNET::Collections
 				Marshal::SizeOf<::System::UInt32>()
 			);
 
-			if (Peek(buffer, 0, buffer->Length))
+			if (Read(buffer, 0, buffer->Length))
 			{
 				FromEndian(
 					GetEndian(),
-					buffer,
-					value
+					value,
+					buffer
 				);
 
 				return true;
@@ -609,12 +609,12 @@ namespace AL::DotNET::Collections
 				Marshal::SizeOf<::System::UInt64>()
 			);
 
-			if (Peek(buffer, 0, buffer->Length))
+			if (Read(buffer, 0, buffer->Length))
 			{
 				FromEndian(
 					GetEndian(),
-					buffer,
-					value
+					value,
+					buffer
 				);
 
 				return true;
@@ -629,12 +629,12 @@ namespace AL::DotNET::Collections
 				Marshal::SizeOf<::System::Single>()
 			);
 
-			if (Peek(buffer, 0, buffer->Length))
+			if (Read(buffer, 0, buffer->Length))
 			{
 				FromEndian(
 					GetEndian(),
-					buffer,
-					value
+					value,
+					buffer
 				);
 
 				return true;
@@ -648,12 +648,12 @@ namespace AL::DotNET::Collections
 				Marshal::SizeOf<::System::Double>()
 			);
 
-			if (Peek(buffer, 0, buffer->Length))
+			if (Read(buffer, 0, buffer->Length))
 			{
 				FromEndian(
 					GetEndian(),
-					buffer,
-					value
+					value,
+					buffer
 				);
 
 				return true;
@@ -673,7 +673,7 @@ namespace AL::DotNET::Collections
 		{
 			::System::UInt32 length;
 
-			if (ReadUInt32(length))
+			if (PeekUInt32(length))
 			{
 				::System::UInt32 readPosition = GetReadPosition() + Marshal::SizeOf<::System::UInt32>();
 
@@ -683,6 +683,14 @@ namespace AL::DotNET::Collections
 						buffer,
 						readPosition,
 						length
+					);
+
+					auto stringSize = encoding->GetByteCount(
+						value
+					);
+
+					SetReadPosition(
+						readPosition + Marshal::SizeOf<::System::UInt32>() + stringSize
 					);
 
 					return true;
@@ -932,7 +940,7 @@ namespace AL::DotNET::Collections
 				);
 			}
 		}
-
+		
 		generic<typename T>
 		static void FromEndian(Endians endian, [::System::Runtime::InteropServices::OutAttribute] T% result, T value)
 		{
@@ -943,27 +951,31 @@ namespace AL::DotNET::Collections
 				return;
 			}
 
-			array<::System::Byte>^ buffer;
-			FromEndian(endian, buffer, value);
+			auto buffer = Marshal::ToArray(
+				value
+			);
+
+			FromEndian(
+				endian,
+				result,
+				buffer
+			);
+		}
+		generic<typename T>
+		static void FromEndian(Endians endian, [::System::Runtime::InteropServices::OutAttribute] T% result, array<::System::Byte>^ buffer)
+		{
+			if (endian != Endians::Machine)
+			{
+
+				::System::Array::Reverse(
+					buffer
+				);
+			}
 
 			result = Marshal::FromArray<T>(
 				buffer,
 				0
 			);
-		}
-		generic<typename T>
-		static void FromEndian(Endians endian, [::System::Runtime::InteropServices::OutAttribute] array<::System::Byte>^% result, T value)
-		{
-			result = Marshal::ToArray(
-				value
-			);
-
-			if (endian != Endians::Machine)
-			{
-				::System::Array::Reverse(
-					result
-				);
-			}
 		}
 		
 		static bool operator == (ByteBuffer^ buffer1, ByteBuffer^ buffer2)
