@@ -1360,19 +1360,19 @@ namespace AL::DotNET::Collections
 			switch (Marshal::SizeOf<T>())
 			{
 				case 1:
-					WriteUInt8(static_cast<::System::Byte>(::System::Enum::ToObject(::System::Byte::typeid, value)));
+					WriteUInt8(static_cast<::System::Byte>(::System::Convert::ToByte(value)));
 					break;
 				
 				case 2:
-					WriteUInt16(static_cast<::System::UInt16>(::System::Enum::ToObject(::System::UInt16::typeid, value)));
+					WriteUInt16(static_cast<::System::UInt16>(::System::Convert::ToUInt16(value)));
 					break;
 				
 				case 4:
-					WriteUInt32(static_cast<::System::UInt32>(::System::Enum::ToObject(::System::UInt32::typeid, value)));
+					WriteUInt32(static_cast<::System::UInt32>(::System::Convert::ToUInt32(value)));
 					break;
 				
 				case 8:
-					WriteUInt64(static_cast<::System::UInt64>(::System::Enum::ToObject(::System::UInt64::typeid, value)));
+					WriteUInt64(static_cast<::System::UInt64>(::System::Convert::ToUInt64(value)));
 					break;
 			}
 		}
