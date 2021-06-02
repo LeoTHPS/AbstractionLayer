@@ -100,10 +100,10 @@ namespace AL::DotNET
 			{
 				switch (SizeOf<T>())
 				{
-					case 1: return ::System::BitConverter::GetBytes(static_cast<::System::Byte>(value));
-					case 2: return ::System::BitConverter::GetBytes(static_cast<::System::UInt16>(value));
-					case 4: return ::System::BitConverter::GetBytes(static_cast<::System::UInt32>(value));
-					case 8: return ::System::BitConverter::GetBytes(static_cast<::System::UInt64>(value));
+					case 1: return ToArray(static_cast<::System::Byte>(value));
+					case 2: return ToArray(static_cast<::System::UInt16>(value));
+					case 4: return ToArray(static_cast<::System::UInt32>(value));
+					case 8: return ToArray(static_cast<::System::UInt64>(value));
 				}
 			}
 			else
@@ -148,10 +148,10 @@ namespace AL::DotNET
 			{
 				switch (SizeOf<T>())
 				{
-					case 1: return T(buffer[static_cast<::System::Int32>(offset)]);
-					case 2: return T(::System::BitConverter::ToUInt16(buffer, static_cast<::System::Int32>(offset)));
-					case 4: return T(::System::BitConverter::ToUInt32(buffer, static_cast<::System::Int32>(offset)));
-					case 8: return T(::System::BitConverter::ToUInt64(buffer, static_cast<::System::Int32>(offset)));
+					case 1: return T(FromArray<::System::Byte>(buffer, offset));
+					case 2: return T(FromArray<::System::UInt16>(buffer, offset));
+					case 4: return T(FromArray<::System::UInt32>(buffer, offset));
+					case 8: return T(FromArray<::System::UInt64>(buffer, offset));
 				}
 			}
 			else
