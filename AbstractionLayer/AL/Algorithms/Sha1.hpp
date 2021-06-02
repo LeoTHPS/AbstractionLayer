@@ -130,6 +130,8 @@ namespace AL::Algorithms
 				lengthHigh = 0;
 			}
 
+			result.Clear();
+
 			for (i = 0; i < 20; ++i)
 			{
 				result.PushBack(
