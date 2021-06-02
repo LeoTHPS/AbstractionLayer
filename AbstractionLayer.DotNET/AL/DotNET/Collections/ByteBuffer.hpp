@@ -1,16 +1,16 @@
 #pragma once
 #include "AL/DotNET/Common.hpp"
 
+#include <AL/Collections/ByteBuffer.hpp>
+
 namespace AL::DotNET::Collections
 {
 	public ref class ByteBuffer
 	{
 		Endians endian;
 
-		array<::System::Byte>^ buffer;
-
-		::System::UInt32 readPosition = 0;
-		::System::UInt32 writePosition = 0;
+		AL::Collections::ByteBuffer<AL::Endians::Big>* const lpBuffer_BigEndian;
+		AL::Collections::ByteBuffer<AL::Endians::Little>* const lpBuffer_LittleEndian;
 
 	public:
 		ByteBuffer()
@@ -29,95 +29,152 @@ namespace AL::DotNET::Collections
 		}
 		
 		ByteBuffer(Endians endian, ::System::UInt32 capacity)
-			: ByteBuffer(
-				endian,
-				gcnew array<::System::Byte>(
-					capacity
-				),
-				0,
-				capacity
+			: endian(
+				endian
+			),
+			lpBuffer_BigEndian(
+				(endian == Endians::Big) ? new AL::Collections::ByteBuffer<AL::Endians::Big>(capacity) : nullptr
+			),
+			lpBuffer_LittleEndian(
+				(endian == Endians::Little) ? new AL::Collections::ByteBuffer<AL::Endians::Little>(capacity) : nullptr
 			)
 		{
 		}
 
 		ByteBuffer(Endians endian, array<::System::Byte>^ buffer, ::System::UInt32 offset, ::System::UInt32 count)
-			: endian(
-				endian
-			),
-			buffer(
-				CreateBuffer(
-					buffer,
-					offset,
-					count
-				)
+			: ByteBuffer(
+				endian,
+				count
 			)
 		{
+			switch (endian)
+			{
+				case Endians::Big:
+					Marshal::Copy(buffer, &(*lpBuffer_BigEndian)[0], offset, count);
+					lpBuffer_BigEndian->SetWritePosition(count);
+					break;
+
+				case Endians::Little:
+					Marshal::Copy(buffer, &(*lpBuffer_LittleEndian)[0], offset, count);
+					lpBuffer_LittleEndian->SetWritePosition(count);
+					break;
+			}
 		}
 
 		virtual ~ByteBuffer()
 		{
+			switch (GetEndian())
+			{
+				case Endians::Big:
+					delete lpBuffer_BigEndian;
+					break;
+
+				case Endians::Little:
+					delete lpBuffer_LittleEndian;
+					break;
+			}
 		}
 
-		auto GetSize()
+		::System::UInt32 GetSize()
 		{
-			return writePosition;
+			switch (GetEndian())
+			{
+				case Endians::Big:
+					return ::System::UInt32(lpBuffer_BigEndian->GetSize());
+
+				case Endians::Little:
+					return ::System::UInt32(lpBuffer_LittleEndian->GetSize());
+			}
+
+			return 0;
 		}
 
-		auto GetEndian()
+		Endians GetEndian()
 		{
 			return endian;
 		}
 
-		auto GetCapacity()
+		::System::UInt32 GetCapacity()
 		{
-			return static_cast<::System::UInt32>(
-				buffer->Length
-			);
+			switch (GetEndian())
+			{
+				case Endians::Big:
+					return ::System::UInt32(lpBuffer_BigEndian->GetCapacity());
+
+				case Endians::Little:
+					return ::System::UInt32(lpBuffer_LittleEndian->GetCapacity());
+			}
+
+			return 0;
 		}
 
-		auto GetReadPosition()
+		::System::UInt32 GetReadPosition()
 		{
-			return readPosition;
+			switch (GetEndian())
+			{
+				case Endians::Big:
+					return ::System::UInt32(lpBuffer_BigEndian->GetReadPosition());
+
+				case Endians::Little:
+					return ::System::UInt32(lpBuffer_LittleEndian->GetReadPosition());
+			}
+
+			return 0;
 		}
 
-		auto GetWritePosition()
+		::System::UInt32 GetWritePosition()
 		{
-			return writePosition;
+			switch (GetEndian())
+			{
+				case Endians::Big:
+					return ::System::UInt32(lpBuffer_BigEndian->GetWritePosition());
+
+				case Endians::Little:
+					return ::System::UInt32(lpBuffer_LittleEndian->GetWritePosition());
+			}
+
+			return 0;
 		}
 
 		void SetCapacity(::System::UInt32 value)
 		{
-			if (readPosition > value)
+			switch (GetEndian())
 			{
+				case Endians::Big:
+					lpBuffer_BigEndian->SetCapacity(static_cast<size_t>(value));
+					break;
 
-				readPosition = value;
+				case Endians::Little:
+					lpBuffer_LittleEndian->SetCapacity(static_cast<size_t>(value));
+					break;
 			}
-
-			if (writePosition > value)
-			{
-
-				writePosition = value;
-			}
-
-			::System::Array::Resize(
-				buffer,
-				value
-			);
 		}
 
 		void SetReadPosition(::System::UInt32 value)
 		{
-			if ((readPosition = value) > GetCapacity())
+			switch (GetEndian())
 			{
-				readPosition = GetCapacity();
+				case Endians::Big:
+					lpBuffer_BigEndian->SetReadPosition(static_cast<size_t>(value));
+					break;
+
+				case Endians::Little:
+					lpBuffer_LittleEndian->SetReadPosition(static_cast<size_t>(value));
+					break;
 			}
 		}
 
 		void SetWritePosition(::System::UInt32 value)
 		{
-			if ((writePosition = value) > GetCapacity())
+			switch (GetEndian())
 			{
-				writePosition = GetCapacity();
+				case Endians::Big:
+					lpBuffer_BigEndian->SetWritePosition(static_cast<size_t>(value));
+					break;
+
+				case Endians::Little:
+					lpBuffer_LittleEndian->SetWritePosition(static_cast<size_t>(value));
+					break;
 			}
 		}
 
@@ -132,19 +189,67 @@ namespace AL::DotNET::Collections
 				);
 			}
 
-			auto buffer = gcnew array<::System::Byte>(
-				Marshal::SizeOf<T>()
-			);
-
-			if (Peek(buffer, 0, buffer->Length))
+			switch (Marshal::SizeOf<T>())
 			{
-				FromEndian(
-					GetEndian(),
-					value,
-					buffer
-				);
+				case 1:
+				{
+					::System::Byte _value;
 
-				return true;
+					if (PeekUInt8(_value))
+					{
+						value = T(
+							_value
+						);
+
+						return true;
+					}
+				}
+				break;
+
+				case 2:
+				{
+					::System::UInt16 _value;
+
+					if (PeekUInt16(_value))
+					{
+						value = T(
+							_value
+						);
+
+						return true;
+					}
+				}
+				break;
+
+				case 4:
+				{
+					::System::UInt32 _value;
+
+					if (PeekUInt32(_value))
+					{
+						value = T(
+							_value
+						);
+
+						return true;
+					}
+				}
+				break;
+
+				case 8:
+				{
+					::System::UInt64 _value;
+
+					if (PeekUInt64(_value))
+					{
+						value = T(
+							_value
+						);
+
+						return true;
+					}
+				}
+				break;
 			}
 
 			return false;
@@ -152,19 +257,33 @@ namespace AL::DotNET::Collections
 
 		bool PeekBool([::System::Runtime::InteropServices::OutAttribute] ::System::Boolean% value)
 		{
-			auto buffer = gcnew array<::System::Byte>(
-				Marshal::SizeOf<::System::Boolean>()
-			);
-
-			if (Peek(buffer, 0, buffer->Length))
+			switch (GetEndian())
 			{
-				FromEndian(
-					GetEndian(),
-					value,
-					buffer
-				);
+				case Endians::Big:
+				{
+					bool _value;
 
-				return true;
+					if (lpBuffer_BigEndian->PeekBool(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
+
+				case Endians::Little:
+				{
+					bool _value;
+
+					if (lpBuffer_LittleEndian->PeekBool(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
 			}
 
 			return false;
@@ -172,76 +291,132 @@ namespace AL::DotNET::Collections
 
 		bool PeekInt8([::System::Runtime::InteropServices::OutAttribute] ::System::SByte% value)
 		{
-			auto buffer = gcnew array<::System::Byte>(
-				Marshal::SizeOf<::System::SByte>()
-			);
-
-			if (Peek(buffer, 0, buffer->Length))
+			switch (GetEndian())
 			{
-				FromEndian(
-					GetEndian(),
-					value,
-					buffer
-				);
+				case Endians::Big:
+				{
+					int8 _value;
 
-				return true;
+					if (lpBuffer_BigEndian->PeekInt8(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
+
+				case Endians::Little:
+				{
+					int8 _value;
+
+					if (lpBuffer_LittleEndian->PeekInt8(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
 			}
 
 			return false;
 		}
 		bool PeekInt16([::System::Runtime::InteropServices::OutAttribute] ::System::Int16% value)
 		{
-			auto buffer = gcnew array<::System::Byte>(
-				Marshal::SizeOf<::System::Int16>()
-			);
-
-			if (Peek(buffer, 0, buffer->Length))
+			switch (GetEndian())
 			{
-				FromEndian(
-					GetEndian(),
-					value,
-					buffer
-				);
+				case Endians::Big:
+				{
+					int16 _value;
 
-				return true;
+					if (lpBuffer_BigEndian->PeekInt16(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
+
+				case Endians::Little:
+				{
+					int16 _value;
+
+					if (lpBuffer_LittleEndian->PeekInt16(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
 			}
 
 			return false;
 		}
 		bool PeekInt32([::System::Runtime::InteropServices::OutAttribute] ::System::Int32% value)
 		{
-			auto buffer = gcnew array<::System::Byte>(
-				Marshal::SizeOf<::System::Int32>()
-			);
-
-			if (Peek(buffer, 0, buffer->Length))
+			switch (GetEndian())
 			{
-				FromEndian(
-					GetEndian(),
-					value,
-					buffer
-				);
+				case Endians::Big:
+				{
+					int32 _value;
 
-				return true;
+					if (lpBuffer_BigEndian->PeekInt32(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
+
+				case Endians::Little:
+				{
+					int32 _value;
+
+					if (lpBuffer_LittleEndian->PeekInt32(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
 			}
 
 			return false;
 		}
 		bool PeekInt64([::System::Runtime::InteropServices::OutAttribute] ::System::Int64% value)
 		{
-			auto buffer = gcnew array<::System::Byte>(
-				Marshal::SizeOf<::System::Int64>()
-			);
-
-			if (Peek(buffer, 0, buffer->Length))
+			switch (GetEndian())
 			{
-				FromEndian(
-					GetEndian(),
-					value,
-					buffer
-				);
+				case Endians::Big:
+				{
+					int64 _value;
 
-				return true;
+					if (lpBuffer_BigEndian->PeekInt64(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
+
+				case Endians::Little:
+				{
+					int64 _value;
+
+					if (lpBuffer_LittleEndian->PeekInt64(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
 			}
 
 			return false;
@@ -249,76 +424,132 @@ namespace AL::DotNET::Collections
 
 		bool PeekUInt8([::System::Runtime::InteropServices::OutAttribute] ::System::Byte% value)
 		{
-			auto buffer = gcnew array<::System::Byte>(
-				Marshal::SizeOf<::System::Byte>()
-			);
-
-			if (Peek(buffer, 0, buffer->Length))
+			switch (GetEndian())
 			{
-				FromEndian(
-					GetEndian(),
-					value,
-					buffer
-				);
+				case Endians::Big:
+				{
+					uint8 _value;
 
-				return true;
+					if (lpBuffer_BigEndian->PeekUInt8(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
+
+				case Endians::Little:
+				{
+					uint8 _value;
+
+					if (lpBuffer_LittleEndian->PeekUInt8(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
 			}
 
 			return false;
 		}
 		bool PeekUInt16([::System::Runtime::InteropServices::OutAttribute] ::System::UInt16% value)
 		{
-			auto buffer = gcnew array<::System::Byte>(
-				Marshal::SizeOf<::System::UInt16>()
-			);
-
-			if (Peek(buffer, 0, buffer->Length))
+			switch (GetEndian())
 			{
-				FromEndian(
-					GetEndian(),
-					value,
-					buffer
-				);
+				case Endians::Big:
+				{
+					uint16 _value;
 
-				return true;
+					if (lpBuffer_BigEndian->PeekUInt16(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
+
+				case Endians::Little:
+				{
+					uint16 _value;
+
+					if (lpBuffer_LittleEndian->PeekUInt16(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
 			}
 
 			return false;
 		}
 		bool PeekUInt32([::System::Runtime::InteropServices::OutAttribute] ::System::UInt32% value)
 		{
-			auto buffer = gcnew array<::System::Byte>(
-				Marshal::SizeOf<::System::UInt32>()
-			);
-
-			if (Peek(buffer, 0, buffer->Length))
+			switch (GetEndian())
 			{
-				FromEndian(
-					GetEndian(),
-					value,
-					buffer
-				);
+				case Endians::Big:
+				{
+					uint32 _value;
 
-				return true;
+					if (lpBuffer_BigEndian->PeekUInt32(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
+
+				case Endians::Little:
+				{
+					uint32 _value;
+
+					if (lpBuffer_LittleEndian->PeekUInt32(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
 			}
 
 			return false;
 		}
 		bool PeekUInt64([::System::Runtime::InteropServices::OutAttribute] ::System::UInt64% value)
 		{
-			auto buffer = gcnew array<::System::Byte>(
-				Marshal::SizeOf<::System::UInt64>()
-			);
-
-			if (Peek(buffer, 0, buffer->Length))
+			switch (GetEndian())
 			{
-				FromEndian(
-					GetEndian(),
-					value,
-					buffer
-				);
+				case Endians::Big:
+				{
+					uint64 _value;
 
-				return true;
+					if (lpBuffer_BigEndian->PeekUInt64(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
+
+				case Endians::Little:
+				{
+					uint64 _value;
+
+					if (lpBuffer_LittleEndian->PeekUInt64(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
 			}
 
 			return false;
@@ -326,38 +557,66 @@ namespace AL::DotNET::Collections
 		
 		bool PeekFloat([::System::Runtime::InteropServices::OutAttribute] ::System::Single% value)
 		{
-			auto buffer = gcnew array<::System::Byte>(
-				Marshal::SizeOf<::System::Single>()
-			);
-
-			if (Peek(buffer, 0, buffer->Length))
+			switch (GetEndian())
 			{
-				FromEndian(
-					GetEndian(),
-					value,
-					buffer
-				);
+				case Endians::Big:
+				{
+					float _value;
 
-				return true;
+					if (lpBuffer_BigEndian->PeekFloat(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
+
+				case Endians::Little:
+				{
+					float _value;
+
+					if (lpBuffer_LittleEndian->PeekFloat(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
 			}
 
 			return false;
 		}
 		bool PeekDouble([::System::Runtime::InteropServices::OutAttribute] ::System::Double% value)
 		{
-			auto buffer = gcnew array<::System::Byte>(
-				Marshal::SizeOf<::System::Double>()
-			);
-
-			if (Peek(buffer, 0, buffer->Length))
+			switch (GetEndian())
 			{
-				FromEndian(
-					GetEndian(),
-					value,
-					buffer
-				);
+				case Endians::Big:
+				{
+					double _value;
 
-				return true;
+					if (lpBuffer_BigEndian->PeekDouble(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
+
+				case Endians::Little:
+				{
+					double _value;
+
+					if (lpBuffer_LittleEndian->PeekDouble(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
 			}
 
 			return false;
@@ -365,56 +624,169 @@ namespace AL::DotNET::Collections
 
 		bool PeekString([::System::Runtime::InteropServices::OutAttribute] ::System::String^% value)
 		{
-			return PeekString(
-				value,
-				::System::Text::Encoding::Default
-			);
-		}
-		bool PeekString([::System::Runtime::InteropServices::OutAttribute] ::System::String^% value, ::System::Text::Encoding^ encoding)
-		{
-			::System::UInt32 length;
+			String nativeString;
 
-			if (PeekUInt32(length))
+			switch (GetEndian())
 			{
-				::System::UInt32 readPosition = GetReadPosition() + Marshal::SizeOf<::System::UInt32>();
-
-				if (readPosition < GetSize())
+				case Endians::Big:
 				{
-					value = encoding->GetString(
-						buffer,
-						readPosition,
-						length
-					);
+					if (!lpBuffer_BigEndian->PeekString(nativeString))
+					{
 
-					return true;
+						return false;
+					}
 				}
+				break;
+
+				case Endians::Little:
+				{
+					if (!lpBuffer_LittleEndian->PeekString(nativeString))
+					{
+
+						return false;
+					}
+				}
+				break;
+			}
+
+			value = Marshal::ToString(
+				nativeString
+			);
+
+			return true;
+		}
+		bool PeekWString([::System::Runtime::InteropServices::OutAttribute] ::System::String^% value)
+		{
+			WString nativeString;
+
+			switch (GetEndian())
+			{
+				case Endians::Big:
+				{
+					if (!lpBuffer_BigEndian->PeekWString(nativeString))
+					{
+
+						return false;
+					}
+				}
+				break;
+
+				case Endians::Little:
+				{
+					if (!lpBuffer_LittleEndian->PeekWString(nativeString))
+					{
+
+						return false;
+					}
+				}
+				break;
+			}
+
+			value = Marshal::ToString(
+				nativeString
+			);
+
+			return true;
+		}
+
+		bool Peek([::System::Runtime::InteropServices::OutAttribute] array<::System::Byte>^% buffer, ::System::UInt32 count)
+		{
+			AL::Collections::Array<uint8> _buffer(
+				count
+			);
+
+			switch (GetEndian())
+			{
+				case Endians::Big:
+				{
+					if (lpBuffer_BigEndian->Peek(&_buffer[0], _buffer.GetCapacity()))
+					{
+						buffer = gcnew array<::System::Byte>(
+							count
+						);
+
+						Marshal::Copy(
+							&_buffer[0],
+							buffer,
+							0,
+							count
+						);
+
+						return true;
+					}
+				}
+				break;
+
+				case Endians::Little:
+				{
+					if (lpBuffer_LittleEndian->Peek(&_buffer[0], _buffer.GetCapacity()))
+					{
+						buffer = gcnew array<::System::Byte>(
+							count
+						);
+
+						Marshal::Copy(
+							&_buffer[0],
+							buffer,
+							0,
+							count
+						);
+
+						return true;
+					}
+				}
+				break;
 			}
 
 			return false;
 		}
-
-		bool Peek(array<::System::Byte>^% buffer, ::System::UInt32 offset, ::System::UInt32 count)
+		bool Peek([::System::Runtime::InteropServices::OutAttribute] array<::System::Byte>^% buffer, ::System::UInt32 count, ::System::UInt32 index)
 		{
-			return Peek(
-				buffer,
-				offset,
-				count,
-				GetReadPosition()
+			AL::Collections::Array<uint8> _buffer(
+				count
 			);
-		}
-		bool Peek(array<::System::Byte>^% buffer, ::System::UInt32 offset, ::System::UInt32 count, ::System::UInt32 index)
-		{
-			if ((index + count) <= GetCapacity())
-			{
-				::System::Buffer::BlockCopy(
-					this->buffer,
-					index,
-					buffer,
-					offset,
-					count
-				);
 
-				return true;
+			switch (GetEndian())
+			{
+				case Endians::Big:
+				{
+					if (lpBuffer_BigEndian->Peek(&_buffer[0], _buffer.GetCapacity(), index))
+					{
+						buffer = gcnew array<::System::Byte>(
+							count
+						);
+
+						Marshal::Copy(
+							&_buffer[0],
+							buffer,
+							0,
+							count
+						);
+
+						return true;
+					}
+				}
+				break;
+
+				case Endians::Little:
+				{
+					if (lpBuffer_LittleEndian->Peek(&_buffer[0], _buffer.GetCapacity(), index))
+					{
+						buffer = gcnew array<::System::Byte>(
+							count
+						);
+
+						Marshal::Copy(
+							&_buffer[0],
+							buffer,
+							0,
+							count
+						);
+
+						return true;
+					}
+				}
+				break;
 			}
 
 			return false;
@@ -431,19 +803,67 @@ namespace AL::DotNET::Collections
 				);
 			}
 
-			auto buffer = gcnew array<::System::Byte>(
-				Marshal::SizeOf<T>()
-			);
-
-			if (Read(buffer, 0, buffer->Length))
+			switch (Marshal::SizeOf<T>())
 			{
-				FromEndian(
-					GetEndian(),
-					value,
-					buffer
-				);
+				case 1:
+				{
+					::System::Byte _value;
 
-				return true;
+					if (ReadUInt8(_value))
+					{
+						value = T(
+							_value
+						);
+
+						return true;
+					}
+				}
+				break;
+
+				case 2:
+				{
+					::System::UInt16 _value;
+
+					if (ReadUInt16(_value))
+					{
+						value = T(
+							_value
+						);
+
+						return true;
+					}
+				}
+				break;
+
+				case 4:
+				{
+					::System::UInt32 _value;
+
+					if (ReadUInt32(_value))
+					{
+						value = T(
+							_value
+						);
+
+						return true;
+					}
+				}
+				break;
+
+				case 8:
+				{
+					::System::UInt64 _value;
+
+					if (ReadUInt64(_value))
+					{
+						value = T(
+							_value
+						);
+
+						return true;
+					}
+				}
+				break;
 			}
 
 			return false;
@@ -451,19 +871,33 @@ namespace AL::DotNET::Collections
 
 		bool ReadBool([::System::Runtime::InteropServices::OutAttribute] ::System::Boolean% value)
 		{
-			auto buffer = gcnew array<::System::Byte>(
-				Marshal::SizeOf<::System::Boolean>()
-			);
-
-			if (Read(buffer, 0, buffer->Length))
+			switch (GetEndian())
 			{
-				FromEndian(
-					GetEndian(),
-					value,
-					buffer
-				);
+				case Endians::Big:
+				{
+					bool _value;
 
-				return true;
+					if (lpBuffer_BigEndian->ReadBool(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
+
+				case Endians::Little:
+				{
+					bool _value;
+
+					if (lpBuffer_LittleEndian->ReadBool(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
 			}
 
 			return false;
@@ -471,76 +905,132 @@ namespace AL::DotNET::Collections
 
 		bool ReadInt8([::System::Runtime::InteropServices::OutAttribute] ::System::SByte% value)
 		{
-			auto buffer = gcnew array<::System::Byte>(
-				Marshal::SizeOf<::System::SByte>()
-			);
-
-			if (Read(buffer, 0, buffer->Length))
+			switch (GetEndian())
 			{
-				FromEndian(
-					GetEndian(),
-					value,
-					buffer
-				);
+				case Endians::Big:
+				{
+					int8 _value;
 
-				return true;
+					if (lpBuffer_BigEndian->ReadInt8(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
+
+				case Endians::Little:
+				{
+					int8 _value;
+
+					if (lpBuffer_LittleEndian->ReadInt8(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
 			}
 
 			return false;
 		}
 		bool ReadInt16([::System::Runtime::InteropServices::OutAttribute] ::System::Int16% value)
 		{
-			auto buffer = gcnew array<::System::Byte>(
-				Marshal::SizeOf<::System::Int16>()
-			);
-
-			if (Read(buffer, 0, buffer->Length))
+			switch (GetEndian())
 			{
-				FromEndian(
-					GetEndian(),
-					value,
-					buffer
-				);
+				case Endians::Big:
+				{
+					int16 _value;
 
-				return true;
+					if (lpBuffer_BigEndian->ReadInt16(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
+
+				case Endians::Little:
+				{
+					int16 _value;
+
+					if (lpBuffer_LittleEndian->ReadInt16(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
 			}
 
 			return false;
 		}
 		bool ReadInt32([::System::Runtime::InteropServices::OutAttribute] ::System::Int32% value)
 		{
-			auto buffer = gcnew array<::System::Byte>(
-				Marshal::SizeOf<::System::Int32>()
-			);
-
-			if (Read(buffer, 0, buffer->Length))
+			switch (GetEndian())
 			{
-				FromEndian(
-					GetEndian(),
-					value,
-					buffer
-				);
+				case Endians::Big:
+				{
+					int32 _value;
 
-				return true;
+					if (lpBuffer_BigEndian->ReadInt32(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
+
+				case Endians::Little:
+				{
+					int32 _value;
+
+					if (lpBuffer_LittleEndian->ReadInt32(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
 			}
 
 			return false;
 		}
 		bool ReadInt64([::System::Runtime::InteropServices::OutAttribute] ::System::Int64% value)
 		{
-			auto buffer = gcnew array<::System::Byte>(
-				Marshal::SizeOf<::System::Int64>()
-			);
-
-			if (Read(buffer, 0, buffer->Length))
+			switch (GetEndian())
 			{
-				FromEndian(
-					GetEndian(),
-					value,
-					buffer
-				);
+				case Endians::Big:
+				{
+					int64 _value;
 
-				return true;
+					if (lpBuffer_BigEndian->ReadInt64(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
+
+				case Endians::Little:
+				{
+					int64 _value;
+
+					if (lpBuffer_LittleEndian->ReadInt64(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
 			}
 
 			return false;
@@ -548,76 +1038,132 @@ namespace AL::DotNET::Collections
 
 		bool ReadUInt8([::System::Runtime::InteropServices::OutAttribute] ::System::Byte% value)
 		{
-			auto buffer = gcnew array<::System::Byte>(
-				Marshal::SizeOf<::System::Byte>()
-			);
-
-			if (Read(buffer, 0, buffer->Length))
+			switch (GetEndian())
 			{
-				FromEndian(
-					GetEndian(),
-					value,
-					buffer
-				);
+				case Endians::Big:
+				{
+					uint8 _value;
 
-				return true;
+					if (lpBuffer_BigEndian->ReadUInt8(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
+
+				case Endians::Little:
+				{
+					uint8 _value;
+
+					if (lpBuffer_LittleEndian->ReadUInt8(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
 			}
 
 			return false;
 		}
 		bool ReadUInt16([::System::Runtime::InteropServices::OutAttribute] ::System::UInt16% value)
 		{
-			auto buffer = gcnew array<::System::Byte>(
-				Marshal::SizeOf<::System::UInt16>()
-			);
-
-			if (Read(buffer, 0, buffer->Length))
+			switch (GetEndian())
 			{
-				FromEndian(
-					GetEndian(),
-					value,
-					buffer
-				);
+				case Endians::Big:
+				{
+					uint16 _value;
 
-				return true;
+					if (lpBuffer_BigEndian->ReadUInt16(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
+
+				case Endians::Little:
+				{
+					uint16 _value;
+
+					if (lpBuffer_LittleEndian->ReadUInt16(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
 			}
 
 			return false;
 		}
 		bool ReadUInt32([::System::Runtime::InteropServices::OutAttribute] ::System::UInt32% value)
 		{
-			auto buffer = gcnew array<::System::Byte>(
-				Marshal::SizeOf<::System::UInt32>()
-			);
-
-			if (Read(buffer, 0, buffer->Length))
+			switch (GetEndian())
 			{
-				FromEndian(
-					GetEndian(),
-					value,
-					buffer
-				);
+				case Endians::Big:
+				{
+					uint32 _value;
 
-				return true;
+					if (lpBuffer_BigEndian->ReadUInt32(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
+
+				case Endians::Little:
+				{
+					uint32 _value;
+
+					if (lpBuffer_LittleEndian->ReadUInt32(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
 			}
 
 			return false;
 		}
 		bool ReadUInt64([::System::Runtime::InteropServices::OutAttribute] ::System::UInt64% value)
 		{
-			auto buffer = gcnew array<::System::Byte>(
-				Marshal::SizeOf<::System::UInt64>()
-			);
-
-			if (Read(buffer, 0, buffer->Length))
+			switch (GetEndian())
 			{
-				FromEndian(
-					GetEndian(),
-					value,
-					buffer
-				);
+				case Endians::Big:
+				{
+					uint64 _value;
 
-				return true;
+					if (lpBuffer_BigEndian->ReadUInt64(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
+
+				case Endians::Little:
+				{
+					uint64 _value;
+
+					if (lpBuffer_LittleEndian->ReadUInt64(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
 			}
 
 			return false;
@@ -625,38 +1171,66 @@ namespace AL::DotNET::Collections
 		
 		bool ReadFloat([::System::Runtime::InteropServices::OutAttribute] ::System::Single% value)
 		{
-			auto buffer = gcnew array<::System::Byte>(
-				Marshal::SizeOf<::System::Single>()
-			);
-
-			if (Read(buffer, 0, buffer->Length))
+			switch (GetEndian())
 			{
-				FromEndian(
-					GetEndian(),
-					value,
-					buffer
-				);
+				case Endians::Big:
+				{
+					float _value;
 
-				return true;
+					if (lpBuffer_BigEndian->ReadFloat(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
+
+				case Endians::Little:
+				{
+					float _value;
+
+					if (lpBuffer_LittleEndian->ReadFloat(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
 			}
 
 			return false;
 		}
 		bool ReadDouble([::System::Runtime::InteropServices::OutAttribute] ::System::Double% value)
 		{
-			auto buffer = gcnew array<::System::Byte>(
-				Marshal::SizeOf<::System::Double>()
-			);
-
-			if (Read(buffer, 0, buffer->Length))
+			switch (GetEndian())
 			{
-				FromEndian(
-					GetEndian(),
-					value,
-					buffer
-				);
+				case Endians::Big:
+				{
+					double _value;
 
-				return true;
+					if (lpBuffer_BigEndian->ReadDouble(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
+
+				case Endians::Little:
+				{
+					double _value;
+
+					if (lpBuffer_LittleEndian->ReadDouble(_value))
+					{
+						value = _value;
+
+						return true;
+					}
+				}
+				break;
 			}
 
 			return false;
@@ -664,191 +1238,349 @@ namespace AL::DotNET::Collections
 
 		bool ReadString([::System::Runtime::InteropServices::OutAttribute] ::System::String^% value)
 		{
-			return ReadString(
-				value,
-				::System::Text::Encoding::Default
-			);
-		}
-		bool ReadString([::System::Runtime::InteropServices::OutAttribute] ::System::String^% value, ::System::Text::Encoding^ encoding)
-		{
-			::System::UInt32 length;
+			String nativeString;
 
-			if (PeekUInt32(length))
+			switch (GetEndian())
 			{
-				::System::UInt32 readPosition = GetReadPosition() + Marshal::SizeOf<::System::UInt32>();
-
-				if (readPosition < GetSize())
+				case Endians::Big:
 				{
-					value = encoding->GetString(
-						buffer,
-						readPosition,
-						length
-					);
+					if (!lpBuffer_BigEndian->ReadString(nativeString))
+					{
 
-					auto stringSize = encoding->GetByteCount(
-						value
-					);
-
-					SetReadPosition(
-						readPosition + Marshal::SizeOf<::System::UInt32>() + stringSize
-					);
-
-					return true;
+						return false;
+					}
 				}
+				break;
 
-				SetReadPosition(
-					readPosition - Marshal::SizeOf<::System::UInt32>()
-				);
+				case Endians::Little:
+				{
+					if (!lpBuffer_LittleEndian->ReadString(nativeString))
+					{
+
+						return false;
+					}
+				}
+				break;
 			}
 
-			return false;
+			value = Marshal::ToString(
+				nativeString
+			);
+
+			return true;
+		}
+		bool ReadWString([::System::Runtime::InteropServices::OutAttribute] ::System::String^% value)
+		{
+			WString nativeString;
+
+			switch (GetEndian())
+			{
+				case Endians::Big:
+				{
+					if (!lpBuffer_BigEndian->ReadWString(nativeString))
+					{
+
+						return false;
+					}
+				}
+				break;
+
+				case Endians::Little:
+				{
+					if (!lpBuffer_LittleEndian->ReadWString(nativeString))
+					{
+
+						return false;
+					}
+				}
+				break;
+			}
+
+			value = Marshal::ToString(
+				nativeString
+			);
+
+			return true;
 		}
 
-		bool Read(array<::System::Byte>^% buffer, ::System::UInt32 offset, ::System::UInt32 count)
+		bool Read([::System::Runtime::InteropServices::OutAttribute] array<::System::Byte>^% buffer, ::System::UInt32 count)
 		{
-			if (count && ((GetReadPosition() + count) <= GetCapacity()))
+			AL::Collections::Array<uint8> _buffer(
+				count
+			);
+
+			switch (GetEndian())
 			{
-				::System::Buffer::BlockCopy(
-					this->buffer,
-					readPosition,
-					buffer,
-					offset,
-					count
-				);
+				case Endians::Big:
+				{
+					if (!lpBuffer_BigEndian->Read(&_buffer[0], _buffer.GetCapacity()))
+					{
 
-				readPosition += count;
+						return false;
+					}
+				}
+				break;
 
-				return true;
+				case Endians::Little:
+				{
+					if (!lpBuffer_LittleEndian->Read(&_buffer[0], _buffer.GetCapacity()))
+					{
+
+						return false;
+					}
+				}
+				break;
 			}
 
-			return count == 0;
+			buffer = gcnew array<::System::Byte>(
+				count
+			);
+
+			Marshal::Copy(
+				&_buffer[0],
+				buffer,
+				0,
+				count
+			);
+
+			return true;
 		}
 
 		generic<typename T>
 		void WriteEnum(T value)
 		{
-			array<::System::Byte>^ buffer;
-			ToEndian(GetEndian(), buffer, value);
-			Write(buffer, 0, buffer->Length);
+			if (!T::typeid->IsEnum)
+			{
+
+				throw gcnew ::System::ArgumentException(
+					"T is not an Enum"
+				);
+			}
+
+			switch (Marshal::SizeOf<T>())
+			{
+				case 1:
+					WriteUInt8(static_cast<::System::Byte>(::System::Enum::ToObject(::System::Byte::typeid, value)));
+					break;
+				
+				case 2:
+					WriteUInt16(static_cast<::System::UInt16>(::System::Enum::ToObject(::System::UInt16::typeid, value)));
+					break;
+				
+				case 4:
+					WriteUInt32(static_cast<::System::UInt32>(::System::Enum::ToObject(::System::UInt32::typeid, value)));
+					break;
+				
+				case 8:
+					WriteUInt64(static_cast<::System::UInt64>(::System::Enum::ToObject(::System::UInt64::typeid, value)));
+					break;
+			}
 		}
 
 		void WriteBool(::System::Boolean value)
 		{
-			array<::System::Byte>^ buffer;
-			ToEndian(GetEndian(), buffer, value);
-			Write(buffer, 0, buffer->Length);
+			switch (GetEndian())
+			{
+				case Endians::Big:
+					lpBuffer_BigEndian->WriteBool(value);
+					break;
+
+				case Endians::Little:
+					lpBuffer_LittleEndian->WriteBool(value);
+					break;
+			}
 		}
 
 		void WriteInt8(::System::SByte value)
 		{
-			array<::System::Byte>^ buffer;
-			ToEndian(GetEndian(), buffer, value);
-			Write(buffer, 0, buffer->Length);
+			switch (GetEndian())
+			{
+				case Endians::Big:
+					lpBuffer_BigEndian->WriteInt8(value);
+					break;
+
+				case Endians::Little:
+					lpBuffer_LittleEndian->WriteInt8(value);
+					break;
+			}
 		}
 		void WriteInt16(::System::Int16 value)
 		{
-			array<::System::Byte>^ buffer;
-			ToEndian(GetEndian(), buffer, value);
-			Write(buffer, 0, buffer->Length);
+			switch (GetEndian())
+			{
+				case Endians::Big:
+					lpBuffer_BigEndian->WriteInt16(value);
+					break;
+
+				case Endians::Little:
+					lpBuffer_LittleEndian->WriteInt16(value);
+					break;
+			}
 		}
 		void WriteInt32(::System::Int32 value)
 		{
-			array<::System::Byte>^ buffer;
-			ToEndian(GetEndian(), buffer, value);
-			Write(buffer, 0, buffer->Length);
+			switch (GetEndian())
+			{
+				case Endians::Big:
+					lpBuffer_BigEndian->WriteInt32(value);
+					break;
+
+				case Endians::Little:
+					lpBuffer_LittleEndian->WriteInt32(value);
+					break;
+			}
 		}
 		void WriteInt64(::System::Int64 value)
 		{
-			array<::System::Byte>^ buffer;
-			ToEndian(GetEndian(), buffer, value);
-			Write(buffer, 0, buffer->Length);
+			switch (GetEndian())
+			{
+				case Endians::Big:
+					lpBuffer_BigEndian->WriteInt64(value);
+					break;
+
+				case Endians::Little:
+					lpBuffer_LittleEndian->WriteInt64(value);
+					break;
+			}
 		}
 		
 		void WriteUInt8(::System::Byte value)
 		{
-			array<::System::Byte>^ buffer;
-			ToEndian(GetEndian(), buffer, value);
-			Write(buffer, 0, buffer->Length);
+			switch (GetEndian())
+			{
+				case Endians::Big:
+					lpBuffer_BigEndian->WriteUInt8(value);
+					break;
+
+				case Endians::Little:
+					lpBuffer_LittleEndian->WriteUInt8(value);
+					break;
+			}
 		}
 		void WriteUInt16(::System::UInt16 value)
 		{
-			array<::System::Byte>^ buffer;
-			ToEndian(GetEndian(), buffer, value);
-			Write(buffer, 0, buffer->Length);
+			switch (GetEndian())
+			{
+				case Endians::Big:
+					lpBuffer_BigEndian->WriteUInt16(value);
+					break;
+
+				case Endians::Little:
+					lpBuffer_LittleEndian->WriteUInt16(value);
+					break;
+			}
 		}
 		void WriteUInt32(::System::UInt32 value)
 		{
-			array<::System::Byte>^ buffer;
-			ToEndian(GetEndian(), buffer, value);
-			Write(buffer, 0, buffer->Length);
+			switch (GetEndian())
+			{
+				case Endians::Big:
+					lpBuffer_BigEndian->WriteUInt32(value);
+					break;
+
+				case Endians::Little:
+					lpBuffer_LittleEndian->WriteUInt32(value);
+					break;
+			}
 		}
 		void WriteUInt64(::System::UInt64 value)
 		{
-			array<::System::Byte>^ buffer;
-			ToEndian(GetEndian(), buffer, value);
-			Write(buffer, 0, buffer->Length);
+			switch (GetEndian())
+			{
+				case Endians::Big:
+					lpBuffer_BigEndian->WriteUInt64(value);
+					break;
+
+				case Endians::Little:
+					lpBuffer_LittleEndian->WriteUInt64(value);
+					break;
+			}
 		}
 
 		void WriteFloat(::System::Single value)
 		{
-			array<::System::Byte>^ buffer;
-			ToEndian(GetEndian(), buffer, value);
-			Write(buffer, 0, buffer->Length);
+			switch (GetEndian())
+			{
+				case Endians::Big:
+					lpBuffer_BigEndian->WriteFloat(value);
+					break;
+
+				case Endians::Little:
+					lpBuffer_LittleEndian->WriteFloat(value);
+					break;
+			}
 		}
 		void WriteDouble(::System::Double value)
 		{
-			array<::System::Byte>^ buffer;
-			ToEndian(GetEndian(), buffer, value);
-			Write(buffer, 0, buffer->Length);
+			switch (GetEndian())
+			{
+				case Endians::Big:
+					lpBuffer_BigEndian->WriteDouble(value);
+					break;
+
+				case Endians::Little:
+					lpBuffer_LittleEndian->WriteDouble(value);
+					break;
+			}
 		}
 
 		void WriteString(::System::String^ value)
 		{
-			WriteString(
-				value,
-				::System::Text::Encoding::Default
-			);
-		}
-		void WriteString(::System::String^ value, ::System::Text::Encoding^ encoding)
-		{
-			auto length = static_cast<::System::UInt32>(
-				value->Length
-			);
-
-			WriteUInt32(
-				length
-			);
-
-			auto buffer = encoding->GetBytes(
+			auto nativeString = Marshal::ToNativeString(
 				value
 			);
-			
-			Write(
-				buffer,
-				0,
-				buffer->Length
+
+			switch (GetEndian())
+			{
+				case Endians::Big:
+					lpBuffer_BigEndian->WriteString(nativeString);
+					break;
+
+				case Endians::Little:
+					lpBuffer_LittleEndian->WriteString(nativeString);
+					break;
+			}
+		}
+		void WriteWString(::System::String^ value)
+		{
+			auto nativeString = Marshal::ToNativeWString(
+				value
 			);
+
+			switch (GetEndian())
+			{
+				case Endians::Big:
+					lpBuffer_BigEndian->WriteWString(nativeString);
+					break;
+
+				case Endians::Little:
+					lpBuffer_LittleEndian->WriteWString(nativeString);
+					break;
+			}
 		}
 
 		void Write(array<::System::Byte>^ buffer, ::System::UInt32 offset, ::System::UInt32 count)
 		{
-			if (count)
-			{
-				if ((writePosition += count) >= GetCapacity())
-				{
-					::System::Array::Resize(
-						this->buffer,
-						writePosition
-					);
-				}
+			AL::Collections::Array<uint8> _buffer(
+				count
+			);
 
-				::System::Buffer::BlockCopy(
-					buffer,
-					offset,
-					this->buffer,
-					writePosition - count,
-					count
-				);
+			Marshal::Copy(
+				buffer,
+				&_buffer[0],
+				offset,
+				count
+			);
+
+			switch (GetEndian())
+			{
+				case Endians::Big:
+					lpBuffer_BigEndian->Write(&_buffer[0], _buffer.GetCapacity());
+					break;
+
+				case Endians::Little:
+					lpBuffer_LittleEndian->Write(&_buffer[0], _buffer.GetCapacity());
+					break;
 			}
 		}
 
@@ -858,9 +1590,22 @@ namespace AL::DotNET::Collections
 				GetSize()
 			);
 
+			const uint8* lpBuffer = nullptr;
+
+			switch (GetEndian())
+			{
+				case Endians::Big:
+					lpBuffer = &(*lpBuffer_BigEndian)[0];
+					break;
+
+				case Endians::Little:
+					lpBuffer = &(*lpBuffer_LittleEndian)[0];
+					break;
+			}
+
 			for (::System::UInt32 i = 0; i < GetSize(); ++i)
 			{
-				_array[i] = buffer[i];
+				_array[i] = lpBuffer[i];
 			}
 
 			return _array;
@@ -918,27 +1663,18 @@ namespace AL::DotNET::Collections
 				return;
 			}
 
-			array<::System::Byte>^ buffer;
-			ToEndian(endian, buffer, value);
-
-			result = Marshal::FromArray<T>(
-				buffer,
-				0
-			);
-		}
-		generic<typename T>
-		static void ToEndian(Endians endian, [::System::Runtime::InteropServices::OutAttribute] array<::System::Byte>^% result, T value)
-		{
-			result = Marshal::ToArray<T>(
+			auto valueBuffer = Marshal::ToArray(
 				value
 			);
 
-			if (endian != Endians::Machine)
-			{
-				::System::Array::Reverse(
-					result
-				);
-			}
+			::System::Array::Reverse(
+				valueBuffer
+			);
+
+			result = Marshal::FromArray<T>(
+				valueBuffer,
+				0
+			);
 		}
 		
 		generic<typename T>
@@ -951,36 +1687,38 @@ namespace AL::DotNET::Collections
 				return;
 			}
 
-			auto buffer = Marshal::ToArray(
+			auto valueBuffer = Marshal::ToArray(
 				value
 			);
 
-			FromEndian(
-				endian,
-				result,
-				buffer
+			::System::Array::Reverse(
+				valueBuffer
 			);
-		}
-		generic<typename T>
-		static void FromEndian(Endians endian, [::System::Runtime::InteropServices::OutAttribute] T% result, array<::System::Byte>^ buffer)
-		{
-			if (endian != Endians::Machine)
-			{
-
-				::System::Array::Reverse(
-					buffer
-				);
-			}
 
 			result = Marshal::FromArray<T>(
-				buffer,
+				valueBuffer,
 				0
 			);
 		}
 		
 		static bool operator == (ByteBuffer^ buffer1, ByteBuffer^ buffer2)
 		{
-			return buffer1->buffer == buffer2->buffer;
+			if (buffer1->GetEndian() != buffer2->GetEndian())
+			{
+
+				return false;
+			}
+
+			switch (buffer1->GetEndian())
+			{
+				case Endians::Big:
+					return *buffer1->lpBuffer_BigEndian == *buffer2->lpBuffer_BigEndian;
+
+				case Endians::Little:
+					return *buffer1->lpBuffer_LittleEndian == *buffer2->lpBuffer_LittleEndian;
+			}
+
+			return false;
 		}
 		static bool operator != (ByteBuffer^ buffer1, ByteBuffer^ buffer2)
 		{
@@ -988,28 +1726,6 @@ namespace AL::DotNET::Collections
 				buffer1,
 				buffer2
 			);
-		}
-
-		static array<::System::Byte>^ CreateBuffer(array<::System::Byte>^ buffer, ::System::UInt32 offset, ::System::UInt32 count)
-		{
-			if (buffer->Length != count)
-			{
-				auto _buffer = gcnew array<::System::Byte>(
-					count
-				);
-
-				::System::Buffer::BlockCopy(
-					buffer,
-					offset,
-					_buffer,
-					0,
-					count
-				);
-
-				return _buffer;
-			}
-
-			return buffer;
 		}
 	};
 }
