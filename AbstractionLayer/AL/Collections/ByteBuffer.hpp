@@ -840,11 +840,15 @@ template<>
 template<typename T>
 inline constexpr T AL::Collections::ByteBuffer<AL::Endians::Big>::FromEndian(T value)
 {
-	return !BitConverter::IsBigEndian() ? BitConverter::ToLittleEndian(value) : value;
+	return BitConverter::FromBigEndian(
+		value
+	);
 }
 template<>
 template<typename T>
 inline constexpr T AL::Collections::ByteBuffer<AL::Endians::Little>::FromEndian(T value)
 {
-	return !BitConverter::IsLittleEndian() ? BitConverter::ToBigEndian(value) : value;
+	return BitConverter::FromLittleEndian(
+		value
+	);
 }
