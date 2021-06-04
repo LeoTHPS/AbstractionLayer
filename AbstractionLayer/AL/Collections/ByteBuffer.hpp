@@ -82,7 +82,7 @@ namespace AL::Collections
 
 		auto GetCapacity() const
 		{
-			return buffer.GetSize();
+			return buffer.GetCapacity();
 		}
 
 		auto GetReadPosition() const
@@ -109,7 +109,7 @@ namespace AL::Collections
 				writePosition = value;
 			}
 
-			buffer.SetSize(
+			buffer.SetCapacity(
 				value
 			);
 		}
