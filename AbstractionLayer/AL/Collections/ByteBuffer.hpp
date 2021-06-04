@@ -75,6 +75,11 @@ namespace AL::Collections
 			return writePosition;
 		}
 
+		auto GetEndian() const
+		{
+			return ENDIAN;
+		}
+
 		auto GetCapacity() const
 		{
 			return buffer.GetSize();
