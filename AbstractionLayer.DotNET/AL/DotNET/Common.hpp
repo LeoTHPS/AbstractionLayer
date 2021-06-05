@@ -94,25 +94,6 @@ namespace AL::DotNET
 				T::typeid
 			);
 		}
-    
-		generic<typename T>
-		[::System::Runtime::CompilerServices::Extension]
-		static T MarshalToStruct(array<::System::Byte>^ buffer)
-		{
-			return Marshal::FromArray<T>(
-				buffer,
-				0
-			);
-		}
-
-		generic<typename T>
-		[::System::Runtime::CompilerServices::Extension]
-		static array<::System::Byte>^ MarshalFromStruct(T value)
-		{
-			return Marshal::ToArray(
-				value
-			);
-		}
 	};
 }
 

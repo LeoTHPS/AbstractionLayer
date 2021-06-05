@@ -40,11 +40,11 @@ namespace AL::DotNET::Algorithms
 				count
 			);
 
-			Marshal::Copy(
+			::System::Runtime::InteropServices::Marshal::Copy(
 				buffer,
-				&_buffer[0],
-				offset,
-				count
+				static_cast<::System::Int32>(offset),
+				::System::IntPtr(&_buffer[0]),
+				static_cast<::System::Int32>(count)
 			);
 
 			return lpSha1->Add(
@@ -91,11 +91,11 @@ namespace AL::DotNET::Algorithms
 				static_cast<::System::UInt32>(hash.GetSize())
 			);
 
-			Marshal::Copy(
-				&hash[0],
+			::System::Runtime::InteropServices::Marshal::Copy(
+				::System::IntPtr(&hash[0]),
 				buffer,
 				0,
-				static_cast<::System::UInt32>(hash.GetSize())
+				static_cast<::System::Int32>(hash.GetSize())
 			);
 
 			return true;
@@ -105,7 +105,7 @@ namespace AL::DotNET::Algorithms
 		{
 			Sha1 sha1;
 
-			if (!sha1.Add(buffer, 0, buffer->Length))
+			if (!sha1.Add(buffer, offset, count))
 			{
 
 				return false;
@@ -123,7 +123,7 @@ namespace AL::DotNET::Algorithms
 		{
 			Sha1 sha1;
 
-			if (!sha1.Add(buffer, 0, buffer->Length))
+			if (!sha1.Add(buffer, offset, count))
 			{
 
 				return false;

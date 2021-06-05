@@ -15,7 +15,7 @@ namespace AL::DotNET::GPIO
 
 	public:
 		/// <exception cref="AL::DotNET::Exceptions::Exception" />
-		static void Open([System::Runtime::InteropServices::Out] UARTDevice^% device, System::String^ name, UARTDeviceSpeeds speed)
+		static void Open([::System::Runtime::InteropServices::Out] UARTDevice^% device, ::System::String^ name, UARTDeviceSpeeds speed)
 		{
 			device = gcnew UARTDevice();
 
@@ -54,7 +54,7 @@ namespace AL::DotNET::GPIO
 			return lpDevice->IsOpen();
 		}
 
-		System::String^ GetName()
+		::System::String^ GetName()
 		{
 			return Marshal::ToString(
 				lpDevice->GetName()
@@ -72,12 +72,12 @@ namespace AL::DotNET::GPIO
 		/// Returns number of bytes read
 		/// </summary>
 		/// <exception cref="AL::DotNET::Exceptions::Exception" />
-		System::UInt32 Read(array<System::Byte>^% buffer, System::UInt32 offset, System::UInt32 count)
+		::System::UInt32 Read(array<::System::Byte>^% buffer, ::System::UInt32 offset, ::System::UInt32 count)
 		{
 			size_t bytesReceived = 0;
 
 			AL::Collections::Array<uint8> _buffer(
-				static_cast<size_t>(buffer->Length - offset)
+				count
 			);
 
 			try
@@ -95,11 +95,11 @@ namespace AL::DotNET::GPIO
 				);
 			}
 
-			Marshal::Copy(
-				&_buffer[0],
+			::System::Runtime::InteropServices::Marshal::Copy(
+				::System::IntPtr(&_buffer[0]),
 				buffer,
-				offset,
-				static_cast<System::UInt32>(bytesReceived)
+				static_cast<::System::Int32>(offset),
+				static_cast<::System::Int32>(bytesReceived)
 			);
 
 			return static_cast<System::UInt32>(
@@ -108,17 +108,17 @@ namespace AL::DotNET::GPIO
 		}
 
 		/// <exception cref="AL::DotNET::Exceptions::Exception" />
-		void Write(array<System::Byte>^ buffer, System::UInt32 offset, System::UInt32 count)
+		void Write(array<::System::Byte>^ buffer, ::System::UInt32 offset, ::System::UInt32 count)
 		{
 			AL::Collections::Array<uint8> _buffer(
-				static_cast<size_t>(buffer->Length - offset)
+				count
 			);
 
-			Marshal::Copy(
+			::System::Runtime::InteropServices::Marshal::Copy(
 				buffer,
-				&_buffer[0],
-				offset,
-				static_cast<System::UInt32>(_buffer.GetSize())
+				static_cast<::System::Int32>(offset),
+				::System::IntPtr(&_buffer[0]),
+				static_cast<::System::Int32>(count)
 			);
 
 			try

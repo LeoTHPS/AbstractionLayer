@@ -53,7 +53,7 @@ namespace AL::DotNET::GPIO::Devices
 		}
 
 		/// <exception cref="AL::DotNET::Exceptions::Exception" />
-		void Read([System::Runtime::InteropServices::Out] System::String^% value)
+		void Read([::System::Runtime::InteropServices::Out] ::System::String^% value)
 		{
 			String _value;
 

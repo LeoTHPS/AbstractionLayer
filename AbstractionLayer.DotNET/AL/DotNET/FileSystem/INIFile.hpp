@@ -121,8 +121,8 @@ namespace AL::DotNET::FileSystem
 				)
 			);
 
-			Marshal::Copy(
-				&nativeBuffer[0],
+			::System::Runtime::InteropServices::Marshal::Copy(
+				::System::IntPtr(&nativeBuffer[0]),
 				buffer,
 				0,
 				buffer->Length
@@ -153,8 +153,8 @@ namespace AL::DotNET::FileSystem
 				)
 			);
 
-			Marshal::Copy(
-				&nativeBuffer[0],
+			::System::Runtime::InteropServices::Marshal::Copy(
+				::System::IntPtr(&nativeBuffer[0]),
 				buffer,
 				0,
 				buffer->Length
@@ -281,11 +281,11 @@ namespace AL::DotNET::FileSystem
 				count
 			);
 
-			Marshal::Copy(
+			::System::Runtime::InteropServices::Marshal::Copy(
+				::System::IntPtr(&nativeBuffer[0]),
 				buffer,
-				&nativeBuffer[0],
-				offset,
-				count
+				static_cast<::System::Int32>(offset),
+				static_cast<::System::Int32>(count)
 			);
 
 			lpField->SetStructAsBuffer(

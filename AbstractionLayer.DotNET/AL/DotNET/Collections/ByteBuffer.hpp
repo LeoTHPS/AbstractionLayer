@@ -50,12 +50,12 @@ namespace AL::DotNET::Collections
 			switch (endian)
 			{
 				case Endians::Big:
-					Marshal::Copy(buffer, &(*lpBuffer_BigEndian)[0], offset, count);
+					::System::Runtime::InteropServices::Marshal::Copy(buffer, static_cast<::System::Int32>(offset), ::System::IntPtr(&(*lpBuffer_BigEndian)[0]), static_cast<::System::Int32>(count));
 					lpBuffer_BigEndian->SetWritePosition(count);
 					break;
 
 				case Endians::Little:
-					Marshal::Copy(buffer, &(*lpBuffer_LittleEndian)[0], offset, count);
+					::System::Runtime::InteropServices::Marshal::Copy(buffer, static_cast<::System::Int32>(offset), ::System::IntPtr(&(*lpBuffer_LittleEndian)[0]), static_cast<::System::Int32>(count));
 					lpBuffer_LittleEndian->SetWritePosition(count);
 					break;
 			}
@@ -705,11 +705,11 @@ namespace AL::DotNET::Collections
 							count
 						);
 
-						Marshal::Copy(
-							&_buffer[0],
+						::System::Runtime::InteropServices::Marshal::Copy(
+							::System::IntPtr(&_buffer[0]),
 							buffer,
 							0,
-							count
+							static_cast<::System::Int32>(count)
 						);
 
 						return true;
@@ -725,11 +725,11 @@ namespace AL::DotNET::Collections
 							count
 						);
 
-						Marshal::Copy(
-							&_buffer[0],
+						::System::Runtime::InteropServices::Marshal::Copy(
+							::System::IntPtr(&_buffer[0]),
 							buffer,
 							0,
-							count
+							static_cast<::System::Int32>(count)
 						);
 
 						return true;
@@ -756,11 +756,11 @@ namespace AL::DotNET::Collections
 							count
 						);
 
-						Marshal::Copy(
-							&_buffer[0],
+						::System::Runtime::InteropServices::Marshal::Copy(
+							::System::IntPtr(&_buffer[0]),
 							buffer,
 							0,
-							count
+							static_cast<::System::Int32>(count)
 						);
 
 						return true;
@@ -776,11 +776,11 @@ namespace AL::DotNET::Collections
 							count
 						);
 
-						Marshal::Copy(
-							&_buffer[0],
+						::System::Runtime::InteropServices::Marshal::Copy(
+							::System::IntPtr(&_buffer[0]),
 							buffer,
 							0,
-							count
+							static_cast<::System::Int32>(count)
 						);
 
 						return true;
@@ -1336,11 +1336,11 @@ namespace AL::DotNET::Collections
 				count
 			);
 
-			Marshal::Copy(
-				&_buffer[0],
+			::System::Runtime::InteropServices::Marshal::Copy(
+				::System::IntPtr(&_buffer[0]),
 				buffer,
 				0,
-				count
+				static_cast<::System::Int32>(count)
 			);
 
 			return true;
@@ -1565,11 +1565,11 @@ namespace AL::DotNET::Collections
 				count
 			);
 
-			Marshal::Copy(
+			::System::Runtime::InteropServices::Marshal::Copy(
 				buffer,
-				&_buffer[0],
-				offset,
-				count
+				static_cast<::System::Int32>(offset),
+				::System::IntPtr(&_buffer[0]),
+				static_cast<::System::Int32>(count)
 			);
 
 			switch (GetEndian())
@@ -1603,11 +1603,11 @@ namespace AL::DotNET::Collections
 					break;
 			}
 
-			Marshal::Copy(
-				lpBuffer,
+			::System::Runtime::InteropServices::Marshal::Copy(
+				::System::IntPtr(const_cast<uint8*>(lpBuffer)),
 				_array,
 				0,
-				static_cast<::System::UInt32>(_array->Length)
+				static_cast<::System::Int32>(_array->Length)
 			);
 
 			return _array;

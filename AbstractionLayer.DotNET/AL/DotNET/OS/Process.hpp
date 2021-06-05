@@ -770,17 +770,15 @@ namespace AL::DotNET::OS
 		/// Returns address of library
 		/// </summary>
 		/// <exception cref="AL::DotNET::Exceptions::Exception" />
-		ProcessAddress LoadLibrary(array<::System::Byte>^ buffer)
+		ProcessAddress LoadLibrary(array<::System::Byte>^ buffer, ::System::UInt32 offset, ::System::UInt32 count)
 		{
-			auto lpBuffer = new uint8[
-				static_cast<size_t>(buffer->Length)
-			];
+			auto lpBuffer = new uint8[count];
 
-			Marshal::Copy(
+			::System::Runtime::InteropServices::Marshal::Copy(
 				buffer,
-				lpBuffer,
-				0,
-				static_cast<::System::UInt32>(buffer->Length)
+				static_cast<::System::Int32>(offset),
+				::System::IntPtr(lpBuffer),
+				static_cast<::System::Int32>(count)
 			);
 
 			AL::OS::ProcessAddress address;
@@ -789,7 +787,7 @@ namespace AL::DotNET::OS
 			{
 				address = lpProcess->LoadLibrary(
 					lpBuffer,
-					static_cast<size_t>(buffer->Length)
+					static_cast<size_t>(count)
 				);
 			}
 			catch (const AL::Exceptions::Exception& exception)
@@ -960,7 +958,9 @@ namespace AL::DotNET::OS
 
 			ReadMemory(
 				address,
-				buffer
+				buffer,
+				0,
+				static_cast<::System::UInt32>(buffer->Length)
 			);
 
 			value = Marshal::FromArray<T>(
@@ -969,18 +969,16 @@ namespace AL::DotNET::OS
 			);
 		}
 		/// <exception cref="AL::DotNET::Exceptions::Exception" />
-		void ReadMemory(ProcessAddress address, array<::System::Byte>^% buffer)
+		void ReadMemory(ProcessAddress address, array<::System::Byte>^% buffer, ::System::UInt32 offset, ::System::UInt32 count)
 		{
-			auto lpBuffer = new uint8[
-				static_cast<size_t>(buffer->Length)
-			];
+			auto lpBuffer = new uint8[count];
 
 			try
 			{
 				lpProcess->ReadMemory(
 					static_cast<AL::OS::ProcessAddress>(address),
 					lpBuffer,
-					static_cast<size_t>(buffer->Length)
+					count
 				);
 			}
 			catch (const AL::Exceptions::Exception& exception)
@@ -992,11 +990,11 @@ namespace AL::DotNET::OS
 				);
 			}
 
-			Marshal::Copy(
-				lpBuffer,
+			::System::Runtime::InteropServices::Marshal::Copy(
+				::System::IntPtr(lpBuffer),
 				buffer,
-				0,
-				static_cast<::System::UInt32>(buffer->Length)
+				static_cast<::System::Int32>(offset),
+				static_cast<::System::Int32>(count)
 			);
 
 			delete[] lpBuffer;
@@ -1012,21 +1010,23 @@ namespace AL::DotNET::OS
 
 			WriteMemory(
 				address,
-				buffer
+				buffer,
+				0,
+				static_cast<::System::UInt32>(buffer->Length)
 			);
 		}
 		/// <exception cref="AL::DotNET::Exceptions::Exception" />
-		void WriteMemory(ProcessAddress address, array<::System::Byte>^ buffer)
+		void WriteMemory(ProcessAddress address, array<::System::Byte>^ buffer, ::System::UInt32 offset, ::System::UInt32 count)
 		{
 			auto lpBuffer = new uint8[
 				static_cast<size_t>(buffer->Length)
 			];
 			
-			Marshal::Copy(
+			::System::Runtime::InteropServices::Marshal::Copy(
 				buffer,
-				lpBuffer,
-				0,
-				static_cast<::System::UInt32>(buffer->Length)
+				static_cast<::System::Int32>(offset),
+				::System::IntPtr(lpBuffer),
+				static_cast<::System::Int32>(count)
 			);
 
 			try

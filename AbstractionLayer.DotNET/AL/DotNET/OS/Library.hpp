@@ -116,17 +116,15 @@ namespace AL::DotNET::OS
 			);
 		}
 		/// <exception cref="AL::DotNET::Exceptions::Exception" />
-		static void LoadLibrary([::System::Runtime::InteropServices::OutAttribute] Library^% library, array<::System::Byte>^ buffer)
+		static void LoadLibrary([::System::Runtime::InteropServices::OutAttribute] Library^% library, array<::System::Byte>^ buffer, ::System::UInt32 offset, ::System::UInt32 count)
 		{
-			auto lpBuffer = new uint8[
-				static_cast<size_t>(buffer->Length)
-			];
+			auto lpBuffer = new uint8[count];
 
-			Marshal::Copy(
+			::System::Runtime::InteropServices::Marshal::Copy(
 				buffer,
-				lpBuffer,
-				0,
-				static_cast<size_t>(buffer->Length)
+				static_cast<::System::Int32>(offset),
+				::System::IntPtr(lpBuffer),
+				static_cast<::System::Int32>(count)
 			);
 
 			AL::OS::Library _library;
@@ -136,7 +134,7 @@ namespace AL::DotNET::OS
 				AL::OS::Library::LoadLibrary(
 					_library,
 					lpBuffer,
-					static_cast<size_t>(buffer->Length)
+					count
 				);
 			}
 			catch (const AL::Exceptions::Exception& exception)

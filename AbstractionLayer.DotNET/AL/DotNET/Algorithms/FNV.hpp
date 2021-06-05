@@ -32,7 +32,7 @@ namespace AL::DotNET::Algorithms
 		{
 			::System::UInt32 hash = AL::Algorithms::_FNV_Constants<uint32>::Offset;
 
-			for (; index < count; ++index)
+			for (::System::Int32 i = 0; i < count; ++i, ++index)
 			{
 				hash ^= static_cast<::System::UInt32>(
 					array[index]
@@ -72,7 +72,7 @@ namespace AL::DotNET::Algorithms
 		{
 			::System::UInt64 hash = AL::Algorithms::_FNV_Constants<uint64>::Offset;
 
-			for (; index < count; ++index)
+			for (::System::Int32 i = 0; i < count; ++i, ++index)
 			{
 				hash ^= static_cast<::System::UInt64>(
 					array[index]

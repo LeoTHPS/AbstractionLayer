@@ -39,7 +39,7 @@ namespace AL::DotNET::Algorithms
 		{
 			::System::UInt16 crc = AL::Algorithms::_CRC_Constants<uint16>::CRC;
 
-			for (; index < count; ++index)
+			for (::System::Int32 i = 0; i < count; ++i, ++index)
 			{
 				for (size_t b = 0; b < 8; ++b)
 				{
@@ -82,7 +82,7 @@ namespace AL::DotNET::Algorithms
 		{
 			::System::UInt32 crc = AL::Algorithms::_CRC_Constants<uint32>::CRC;
 
-			for (; index < count; ++index)
+			for (::System::Int32 i = 0; i < count; ++i, ++index)
 			{
 				crc = AL::Algorithms::_CRC_Constants<uint32>::Table[(crc ^ static_cast<uint32>(array[index])) & 0xFF] ^ (crc >> 8);
 			}
