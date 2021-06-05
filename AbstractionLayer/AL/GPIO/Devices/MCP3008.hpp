@@ -46,6 +46,15 @@ namespace AL::GPIO::Devices
 		{
 		}
 
+		auto& operator = (MCP3008&& mcp3008)
+		{
+			SPIDevice::operator=(
+				Move(mcp3008)
+			);
+
+			return *this;
+		}
+
 	protected:
 		// @throw AL::Exceptions::Exception
 		virtual void OnRead(Channel channel, DataR& value) override

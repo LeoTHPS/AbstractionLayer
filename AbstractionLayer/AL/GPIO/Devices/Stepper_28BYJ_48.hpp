@@ -144,6 +144,37 @@ namespace AL::GPIO::Devices
 			}
 		}
 
+		auto& operator = (Stepper_28BYJ_48&& stepper)
+		{
+			Device::operator=(
+				Move(stepper)
+			);
+
+			deviceId = stepper.deviceId;
+
+			in1 = stepper.in1;
+			in2 = stepper.in2;
+			in3 = stepper.in3;
+			in4 = stepper.in4;
+
+			pins.IN1 = Move(
+				stepper.pins.IN1
+			);
+			pins.IN2 = Move(
+				stepper.pins.IN2
+			);
+			pins.IN3 = Move(
+				stepper.pins.IN3
+			);
+			pins.IN4 = Move(
+				stepper.pins.IN4
+			);
+
+			phase = stepper.phase;
+
+			return *this;
+		}
+
 	protected:
 		// @throw AL::Exceptions::Exception
 		virtual void OnOpen() override
