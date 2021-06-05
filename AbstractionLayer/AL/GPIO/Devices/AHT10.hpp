@@ -112,64 +112,88 @@ namespace AL::GPIO::Devices
 						"Error triggering device"
 					);
 				}
-
-				Sleep(
-					TimeSpan::FromMilliseconds(75)
-				);
 			}
 
-			float fHumidity;
-			float fDewPoint;
-			float fTemperature;
+			float humidity;
+			float dewPoint;
+			float temperature;
 
 			// Read device
 			{
 				uint8 buffer[6];
 
-				try
+				do
 				{
-					GetDevice().Read(
-						buffer
+					Sleep(
+						TimeSpan::FromMilliseconds(10)
 					);
-				}
-				catch (Exceptions::Exception& exception)
-				{
 
-					throw Exceptions::Exception(
-						Move(exception),
-						"Error reading device"
-					);
-				}
+					try
+					{
+						GetDevice().Read(
+							buffer
+						);
+					}
+					catch (Exceptions::Exception& exception)
+					{
 
-				fHumidity = (static_cast<float>((static_cast<uint32>(buffer[1]) << 12) | (static_cast<uint32>(buffer[2]) << 4) | static_cast<uint32>(buffer[3] >> 4)) * 100.0f) / 1048576.0f;
-				fTemperature = ((static_cast<float>((static_cast<uint32>(buffer[3] & 0x0F) << 16) | (static_cast<uint32>(buffer[4]) << 8) | static_cast<uint32>(buffer[5])) * 200.0f) / 1048576.0f) - 50.0f;
+						throw Exceptions::Exception(
+							Move(exception),
+							"Error reading device"
+						);
+					}
+				} while (!GetHumidityAndTemperature(humidity, temperature, buffer));
 
-				float fVaporPressure = fHumidity * 0.06112f * Math::Exp((17.62f * fTemperature) / (fTemperature + 243.12f));
-				fDewPoint = (243.12f * Math::Log(fVaporPressure) - 440.1f) / (19.43f - Math::Log(fVaporPressure));
+				dewPoint = CalculateDewPoint(
+					humidity,
+					temperature
+				);
 			}
 
 			if (flags.IsSet(AHT10DataFlags::Humidity))
 			{
-				value.Humidity = fHumidity;
+				value.Humidity = humidity;
 			}
 
 			if (flags.IsSet(AHT10DataFlags::DewPoint_C))
 			{
-				value.DewPoint = fDewPoint;
+				value.DewPoint = dewPoint;
 			}
 			else if (flags.IsSet(AHT10DataFlags::DewPoint_F))
 			{
-				value.DewPoint = (fDewPoint * 1.8f) + 32.0f;
+				value.DewPoint = (dewPoint * 1.8f) + 32.0f;
 			}
 			
 			if (flags.IsSet(AHT10DataFlags::Temperature_C))
 			{
-				value.Temperature = fTemperature;
+				value.Temperature = temperature;
 			}
 			else if (flags.IsSet(AHT10DataFlags::Temperature_F))
 			{
-				value.Temperature = (fTemperature * 1.8f) + 32.0f;
+				value.Temperature = (temperature * 1.8f) + 32.0f;
 			}
+		}
+
+	private:
+		static float CalculateDewPoint(float humidity, float temperature)
+		{
+			float waterVaporPressure = humidity * 0.06112f * Math::Exp((17.62f * temperature) / (temperature + 243.12f));
+			return ((243.12f * Math::Log(waterVaporPressure)) - 440.1f) / (19.43f - Math::Log(waterVaporPressure));
+		}
+
+		static bool GetHumidityAndTemperature(float& humidity, float& temperature, const uint8(&buffer)[6])
+		{
+			// bit[7] = The device is busy
+			if ((buffer[0] & 0x80) == 0x80)
+			{
+
+				return false;
+			}
+
+			humidity = (static_cast<float>((static_cast<uint32>(buffer[1]) << 12) | (static_cast<uint32>(buffer[2]) << 4) | static_cast<uint32>(buffer[3] >> 4)) * 100.0f) / 1048576.0f;
+			temperature = ((static_cast<float>((static_cast<uint32>(buffer[3] & 0x0F) << 16) | (static_cast<uint32>(buffer[4]) << 8) | static_cast<uint32>(buffer[5])) * 200.0f) / 1048576.0f) - 50.0f;
+
+			return true;
 		}
 	};
 }
