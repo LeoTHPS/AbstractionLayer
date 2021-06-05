@@ -1922,6 +1922,22 @@ namespace AL
 		}
 
 		template<typename T>
+		static constexpr T Exp(T value)
+		{
+			return std::exp(
+				value
+			);
+		}
+
+		template<typename T>
+		static constexpr T Log(T value)
+		{
+			return std::log(
+				value
+			);
+		}
+
+		template<typename T>
 		static constexpr T Pow(T value, T exponent)
 		{
 			return std::pow(
