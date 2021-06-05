@@ -72,12 +72,6 @@ namespace AL::GPIO::Devices
 		};
 #pragma pack(pop)
 
-#if !defined(AL_GPIO_DEVICES_BMP_180_ADDRESS)
-		static constexpr I2CAddress BMP_180_ADDRESS = 0x77;
-#else
-		static constexpr I2CAddress BMP_180_ADDRESS = AL_GPIO_DEVICES_BMP_180_ADDRESS;
-#endif
-
 		double refPressure;
 
 	public:
@@ -88,10 +82,10 @@ namespace AL::GPIO::Devices
 		{
 		}
 
-		explicit BMP180(String&& name)
+		BMP180(String&& name, I2CAddress address = 0x77)
 			: I2CDevice(
 				Move(name),
-				BMP_180_ADDRESS
+				address
 			)
 		{
 			SetReferencePressure_hPa(
