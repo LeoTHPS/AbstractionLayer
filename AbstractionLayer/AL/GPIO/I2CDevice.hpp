@@ -153,6 +153,30 @@ namespace AL::GPIO
 		}
 		
 		// @throw AL::Exceptions::Exception
+		void ReadInt8(int8& value)
+		{
+			AL_ASSERT(IsOpen(), "I2CDevice not open");
+
+#if defined(AL_PLATFORM_LINUX)
+			int result;
+
+			if ((result = i2c_smbus_read_byte(hFile)) < 0)
+			{
+
+				throw Exceptions::SystemException(
+					"i2c_smbus_read_byte",
+					result
+				);
+			}
+
+			value = static_cast<int8>(
+				result
+			);
+#else
+			throw Exceptions::NotImplementedException();
+#endif
+		}
+		// @throw AL::Exceptions::Exception
 		void ReadInt8(I2CRegister reg, int8& value)
 		{
 			AL_ASSERT(IsOpen(), "I2CDevice not open");
@@ -200,7 +224,31 @@ namespace AL::GPIO
 			throw Exceptions::NotImplementedException();
 #endif
 		}
+		
+		// @throw AL::Exceptions::Exception
+		void ReadUInt8(uint8& value)
+		{
+			AL_ASSERT(IsOpen(), "I2CDevice not open");
 
+#if defined(AL_PLATFORM_LINUX)
+			int result;
+
+			if ((result = i2c_smbus_read_byte(hFile)) < 0)
+			{
+
+				throw Exceptions::SystemException(
+					"i2c_smbus_read_byte",
+					result
+				);
+			}
+
+			value = static_cast<uint8>(
+				result
+			);
+#else
+			throw Exceptions::NotImplementedException();
+#endif
+		}
 		// @throw AL::Exceptions::Exception
 		void ReadUInt8(I2CRegister reg, uint8& value)
 		{
@@ -272,6 +320,26 @@ namespace AL::GPIO
 		}
 		
 		// @throw AL::Exceptions::Exception
+		void WriteInt8(int8 value)
+		{
+			AL_ASSERT(IsOpen(), "I2CDevice not open");
+
+#if defined(AL_PLATFORM_LINUX)
+			int errorCode;
+
+			if ((errorCode = i2c_smbus_write_byte(hFile, static_cast<__u8>(value))) < 0)
+			{
+
+				throw Exceptions::SystemException(
+					"i2c_smbus_write_byte",
+					errorCode
+				);
+			}
+#else
+			throw Exceptions::NotImplementedException();
+#endif
+		}
+		// @throw AL::Exceptions::Exception
 		void WriteInt8(I2CRegister reg, int8 value)
 		{
 			AL_ASSERT(IsOpen(), "I2CDevice not open");
@@ -312,6 +380,26 @@ namespace AL::GPIO
 #endif
 		}
 
+		// @throw AL::Exceptions::Exception
+		void WriteUInt8(uint8 value)
+		{
+			AL_ASSERT(IsOpen(), "I2CDevice not open");
+
+#if defined(AL_PLATFORM_LINUX)
+			int errorCode;
+
+			if ((errorCode = i2c_smbus_write_byte(hFile, static_cast<__u8>(value))) < 0)
+			{
+
+				throw Exceptions::SystemException(
+					"i2c_smbus_write_byte",
+					errorCode
+				);
+			}
+#else
+			throw Exceptions::NotImplementedException();
+#endif
+		}
 		// @throw AL::Exceptions::Exception
 		void WriteUInt8(I2CRegister reg, uint8 value)
 		{
