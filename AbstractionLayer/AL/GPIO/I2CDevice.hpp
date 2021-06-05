@@ -153,85 +153,12 @@ namespace AL::GPIO
 		}
 		
 		// @throw AL::Exceptions::Exception
-		void ReadInt8(int8& value)
+		void ReadByte(uint8& value)
 		{
 			AL_ASSERT(IsOpen(), "I2CDevice not open");
 
 #if defined(AL_PLATFORM_LINUX)
-			int result;
-
-			if ((result = i2c_smbus_read_byte(hFile)) < 0)
-			{
-
-				throw Exceptions::SystemException(
-					"i2c_smbus_read_byte",
-					result
-				);
-			}
-
-			value = static_cast<int8>(
-				result
-			);
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
-		// @throw AL::Exceptions::Exception
-		void ReadInt8(I2CRegister reg, int8& value)
-		{
-			AL_ASSERT(IsOpen(), "I2CDevice not open");
-
-#if defined(AL_PLATFORM_LINUX)
-			int result;
-
-			if ((result = i2c_smbus_read_byte_data(hFile, static_cast<__u8>(reg))) < 0)
-			{
-
-				throw Exceptions::SystemException(
-					"i2c_smbus_read_byte_data",
-					result
-				);
-			}
-
-			value = static_cast<int8>(
-				result
-			);
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
-		// @throw AL::Exceptions::Exception
-		void ReadInt16(I2CRegister reg, int16& value)
-		{
-			AL_ASSERT(IsOpen(), "I2CDevice not open");
-
-#if defined(AL_PLATFORM_LINUX)
-			int result;
-
-			if ((result = i2c_smbus_read_word_data(hFile, static_cast<__u8>(reg))) < 0)
-			{
-
-				throw Exceptions::SystemException(
-					"i2c_smbus_read_word_data",
-					result
-				);
-			}
-
-			value = static_cast<int16>(
-				result
-			);
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
-		
-		// @throw AL::Exceptions::Exception
-		void ReadUInt8(uint8& value)
-		{
-			AL_ASSERT(IsOpen(), "I2CDevice not open");
-
-#if defined(AL_PLATFORM_LINUX)
-			int result;
+			__s32 result;
 
 			if ((result = i2c_smbus_read_byte(hFile)) < 0)
 			{
@@ -249,15 +176,37 @@ namespace AL::GPIO
 			throw Exceptions::NotImplementedException();
 #endif
 		}
+
 		// @throw AL::Exceptions::Exception
-		void ReadUInt8(I2CRegister reg, uint8& value)
+		void WriteByte(uint8 value)
 		{
 			AL_ASSERT(IsOpen(), "I2CDevice not open");
 
 #if defined(AL_PLATFORM_LINUX)
-			int result;
+			__s32 result;
 
-			if ((result = i2c_smbus_read_byte_data(hFile, static_cast<__u8>(reg))) < 0)
+			if ((result = i2c_smbus_write_byte(hFile, static_cast<__u8>(value))) < 0)
+			{
+
+				throw Exceptions::SystemException(
+					"i2c_smbus_write_byte",
+					result
+				);
+			}
+#else
+			throw Exceptions::NotImplementedException();
+#endif
+		}
+
+		// @throw AL::Exceptions::Exception
+		void ReadByteData(I2CRegister address, uint8& value)
+		{
+			AL_ASSERT(IsOpen(), "I2CDevice not open");
+
+#if defined(AL_PLATFORM_LINUX)
+			__s32 result;
+
+			if ((result = i2c_smbus_read_byte_data(hFile, static_cast<__u8>(address))) < 0)
 			{
 
 				throw Exceptions::SystemException(
@@ -273,15 +222,37 @@ namespace AL::GPIO
 			throw Exceptions::NotImplementedException();
 #endif
 		}
+
 		// @throw AL::Exceptions::Exception
-		void ReadUInt16(I2CRegister reg, uint16& value)
+		void WriteByteData(I2CRegister address, uint8 value)
 		{
 			AL_ASSERT(IsOpen(), "I2CDevice not open");
 
 #if defined(AL_PLATFORM_LINUX)
-			int result;
+			__s32 result;
 
-			if ((result = i2c_smbus_read_word_data(hFile, static_cast<__u8>(reg))) < 0)
+			if ((result = i2c_smbus_write_byte_data(hFile, static_cast<__u8>(address), static_cast<__u8>(value))) < 0)
+			{
+
+				throw Exceptions::SystemException(
+					"i2c_smbus_write_byte_data",
+					result
+				);
+			}
+#else
+			throw Exceptions::NotImplementedException();
+#endif
+		}
+
+		// @throw AL::Exceptions::Exception
+		void ReadWordData(I2CRegister address, uint16& value)
+		{
+			AL_ASSERT(IsOpen(), "I2CDevice not open");
+
+#if defined(AL_PLATFORM_LINUX)
+			__s32 result;
+
+			if ((result = i2c_smbus_read_word_data(hFile, static_cast<__u8>(address))) < 0)
 			{
 
 				throw Exceptions::SystemException(
@@ -299,80 +270,40 @@ namespace AL::GPIO
 		}
 
 		// @throw AL::Exceptions::Exception
-		void Read(I2CRegister reg, void* lpBuffer, size_t size)
+		void WriteWordData(I2CRegister address, uint16 value)
 		{
 			AL_ASSERT(IsOpen(), "I2CDevice not open");
 
 #if defined(AL_PLATFORM_LINUX)
-			int errorCode;
+			__s32 result;
 
-			if ((errorCode = i2c_smbus_read_i2c_block_data(hFile, static_cast<__u8>(reg), static_cast<__u8>((size <= 255) ? size : 255), reinterpret_cast<__u8*>(lpBuffer))) < 0)
+			if ((result = i2c_smbus_write_word_data(hFile, static_cast<__u8>(address), static_cast<__u16>(value))) < 0)
+			{
+
+				throw Exceptions::SystemException(
+					"i2c_smbus_write_word_data",
+					result
+				);
+			}
+#else
+			throw Exceptions::NotImplementedException();
+#endif
+		}
+
+		// @throw AL::Exceptions::Exception
+		void ReadBlockData(I2CRegister address, void* lpBuffer, size_t size)
+		{
+			AL_ASSERT(IsOpen(), "I2CDevice not open");
+
+#if defined(AL_PLATFORM_LINUX)
+			__s32 result;
+
+			if ((result = i2c_smbus_read_i2c_block_data(hFile, static_cast<__u8>(address), static_cast<__u8>(size > 255 ? 255 : size), reinterpret_cast<__u8*>(lpBuffer))) < 0)
 			{
 
 				throw Exceptions::SystemException(
 					"i2c_smbus_read_i2c_block_data",
-					errorCode
-				);
-			}
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
-		
-		// @throw AL::Exceptions::Exception
-		void WriteInt8(int8 value)
-		{
-			AL_ASSERT(IsOpen(), "I2CDevice not open");
-
-#if defined(AL_PLATFORM_LINUX)
-			int errorCode;
-
-			if ((errorCode = i2c_smbus_write_byte(hFile, static_cast<__u8>(value))) < 0)
-			{
-
-				throw Exceptions::SystemException(
-					"i2c_smbus_write_byte",
-					errorCode
-				);
-			}
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
-		// @throw AL::Exceptions::Exception
-		void WriteInt8(I2CRegister reg, int8 value)
-		{
-			AL_ASSERT(IsOpen(), "I2CDevice not open");
-
-#if defined(AL_PLATFORM_LINUX)
-			int errorCode;
-
-			if ((errorCode = i2c_smbus_write_byte_data(hFile, static_cast<__u8>(reg), static_cast<__u8>(value))) < 0)
-			{
-
-				throw Exceptions::SystemException(
-					"i2c_smbus_write_byte_data",
-					errorCode
-				);
-			}
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
-		// @throw AL::Exceptions::Exception
-		void WriteInt16(I2CRegister reg, uint16 value)
-		{
-			AL_ASSERT(IsOpen(), "I2CDevice not open");
-
-#if defined(AL_PLATFORM_LINUX)
-			int errorCode;
-
-			if ((errorCode = i2c_smbus_write_word_data(hFile, static_cast<__u8>(reg), static_cast<__u16>(value))) < 0)
-			{
-
-				throw Exceptions::SystemException(
-					"i2c_smbus_write_word_data",
-					errorCode
+					result
 				);
 			}
 #else
@@ -381,80 +312,19 @@ namespace AL::GPIO
 		}
 
 		// @throw AL::Exceptions::Exception
-		void WriteUInt8(uint8 value)
+		void WriteBlockData(I2CRegister address, const void* lpBuffer, size_t size)
 		{
 			AL_ASSERT(IsOpen(), "I2CDevice not open");
 
 #if defined(AL_PLATFORM_LINUX)
-			int errorCode;
+			__s32 result;
 
-			if ((errorCode = i2c_smbus_write_byte(hFile, static_cast<__u8>(value))) < 0)
-			{
-
-				throw Exceptions::SystemException(
-					"i2c_smbus_write_byte",
-					errorCode
-				);
-			}
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
-		// @throw AL::Exceptions::Exception
-		void WriteUInt8(I2CRegister reg, uint8 value)
-		{
-			AL_ASSERT(IsOpen(), "I2CDevice not open");
-
-#if defined(AL_PLATFORM_LINUX)
-			int errorCode;
-
-			if ((errorCode = i2c_smbus_write_byte_data(hFile, static_cast<__u8>(reg), static_cast<__u8>(value))) < 0)
-			{
-
-				throw Exceptions::SystemException(
-					"i2c_smbus_write_byte_data",
-					errorCode
-				);
-			}
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
-		// @throw AL::Exceptions::Exception
-		void WriteUInt16(I2CRegister reg, uint16 value)
-		{
-			AL_ASSERT(IsOpen(), "I2CDevice not open");
-
-#if defined(AL_PLATFORM_LINUX)
-			int errorCode;
-
-			if ((errorCode = i2c_smbus_write_word_data(hFile, static_cast<__u8>(reg), static_cast<__u16>(value))) < 0)
-			{
-
-				throw Exceptions::SystemException(
-					"i2c_smbus_write_word_data",
-					errorCode
-				);
-			}
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
-
-		// @throw AL::Exceptions::Exception
-		void Write(I2CRegister reg, const void* lpBuffer, size_t size)
-		{
-			AL_ASSERT(IsOpen(), "I2CDevice not open");
-
-#if defined(AL_PLATFORM_LINUX)
-			int errorCode;
-
-			if ((errorCode = i2c_smbus_write_i2c_block_data(hFile, static_cast<__u8>(reg), static_cast<__u8>((size <= 255) ? size : 255), reinterpret_cast<const __u8*>(lpBuffer))) < 0)
+			if ((result = i2c_smbus_write_i2c_block_data(hFile, static_cast<__u8>(address), static_cast<__u8>(size > 255 ? 255 : size), reinterpret_cast<const __u8*>(lpBuffer))) < 0)
 			{
 
 				throw Exceptions::SystemException(
 					"i2c_smbus_write_i2c_block_data",
-					errorCode
+					result
 				);
 			}
 #else

@@ -138,7 +138,7 @@ namespace AL::GPIO::Devices
 		{
 			bmp_180_device_info info;
 
-			GetDevice().Read(
+			GetDevice().ReadBlockData(
 				0xD0,
 				&info,
 				sizeof(bmp_180_device_info)
@@ -162,7 +162,7 @@ namespace AL::GPIO::Devices
 
 			// read factory calibration data
 			bmp_180_calibration_data calibration_data;
-			GetDevice().Read(0xAA, &calibration_data, sizeof(bmp_180_calibration_data));
+			GetDevice().ReadBlockData(0xAA, &calibration_data, sizeof(bmp_180_calibration_data));
 			calibration_data.AC1 = BitConverter::FromBigEndian(calibration_data.AC1);
 			calibration_data.AC2 = BitConverter::FromBigEndian(calibration_data.AC2);
 			calibration_data.AC3 = BitConverter::FromBigEndian(calibration_data.AC3);
@@ -176,7 +176,7 @@ namespace AL::GPIO::Devices
 			calibration_data.MD = BitConverter::FromBigEndian(calibration_data.MD);
 
 			// tell device to begin sampling temperature
-			GetDevice().WriteUInt8(
+			GetDevice().WriteByteData(
 				0xF4,
 				0x2E
 			);
@@ -187,7 +187,7 @@ namespace AL::GPIO::Devices
 			// read uncompensated temperature
 			bmp_180_uncompensated_temperature_data temperature_data;
 			
-			GetDevice().Read(
+			GetDevice().ReadBlockData(
 				0xF6,
 				&temperature_data,
 				sizeof(bmp_180_uncompensated_temperature_data)
@@ -200,7 +200,7 @@ namespace AL::GPIO::Devices
 			int32 temperature = (temperature_b5 + 8) >> 4;
 
 			// tell device to begin sampling pressure
-			GetDevice().WriteUInt8(
+			GetDevice().WriteByteData(
 				0xF4,
 				0x34 + (oss << 6)
 			);
@@ -211,7 +211,7 @@ namespace AL::GPIO::Devices
 			// read uncompensated pressure
 			bmp_180_uncompensated_pressure_data pressure_data;
 			
-			GetDevice().Read(
+			GetDevice().ReadBlockData(
 				0xF6,
 				&pressure_data,
 				sizeof(bmp_180_uncompensated_pressure_data)
