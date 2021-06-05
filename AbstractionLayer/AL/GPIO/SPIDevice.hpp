@@ -378,17 +378,16 @@ namespace AL::GPIO
 		}
 
 		// @throw AL::Exceptions::Exception
-		template<typename T>
+		template<typename T, size_t S = sizeof(T)>
 		void Read(T& value)
 		{
 			AL_ASSERT(IsOpen(), "SPIDevice not open");
 
 			Read(
 				&value,
-				sizeof(T)
+				S
 			);
 		}
-
 		// @throw AL::Exceptions::Exception
 		void Read(void* lpBuffer, size_t size)
 		{
@@ -402,17 +401,16 @@ namespace AL::GPIO
 		}
 
 		// @throw AL::Exceptions::Exception
-		template<typename T>
+		template<typename T, size_t S = sizeof(T)>
 		void Write(const T& value)
 		{
 			AL_ASSERT(IsOpen(), "SPIDevice not open");
 
 			Write(
 				&value,
-				sizeof(T)
+				S
 			);
 		}
-
 		// @throw AL::Exceptions::Exception
 		void Write(const void* lpBuffer, size_t size)
 		{
@@ -426,7 +424,7 @@ namespace AL::GPIO
 		}
 
 		// @throw AL::Exceptions::Exception
-		template<typename T>
+		template<typename T, size_t S = sizeof(T)>
 		void ReadWrite(T& rx, const T& tx)
 		{
 			AL_ASSERT(IsOpen(), "SPIDevice not open");
@@ -434,10 +432,9 @@ namespace AL::GPIO
 			ReadWrite(
 				&rx,
 				&tx,
-				sizeof(T)
+				S
 			);
 		}
-
 		// @throw AL::Exceptions::Exception
 		void ReadWrite(void* lpReadBuffer, const void* lpWriteBuffer, size_t size)
 		{

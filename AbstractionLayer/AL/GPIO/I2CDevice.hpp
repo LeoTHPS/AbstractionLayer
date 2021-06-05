@@ -1,6 +1,8 @@
 #pragma once
 #include "AL/Common.hpp"
 
+#include "AL/Collections/Array.hpp"
+
 #if defined(AL_PLATFORM_LINUX)
 	#include <fcntl.h>
 	#include <unistd.h>
@@ -10,141 +12,59 @@
 
 	extern "C"
 	{
-		#include <i2c/smbus.h>
-
+		#include <linux/i2c.h>
 		#include <linux/i2c-dev.h>
 	}
 #endif
 
 namespace AL::GPIO
 {
-	typedef uint8 I2CAddress;
-	typedef uint8 I2CRegister;
+	class I2CBus;
+
+	typedef uint16 I2CAddress;
+	typedef uint8  I2CRegister;
 
 	class I2CDevice
 	{
-		bool isSlave = false;
+		I2CBus* lpBus;
 
-#if defined(AL_PLATFORM_LINUX)
-		typedef int HFILE;
-
-		static constexpr HFILE FILE_HANDLE_NULL = -1;
-#elif defined(AL_PLATFORM_WINDOWS)
-		typedef HANDLE HFILE;
-
-		static constexpr HFILE FILE_HANDLE_NULL = INVALID_HANDLE_VALUE;
-#else
-		typedef void* HFILE;
-
-		static constexpr HFILE FILE_HANDLE_NULL = nullptr;
-#endif
-
-		String     name;
-		HFILE      hFile;
 		I2CAddress address;
 
 		I2CDevice(const I2CDevice&) = delete;
 
-		I2CDevice(HFILE hFile, String&& name, I2CAddress address)
-			: name(
-				Move(name)
-			),
-			hFile(
-				hFile
-			),
-			address(
-				address
-			)
-		{
-		}
-
 	public:
-		// @throw AL::Exceptions::Exception
-		static void Open(I2CDevice& device, String&& name, I2CAddress address)
-		{
-#if defined(AL_PLATFORM_LINUX)
-			int fd;
-
-			if ((fd = open(name.GetCString(), O_RDWR)) == -1)
-			{
-
-				throw Exceptions::SystemException(
-					"open"
-				);
-			}
-
-			if (ioctl(fd, I2C_SLAVE, address) == -1)
-			{
-				close(fd);
-
-				throw Exceptions::SystemException(
-					"ioctl"
-				);
-			}
-
-			device = I2CDevice(
-				fd,
-				Move(name),
-				address
-			);
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
-		// @throw AL::Exceptions::Exception
-		static void Open(I2CDevice& device, const String& name, I2CAddress address)
-		{
-			Open(
-				device,
-				String(name),
-				address
-			);
-		}
-
-		I2CDevice()
-			: hFile(
-				FILE_HANDLE_NULL
-			)
-		{
-		}
-
 		I2CDevice(I2CDevice&& device)
-			: isSlave(
-				device.isSlave
-			),
-			name(
-				Move(device.name)
-			),
-			hFile(
-				device.hFile
+			: lpBus(
+				device.lpBus
 			),
 			address(
 				device.address
 			)
 		{
-			device.isSlave = false;
+			device.lpBus = nullptr;
+		}
 
-			device.hFile = FILE_HANDLE_NULL;
+		I2CDevice(I2CBus& bus, I2CAddress address)
+			: lpBus(
+				&bus
+			),
+			address(
+				address
+			)
+		{
 		}
 
 		virtual ~I2CDevice()
 		{
-			Close();
 		}
 
-		bool IsOpen() const
+		auto& GetBus()
 		{
-			return hFile != FILE_HANDLE_NULL;
+			return *lpBus;
 		}
-
-		bool IsSlave() const
+		auto& GetBus() const
 		{
-			return isSlave;
-		}
-
-		auto& GetName() const
-		{
-			return name;
+			return *lpBus;
 		}
 
 		auto GetAddress() const
@@ -153,209 +73,33 @@ namespace AL::GPIO
 		}
 		
 		// @throw AL::Exceptions::Exception
-		void ReadByte(uint8& value)
-		{
-			AL_ASSERT(IsOpen(), "I2CDevice not open");
-
-#if defined(AL_PLATFORM_LINUX)
-			__s32 result;
-
-			if ((result = i2c_smbus_read_byte(hFile)) < 0)
-			{
-
-				throw Exceptions::SystemException(
-					"i2c_smbus_read_byte",
-					result
-				);
-			}
-
-			value = static_cast<uint8>(
-				result
-			);
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
+		template<typename T, size_t S = sizeof(T)>
+		void Read(T& value);
+		// @throw AL::Exceptions::Exception
+		void Read(void* lpBuffer, size_t size);
 
 		// @throw AL::Exceptions::Exception
-		void WriteByte(uint8 value)
-		{
-			AL_ASSERT(IsOpen(), "I2CDevice not open");
-
-#if defined(AL_PLATFORM_LINUX)
-			__s32 result;
-
-			if ((result = i2c_smbus_write_byte(hFile, static_cast<__u8>(value))) < 0)
-			{
-
-				throw Exceptions::SystemException(
-					"i2c_smbus_write_byte",
-					result
-				);
-			}
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
+		template<typename T, size_t S = sizeof(T)>
+		void Read(I2CRegister _register, T& value);
+		// @throw AL::Exceptions::Exception
+		void Read(I2CRegister _register, void* lpBuffer, size_t size);
+		
+		// @throw AL::Exceptions::Exception
+		template<typename T, size_t S = sizeof(T)>
+		void Write(const T& value);
+		// @throw AL::Exceptions::Exception
+		void Write(const void* lpBuffer, size_t size);
 
 		// @throw AL::Exceptions::Exception
-		void ReadByteData(I2CRegister address, uint8& value)
-		{
-			AL_ASSERT(IsOpen(), "I2CDevice not open");
-
-#if defined(AL_PLATFORM_LINUX)
-			__s32 result;
-
-			if ((result = i2c_smbus_read_byte_data(hFile, static_cast<__u8>(address))) < 0)
-			{
-
-				throw Exceptions::SystemException(
-					"i2c_smbus_read_byte_data",
-					result
-				);
-			}
-
-			value = static_cast<uint8>(
-				result
-			);
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
-
+		template<typename T, size_t S = sizeof(T)>
+		void Write(I2CRegister _register, const T& value);
 		// @throw AL::Exceptions::Exception
-		void WriteByteData(I2CRegister address, uint8 value)
+		void Write(I2CRegister _register, const void* lpBuffer, size_t size);
+
+		auto& operator = (I2CDevice&& device)
 		{
-			AL_ASSERT(IsOpen(), "I2CDevice not open");
-
-#if defined(AL_PLATFORM_LINUX)
-			__s32 result;
-
-			if ((result = i2c_smbus_write_byte_data(hFile, static_cast<__u8>(address), static_cast<__u8>(value))) < 0)
-			{
-
-				throw Exceptions::SystemException(
-					"i2c_smbus_write_byte_data",
-					result
-				);
-			}
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
-
-		// @throw AL::Exceptions::Exception
-		void ReadWordData(I2CRegister address, uint16& value)
-		{
-			AL_ASSERT(IsOpen(), "I2CDevice not open");
-
-#if defined(AL_PLATFORM_LINUX)
-			__s32 result;
-
-			if ((result = i2c_smbus_read_word_data(hFile, static_cast<__u8>(address))) < 0)
-			{
-
-				throw Exceptions::SystemException(
-					"i2c_smbus_read_word_data",
-					result
-				);
-			}
-
-			value = static_cast<uint16>(
-				result
-			);
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
-
-		// @throw AL::Exceptions::Exception
-		void WriteWordData(I2CRegister address, uint16 value)
-		{
-			AL_ASSERT(IsOpen(), "I2CDevice not open");
-
-#if defined(AL_PLATFORM_LINUX)
-			__s32 result;
-
-			if ((result = i2c_smbus_write_word_data(hFile, static_cast<__u8>(address), static_cast<__u16>(value))) < 0)
-			{
-
-				throw Exceptions::SystemException(
-					"i2c_smbus_write_word_data",
-					result
-				);
-			}
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
-
-		// @throw AL::Exceptions::Exception
-		void ReadBlockData(I2CRegister address, void* lpBuffer, size_t size)
-		{
-			AL_ASSERT(IsOpen(), "I2CDevice not open");
-
-#if defined(AL_PLATFORM_LINUX)
-			__s32 result;
-
-			if ((result = i2c_smbus_read_i2c_block_data(hFile, static_cast<__u8>(address), static_cast<__u8>(size > 255 ? 255 : size), reinterpret_cast<__u8*>(lpBuffer))) < 0)
-			{
-
-				throw Exceptions::SystemException(
-					"i2c_smbus_read_i2c_block_data",
-					result
-				);
-			}
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
-
-		// @throw AL::Exceptions::Exception
-		void WriteBlockData(I2CRegister address, const void* lpBuffer, size_t size)
-		{
-			AL_ASSERT(IsOpen(), "I2CDevice not open");
-
-#if defined(AL_PLATFORM_LINUX)
-			__s32 result;
-
-			if ((result = i2c_smbus_write_i2c_block_data(hFile, static_cast<__u8>(address), static_cast<__u8>(size > 255 ? 255 : size), reinterpret_cast<const __u8*>(lpBuffer))) < 0)
-			{
-
-				throw Exceptions::SystemException(
-					"i2c_smbus_write_i2c_block_data",
-					result
-				);
-			}
-#else
-			throw Exceptions::NotImplementedException();
-#endif
-		}
-
-		void Close()
-		{
-			if (IsOpen())
-			{
-#if defined(AL_PLATFORM_LINUX)
-				close(hFile);
-				hFile = FILE_HANDLE_NULL;
-#endif
-			}
-		}
-
-		I2CDevice& operator = (I2CDevice&& device)
-		{
-			Close();
-
-			isSlave = device.isSlave;
-			device.isSlave = false;
-
-			name = Move(
-				device.name
-			);
-
-			hFile = device.hFile;
-			device.hFile = FILE_HANDLE_NULL;
+			lpBus = device.lpBus;
+			device.lpBus = nullptr;
 
 			address = device.address;
 

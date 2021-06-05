@@ -50,11 +50,9 @@ namespace AL::GPIO::Devices
 
 			for (size_t i = 0; GetDevice().IsOpen(); )
 			{
-				if (!GetDevice().Read(&c, sizeof(DataR::Char)))
-				{
-
-					continue;
-				}
+				GetDevice().Read(
+					c
+				);
 
 				if (!nmeaStarted && (c == '$'))
 				{

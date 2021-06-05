@@ -211,25 +211,29 @@ namespace AL::GPIO
 		}
 
 		// @throw AL::Exceptions::Exception
-		// @return number of bytes read
-		size_t Read(void* lpBuffer, size_t size)
+		template<typename T, size_t S = sizeof(T)>
+		void Read(T& value)
+		{
+			AL_ASSERT(IsOpen(), "UARTDevice not open");
+
+			Read(
+				&value,
+				S
+			);
+		}
+		// @throw AL::Exceptions::Exception
+		void Read(void* lpBuffer, size_t size)
 		{
 			AL_ASSERT(IsOpen(), "UARTDevice not open");
 
 #if defined(AL_PLATFORM_LINUX)
-			int bytesRead;
-
-			if ((bytesRead = read(hFile, lpBuffer, size)) == -1)
+			if (read(hFile, lpBuffer, size) == -1)
 			{
 
 				throw Exceptions::SystemException(
 					"read"
 				);
 			}
-
-			return static_cast<size_t>(
-				bytesRead
-			);
 #elif defined(AL_PLATFORM_WINDOWS)
 			DWORD bytesRead;
 
@@ -240,15 +244,22 @@ namespace AL::GPIO
 					"ReadFile"
 				);
 			}
-
-			return static_cast<size_t>(
-				bytesRead
-			);
 #else
 			throw Exceptions::NotImplementedException();
 #endif
 		}
 
+		// @throw AL::Exceptions::Exception
+		template<typename T, size_t S = sizeof(T)>
+		void Write(const T& value)
+		{
+			AL_ASSERT(IsOpen(), "UARTDevice not open");
+
+			Write(
+				&value,
+				S
+			);
+		}
 		// @throw AL::Exceptions::Exception
 		void Write(const void* lpBuffer, size_t size)
 		{

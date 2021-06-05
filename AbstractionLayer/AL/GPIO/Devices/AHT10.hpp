@@ -28,13 +28,6 @@ namespace AL::GPIO::Devices
 	class AHT10
 		: public I2CDevice<AHT10DataFlags, AHT10Data, void>
 	{
-		enum AHT10_REGISTERS : I2CRegister
-		{
-			AHT10_REGISTER_INIT       = 0xE1,
-			AHT10_REGISTER_TRIGGER    = 0xAC,
-			AHT10_REGISTER_SOFT_RESET = 0xBA,
-		};
-
 	public:
 		AHT10(AHT10&& aht10)
 			: I2CDevice(
@@ -43,12 +36,21 @@ namespace AL::GPIO::Devices
 		{
 		}
 
-		AHT10(String&& name, I2CAddress address = 0x38)
+		AHT10(GPIO::I2CBus& bus, I2CAddress address = 0x38)
 			: I2CDevice(
-				Move(name),
+				bus,
 				address
 			)
 		{
+		}
+
+		auto& operator = (AHT10&& aht10)
+		{
+			I2CDevice::operator=(
+				Move(aht10)
+			);
+
+			return *this;
 		}
 
 	protected:
@@ -57,34 +59,25 @@ namespace AL::GPIO::Devices
 		{
 			I2CDevice::OnOpen();
 
-			// Init device
+			// Reset device
 			{
-				uint8 init[2] =
-				{
-					0x08,
-					0x00
-				};
-
 				try
 				{
-					GetDevice().WriteBlockData(
-						AHT10_REGISTER_INIT,
-						&init[0],
-						sizeof(init)
+					GetDevice().Write(
+						0b10111010
 					);
 				}
 				catch (Exceptions::Exception& exception)
 				{
-					I2CDevice::OnClose();
 
 					throw Exceptions::Exception(
 						Move(exception),
-						"Error initializing device"
+						"Error resetting device"
 					);
 				}
 
 				Sleep(
-					TimeSpan::FromMilliseconds(100)
+					TimeSpan::FromMilliseconds(20)
 				);
 			}
 		}
@@ -98,18 +91,17 @@ namespace AL::GPIO::Devices
 
 			// Trigger device
 			{
-				uint8 trigger[2] =
+				uint8 trigger[] =
 				{
-					0x33,
-					0x00
+					0b10101100,
+					0b00110011,
+					0b00000000
 				};
 
 				try
 				{
-					GetDevice().WriteBlockData(
-						AHT10_REGISTER_TRIGGER,
-						&trigger[0],
-						sizeof(trigger)
+					GetDevice().Write(
+						trigger
 					);
 				}
 				catch (Exceptions::Exception& exception)
@@ -122,7 +114,7 @@ namespace AL::GPIO::Devices
 				}
 
 				Sleep(
-					TimeSpan::FromMilliseconds(500)
+					TimeSpan::FromMilliseconds(75)
 				);
 			}
 
@@ -136,10 +128,8 @@ namespace AL::GPIO::Devices
 
 				try
 				{
-					GetDevice().ReadBlockData(
-						0x00,
-						&buffer[0],
-						sizeof(buffer)
+					GetDevice().Read(
+						buffer
 					);
 				}
 				catch (Exceptions::Exception& exception)

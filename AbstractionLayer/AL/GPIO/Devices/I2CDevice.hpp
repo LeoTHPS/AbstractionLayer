@@ -3,6 +3,7 @@
 
 #include "Device.hpp"
 
+#include "AL/GPIO/I2CBus.hpp"
 #include "AL/GPIO/I2CDevice.hpp"
 
 namespace AL::GPIO::Devices
@@ -12,9 +13,7 @@ namespace AL::GPIO::Devices
 		: public Device<T_CHANNEL, T_DATA_READ, T_DATA_WRITE>
 	{
 		GPIO::I2CDevice device;
-		String          deviceName;
-		I2CAddress      deviceAddress;
-
+		
 	public:
 		I2CDevice(I2CDevice&& i2cDevice)
 			: Device<T_CHANNEL, T_DATA_READ, T_DATA_WRITE>(
@@ -22,21 +21,13 @@ namespace AL::GPIO::Devices
 			),
 			device(
 				Move(i2cDevice.device)
-			),
-			deviceName(
-				Move(i2cDevice.deviceName)
-			),
-			deviceAddress(
-				i2cDevice.deviceAddress
 			)
 		{
 		}
 
-		I2CDevice(String&& name, I2CAddress address)
-			: deviceName(
-				Move(name)
-			),
-			deviceAddress(
+		I2CDevice(GPIO::I2CBus& bus, I2CAddress address)
+			: device(
+				bus,
 				address
 			)
 		{
@@ -51,12 +42,6 @@ namespace AL::GPIO::Devices
 			device = Move(
 				i2cDevice.device
 			);
-
-			deviceName = Move(
-				i2cDevice.deviceName
-			);
-
-			deviceAddress = i2cDevice.deviceAddress;
 
 			return *this;
 		}
@@ -74,27 +59,10 @@ namespace AL::GPIO::Devices
 		// @throw AL::Exceptions::Exception
 		virtual void OnOpen() override
 		{
-			try
-			{
-				GPIO::I2CDevice::Open(
-					device,
-					deviceName,
-					deviceAddress
-				);
-			}
-			catch (Exceptions::Exception& exception)
-			{
-
-				throw Exceptions::Exception(
-					Move(exception),
-					"Error opening GPIO::I2CDevice"
-				);
-			}
 		}
 
 		virtual void OnClose() override
 		{
-			device.Close();
 		}
 	};
 }

@@ -68,21 +68,16 @@ namespace AL::DotNET::GPIO
 			);
 		}
 
-		/// <summary>
-		/// Returns number of bytes read
-		/// </summary>
 		/// <exception cref="AL::DotNET::Exceptions::Exception" />
-		::System::UInt32 Read(array<::System::Byte>^% buffer, ::System::UInt32 offset, ::System::UInt32 count)
+		void Read(array<::System::Byte>^% buffer, ::System::UInt32 offset, ::System::UInt32 count)
 		{
-			size_t bytesReceived = 0;
-
 			AL::Collections::Array<uint8> _buffer(
 				count
 			);
 
 			try
 			{
-				bytesReceived = lpDevice->Read(
+				lpDevice->Read(
 					&_buffer[0],
 					_buffer.GetSize()
 				);
@@ -99,11 +94,7 @@ namespace AL::DotNET::GPIO
 				::System::IntPtr(&_buffer[0]),
 				buffer,
 				static_cast<::System::Int32>(offset),
-				static_cast<::System::Int32>(bytesReceived)
-			);
-
-			return static_cast<System::UInt32>(
-				bytesReceived
+				static_cast<::System::Int32>(count)
 			);
 		}
 

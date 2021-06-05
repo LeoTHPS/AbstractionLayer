@@ -63,7 +63,7 @@ namespace AL::GPIO::Devices
 		// @throw AL::Exceptions::Exception
 		virtual void OnOpen() override
 		{
-			if (!Pin::Export(pin, deviceId, pinNumber, PinDirection::In))
+			if (!Pin::Export(pin, deviceId, pinNumber, PinDirection::In, PinValues::Low))
 			{
 
 				throw Exceptions::Exception(

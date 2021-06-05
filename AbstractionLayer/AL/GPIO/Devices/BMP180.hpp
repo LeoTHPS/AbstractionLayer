@@ -82,9 +82,9 @@ namespace AL::GPIO::Devices
 		{
 		}
 
-		BMP180(String&& name, I2CAddress address = 0x77)
+		BMP180(GPIO::I2CBus& bus, I2CAddress address = 0x77)
 			: I2CDevice(
-				Move(name),
+				bus,
 				address
 			)
 		{
@@ -137,15 +137,19 @@ namespace AL::GPIO::Devices
 		void ReadDeviceInfo(uint8& chipId, uint8& chipVersion)
 		{
 			bmp_180_device_info info;
-
-			GetDevice().ReadBlockData(
-				0xD0,
-				&info,
-				sizeof(bmp_180_device_info)
-			);
+			GetDevice().Read(0xD0, info);
 
 			chipId = info.Id;
 			chipVersion = info.Version;
+		}
+
+		auto& operator = (BMP180&& bmp180)
+		{
+			I2CDevice::operator=(
+				Move(bmp180)
+			);
+
+			return *this;
 		}
 
 	protected:
@@ -162,7 +166,7 @@ namespace AL::GPIO::Devices
 
 			// read factory calibration data
 			bmp_180_calibration_data calibration_data;
-			GetDevice().ReadBlockData(0xAA, &calibration_data, sizeof(bmp_180_calibration_data));
+			GetDevice().Read(0xAA, calibration_data);
 			calibration_data.AC1 = BitConverter::FromBigEndian(calibration_data.AC1);
 			calibration_data.AC2 = BitConverter::FromBigEndian(calibration_data.AC2);
 			calibration_data.AC3 = BitConverter::FromBigEndian(calibration_data.AC3);
@@ -176,22 +180,14 @@ namespace AL::GPIO::Devices
 			calibration_data.MD = BitConverter::FromBigEndian(calibration_data.MD);
 
 			// tell device to begin sampling temperature
-			GetDevice().WriteByteData(
-				0xF4,
-				0x2E
-			);
+			GetDevice().Write<uint8>(0xF4, 0x2E);
 
 			// wait
 			Sleep(TimeSpan::FromMicroseconds(4500));
 
 			// read uncompensated temperature
 			bmp_180_uncompensated_temperature_data temperature_data;
-			
-			GetDevice().ReadBlockData(
-				0xF6,
-				&temperature_data,
-				sizeof(bmp_180_uncompensated_temperature_data)
-			);
+			GetDevice().Read(0xF6, temperature_data);
 
 			int32 temperature_uncompensated = (temperature_data.MSB << 8) + temperature_data.LSB;
 			int32 temperature_x1 = ((temperature_uncompensated - calibration_data.AC6) * calibration_data.AC5) >> 15;
@@ -200,22 +196,14 @@ namespace AL::GPIO::Devices
 			int32 temperature = (temperature_b5 + 8) >> 4;
 
 			// tell device to begin sampling pressure
-			GetDevice().WriteByteData(
-				0xF4,
-				0x34 + (oss << 6)
-			);
+			GetDevice().Write<uint8>(0xF4, 0x34 + (oss << 6));
 
 			// wait
 			Sleep(!oss ? TimeSpan::FromMicroseconds(4500) : TimeSpan::FromMilliseconds((3 << oss) + 1));
 
 			// read uncompensated pressure
 			bmp_180_uncompensated_pressure_data pressure_data;
-			
-			GetDevice().ReadBlockData(
-				0xF6,
-				&pressure_data,
-				sizeof(bmp_180_uncompensated_pressure_data)
-			);
+			GetDevice().Read(0xF6, pressure_data);
 			
 			int32 pressure_uncompensated = ((pressure_data.MSB << 16) + (pressure_data.LSB << 8) + pressure_data.XLSB) >> (8 - oss);
 			int32 pressure_b6 = temperature_b5 - 4000;
