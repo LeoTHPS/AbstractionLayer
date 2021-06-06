@@ -131,11 +131,11 @@ namespace AL::GPIO
 		{
 #if defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_SPIDEV)
-			int fd;
+			int hFile;
 			char path[255];
 			sprintf(path, "/dev/spidev%u.%u", busId, deviceId);
 
-			if ((fd = open(path, O_RDWR)) == -1)
+			if ((hFile = open(path, O_RDWR)) == -1)
 			{
 
 				throw Exceptions::SystemException(
@@ -143,9 +143,9 @@ namespace AL::GPIO
 				);
 			}
 
-			if (ioctl(fd, SPI_IOC_WR_MODE, &mode) == -1)
+			if (ioctl(hFile, SPI_IOC_WR_MODE, &mode) == -1)
 			{
-				close(fd);
+				close(hFile);
 
 				throw Exceptions::Exception(
 					Exceptions::SystemException(
@@ -155,10 +155,10 @@ namespace AL::GPIO
 				);
 			}
 
-			if ((ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &bitCount) == -1) ||
-				(ioctl(fd, SPI_IOC_RD_BITS_PER_WORD, &bitCount) == -1))
+			if ((ioctl(hFile, SPI_IOC_WR_BITS_PER_WORD, &bitCount) == -1) ||
+				(ioctl(hFile, SPI_IOC_RD_BITS_PER_WORD, &bitCount) == -1))
 			{
-				close(fd);
+				close(hFile);
 
 				throw Exceptions::Exception(
 					Exceptions::SystemException(
@@ -168,10 +168,10 @@ namespace AL::GPIO
 				);
 			}
 
-			if ((ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed) == -1) ||
-				(ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed) == -1))
+			if ((ioctl(hFile, SPI_IOC_WR_MAX_SPEED_HZ, &speed) == -1) ||
+				(ioctl(hFile, SPI_IOC_RD_MAX_SPEED_HZ, &speed) == -1))
 			{
-				close(fd);
+				close(hFile);
 
 				throw Exceptions::Exception(
 					Exceptions::SystemException(
@@ -182,7 +182,7 @@ namespace AL::GPIO
 			}
 
 			device = SPIDevice(
-				fd,
+				hFile,
 				busId,
 				deviceId,
 				mode,
@@ -212,11 +212,11 @@ namespace AL::GPIO
 				return false;
 			}
 
-			int fd;
+			int hFile;
 			char path[255];
 			sprintf(path, "/dev/spidev%u.0", busId);
 
-			if ((fd = open(path, O_RDWR)) == -1)
+			if ((hFile = open(path, O_RDWR)) == -1)
 			{
 
 				throw Exceptions::SystemException(
@@ -226,9 +226,9 @@ namespace AL::GPIO
 
 			uint8 _mode = static_cast<uint8>(mode) | SPI_NO_CS;
 
-			if (ioctl(fd, SPI_IOC_WR_MODE, &_mode) == -1)
+			if (ioctl(hFile, SPI_IOC_WR_MODE, &_mode) == -1)
 			{
-				close(fd);
+				close(hFile);
 
 				throw Exceptions::Exception(
 					Exceptions::SystemException(
@@ -238,10 +238,10 @@ namespace AL::GPIO
 				);
 			}
 
-			if ((ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &bitCount) == -1) ||
-				(ioctl(fd, SPI_IOC_RD_BITS_PER_WORD, &bitCount) == -1))
+			if ((ioctl(hFile, SPI_IOC_WR_BITS_PER_WORD, &bitCount) == -1) ||
+				(ioctl(hFile, SPI_IOC_RD_BITS_PER_WORD, &bitCount) == -1))
 			{
-				close(fd);
+				close(hFile);
 
 				throw Exceptions::Exception(
 					Exceptions::SystemException(
@@ -251,10 +251,10 @@ namespace AL::GPIO
 				);
 			}
 
-			if ((ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed) == -1) ||
-				(ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed) == -1))
+			if ((ioctl(hFile, SPI_IOC_WR_MAX_SPEED_HZ, &speed) == -1) ||
+				(ioctl(hFile, SPI_IOC_RD_MAX_SPEED_HZ, &speed) == -1))
 			{
-				close(fd);
+				close(hFile);
 
 				throw Exceptions::Exception(
 					Exceptions::SystemException(
@@ -265,7 +265,7 @@ namespace AL::GPIO
 			}
 
 			device = SPIDevice(
-				fd,
+				hFile,
 				busId,
 				Move(csPin),
 				csPinMode,
@@ -458,7 +458,7 @@ namespace AL::GPIO
 				);
 			}
 			
-			if (ioctl(fd, SPI_IOC_MESSAGE(1), &transfer) == -1)
+			if (ioctl(hFile, SPI_IOC_MESSAGE(1), &transfer) == -1)
 			{
 				if (csPin.IsExported())
 				{
