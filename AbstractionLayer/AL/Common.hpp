@@ -1112,20 +1112,20 @@ namespace AL
 		static constexpr wchar_t Value = L'\0' + static_cast<uint8>(VALUE);
 	};
 
-	template<typename>
+	template<typename T, typename T_BASE>
 	union _Integer;
-	template<>
-	union _Integer<int8>
+	template<typename T>
+	union _Integer<T, int8>
 	{
 		static constexpr bool IsSigned = true;
 		static constexpr bool IsUnsigned = false;
 
-		static constexpr int8 Minimum = -0x7F;
-		static constexpr int8 Maximum = 0x7F;
+		static constexpr T Minimum = T(-0x7F);
+		static constexpr T Maximum = T(0x7F);
 
-		int8 Value;
+		T Value;
 
-		static String ToString(int8 value)
+		static String ToString(T value)
 		{
 			return String::Format(
 				"%i",
@@ -1133,7 +1133,7 @@ namespace AL
 			);
 		}
 
-		static WString ToWString(int8 value)
+		static WString ToWString(T value)
 		{
 			return WString::Format(
 				L"%i",
@@ -1141,9 +1141,9 @@ namespace AL
 			);
 		}
 
-		static int8 FromString(const String& value)
+		static auto FromString(const String& value)
 		{
-			return static_cast<int8>(
+			return static_cast<T>(
 				std::strtol(
 					value.GetCString(),
 					nullptr,
@@ -1152,9 +1152,9 @@ namespace AL
 			);
 		}
 
-		static int8 FromWString(const WString& value)
+		static auto FromWString(const WString& value)
 		{
-			return static_cast<int8>(
+			return static_cast<T>(
 				std::wcstol(
 					value.GetCString(),
 					nullptr,
@@ -1163,18 +1163,18 @@ namespace AL
 			);
 		}
 	};
-	template<>
-	union _Integer<uint8>
+	template<typename T>
+	union _Integer<T, uint8>
 	{
 		static constexpr bool IsSigned = false;
 		static constexpr bool IsUnsigned = true;
 
-		static constexpr uint8 Minimum = 0x0;
-		static constexpr uint16 Maximum = 0xFF;
+		static constexpr T Minimum = T(0x0);
+		static constexpr T Maximum = T(0xFF);
 
-		uint8 Value;
+		T Value;
 
-		static String ToString(uint8 value)
+		static String ToString(T value)
 		{
 			return String::Format(
 				"%u",
@@ -1182,7 +1182,7 @@ namespace AL
 			);
 		}
 
-		static WString ToWString(uint8 value)
+		static WString ToWString(T value)
 		{
 			return WString::Format(
 				L"%u",
@@ -1190,9 +1190,9 @@ namespace AL
 			);
 		}
 
-		static uint8 FromString(const String& value)
+		static auto FromString(const String& value)
 		{
-			return static_cast<uint8>(
+			return static_cast<T>(
 				std::strtoul(
 					value.GetCString(),
 					nullptr,
@@ -1201,9 +1201,9 @@ namespace AL
 			);
 		}
 
-		static uint8 FromWString(const WString& value)
+		static auto FromWString(const WString& value)
 		{
-			return static_cast<uint8>(
+			return static_cast<T>(
 				std::wcstoul(
 					value.GetCString(),
 					nullptr,
@@ -1212,24 +1212,24 @@ namespace AL
 			);
 		}
 	};
-	template<>
-	union _Integer<int16>
+	template<typename T>
+	union _Integer<T, int16>
 	{
 		static constexpr bool IsSigned = true;
 		static constexpr bool IsUnsigned = false;
 
-		static constexpr int16 Minimum = -0x7FFF;
-		static constexpr int16 Maximum = 0x7FFF;
+		static constexpr T Minimum = T(-0x7FFF);
+		static constexpr T Maximum = T(0x7FFF);
 
 		struct
 		{
-			_Integer<int8> Low;
-			_Integer<int8> High;
+			_Integer<int8, int8> Low;
+			_Integer<int8, int8> High;
 		};
 
-		int16 Value;
+		T Value;
 
-		static String ToString(int16 value)
+		static String ToString(T value)
 		{
 			return String::Format(
 				"%i",
@@ -1237,7 +1237,7 @@ namespace AL
 			);
 		}
 
-		static WString ToWString(int16 value)
+		static WString ToWString(T value)
 		{
 			return WString::Format(
 				L"%i",
@@ -1245,9 +1245,9 @@ namespace AL
 			);
 		}
 
-		static int16 FromString(const String& value)
+		static auto FromString(const String& value)
 		{
-			return static_cast<int16>(
+			return static_cast<T>(
 				std::strtol(
 					value.GetCString(),
 					nullptr,
@@ -1256,9 +1256,9 @@ namespace AL
 			);
 		}
 
-		static int16 FromWString(const WString& value)
+		static auto FromWString(const WString& value)
 		{
-			return static_cast<int16>(
+			return static_cast<T>(
 				std::wcstol(
 					value.GetCString(),
 					nullptr,
@@ -1267,24 +1267,24 @@ namespace AL
 			);
 		}
 	};
-	template<>
-	union _Integer<uint16>
+	template<typename T>
+	union _Integer<T, uint16>
 	{
 		static constexpr bool IsSigned = false;
 		static constexpr bool IsUnsigned = true;
 
-		static constexpr uint16 Minimum = 0x0;
-		static constexpr uint16 Maximum = 0xFFFF;
+		static constexpr T Minimum = T(0x0);
+		static constexpr T Maximum = T(0xFFFF);
 
 		struct
 		{
-			_Integer<uint8> Low;
-			_Integer<uint8> High;
+			_Integer<uint8, uint8> Low;
+			_Integer<uint8, uint8> High;
 		};
 
-		uint16 Value;
+		T Value;
 
-		static String ToString(uint16 value)
+		static String ToString(T value)
 		{
 			return String::Format(
 				"%u",
@@ -1292,7 +1292,7 @@ namespace AL
 			);
 		}
 
-		static WString ToWString(uint16 value)
+		static WString ToWString(T value)
 		{
 			return WString::Format(
 				L"%u",
@@ -1300,9 +1300,9 @@ namespace AL
 			);
 		}
 
-		static uint16 FromString(const String& value)
+		static auto FromString(const String& value)
 		{
-			return static_cast<uint16>(
+			return static_cast<T>(
 				std::strtoul(
 					value.GetCString(),
 					nullptr,
@@ -1311,9 +1311,9 @@ namespace AL
 			);
 		}
 
-		static uint16 FromWString(const WString& value)
+		static auto FromWString(const WString& value)
 		{
-			return static_cast<uint16>(
+			return static_cast<T>(
 				std::wcstoul(
 					value.GetCString(),
 					nullptr,
@@ -1322,24 +1322,24 @@ namespace AL
 			);
 		}
 	};
-	template<>
-	union _Integer<int32>
+	template<typename T>
+	union _Integer<T, int32>
 	{
 		static constexpr bool IsSigned = true;
 		static constexpr bool IsUnsigned = false;
 
-		static constexpr int32 Minimum = -0x7FFFFFFF;
-		static constexpr int32 Maximum = 0x7FFFFFFF;
+		static constexpr T Minimum = T(-0x7FFFFFFF);
+		static constexpr T Maximum = T(0x7FFFFFFF);
 
 		struct
 		{
-			_Integer<int16> Low;
-			_Integer<int16> High;
+			_Integer<int16, int16> Low;
+			_Integer<int16, int16> High;
 		};
 
-		int32 Value;
+		T Value;
 
-		static String ToString(int32 value)
+		static String ToString(T value)
 		{
 			return String::Format(
 				"%i",
@@ -1347,7 +1347,7 @@ namespace AL
 			);
 		}
 
-		static WString ToWString(int32 value)
+		static WString ToWString(T value)
 		{
 			return WString::Format(
 				L"%i",
@@ -1355,9 +1355,9 @@ namespace AL
 			);
 		}
 
-		static int32 FromString(const String& value)
+		static auto FromString(const String& value)
 		{
-			return static_cast<int32>(
+			return static_cast<T>(
 				std::strtol(
 					value.GetCString(),
 					nullptr,
@@ -1366,9 +1366,9 @@ namespace AL
 			);
 		}
 
-		static int32 FromWString(const WString& value)
+		static auto FromWString(const WString& value)
 		{
-			return static_cast<int32>(
+			return static_cast<T>(
 				std::wcstol(
 					value.GetCString(),
 					nullptr,
@@ -1377,24 +1377,24 @@ namespace AL
 			);
 		}
 	};
-	template<>
-	union _Integer<uint32>
+	template<typename T>
+	union _Integer<T, uint32>
 	{
 		static constexpr bool IsSigned = false;
 		static constexpr bool IsUnsigned = true;
 
-		static constexpr uint32 Minimum = 0x0;
-		static constexpr uint32 Maximum = 0xFFFFFFFF;
+		static constexpr T Minimum = T(0x0);
+		static constexpr T Maximum = T(0xFFFFFFFF);
 
 		struct
 		{
-			_Integer<uint16> Low;
-			_Integer<uint16> High;
+			_Integer<uint16, uint16> Low;
+			_Integer<uint16, uint16> High;
 		};
 
-		uint32 Value;
+		T Value;
 
-		static String ToString(uint32 value)
+		static String ToString(T value)
 		{
 			return String::Format(
 				"%u",
@@ -1402,7 +1402,7 @@ namespace AL
 			);
 		}
 
-		static WString ToWString(uint32 value)
+		static WString ToWString(T value)
 		{
 			return WString::Format(
 				L"%u",
@@ -1410,9 +1410,9 @@ namespace AL
 			);
 		}
 
-		static uint32 FromString(const String& value)
+		static auto FromString(const String& value)
 		{
-			return static_cast<uint32>(
+			return static_cast<T>(
 				std::strtoul(
 					value.GetCString(),
 					nullptr,
@@ -1421,9 +1421,9 @@ namespace AL
 			);
 		}
 
-		static uint32 FromWString(const WString& value)
+		static auto FromWString(const WString& value)
 		{
-			return static_cast<uint32>(
+			return static_cast<T>(
 				std::wcstoul(
 					value.GetCString(),
 					nullptr,
@@ -1432,24 +1432,24 @@ namespace AL
 			);
 		}
 	};
-	template<>
-	union _Integer<int64>
+	template<typename T>
+	union _Integer<T, int64>
 	{
 		static constexpr bool IsSigned = true;
 		static constexpr bool IsUnsigned = false;
 
-		static constexpr int64 Minimum = -0x7FFFFFFFFFFFFFFF;
-		static constexpr int64 Maximum = 0x7FFFFFFFFFFFFFFF;
+		static constexpr T Minimum = T(-0x7FFFFFFFFFFFFFFF);
+		static constexpr T Maximum = (0x7FFFFFFFFFFFFFFF);
 
 		struct
 		{
-			_Integer<int32> Low;
-			_Integer<int32> High;
+			_Integer<int32, int32> Low;
+			_Integer<int32, int32> High;
 		};
 
-		int64 Value;
+		T Value;
 
-		static String ToString(int64 value)
+		static String ToString(T value)
 		{
 			return String::Format(
 				"%lli",
@@ -1457,7 +1457,7 @@ namespace AL
 			);
 		}
 
-		static WString ToWString(int64 value)
+		static WString ToWString(T value)
 		{
 			return WString::Format(
 				L"%lli",
@@ -1465,9 +1465,9 @@ namespace AL
 			);
 		}
 
-		static int64 FromString(const String& value)
+		static auto FromString(const String& value)
 		{
-			return static_cast<int64>(
+			return static_cast<T>(
 				std::strtoll(
 					value.GetCString(),
 					nullptr,
@@ -1476,9 +1476,9 @@ namespace AL
 			);
 		}
 
-		static int64 FromString(const WString& value)
+		static auto FromString(const WString& value)
 		{
-			return static_cast<int64>(
+			return static_cast<T>(
 				std::wcstoll(
 					value.GetCString(),
 					nullptr,
@@ -1487,24 +1487,24 @@ namespace AL
 			);
 		}
 	};
-	template<>
-	union _Integer<uint64>
+	template<typename T>
+	union _Integer<T, uint64>
 	{
 		static constexpr bool IsSigned = false;
 		static constexpr bool IsUnsigned = true;
 
-		static constexpr uint64 Minimum = 0x0;
-		static constexpr uint64 Maximum = 0xFFFFFFFFFFFFFFFF;
+		static constexpr T Minimum = T(0x0);
+		static constexpr T Maximum = T(0xFFFFFFFFFFFFFFFF);
 
 		struct
 		{
-			_Integer<uint32> Low;
-			_Integer<uint32> High;
+			_Integer<uint32, uint32> Low;
+			_Integer<uint32, uint32> High;
 		};
 
-		uint64 Value;
+		T Value;
 
-		static String ToString(uint64 value)
+		static String ToString(T value)
 		{
 			return String::Format(
 				"%llu",
@@ -1512,7 +1512,7 @@ namespace AL
 			);
 		}
 
-		static WString ToWString(uint64 value)
+		static WString ToWString(T value)
 		{
 			return WString::Format(
 				L"%llu",
@@ -1520,9 +1520,9 @@ namespace AL
 			);
 		}
 
-		static uint64 FromString(const String& value)
+		static auto FromString(const String& value)
 		{
-			return static_cast<uint64>(
+			return static_cast<T>(
 				std::strtoull(
 					value.GetCString(),
 					nullptr,
@@ -1531,9 +1531,9 @@ namespace AL
 			);
 		}
 
-		static uint64 FromString(const WString& value)
+		static auto FromString(const WString& value)
 		{
-			return static_cast<uint64>(
+			return static_cast<T>(
 				std::wcstoull(
 					value.GetCString(),
 					nullptr,
@@ -1544,7 +1544,7 @@ namespace AL
 	};
 
 	template<typename T>
-	using Integer = _Integer<typename Get_Enum_Or_Integer_Base<T>::Type>;
+	using Integer = _Integer<T, typename Get_Enum_Or_Integer_Base<T>::Type>;
 
 	template<typename C, size_t ... DIGITS>
 	struct _Integer_To_String_To_Chars;
