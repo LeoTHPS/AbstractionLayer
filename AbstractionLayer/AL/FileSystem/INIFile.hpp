@@ -11,11 +11,13 @@ namespace AL::FileSystem
 {
 	enum class INIFileFieldAttributes
 	{
-		Struct      = 0x1,
-		String      = 0x2,
-		Integer     = 0x4,
-		Decimal     = 0x8,
-		Unsigned    = 0x10
+		Bool        = 0x1,
+		Struct      = 0x2,
+		String      = 0x4,
+		Integer     = 0x8,
+		Decimal     = 0x10,
+		Unsigned    = 0x20,
+		Hexadecimal = 0x40
 	};
 
 	AL_DEFINE_ENUM_FLAG_OPERATORS(INIFileFieldAttributes);
@@ -26,13 +28,15 @@ namespace AL::FileSystem
 	{
 		friend INIFile;
 
-		static constexpr char REGEX_PATTERN[] = "^([^ ]*) = (.*)$";
+		static constexpr char REGEX_PATTERN[] = "^([^ ]+) *= *(.*)$";
 
+		static constexpr char REGEX_PATTERN_DATA_TYPE_BOOL[] = "^([Tt][Rr][Uu][Ee]|[Ff][Aa][Ll][Ss][Ee])$";
 		static constexpr char REGEX_PATTERN_DATA_TYPE_STRUCT[] = "^\"(([0-9A-Fa-f]{2})+)\"$";
 		static constexpr char REGEX_PATTERN_DATA_TYPE_STRING[] = "^\"([^\"]*)\"$";
 		static constexpr char REGEX_PATTERN_DATA_TYPE_INTEGER[] = "^(-?\\d+)$";
 		static constexpr char REGEX_PATTERN_DATA_TYPE_DECIMAL[] = "^(-?\\d+(\\.\\d+)?)$";
 		static constexpr char REGEX_PATTERN_DATA_TYPE_UNSIGNED[] = "^(-{0}\\d+(\\.\\d+)?)$";
+		static constexpr char REGEX_PATTERN_DATA_TYPE_HEXADECIMAL[] = "^0x([0-9A-Fa-f]+)$";
 
 		String name;
 		String value;
@@ -52,7 +56,11 @@ namespace AL::FileSystem
 				Move(value)
 			)
 		{
-			if (Regex::IsMatch(REGEX_PATTERN_DATA_TYPE_STRUCT, this->value))
+			if (Regex::IsMatch(REGEX_PATTERN_DATA_TYPE_BOOL, this->value))
+			{
+				attributes.Mask = INIFileFieldAttributes::Bool;
+			}
+			else if (Regex::IsMatch(REGEX_PATTERN_DATA_TYPE_STRUCT, this->value))
 			{
 				attributes.Mask = INIFileFieldAttributes::Struct;
 				attributes.Mask |= INIFileFieldAttributes::String;
@@ -80,6 +88,20 @@ namespace AL::FileSystem
 					Regex::IsMatch(REGEX_PATTERN_DATA_TYPE_UNSIGNED, this->value)
 				);
 			}
+			else if (Regex::IsMatch(REGEX_PATTERN_DATA_TYPE_HEXADECIMAL, this->value))
+			{
+				attributes.Mask = INIFileFieldAttributes::Integer;
+				attributes.Mask |= INIFileFieldAttributes::Decimal;
+				attributes.Mask |= INIFileFieldAttributes::Unsigned;
+				attributes.Mask |= INIFileFieldAttributes::Hexadecimal;
+			}
+		}
+
+		bool IsBool() const
+		{
+			return attributes.IsSet(
+				INIFileFieldAttributes::Bool
+			);
 		}
 
 		bool IsStruct() const
@@ -117,6 +139,13 @@ namespace AL::FileSystem
 			);
 		}
 
+		bool IsHexadecimal() const
+		{
+			return attributes.IsSet(
+				INIFileFieldAttributes::Hexadecimal
+			);
+		}
+
 		auto& GetName() const
 		{
 			return name;
@@ -130,6 +159,18 @@ namespace AL::FileSystem
 		BitMask<INIFileFieldAttributes> GetAttributes() const
 		{
 			return attributes;
+		}
+
+		auto GetBool() const
+		{
+			AL_ASSERT(
+				IsBool(),
+				"INIFileField type is not bool"
+			);
+
+			return Bool<bool>::FromString(
+				GetString()
+			);
 		}
 
 		template<typename T>
@@ -208,6 +249,15 @@ namespace AL::FileSystem
 			throw Exceptions::NotImplementedException();
 		}
 
+		void SetBool(bool value)
+		{
+			this->value = Bool<bool>::ToString(
+				value
+			);
+
+			attributes.Mask = INIFileFieldAttributes::Bool;
+		}
+
 		template<typename T>
 		void SetStruct(const T& value)
 		{
@@ -239,15 +289,26 @@ namespace AL::FileSystem
 		}
 
 		template<typename T>
-		void SetInteger(T value)
+		void SetInteger(T value, bool hexadecimal = false)
 		{
-			this->value = Integer<T>::ToString(
-				value
-			);
+			if (hexadecimal)
+			{
+				this->value = String::Format(
+					"0x%s",
+					HexConverter::Encode(value).GetCString()
+				);
+			}
+			else
+			{
+				this->value = Integer<T>::ToString(
+					value
+				);
+			}
 
 			attributes.Mask = INIFileFieldAttributes::Integer;
 			attributes.Mask |= INIFileFieldAttributes::Decimal;
 			attributes.Set(INIFileFieldAttributes::Unsigned, Is_Unsigned<T>::Value);
+			attributes.Set(INIFileFieldAttributes::Hexadecimal, hexadecimal);
 		}
 
 		template<typename T>
