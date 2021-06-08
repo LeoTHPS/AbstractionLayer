@@ -189,8 +189,6 @@ namespace AL::GPIO::Devices
 			bmp_180_uncompensated_temperature_data temperature_data;
 			GetDevice().ReadRegister(0xF6, temperature_data);
 
-			OS::Console::WriteLine("temperature_data.MSB = %u, temperature_data.LSB = %u", temperature_data.MSB, temperature_data.LSB);
-
 			int32 temperature_uncompensated = (temperature_data.MSB << 8) + temperature_data.LSB;
 			int32 temperature_x1 = ((temperature_uncompensated - calibration_data.AC6) * calibration_data.AC5) >> 15;
 			int32 temperature_x2 = (calibration_data.MC << 11) / (temperature_x1 + calibration_data.MD);
@@ -206,8 +204,6 @@ namespace AL::GPIO::Devices
 			// read uncompensated pressure
 			bmp_180_uncompensated_pressure_data pressure_data;
 			GetDevice().ReadRegister(0xF6, pressure_data);
-
-			OS::Console::WriteLine("pressure_data.MSB = %u, pressure_data.LSB = %u, pressure_data.XLSB = %u", pressure_data.MSB, pressure_data.LSB, pressure_data.XLSB);
 
 			int32 pressure_uncompensated = ((pressure_data.MSB << 16) + (pressure_data.LSB << 8) + pressure_data.XLSB) >> (8 - oss);
 			int32 pressure_b6 = temperature_b5 - 4000;
