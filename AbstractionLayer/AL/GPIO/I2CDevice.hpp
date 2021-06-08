@@ -80,9 +80,9 @@ namespace AL::GPIO
 
 		// @throw AL::Exceptions::Exception
 		template<typename T, size_t S = sizeof(T)>
-		void Read(I2CRegister _register, T& value);
+		void ReadRegister(I2CRegister _register, T& value);
 		// @throw AL::Exceptions::Exception
-		void Read(I2CRegister _register, void* lpBuffer, size_t size);
+		void ReadRegister(I2CRegister _register, void* lpBuffer, size_t size);
 		
 		// @throw AL::Exceptions::Exception
 		template<typename T, size_t S = sizeof(T)>
@@ -92,9 +92,9 @@ namespace AL::GPIO
 
 		// @throw AL::Exceptions::Exception
 		template<typename T, size_t S = sizeof(T)>
-		void Write(I2CRegister _register, const T& value);
+		void WriteRegister(I2CRegister _register, const T& value);
 		// @throw AL::Exceptions::Exception
-		void Write(I2CRegister _register, const void* lpBuffer, size_t size);
+		void WriteRegister(I2CRegister _register, const void* lpBuffer, size_t size);
 
 		auto& operator = (I2CDevice&& device)
 		{

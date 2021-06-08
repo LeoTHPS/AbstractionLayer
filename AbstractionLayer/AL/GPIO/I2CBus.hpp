@@ -143,11 +143,11 @@ namespace AL::GPIO
 
 		// @throw AL::Exceptions::Exception
 		template<typename T, size_t S = sizeof(T)>
-		void Read(I2CAddress address, I2CRegister _register, T& value)
+		void ReadRegister(I2CAddress address, I2CRegister _register, T& value)
 		{
 			AL_ASSERT(IsOpen(), "I2CBus not open");
 
-			Read(
+			ReadRegister(
 				address,
 				_register,
 				&value,
@@ -155,7 +155,7 @@ namespace AL::GPIO
 			);
 		}
 		// @throw AL::Exceptions::Exception
-		void Read(I2CAddress address, I2CRegister _register, void* lpBuffer, size_t size)
+		void ReadRegister(I2CAddress address, I2CRegister _register, void* lpBuffer, size_t size)
 		{
 			AL_ASSERT(IsOpen(), "I2CBus not open");
 
@@ -236,11 +236,11 @@ namespace AL::GPIO
 
 		// @throw AL::Exceptions::Exception
 		template<typename T, size_t S = sizeof(T)>
-		void Write(I2CAddress address, I2CRegister _register, const T& value)
+		void WriteRegister(I2CAddress address, I2CRegister _register, const T& value)
 		{
 			AL_ASSERT(IsOpen(), "I2CBus not open");
 
-			Write(
+			WriteRegister(
 				address,
 				_register,
 				&value,
@@ -248,7 +248,7 @@ namespace AL::GPIO
 			);
 		}
 		// @throw AL::Exceptions::Exception
-		void Write(I2CAddress address, I2CRegister _register, const void* lpBuffer, size_t size)
+		void WriteRegister(I2CAddress address, I2CRegister _register, const void* lpBuffer, size_t size)
 		{
 			AL_ASSERT(IsOpen(), "I2CBus not open");
 
@@ -335,18 +335,18 @@ inline void AL::GPIO::I2CDevice::Read(void* lpBuffer, size_t size)
 
 // @throw AL::Exceptions::Exception
 template<typename T, size_t S>
-inline void AL::GPIO::I2CDevice::Read(I2CRegister _register, T& value)
+inline void AL::GPIO::I2CDevice::ReadRegister(I2CRegister _register, T& value)
 {
-	GetBus().Read<T, S>(
+	GetBus().ReadRegister<T, S>(
 		GetAddress(),
 		_register,
 		value
 	);
 }
 // @throw AL::Exceptions::Exception
-inline void AL::GPIO::I2CDevice::Read(I2CRegister _register, void* lpBuffer, size_t size)
+inline void AL::GPIO::I2CDevice::ReadRegister(I2CRegister _register, void* lpBuffer, size_t size)
 {
-	GetBus().Read(
+	GetBus().ReadRegister(
 		GetAddress(),
 		_register,
 		lpBuffer,
@@ -375,18 +375,18 @@ inline void AL::GPIO::I2CDevice::Write(const void* lpBuffer, size_t size)
 
 // @throw AL::Exceptions::Exception
 template<typename T, size_t S>
-inline void AL::GPIO::I2CDevice::Write(I2CRegister _register, const T& value)
+inline void AL::GPIO::I2CDevice::WriteRegister(I2CRegister _register, const T& value)
 {
-	GetBus().Write<T, S>(
+	GetBus().WriteRegister<T, S>(
 		GetAddress(),
 		_register,
 		value
 	);
 }
 // @throw AL::Exceptions::Exception
-inline void AL::GPIO::I2CDevice::Write(I2CRegister _register, const void* lpBuffer, size_t size)
+inline void AL::GPIO::I2CDevice::WriteRegister(I2CRegister _register, const void* lpBuffer, size_t size)
 {
-	GetBus().Write(
+	GetBus().WriteRegister(
 		GetAddress(),
 		_register,
 		lpBuffer,

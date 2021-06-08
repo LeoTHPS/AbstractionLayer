@@ -137,7 +137,7 @@ namespace AL::GPIO::Devices
 		void ReadDeviceInfo(uint8& chipId, uint8& chipVersion)
 		{
 			bmp_180_device_info info;
-			GetDevice().Read(0xD0, info);
+			GetDevice().ReadRegister(0xD0, info);
 
 			chipId = info.Id;
 			chipVersion = info.Version;
@@ -166,7 +166,7 @@ namespace AL::GPIO::Devices
 
 			// read factory calibration data
 			bmp_180_calibration_data calibration_data;
-			GetDevice().Read(0xAA, calibration_data);
+			GetDevice().ReadRegister(0xAA, calibration_data);
 			calibration_data.AC1 = BitConverter::FromBigEndian(calibration_data.AC1);
 			calibration_data.AC2 = BitConverter::FromBigEndian(calibration_data.AC2);
 			calibration_data.AC3 = BitConverter::FromBigEndian(calibration_data.AC3);
@@ -180,14 +180,16 @@ namespace AL::GPIO::Devices
 			calibration_data.MD = BitConverter::FromBigEndian(calibration_data.MD);
 
 			// tell device to begin sampling temperature
-			GetDevice().Write<uint8>(0xF4, 0x2E);
+			GetDevice().WriteRegister<uint8>(0xF4, 0x2E);
 
 			// wait
-			Sleep(TimeSpan::FromMicroseconds(4500));
+			Spin(TimeSpan::FromMicroseconds(4500));
 
 			// read uncompensated temperature
 			bmp_180_uncompensated_temperature_data temperature_data;
-			GetDevice().Read(0xF6, temperature_data);
+			GetDevice().ReadRegister(0xF6, temperature_data);
+
+			OS::Console::WriteLine("temperature_data.MSB = %u, temperature_data.LSB = %u", temperature_data.MSB, temperature_data.LSB);
 
 			int32 temperature_uncompensated = (temperature_data.MSB << 8) + temperature_data.LSB;
 			int32 temperature_x1 = ((temperature_uncompensated - calibration_data.AC6) * calibration_data.AC5) >> 15;
@@ -196,15 +198,17 @@ namespace AL::GPIO::Devices
 			int32 temperature = (temperature_b5 + 8) >> 4;
 
 			// tell device to begin sampling pressure
-			GetDevice().Write<uint8>(0xF4, 0x34 + (oss << 6));
+			GetDevice().WriteRegister<uint8>(0xF4, 0x34 + (oss << 6));
 
 			// wait
-			Sleep(!oss ? TimeSpan::FromMicroseconds(4500) : TimeSpan::FromMilliseconds((3 << oss) + 1));
+			Spin(!oss ? TimeSpan::FromMicroseconds(4500) : TimeSpan::FromMilliseconds((3 << oss) + 1));
 
 			// read uncompensated pressure
 			bmp_180_uncompensated_pressure_data pressure_data;
-			GetDevice().Read(0xF6, pressure_data);
-			
+			GetDevice().ReadRegister(0xF6, pressure_data);
+
+			OS::Console::WriteLine("pressure_data.MSB = %u, pressure_data.LSB = %u, pressure_data.XLSB = %u", pressure_data.MSB, pressure_data.LSB, pressure_data.XLSB);
+
 			int32 pressure_uncompensated = ((pressure_data.MSB << 16) + (pressure_data.LSB << 8) + pressure_data.XLSB) >> (8 - oss);
 			int32 pressure_b6 = temperature_b5 - 4000;
 			int32 pressure_x1 = (calibration_data.B2 * ((pressure_b6 * pressure_b6) >> 12)) >> 11;
