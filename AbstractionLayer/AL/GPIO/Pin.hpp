@@ -79,16 +79,6 @@ namespace AL::GPIO
 		static bool Export(Pin& pin, DeviceId deviceId, PinNumber number)
 		{
 #if defined(AL_PLATFORM_LINUX)
-			{
-				struct stat s;
-
-				if (!stat(String::Format("/sys/class/gpio/gpio%u", number).GetCString(), &s) && S_ISDIR(s.st_mode))
-				{
-
-					return false;
-				}
-			}
-
 	#if defined(AL_DEPENDENCY_GPIOD)
 			if (auto lpChip = gpiod_chip_open_by_number(static_cast<unsigned int>(deviceId)))
 			{
@@ -353,23 +343,19 @@ namespace AL::GPIO
 			
 #if defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_GPIOD)
-			if (lpLine != nullptr)
+			// TODO: remove this when libgpiod2 is released
 			{
 				gpiod_line_release(
 					lpLine
 				);
 
-				lpLine = gpiod_chip_get_line(
-					lpChip,
-					static_cast<unsigned int>(GetNumber())
-				);
-			}
-			else if (!(lpLine = gpiod_chip_get_line(lpChip, static_cast<unsigned int>(GetNumber()))))
-			{
+				if (!(lpLine = gpiod_chip_get_line(lpChip, static_cast<unsigned int>(GetNumber()))))
+				{
 
-				throw Exceptions::SystemException(
-					"gpiod_chip_get_line"
-				);
+					throw Exceptions::SystemException(
+						"gpiod_chip_get_line"
+					);
+				}
 			}
 
 			switch (direction)
@@ -434,23 +420,19 @@ namespace AL::GPIO
 
 #if defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_GPIOD)
-			if (lpLine != nullptr)
+			// TODO: remove this when libgpiod2 is released
 			{
 				gpiod_line_release(
 					lpLine
 				);
 
-				lpLine = gpiod_chip_get_line(
-					lpChip,
-					static_cast<unsigned int>(GetNumber())
-				);
-			}
-			else if (!(lpLine = gpiod_chip_get_line(lpChip, static_cast<unsigned int>(GetNumber()))))
-			{
+				if (!(lpLine = gpiod_chip_get_line(lpChip, static_cast<unsigned int>(GetNumber()))))
+				{
 
-				throw Exceptions::SystemException(
-					"gpiod_chip_get_line"
-				);
+					throw Exceptions::SystemException(
+						"gpiod_chip_get_line"
+					);
+				}
 			}
 
 			int expectedEventType = 0;
@@ -485,7 +467,7 @@ namespace AL::GPIO
 
 				case PinEdges::Falling:
 				{
-					expectedEventType = GPIOD_LINE_EVENT_RISING_EDGE;
+					expectedEventType = GPIOD_LINE_EVENT_FALLING_EDGE;
 
 					if (gpiod_line_request_falling_edge_events(lpLine, nullptr) == -1)
 					{
