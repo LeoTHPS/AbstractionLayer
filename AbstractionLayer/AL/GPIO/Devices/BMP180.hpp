@@ -181,9 +181,9 @@ namespace AL::GPIO::Devices
 
 			// tell device to begin sampling temperature
 			GetDevice().WriteRegister<uint8>(0xF4, 0x2E);
-
+			
 			// wait
-			Spin(TimeSpan::FromMicroseconds(4500));
+			Sleep(TimeSpan::FromMicroseconds(4500));
 
 			// read uncompensated temperature
 			bmp_180_uncompensated_temperature_data temperature_data;
@@ -197,9 +197,9 @@ namespace AL::GPIO::Devices
 
 			// tell device to begin sampling pressure
 			GetDevice().WriteRegister<uint8>(0xF4, 0x34 + (oss << 6));
-
+			
 			// wait
-			Spin(!oss ? TimeSpan::FromMicroseconds(4500) : TimeSpan::FromMilliseconds((3 << oss) + 1));
+			Sleep(!oss ? TimeSpan::FromMicroseconds(4500) : TimeSpan::FromMilliseconds((3 << oss) + 1));
 
 			// read uncompensated pressure
 			bmp_180_uncompensated_pressure_data pressure_data;

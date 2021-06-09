@@ -1,22 +1,6 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#include "AL/Collections/Array.hpp"
-
-#if defined(AL_PLATFORM_LINUX)
-	#include <fcntl.h>
-	#include <unistd.h>
-	#include <termios.h>
-
-	#include <sys/ioctl.h>
-
-	extern "C"
-	{
-		#include <linux/i2c.h>
-		#include <linux/i2c-dev.h>
-	}
-#endif
-
 namespace AL::GPIO
 {
 	class I2CBus;
@@ -80,21 +64,21 @@ namespace AL::GPIO
 
 		// @throw AL::Exceptions::Exception
 		template<typename T, size_t S = sizeof(T)>
-		void ReadRegister(I2CRegister _register, T& value);
-		// @throw AL::Exceptions::Exception
-		void ReadRegister(I2CRegister _register, void* lpBuffer, size_t size);
-		
-		// @throw AL::Exceptions::Exception
-		template<typename T, size_t S = sizeof(T)>
 		void Write(const T& value);
 		// @throw AL::Exceptions::Exception
 		void Write(const void* lpBuffer, size_t size);
 
 		// @throw AL::Exceptions::Exception
 		template<typename T, size_t S = sizeof(T)>
-		void WriteRegister(I2CRegister _register, const T& value);
+		void ReadRegister(I2CRegister reg, T& value);
 		// @throw AL::Exceptions::Exception
-		void WriteRegister(I2CRegister _register, const void* lpBuffer, size_t size);
+		void ReadRegister(I2CRegister reg, void* lpBuffer, size_t size);
+
+		// @throw AL::Exceptions::Exception
+		template<typename T, size_t S = sizeof(T)>
+		void WriteRegister(I2CRegister reg, const T& value);
+		// @throw AL::Exceptions::Exception
+		void WriteRegister(I2CRegister reg, const void* lpBuffer, size_t size);
 
 		auto& operator = (I2CDevice&& device)
 		{
