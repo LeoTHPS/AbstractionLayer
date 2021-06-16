@@ -119,7 +119,8 @@ namespace AL::DotNET
 			static ::System::Byte name(::System::Byte value) { return AL::BitConverter::name(value); } \
 			static ::System::UInt16 name(::System::UInt16 value) { return AL::BitConverter::name(value); } \
 			static ::System::UInt32 name(::System::UInt32 value) { return AL::BitConverter::name(value); } \
-			static ::System::UInt64 name(::System::UInt64 value) { return AL::BitConverter::name(value); }
+			static ::System::UInt64 name(::System::UInt64 value) { return AL::BitConverter::name(value); } \
+			generic<typename T> where T : ::System::Enum static T name(T value) { auto buffer = Marshal::ToArray(value); ::System::Array::Reverse(buffer); return Marshal::FromArray<T>(buffer, 0); } \
 
 		AL_DOTNET_BITCONVERTER_DEFINE_NATIVE_FUNCTIONS(Flip);
 		
