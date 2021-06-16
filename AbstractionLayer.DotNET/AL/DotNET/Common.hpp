@@ -95,6 +95,45 @@ namespace AL::DotNET
 			);
 		}
 	};
+
+	public ref class BitConverter abstract sealed
+	{
+	public:
+		static bool IsBigEndian()
+		{
+			return AL::BitConverter::IsBigEndian();
+		}
+
+		static bool IsLittleEndian()
+		{
+			return AL::BitConverter::IsLittleEndian();
+		}
+
+#define AL_DOTNET_BITCONVERTER_DEFINE_NATIVE_FUNCTIONS(name) \
+			static ::System::Single name(::System::Single value) { return AL::BitConverter::name(value); } \
+			static ::System::Double name(::System::Double value) { return AL::BitConverter::name(value); } \
+			static ::System::SByte name(::System::SByte value) { return AL::BitConverter::name(value); } \
+			static ::System::Int16 name(::System::Int16 value) { return AL::BitConverter::name(value); } \
+			static ::System::Int32 name(::System::Int32 value) { return AL::BitConverter::name(value); } \
+			static ::System::Int64 name(::System::Int64 value) { return AL::BitConverter::name(value); } \
+			static ::System::Byte name(::System::Byte value) { return AL::BitConverter::name(value); } \
+			static ::System::UInt16 name(::System::UInt16 value) { return AL::BitConverter::name(value); } \
+			static ::System::UInt32 name(::System::UInt32 value) { return AL::BitConverter::name(value); } \
+			static ::System::UInt64 name(::System::UInt64 value) { return AL::BitConverter::name(value); }
+
+		AL_DOTNET_BITCONVERTER_DEFINE_NATIVE_FUNCTIONS(Flip);
+		
+		AL_DOTNET_BITCONVERTER_DEFINE_NATIVE_FUNCTIONS(ToBigEndian);
+		AL_DOTNET_BITCONVERTER_DEFINE_NATIVE_FUNCTIONS(ToLittleEndian);
+		
+		AL_DOTNET_BITCONVERTER_DEFINE_NATIVE_FUNCTIONS(FromBigEndian);
+		AL_DOTNET_BITCONVERTER_DEFINE_NATIVE_FUNCTIONS(FromLittleEndian);
+
+		AL_DOTNET_BITCONVERTER_DEFINE_NATIVE_FUNCTIONS(NetworkToHost);
+		AL_DOTNET_BITCONVERTER_DEFINE_NATIVE_FUNCTIONS(HostToNetwork);
+
+#undef AL_DOTNET_BITCONVERTER_DEFINE_NATIVE_FUNCTIONS
+	};
 }
 
 #include "Exceptions/Exception.hpp"
