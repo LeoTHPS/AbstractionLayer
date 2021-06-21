@@ -245,16 +245,6 @@ namespace AL::Bluetooth
 			return false;
 		}
 
-		auto& GetLastSeenTime() const
-		{
-			return lastSeen;
-		}
-
-		auto& GetLastUsedTime() const
-		{
-			return lastUsed;
-		}
-
 		auto& GetName() const
 		{
 			return name;
@@ -274,7 +264,7 @@ namespace AL::Bluetooth
 #if defined(AL_PLATFORM_LINUX)
 
 #elif defined(AL_PLATFORM_WINDOWS)
-			
+
 #endif
 		}
 
@@ -286,6 +276,16 @@ namespace AL::Bluetooth
 		auto GetDeviceClass() const
 		{
 			return deviceClass;
+		}
+
+		auto& GetLastSeenTime() const
+		{
+			return lastSeen;
+		}
+
+		auto& GetLastUsedTime() const
+		{
+			return lastUsed;
 		}
 
 		void Close()
