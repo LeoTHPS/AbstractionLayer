@@ -41,6 +41,13 @@ namespace AL::DotNET::Exceptions
 			)
 		{
 		}
+
+		auto GetInnerExceptionCount()
+		{
+			return Marshal::GetInnerExceptionCount(
+				this
+			);
+		}
 		
 	private:
 		static Exception^ GetInnerException(const AL::Exceptions::Exception& exception)

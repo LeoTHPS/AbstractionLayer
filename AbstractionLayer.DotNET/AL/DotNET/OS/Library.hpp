@@ -39,8 +39,8 @@ namespace AL::DotNET::OS
 			catch (::System::Exception^ exception)
 			{
 
-				throw AL::Exceptions::Exception(
-					Marshal::ToNativeString(exception->Message)
+				throw Marshal::ToNativeException(
+					exception
 				);
 			}
 		}
