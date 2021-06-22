@@ -36,7 +36,8 @@ namespace AL::DotNET
 		static ::System::Runtime::InteropServices::GCHandle GetHandle(T value)
 		{
 			auto hValue = ::System::Runtime::InteropServices::GCHandle::Alloc(
-				value
+				value,
+				::System::Runtime::InteropServices::GCHandleType::Pinned
 			);
 
 			return hValue;
