@@ -32,12 +32,52 @@ namespace AL::DotNET
 			);
 		}
 		
+		static AL::Exceptions::Exception ToNativeException(::System::Exception^ exception)
+		{
+			AL::Exceptions::Exception _exception(
+				ToNativeString(
+					exception->Message
+				)
+			);
+
+			if (auto innerException = exception->InnerException)
+			{
+				do
+				{
+					_exception = AL::Exceptions::Exception(
+						Move(
+							_exception
+						),
+						ToNativeString(
+							innerException->Message
+						)
+					);
+				} while ((innerException = innerException->InnerException) != nullptr);
+			}
+
+			return _exception;
+		}
+
+		static ::System::UInt32 GetInnerExceptionCount(::System::Exception^ exception)
+		{
+			::System::UInt32 count = 0;
+
+			if (auto innerException = exception->InnerException)
+			{
+				do
+				{
+					++count;
+				} while ((innerException = innerException->InnerException) != nullptr);
+			}
+
+			return count;
+		}
+
 		generic<typename T>
 		static ::System::Runtime::InteropServices::GCHandle GetHandle(T value)
 		{
 			auto hValue = ::System::Runtime::InteropServices::GCHandle::Alloc(
-				value,
-				::System::Runtime::InteropServices::GCHandleType::Pinned
+				value
 			);
 
 			return hValue;
