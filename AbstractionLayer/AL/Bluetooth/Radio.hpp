@@ -87,6 +87,8 @@ namespace AL::Bluetooth
 			BLUETOOTH_FIND_RADIO_PARAMS params = { 0 };
 			params.dwSize = sizeof(BLUETOOTH_FIND_RADIO_PARAMS);
 
+			OS::ErrorCode lastErrorCode;
+
 			if (auto hFind = BluetoothFindFirstRadio(&params, &hRadio))
 			{
 				do
@@ -127,7 +129,7 @@ namespace AL::Bluetooth
 					}
 				} while (BluetoothFindNextRadio(hFind, &hRadio));
 
-				auto lastErrorCode = OS::GetLastError();
+				lastErrorCode = OS::GetLastError();
 
 				BluetoothFindRadioClose(
 					hFind
@@ -142,11 +144,12 @@ namespace AL::Bluetooth
 					);
 				}
 			}
-			else
+			else if ((lastErrorCode = OS::GetLastError()) != ERROR_NO_MORE_ITEMS)
 			{
 
 				throw Exceptions::SystemException(
-					"BluetoothFindFirstRadio"
+					"BluetoothFindFirstRadio",
+					lastErrorCode
 				);
 			}
 #else
