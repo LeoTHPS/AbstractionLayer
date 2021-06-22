@@ -5,6 +5,9 @@
 #include "AL/DotNET/Algorithms/Isaac.hpp"
 #include "AL/DotNET/Algorithms/Sha1.hpp"
 
+#include "AL/DotNET/Bluetooth/Radio.hpp"
+#include "AL/DotNET/Bluetooth/Device.hpp"
+
 #include "AL/DotNET/Collections/ByteBuffer.hpp"
 
 #include "AL/DotNET/Exceptions/Exception.hpp"
