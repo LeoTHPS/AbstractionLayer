@@ -113,6 +113,21 @@ namespace AL::Exceptions
 			return lpInnerException;
 		}
 
+		auto GetInnerExceptionCount() const
+		{
+			size_t count = 0;
+
+			if (auto lpInnerException = GetInnerException())
+			{
+				do
+				{
+					++count;
+				} while ((lpInnerException = lpInnerException->GetInnerException()));
+			}
+
+			return count;
+		}
+
 		auto& operator = (Exception&& exception)
 		{
 			message = Move(
