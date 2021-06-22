@@ -31,6 +31,21 @@ namespace AL::DotNET
 				pointer.ToPointer()
 			);
 		}
+		
+		generic<typename T>
+		static ::System::Runtime::InteropServices::GCHandle GetHandle(T value)
+		{
+			auto hValue = ::System::Runtime::InteropServices::GCHandle::Alloc(
+				value
+			);
+
+			return hValue;
+		}
+
+		static void FreeHandle(::System::Runtime::InteropServices::GCHandle handle)
+		{
+			handle.Free();
+		}
 
 		static ::System::String^ ToString(const String& string)
 		{
