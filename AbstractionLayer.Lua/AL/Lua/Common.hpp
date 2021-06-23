@@ -318,7 +318,7 @@ namespace AL::Lua
 
 			private:
 				template<size_t ... INDEXES>
-				static constexpr Collections::Tuple<T ...> Execute(lua_State* lua, const String& name, TArgs ... args, std::index_sequence<INDEXES ...>)
+				static constexpr Collections::Tuple<T ...> Execute(lua_State* lua, const String& name, TArgs ... args, Index_Sequence<INDEXES ...>)
 				{
 					lua_getglobal(
 						lua,
