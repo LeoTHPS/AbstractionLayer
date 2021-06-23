@@ -18,8 +18,8 @@ namespace AL::GPIO::Devices
 		static constexpr DataR   DATA_MAX      = 0x3FF;
 
 		static constexpr Channel CHANNEL_FIRST = 0;
-		static constexpr Channel CHANNEL_LAST  = 15;
-		static constexpr Channel CHANNEL_COUNT = 16;
+		static constexpr Channel CHANNEL_LAST  = 7;
+		static constexpr Channel CHANNEL_COUNT = 8;
 
 		MCP3008(MCP3008&& mcp3008)
 			: SPIDevice(
