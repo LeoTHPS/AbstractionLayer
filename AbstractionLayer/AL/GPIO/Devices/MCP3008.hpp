@@ -15,6 +15,12 @@ namespace AL::GPIO::Devices
 		static constexpr SPICSModes  DEVICE_CS_MODE   = SPICSModes::ActiveLow;
 
 	public:
+		static constexpr DataR   DATA_MAX      = 0x3FF;
+
+		static constexpr Channel CHANNEL_FIRST = 0;
+		static constexpr Channel CHANNEL_LAST  = 15;
+		static constexpr Channel CHANNEL_COUNT = 16;
+
 		MCP3008(MCP3008&& mcp3008)
 			: SPIDevice(
 				Move(mcp3008)
