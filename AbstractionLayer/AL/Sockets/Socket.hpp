@@ -17,8 +17,6 @@
 
 #include "IPEndPoint.hpp"
 
-#include "AL/Tasks/TaskThreadPool.hpp"
-
 #include "AL/Exceptions/SocketException.hpp"
 
 namespace AL::Sockets
@@ -1119,12 +1117,12 @@ namespace AL::Sockets
 
 		// @throw AL::Exceptions::Exception
 		// @return false on connection closed
-		bool ReadAsync(void* lpBuffer, uint32 size, SocketAsyncReadCallback&& callback, Tasks::TaskThreadPool& threadPool)
+		bool ReadAsync(void* lpBuffer, uint32 size, SocketAsyncReadCallback&& callback)
 		{
 			AL_ASSERT(IsOpen(), "Socket not open");
 			AL_ASSERT(IsConnected(), "Socket not connected");
 
-			Tasks::Task task(
+			OS::AsyncFunction<void()>::Execute(
 				[this, lpBuffer, size, callback = Move(callback)]()
 				{
 					try
@@ -1152,21 +1150,17 @@ namespace AL::Sockets
 				}
 			);
 
-			threadPool.Post(
-				Move(task)
-			);
-
 			return true;
 		}
 
 		// @throw AL::Exceptions::Exception
 		// @return false on connection closed
-		bool WriteAsync(const void* lpBuffer, uint32 size, SocketAsyncWriteCallback&& callback, Tasks::TaskThreadPool& threadPool)
+		bool WriteAsync(const void* lpBuffer, uint32 size, SocketAsyncWriteCallback&& callback)
 		{
 			AL_ASSERT(IsOpen(), "Socket not open");
 			AL_ASSERT(IsConnected(), "Socket not connected");
 
-			Tasks::Task task(
+			OS::AsyncFunction<void()>::Execute(
 				[this, lpBuffer, size, callback = Move(callback)]()
 				{
 					try
@@ -1193,11 +1187,6 @@ namespace AL::Sockets
 					}
 				}
 			);
-
-			if (!threadPool.Post(Move(task)))
-			{
-				// TODO: handle no available thread
-			}
 
 			return true;
 		}

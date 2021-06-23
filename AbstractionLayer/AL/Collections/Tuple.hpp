@@ -110,7 +110,7 @@ namespace AL::Collections
 		}
 
 		template<typename F>
-		auto Invoke(const F& func)
+		auto Invoke(const F& func) const
 		{
 			return Invoke(
 				func,
@@ -135,7 +135,7 @@ namespace AL::Collections
 
 	private:
 		template<typename F, size_t ... I>
-		auto Invoke(const F& func, Index_Sequence<I ...>)
+		auto Invoke(const F& func, Index_Sequence<I ...>) const
 		{
 			return func(
 				Get<I>() ...
@@ -174,7 +174,7 @@ namespace AL::Collections
 		}
 
 		template<typename F>
-		auto Invoke(const F& func)
+		auto Invoke(const F& func) const
 		{
 			return func();
 		}

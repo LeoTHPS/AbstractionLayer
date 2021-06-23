@@ -5,8 +5,6 @@
 	#error Platform not supported
 #endif
 
-// TODO: implement linux equivalent using thread pools
-
 namespace AL::OS
 {
 	template<typename KEY, typename PARAM>
@@ -24,6 +22,8 @@ namespace AL::OS
 			sizeof(KEY) <= sizeof(ULONG_PTR),
 			"KEY size must be less than or equal to ULONG_PTR"
 		);
+
+		bool isCreated = false;
 
 		HANDLE handle = NULL;
 		
@@ -47,7 +47,7 @@ namespace AL::OS
 		
 		bool IsCreated() const
 		{
-			return handle != NULL;
+			return isCreated;
 		}
 
 		auto GetHandle() const
@@ -55,7 +55,7 @@ namespace AL::OS
 			return handle;
 		}
 
-		// @throw AL::Exception
+		// @throw AL::Exceptions::Exception
 		void Create(size_t maxConcurrentWorkers)
 		{
 			AL_ASSERT(!IsCreated(), "CompletionPort already created");
@@ -77,11 +77,11 @@ namespace AL::OS
 					GetHandle()
 				);
 
-				handle = NULL;
+				isCreated = false;
 			}
 		}
 
-		// @throw AL::Exception
+		// @throw AL::Exceptions::Exception
 		void Associate(Key key, HANDLE handle)
 		{
 			AL_ASSERT(IsCreated(), "CompletionPort not created");
@@ -95,16 +95,10 @@ namespace AL::OS
 			}
 		}
 
-		// @throw AL::Exception
+		// @throw AL::Exceptions::Exception
 		void Post(Key key, Param* lpParam, size_t bytesTransferred)
 		{
-			if (!IsCreated())
-			{
-
-				throw Exceptions::Exception(
-					"CompletionPort not created"
-				);
-			}
+			AL_ASSERT(IsCreated(), "CompletionPort not created");
 
 			if (!PostQueuedCompletionStatus(GetHandle(), static_cast<DWORD>(bytesTransferred), static_cast<ULONG_PTR>(key), reinterpret_cast<LPOVERLAPPED>(lpParam)))
 			{
@@ -172,7 +166,7 @@ namespace AL::OS
 			return *lpPort;
 		}
 
-		// @throw AL::Exception
+		// @throw AL::Exceptions::Exception
 		void Cancel()
 		{
 			if (IsReading() && !asyncWakePosted)
@@ -183,7 +177,7 @@ namespace AL::OS
 			}
 		}
 
-		// @throw AL::Exception
+		// @throw AL::Exceptions::Exception
 		// @return number of completions read
 		template<size_t S>
 		size_t Read(Work(&queue)[S], TimeSpan maxWaitTime = TimeSpan::Infinite)
@@ -249,7 +243,7 @@ namespace AL::OS
 		}
 
 	private:
-		// @throw AL::Exception
+		// @throw AL::Exceptions::Exception
 		static HANDLE GetCurrentThreadHandle()
 		{
 			HANDLE hThread;
