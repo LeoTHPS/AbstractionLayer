@@ -1,11 +1,7 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#if !defined(AL_PLATFORM_WINDOWS)
-	#error Platform not supported
-#endif
-
-// TODO: implement linux equivalent using Thread::Detach
+#include "AL/Collections/Tuple.hpp"
 
 namespace AL::OS
 {
@@ -32,19 +28,46 @@ namespace AL::OS
 		// @throw AL::Exception
 		void operator () (TArgs ... args) const
 		{
+#if defined(AL_PLATFORM_LINUX)
+			DetourFunction detour(
+				[this, args = Collections::Tuple<TArgs ...>(Move(args) ...)]()
+				{
+					return args.Invoke(
+						function
+					);
+				}
+			);
+
+			try
+			{
+				Thread::StartAndDetach(
+					Move(detour)
+				);
+			}
+			catch (Exceptions::Exception& exception)
+			{
+
+				throw Exceptions::Exception(
+					Move(exception),
+					"Error starting Thread"
+				);
+			}
+#elif defined(AL_PLATFORM_WINDOWS)
 			operator()(
 				::GetCurrentThread(),
 				Forward<TArgs>(args) ...
 			);
+#endif
 		}
+#if defined(AL_PLATFORM_WINDOWS)
 		// @throw AL::Exception
 		void operator () (HANDLE hThread, TArgs ... args) const
 		{
 			auto lpDetour = new DetourFunction(
-				[this, args = Move(args) ...]()
+				[this, args = Collections::Tuple<TArgs ...>(Move(args) ...)]()
 				{
-					return function(
-						Forward<TArgs>(args) ...
+					args.Invoke(
+						function
 					);
 				}
 			);
@@ -67,8 +90,10 @@ namespace AL::OS
 				Forward<TArgs>(args) ...
 			);
 		}
+#endif
 
 	private:
+#if defined(AL_PLATFORM_WINDOWS)
 		static VOID NTAPI ApcProc(ULONG_PTR param)
 		{
 			auto lpDetour = reinterpret_cast<DetourFunction*>(
@@ -88,5 +113,6 @@ namespace AL::OS
 
 			delete lpDetour;
 		}
+#endif
 	};
 }

@@ -3791,10 +3791,10 @@ namespace AL
 #include "OS/MutexCondition.hpp"
 
 #include "OS/Thread.hpp"
+#include "OS/AsyncFunction.hpp"
 
 #if defined(AL_PLATFORM_WINDOWS)
 	#include "OS/NamedPipe.hpp"
-	#include "OS/AsyncFunction.hpp"
 	#include "OS/CompletionPort.hpp"
 #endif
 
