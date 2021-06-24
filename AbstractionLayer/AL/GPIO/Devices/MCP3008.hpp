@@ -69,7 +69,7 @@ namespace AL::GPIO::Devices
 
 			uint8 tx[3] =
 			{
-				static_cast<uint8>(0x18 | (static_cast<uint8>(channel) & 0x3)),
+				static_cast<uint8>(0xC0 | ((channel & 0x07) << 3)),
 				0,
 				0
 			};
@@ -79,7 +79,10 @@ namespace AL::GPIO::Devices
 				tx
 			);
 
-			value = ((static_cast<uint16>(rx[1]) & 0x0003) << 8) | (static_cast<uint16>(rx[2]) & 0x00FF);
+			value  = static_cast<DataR>((rx[0] & 0x01) << 9);
+			value |= static_cast<DataR>((rx[1] & 0xFF) << 1);
+			value |= static_cast<DataR>((rx[2] & 0x80) >> 7);
+			value &= DATA_MAX;
 		}
 	};
 }
