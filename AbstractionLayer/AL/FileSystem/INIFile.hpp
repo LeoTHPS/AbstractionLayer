@@ -429,19 +429,21 @@ namespace AL::FileSystem
 		}
 		auto& operator [] (const String& fieldName) const
 		{
+			const INIFileField* lpField = nullptr;
+
 			for (auto& field : fields)
 			{
 				if (field.GetName().Compare(fieldName))
 				{
-
-					return field;
+					lpField = &field;
+					
+					break;
 				}
 			}
 
-			AL_ASSERT(
-				false,
-				"INIFileField not found"
-			);
+			AL_ASSERT(lpField != nullptr, "INIFileField not found");
+
+			return *lpField;
 		}
 	};
 
@@ -674,19 +676,21 @@ namespace AL::FileSystem
 		}
 		auto& operator [] (const String& sectionName) const
 		{
+			const INIFileSection* lpSection = nullptr;
+
 			for (auto& section : sections)
 			{
 				if (section.GetName().Compare(sectionName))
 				{
-
-					return section;
+					lpSection = &section;
+					
+					break;
 				}
 			}
 
-			AL_ASSERT(
-				false,
-				"INIFileSection not found"
-			);
+			AL_ASSERT(lpSection != nullptr, "INIFileSection not found");
+
+			return *lpSection;
 		}
 	};
 }
