@@ -15,12 +15,12 @@ namespace AL::FileSystem
 {
 	enum class FileOpenModes : uint8
 	{
-		Binary   = 0x1,
+		Binary = 0x1,
 
-		Read     = 0x2,
-		Write    = 0x4,
+		Read = 0x2,
+		Write = 0x4,
 
-		Append   = 0x8,
+		Append = 0x8,
 		Truncate = 0x10
 	};
 
@@ -37,7 +37,7 @@ namespace AL::FileSystem
 
 		static constexpr HFILE INVALID_FILE_HANDLE_VALUE = INVALID_HANDLE_VALUE;
 #endif
-		
+
 		Path path;
 		HFILE hFile = INVALID_FILE_HANDLE_VALUE;
 
@@ -63,7 +63,7 @@ namespace AL::FileSystem
 
 			return static_cast<uint64>(
 				st.st_size
-			);
+				);
 #elif defined(AL_PLATFORM_WINDOWS)
 			struct _stat64 st;
 
@@ -77,10 +77,10 @@ namespace AL::FileSystem
 
 			return static_cast<uint64>(
 				st.st_size
-			);
+				);
 #endif
 		}
-		
+
 		// @throw AL::Exceptions::Exception
 		static bool Exists(const Path& path)
 		{
@@ -91,14 +91,23 @@ namespace AL::FileSystem
 		static void Move(const Path& source, const Path& destination, bool overwrite = false)
 		{
 #if defined(AL_PLATFORM_LINUX)
-			if (rename(source.GetString().GetCString(), destination.GetString().GetCString()) == -1)
+			if (overwrite || !Exists(destination))
 			{
+				if (rename(source.GetString().GetCString(), destination.GetString().GetCString()) == -1)
+				{
 
-				throw Exceptions::SystemException(
-					"rename"
-				);
+					throw Exceptions::SystemException(
+						"rename"
+					);
+				}
 			}
 #elif defined(AL_PLATFORM_WINDOWS)
+			if (overwrite && Exists(destination))
+			{
+
+				Delete(destination);
+			}
+
 			if (MoveFileA(source.GetString().GetCString(), destination.GetString().GetCString()) == FALSE)
 			{
 
@@ -113,9 +122,17 @@ namespace AL::FileSystem
 		static void Copy(const Path& source, const Path& destination, bool overwrite = false)
 		{
 #if defined(AL_PLATFORM_LINUX)
+			if (!overwrite && Exists(destination))
+			{
+
+				throw Exceptions::Exception(
+					"Destination file already exists"
+				);
+			}
+
 			FILE* hSource;
 
-			if ((hSource = fopen(source.GetString().GetCString(), "r")) == NULL)
+			if ((hSource = fopen(source.GetString().GetCString(), "rb")) == NULL)
 			{
 
 				throw Exceptions::SystemException(
@@ -125,7 +142,7 @@ namespace AL::FileSystem
 
 			FILE* hDestination;
 
-			if ((hDestination = fopen(destination.GetString().GetCString(), "w")) == NULL)
+			if ((hDestination = fopen(destination.GetString().GetCString(), "wb")) == NULL)
 			{
 				fclose(hSource);
 
@@ -134,24 +151,60 @@ namespace AL::FileSystem
 				);
 			}
 
-			uint8 ch;
+			static constexpr size_t BUFFER_SIZE = 0x400;
 
-			while ((ch = fgetc(hSource)) != EOF)
+			auto lpBuffer = new uint8[BUFFER_SIZE];
+
+			while (!feof(hSource))
 			{
-				if (fputc(ch, hDestination) == EOF)
+				size_t bytesRead;
+
+				if ((bytesRead = fread(lpBuffer, 1, BUFFER_SIZE, hSource)) == 0)
 				{
+					if (!feof(hSource))
+					{
+						delete[] lpBuffer;
+
+						fclose(hDestination);
+						fclose(hSource);
+
+						throw Exceptions::SystemException(
+							"fread"
+						);
+					}
+				}
+
+				if (fwrite(lpBuffer, 1, bytesRead, hDestination) == 0)
+				{
+					delete[] lpBuffer;
+
 					fclose(hDestination);
 					fclose(hSource);
 
 					throw Exceptions::SystemException(
-						"fputc"
+						"fwrite"
 					);
 				}
+
+				clearerr(
+					hDestination
+				);
+			}
+
+			delete[] lpBuffer;
+
+			if (fflush(hDestination) == EOF)
+			{
+				fclose(hDestination);
+				fclose(hSource);
+
+				throw Exceptions::SystemException(
+					"fflush"
+				);
 			}
 
 			fclose(hDestination);
 			fclose(hSource);
-
 #elif defined(AL_PLATFORM_WINDOWS)
 			if (CopyFileA(source.GetString().GetCString(), destination.GetString().GetCString(), !overwrite ? TRUE : FALSE) == FALSE)
 			{
@@ -167,6 +220,14 @@ namespace AL::FileSystem
 		static void Create(const Path& path, bool overwrite = false)
 		{
 #if defined(AL_PLATFORM_LINUX)
+			if (!overwrite && Exists(path))
+			{
+
+				throw Exceptions::Exception(
+					"File already exists"
+				);
+			}
+
 			if (creat(path.GetString().GetCString(), S_IRUSR | S_IWUSR) == -1)
 			{
 
@@ -177,15 +238,7 @@ namespace AL::FileSystem
 #elif defined(AL_PLATFORM_WINDOWS)
 			HANDLE hFile;
 
-			if ((hFile = CreateFileA(
-				path.GetString().GetCString(),
-				GENERIC_WRITE,
-				0,
-				nullptr,
-				!overwrite ? CREATE_NEW : CREATE_ALWAYS,
-				FILE_ATTRIBUTE_NORMAL,
-				nullptr
-			)) == INVALID_HANDLE_VALUE)
+			if ((hFile = CreateFileA(path.GetString().GetCString(), GENERIC_WRITE, 0, nullptr, !overwrite ? CREATE_NEW : CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr)) == INVALID_HANDLE_VALUE)
 			{
 
 				throw Exceptions::SystemException(
@@ -274,7 +327,7 @@ namespace AL::FileSystem
 		}
 
 		// @throw AL::Exceptions::Exception
-		auto GetSize() const
+		uint64 GetSize() const
 		{
 			AL_ASSERT(IsOpen(), "File not open");
 
@@ -299,12 +352,12 @@ namespace AL::FileSystem
 #endif
 		}
 
-		auto GetReadPosition() const
+		uint64 GetReadPosition() const
 		{
 			return readPosition;
 		}
 
-		auto GetWritePosition() const
+		uint64 GetWritePosition() const
 		{
 			return writePosition;
 		}
