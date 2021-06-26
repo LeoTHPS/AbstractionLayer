@@ -5,8 +5,58 @@ namespace AL::GPIO
 {
 	class I2CBus;
 
-	typedef uint16 I2CAddress;
-	typedef uint8  I2CRegister;
+	class I2CAddress
+	{
+	public:
+		typedef uint16 Type;
+
+		I2CAddress(Type value)
+			: value(
+				value
+			)
+		{
+			AL_ASSERT(!IsReserved(value), "I2CAddress is reserved");
+		}
+
+		virtual ~I2CAddress()
+		{
+		}
+
+		operator Type () const
+		{
+			return value;
+		}
+
+		auto& operator = (Type value)
+		{
+			AL_ASSERT(!IsReserved(value), "I2CAddress is reserved");
+
+			this->value = value;
+
+			return *this;
+		}
+
+		bool operator == (const I2CAddress& address) const
+		{
+			return value == address.value;
+		}
+		bool operator != (const I2CAddress& address) const
+		{
+			return !operator==(
+				address
+			);
+		}
+
+	private:
+		Type value;
+
+		static constexpr bool IsReserved(Type value)
+		{
+			return (value >= 0x08) && (value <= 0x77);
+		}
+	};
+
+	typedef uint8 I2CRegister;
 
 	class I2CDevice
 	{
