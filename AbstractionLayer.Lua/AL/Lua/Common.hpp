@@ -158,7 +158,7 @@ namespace AL::Lua
 
 					PushReturnValues(
 						lua,
-						result.Get<I_T>() ...
+						result.template Get<I_T>() ...
 					);
 
 					return sizeof ...(T);
@@ -216,11 +216,11 @@ namespace AL::Lua
 		{
 			template<typename F>
 			class Detour;
-			template<typename T, typename ... TArgs>
-			class Detour<T(TArgs ...)>
+			template<typename T_RETURN, typename ... T_ARGS>
+			class Detour<T_RETURN(T_ARGS ...)>
 			{
 			public:
-				static constexpr T Execute(lua_State* lua, const String& name, TArgs ... args)
+				static constexpr T_RETURN Execute(lua_State* lua, const String& name, T_ARGS ... args)
 				{
 					lua_getglobal(
 						lua,
@@ -229,16 +229,16 @@ namespace AL::Lua
 
 					PushArgs(
 						lua,
-						Forward<TArgs>(args) ...
+						Forward<T_ARGS>(args) ...
 					);
 
 					lua_call(
 						lua,
-						sizeof ...(TArgs),
+						sizeof ...(T_ARGS),
 						1
 					);
 
-					return Type_Functions<T>::Pop(
+					return Type_Functions<T_RETURN>::Pop(
 						lua
 					);
 				}
@@ -247,25 +247,25 @@ namespace AL::Lua
 				static constexpr void PushArgs(lua_State* lua)
 				{
 				}
-				template<typename T_ARG, typename ... T_ARGS>
-				static constexpr void PushArgs(lua_State* lua, T_ARG arg, T_ARGS ... args)
+				template<typename _T_ARG, typename ... _T_ARGS>
+				static constexpr void PushArgs(lua_State* lua, _T_ARG arg, _T_ARGS ... args)
 				{
-					Type_Functions<T_ARG>::Push(
+					Type_Functions<_T_ARG>::Push(
 						lua,
-						Forward<T_ARG>(arg)
+						Forward<_T_ARG>(arg)
 					);
 
 					PushArgs(
 						lua,
-						Forward<T_ARGS>(args) ...
+						Forward<_T_ARGS>(args) ...
 					);
 				}
 			};
-			template<typename ... TArgs>
-			class Detour<void(TArgs ...)>
+			template<typename ... T_ARGS>
+			class Detour<void(T_ARGS ...)>
 			{
 			public:
-				static constexpr void Execute(lua_State* lua, const String& name, TArgs ... args)
+				static constexpr void Execute(lua_State* lua, const String& name, T_ARGS ... args)
 				{
 					lua_getglobal(
 						lua,
@@ -274,12 +274,12 @@ namespace AL::Lua
 
 					PushArgs(
 						lua,
-						Forward<TArgs>(args) ...
+						Forward<T_ARGS>(args) ...
 					);
 
 					lua_call(
 						lua,
-						sizeof ...(TArgs),
+						sizeof ...(T_ARGS),
 						0
 					);
 				}
@@ -288,37 +288,37 @@ namespace AL::Lua
 				static constexpr void PushArgs(lua_State* lua)
 				{
 				}
-				template<typename T_ARG, typename ... T_ARGS>
-				static constexpr void PushArgs(lua_State* lua, T_ARG arg, T_ARGS ... args)
+				template<typename _T_ARG, typename ... _T_ARGS>
+				static constexpr void PushArgs(lua_State* lua, _T_ARG arg, _T_ARGS ... args)
 				{
-					Type_Functions<T_ARG>::Push(
+					Type_Functions<_T_ARG>::Push(
 						lua,
-						Forward<T_ARG>(arg)
+						Forward<_T_ARG>(arg)
 					);
 
 					PushArgs(
 						lua,
-						Forward<T_ARGS>(args) ...
+						Forward<_T_ARGS>(args) ...
 					);
 				}
 			};
-			template<typename ... T, typename ... TArgs>
-			class Detour<Collections::Tuple<T ...>(TArgs ...)>
+			template<typename ... T_RETURN, typename ... T_ARGS>
+			class Detour<Collections::Tuple<T_RETURN ...>(T_ARGS ...)>
 			{
 			public:
-				static constexpr Collections::Tuple<T ...> Execute(lua_State* lua, const String& name, TArgs ... args)
+				static constexpr Collections::Tuple<T_RETURN ...> Execute(lua_State* lua, const String& name, T_ARGS ... args)
 				{
 					return Execute(
 						lua,
 						name,
-						Forward<TArgs>(args) ...,
-						typename Make_Index_Sequence<sizeof ...(T)>::Type{}
+						Forward<T_ARGS>(args) ...,
+						typename Make_Index_Sequence<sizeof ...(T_RETURN)>::Type{}
 					);
 				}
 
 			private:
 				template<size_t ... INDEXES>
-				static constexpr Collections::Tuple<T ...> Execute(lua_State* lua, const String& name, TArgs ... args, Index_Sequence<INDEXES ...>)
+				static constexpr Collections::Tuple<T_RETURN ...> Execute(lua_State* lua, const String& name, T_ARGS ... args, Index_Sequence<INDEXES ...>)
 				{
 					lua_getglobal(
 						lua,
@@ -327,16 +327,16 @@ namespace AL::Lua
 
 					PushArgs(
 						lua,
-						Forward<TArgs>(args) ...
+						Forward<T_ARGS>(args) ...
 					);
 
 					lua_call(
 						lua,
-						sizeof ...(TArgs),
-						sizeof ...(T)
+						sizeof ...(T_ARGS),
+						sizeof ...(T_RETURN)
 					);
 
-					return Collections::Tuple<T ...>(
+					return Collections::Tuple<T_RETURN ...>(
 						PopReturnValue<INDEXES>(lua) ...
 					);
 				}
@@ -344,24 +344,24 @@ namespace AL::Lua
 				static constexpr void PushArgs(lua_State* lua)
 				{
 				}
-				template<typename T_ARG, typename ... T_ARGS>
-				static constexpr void PushArgs(lua_State* lua, T_ARG arg, T_ARGS ... args)
+				template<typename _T_ARG, typename ... _T_ARGS>
+				static constexpr void PushArgs(lua_State* lua, _T_ARG arg, _T_ARGS ... args)
 				{
-					Type_Functions<T_ARG>::Push(
+					Type_Functions<_T_ARG>::Push(
 						lua,
-						Forward<T_ARG>(arg)
+						Forward<_T_ARG>(arg)
 					);
 
 					PushArgs(
 						lua,
-						Forward<T_ARGS>(args) ...
+						Forward<_T_ARGS>(args) ...
 					);
 				}
 
 				template<size_t INDEX>
 				static constexpr auto PopReturnValue(lua_State* lua)
 				{
-					return Type_Functions<typename Get_Type_Sequence<INDEX, T ...>::Type>::Pop(
+					return Type_Functions<typename Get_Type_Sequence<INDEX, T_RETURN ...>::Type>::Pop(
 						lua
 					);
 				}
