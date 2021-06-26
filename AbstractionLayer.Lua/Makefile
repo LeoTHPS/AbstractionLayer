@@ -1,3 +1,4 @@
+CP             ?= cp -f
 RM             ?= rm -f
 CC             ?= gcc
 CXX            ?= g++
@@ -24,3 +25,9 @@ all: $(OBJECT_FILES)
 
 clean:
 	$(RM) $(OBJECT_FILES)
+
+install:
+	$(CP) $(OUT_FILE_PATH) /usr/lib/lib$(OUT_FILE)
+
+uninstall:
+	$(RM) /usr/lib/lib$(OUT_FILE)
