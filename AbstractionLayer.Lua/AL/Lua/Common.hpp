@@ -43,7 +43,7 @@ namespace AL::Lua
 
 		template<typename T>
 		struct Type_Functions;
-
+		
 		template<auto F>
 		class Function
 		{
@@ -460,6 +460,17 @@ namespace AL::Lua
 
 			return value;
 		}
+		static String        _lua_getString(lua_State* lua, size_t index)
+		{
+			auto lpString = _lua_getstring(
+				lua,
+				index
+			);
+
+			return String(
+				lpString
+			);
+		}
 		static bool          _lua_getboolean(lua_State* lua, size_t index)
 		{
 			auto value = lua_toboolean(
@@ -517,6 +528,13 @@ namespace AL::Lua
 			lua_pushstring(
 				lua,
 				value
+			);
+		}
+		static void _lua_pushString(lua_State* lua, const String& value)
+		{
+			_lua_pushstring(
+				lua,
+				value.GetCString()
 			);
 		}
 		static void _lua_pushboolean(lua_State* lua, bool value)
@@ -726,13 +744,14 @@ namespace AL::Lua
 	};
 }
 
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(nullptr_t,     &AL::Lua::Stack::_lua_getnil,           &AL::Lua::Stack::_lua_pushnil,           &AL::Lua::Stack::_lua_pop<nullptr_t>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(bool,          &AL::Lua::Stack::_lua_getboolean,       &AL::Lua::Stack::_lua_pushboolean,       &AL::Lua::Stack::_lua_pop<bool>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(void*,         &AL::Lua::Stack::_lua_getlightuserdata, &AL::Lua::Stack::_lua_pushlightuserdata, &AL::Lua::Stack::_lua_pop<void*>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(lua_Number,    &AL::Lua::Stack::_lua_getnumber,        &AL::Lua::Stack::_lua_pushnumber,        &AL::Lua::Stack::_lua_pop<lua_Number>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(lua_Integer,   &AL::Lua::Stack::_lua_getinteger,       &AL::Lua::Stack::_lua_pushinteger,       &AL::Lua::Stack::_lua_pop<lua_Integer>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(const char*,   &AL::Lua::Stack::_lua_getstring,        &AL::Lua::Stack::_lua_pushstring,        &AL::Lua::Stack::_lua_pop<const char*>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(lua_CFunction, &AL::Lua::Stack::_lua_getcfunction,     &AL::Lua::Stack::_lua_pushcfunction,     &AL::Lua::Stack::_lua_pop<lua_CFunction>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(nullptr_t,         &AL::Lua::Stack::_lua_getnil,           &AL::Lua::Stack::_lua_pushnil,           &AL::Lua::Stack::_lua_pop<nullptr_t>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(bool,              &AL::Lua::Stack::_lua_getboolean,       &AL::Lua::Stack::_lua_pushboolean,       &AL::Lua::Stack::_lua_pop<bool>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(void*,             &AL::Lua::Stack::_lua_getlightuserdata, &AL::Lua::Stack::_lua_pushlightuserdata, &AL::Lua::Stack::_lua_pop<void*>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(lua_Number,        &AL::Lua::Stack::_lua_getnumber,        &AL::Lua::Stack::_lua_pushnumber,        &AL::Lua::Stack::_lua_pop<lua_Number>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(lua_Integer,       &AL::Lua::Stack::_lua_getinteger,       &AL::Lua::Stack::_lua_pushinteger,       &AL::Lua::Stack::_lua_pop<lua_Integer>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(const char*,       &AL::Lua::Stack::_lua_getstring,        &AL::Lua::Stack::_lua_pushstring,        &AL::Lua::Stack::_lua_pop<const char*>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(const AL::String&, &AL::Lua::Stack::_lua_getString,        &AL::Lua::Stack::_lua_pushString,        &AL::Lua::Stack::_lua_pop<const AL::String&>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(lua_CFunction,     &AL::Lua::Stack::_lua_getcfunction,     &AL::Lua::Stack::_lua_pushcfunction,     &AL::Lua::Stack::_lua_pop<lua_CFunction>);
 
 AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int8,  lua_Integer);
 AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint8, lua_Integer);
@@ -759,37 +778,6 @@ AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint64, lua_Integer);
 	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(double, lua_Number);
 #endif
 
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(
-	const AL::String&,
-	[](lua_State* _lua, size_t _index)
-	{
-		auto cString = AL::Lua::Stack::_lua_getstring(
-			_lua,
-			_index
-		);
-
-		return AL::String(
-			cString
-		);
-	},
-	[](lua_State* _lua, const AL::String& _value)
-	{
-		AL::Lua::Stack::_lua_pushstring(
-			_lua,
-			_value.GetCString()
-		);
-	},
-	[](lua_State* _lua)
-	{
-		auto cString = AL::Lua::Stack::_lua_pop<const char*>(
-			_lua
-		);
-
-		return AL::String(
-			cString
-		);
-	}
-);
 
 #include "AL/Exceptions/LuaException.hpp"
 
