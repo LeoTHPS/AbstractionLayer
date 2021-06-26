@@ -300,7 +300,7 @@ namespace AL::Sockets
 		Socket(const Socket&) = delete;
 
 	public:
-		static constexpr uint32 WOULD_BLOCK = ~0;
+		static constexpr uint32 WOULD_BLOCK = ~0u;
 		static constexpr uint32 CONNECTION_CLOSED = 0;
 
 		Socket(Socket&& socket)

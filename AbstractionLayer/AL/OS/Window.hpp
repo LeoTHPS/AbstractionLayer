@@ -1280,8 +1280,8 @@ namespace AL::OS
 #endif
 
 				throw Exceptions::Exception(
-					"Error creating WindowClipboard",
-					Move(exception)
+					Move(exception),
+					"Error creating WindowClipboard"
 				);
 			}
 		}
