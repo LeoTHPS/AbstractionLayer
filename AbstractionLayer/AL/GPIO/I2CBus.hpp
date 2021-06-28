@@ -267,63 +267,27 @@ namespace AL::GPIO
 		void WriteRegister(I2CAddress address, I2CRegister reg, const void* lpBuffer, size_t size)
 		{
 			AL_ASSERT(IsOpen(), "I2CBus not open");
-
+			
 #if defined(AL_PLATFORM_LINUX)
-			// TODO: optimize
-
-			Collections::Array<uint8> buffer(
-				sizeof(I2CRegister) + size
-			);
+			auto _lpBuffer = new uint8[sizeof(I2CRegister) + size];
 
 			memcpy(
-				&buffer[0],
+				&_lpBuffer[0],
 				&reg,
 				sizeof(I2CRegister)
 			);
 
 			memcpy(
-				&buffer[sizeof(I2CRegister)],
+				&_lpBuffer[sizeof(I2CRegister)],
 				lpBuffer,
 				size
 			);
 
 			Write(
 				address,
-				&buffer[0],
-				buffer.GetCapacity()
+				_lpBuffer,
+				sizeof(I2CRegister) + size
 			);
-
-			/*
-			i2c_msg i2c_buffers[2];
-
-			// TX
-			{
-				i2c_buffers[0].flags = 0;
-				i2c_buffers[0].addr = static_cast<__u16>(address);
-				i2c_buffers[0].buf = reinterpret_cast<__u8*>(&reg);
-				i2c_buffers[0].len = sizeof(I2CRegister);
-			}
-
-			// TX
-			{
-				i2c_buffers[1].flags = I2C_M_NOSTART;
-				i2c_buffers[1].addr = static_cast<__u16>(address);
-				i2c_buffers[1].buf = reinterpret_cast<__u8*>(const_cast<void*>(lpBuffer));
-				i2c_buffers[1].len = static_cast<__u16>(size);
-			}
-
-			i2c_rdwr_ioctl_data i2c_data;
-			i2c_data.msgs = i2c_buffers;
-			i2c_data.nmsgs = 2;
-
-			if (ioctl(hFile, I2C_RDWR, &i2c_data) < 0)
-			{
-
-				throw Exceptions::SystemException(
-					"ioctl"
-				);
-			}
-			*/
 #else
 			throw Exceptions::NotImplementedException();
 #endif
