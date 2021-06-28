@@ -375,16 +375,6 @@ namespace AL::FileSystem
 					index = fileSize;
 				}
 
-#if defined(AL_PLATFORM_LINUX)
-				if (fseek(GetHandle(), static_cast<long>(index), SEEK_SET) == -1)
-				{
-
-					throw Exceptions::SystemException(
-						"fseek"
-					);
-				}
-#endif
-
 				readPosition = index;
 			}
 		}
@@ -402,9 +392,7 @@ namespace AL::FileSystem
 					index = fileSize;
 				}
 
-#if defined(AL_PLATFORM_LINUX)
-				throw Exceptions::NotImplementedException();
-#elif defined(AL_PLATFORM_WINDOWS)
+#if defined(AL_PLATFORM_WINDOWS)
 				LARGE_INTEGER _adjustment = { 0 };
 				_adjustment.QuadPart = index;
 
@@ -615,17 +603,22 @@ namespace AL::FileSystem
 #if defined(AL_PLATFORM_LINUX)
 			auto hFile = GetHandle();
 
-			if (!feof(hFile))
+			if (fseek(hFile, static_cast<long>(GetReadPosition()), SEEK_SET) == -1)
 			{
-				if ((bytesRead = fread(lpBuffer, 1, size, hFile)) == 0)
-				{
-					if (!feof(hFile))
-					{
 
-						throw Exceptions::SystemException(
-							"fread"
-						);
-					}
+				throw Exceptions::SystemException(
+					"fseek"
+				);
+			}
+
+			if ((bytesRead = fread(lpBuffer, 1, size, hFile)) == 0)
+			{
+				if (!feof(hFile))
+				{
+
+					throw Exceptions::SystemException(
+						"fread"
+					);
 				}
 			}
 #elif defined(AL_PLATFORM_WINDOWS)
@@ -668,7 +661,17 @@ namespace AL::FileSystem
 			size_t bytesWritten = 0;
 
 #if defined(AL_PLATFORM_LINUX)
-			if ((bytesWritten = fwrite(lpBuffer, 1, size, GetHandle())) == 0)
+			auto hFile = GetHandle();
+
+			if (fseek(hFile, static_cast<long>(GetWritePosition()), SEEK_SET) == -1)
+			{
+
+				throw Exceptions::SystemException(
+					"fseek"
+				);
+			}
+
+			if ((bytesWritten = fwrite(lpBuffer, 1, size, hFile)) == 0)
 			{
 
 				throw Exceptions::SystemException(
@@ -676,17 +679,13 @@ namespace AL::FileSystem
 				);
 			}
 
-			if (fflush(GetHandle()) == EOF)
+			if (fflush(hFile) == EOF)
 			{
 
 				throw Exceptions::SystemException(
 					"fflush"
 				);
 			}
-
-			clearerr(
-				GetHandle()
-			);
 #elif defined(AL_PLATFORM_WINDOWS)
 			DWORD _bytesWritten = 0;
 
