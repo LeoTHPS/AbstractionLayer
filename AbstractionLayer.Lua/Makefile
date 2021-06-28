@@ -14,7 +14,7 @@ OBJECT_FILES   = $(SOURCE_FILES:.c=.o)
 
 AL_INCLUDE     = ../AbstractionLayer
 
-CFLAGS         += -fPIC
+CFLAGS         += -fPIC -O3
 CXXFLAGS       += -fPIC -Wall -O3 -std=c++17 -I$(AL_INCLUDE) -I.
 LDFLAGS        += -shared
 
