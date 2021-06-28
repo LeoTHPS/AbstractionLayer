@@ -444,9 +444,9 @@ namespace AL
 			);
 		}
 
-		static constexpr TypeHash GetStringHash(const char* lpString, TypeHash hash = 0x811C9DC5, size_t index = 0)
+		static constexpr TypeHash GetStringHash(const char* lpString, TypeHash hash = 0x811C9DC5)
 		{
-			return lpString[index] ? GetStringHash(lpString, (hash ^ lpString[index]) * 0x1000193llu, ++index) : hash;
+			return *lpString ? GetStringHash(&lpString[1], (hash ^ *lpString) * 0x1000193llu) : hash;
 		}
 
 	public:
@@ -2211,7 +2211,7 @@ namespace AL
 			'A', 'B', 'C', 'D', 'E', 'F'
 		};
 
-		static constexpr uint8 HEX_TABLE_REVERSE[255] =
+		static constexpr uint8 HEX_TABLE_REVERSE[0xFF] =
 		{
 			/* 0x00 */ 0,
 			/* 0x01 */ 0,
@@ -2470,6 +2470,265 @@ namespace AL
 			/* 0xFE */ 0
 		};
 
+		static constexpr bool HEX_TABLE_VALID_BYTES[0xFF] =
+		{
+			/* 0x00 */ false,
+			/* 0x01 */ false,
+			/* 0x02 */ false,
+			/* 0x03 */ false,
+			/* 0x04 */ false,
+			/* 0x05 */ false,
+			/* 0x06 */ false,
+			/* 0x07 */ false,
+			/* 0x08 */ false,
+			/* 0x09 */ false,
+			/* 0x0A */ false,
+			/* 0x0B */ false,
+			/* 0x0C */ false,
+			/* 0x0D */ false,
+			/* 0x0E */ false,
+			/* 0x0F */ false,
+			/* 0x10 */ false,
+			/* 0x11 */ false,
+			/* 0x12 */ false,
+			/* 0x13 */ false,
+			/* 0x14 */ false,
+			/* 0x15 */ false,
+			/* 0x16 */ false,
+			/* 0x17 */ false,
+			/* 0x18 */ false,
+			/* 0x19 */ false,
+			/* 0x1A */ false,
+			/* 0x1B */ false,
+			/* 0x1C */ false,
+			/* 0x1D */ false,
+			/* 0x1E */ false,
+			/* 0x1F */ false,
+			/* 0x20 */ false,
+			/* 0x21 */ false,
+			/* 0x22 */ false,
+			/* 0x23 */ false,
+			/* 0x24 */ false,
+			/* 0x25 */ false,
+			/* 0x26 */ false,
+			/* 0x27 */ false,
+			/* 0x28 */ false,
+			/* 0x29 */ false,
+			/* 0x2A */ false,
+			/* 0x2B */ false,
+			/* 0x2C */ false,
+			/* 0x2D */ false,
+			/* 0x2E */ false,
+			/* 0x2F */ false,
+			/* 0x30 */ true, // 0
+			/* 0x31 */ true, // 1
+			/* 0x32 */ true, // 2
+			/* 0x33 */ true, // 3
+			/* 0x34 */ true, // 4
+			/* 0x35 */ true, // 5
+			/* 0x36 */ true, // 6
+			/* 0x37 */ true, // 7
+			/* 0x38 */ true, // 8
+			/* 0x39 */ true, // 9
+			/* 0x3A */ false,
+			/* 0x3B */ false,
+			/* 0x3C */ false,
+			/* 0x3D */ false,
+			/* 0x3E */ false,
+			/* 0x3F */ false,
+			/* 0x40 */ false,
+			/* 0x41 */ true, // A
+			/* 0x42 */ true, // B
+			/* 0x43 */ true, // C
+			/* 0x44 */ true, // D
+			/* 0x45 */ true, // E
+			/* 0x46 */ true, // F
+			/* 0x47 */ false,
+			/* 0x48 */ false,
+			/* 0x49 */ false,
+			/* 0x4A */ false,
+			/* 0x4B */ false,
+			/* 0x4C */ false,
+			/* 0x4D */ false,
+			/* 0x4E */ false,
+			/* 0x4F */ false,
+			/* 0x50 */ false,
+			/* 0x51 */ false,
+			/* 0x52 */ false,
+			/* 0x53 */ false,
+			/* 0x54 */ false,
+			/* 0x55 */ false,
+			/* 0x56 */ false,
+			/* 0x57 */ false,
+			/* 0x58 */ false,
+			/* 0x59 */ false,
+			/* 0x5A */ false,
+			/* 0x5B */ false,
+			/* 0x5C */ false,
+			/* 0x5D */ false,
+			/* 0x5E */ false,
+			/* 0x5F */ false,
+			/* 0x60 */ false,
+			/* 0x61 */ false,
+			/* 0x62 */ false,
+			/* 0x63 */ false,
+			/* 0x64 */ false,
+			/* 0x65 */ false,
+			/* 0x66 */ false,
+			/* 0x67 */ false,
+			/* 0x68 */ false,
+			/* 0x69 */ false,
+			/* 0x6A */ false,
+			/* 0x6B */ false,
+			/* 0x6C */ false,
+			/* 0x6D */ false,
+			/* 0x6E */ false,
+			/* 0x6F */ false,
+			/* 0x70 */ false,
+			/* 0x71 */ false,
+			/* 0x72 */ false,
+			/* 0x73 */ false,
+			/* 0x74 */ false,
+			/* 0x75 */ false,
+			/* 0x76 */ false,
+			/* 0x77 */ false,
+			/* 0x78 */ false,
+			/* 0x79 */ false,
+			/* 0x7A */ false,
+			/* 0x7B */ false,
+			/* 0x7C */ false,
+			/* 0x7D */ false,
+			/* 0x7E */ false,
+			/* 0x7F */ false,
+			/* 0x80 */ false,
+			/* 0x81 */ false,
+			/* 0x82 */ false,
+			/* 0x83 */ false,
+			/* 0x84 */ false,
+			/* 0x85 */ false,
+			/* 0x86 */ false,
+			/* 0x87 */ false,
+			/* 0x88 */ false,
+			/* 0x89 */ false,
+			/* 0x8A */ false,
+			/* 0x8B */ false,
+			/* 0x8C */ false,
+			/* 0x8D */ false,
+			/* 0x8E */ false,
+			/* 0x8F */ false,
+			/* 0x90 */ false,
+			/* 0x91 */ false,
+			/* 0x92 */ false,
+			/* 0x93 */ false,
+			/* 0x94 */ false,
+			/* 0x95 */ false,
+			/* 0x96 */ false,
+			/* 0x97 */ false,
+			/* 0x98 */ false,
+			/* 0x99 */ false,
+			/* 0x9A */ false,
+			/* 0x9B */ false,
+			/* 0x9C */ false,
+			/* 0x9D */ false,
+			/* 0x9E */ false,
+			/* 0x9F */ false,
+			/* 0xA0 */ false,
+			/* 0xA1 */ false,
+			/* 0xA2 */ false,
+			/* 0xA3 */ false,
+			/* 0xA4 */ false,
+			/* 0xA5 */ false,
+			/* 0xA6 */ false,
+			/* 0xA7 */ false,
+			/* 0xA8 */ false,
+			/* 0xA9 */ false,
+			/* 0xAA */ false,
+			/* 0xAB */ false,
+			/* 0xAC */ false,
+			/* 0xAD */ false,
+			/* 0xAE */ false,
+			/* 0xAF */ false,
+			/* 0xB0 */ false,
+			/* 0xB1 */ false,
+			/* 0xB2 */ false,
+			/* 0xB3 */ false,
+			/* 0xB4 */ false,
+			/* 0xB5 */ false,
+			/* 0xB6 */ false,
+			/* 0xB7 */ false,
+			/* 0xB8 */ false,
+			/* 0xB9 */ false,
+			/* 0xBA */ false,
+			/* 0xBB */ false,
+			/* 0xBC */ false,
+			/* 0xBD */ false,
+			/* 0xBE */ false,
+			/* 0xBF */ false,
+			/* 0xC0 */ false,
+			/* 0xC1 */ false,
+			/* 0xC2 */ false,
+			/* 0xC3 */ false,
+			/* 0xC4 */ false,
+			/* 0xC5 */ false,
+			/* 0xC6 */ false,
+			/* 0xC7 */ false,
+			/* 0xC8 */ false,
+			/* 0xC9 */ false,
+			/* 0xCA */ false,
+			/* 0xCB */ false,
+			/* 0xCC */ false,
+			/* 0xCD */ false,
+			/* 0xCE */ false,
+			/* 0xCF */ false,
+			/* 0xD0 */ false,
+			/* 0xD1 */ false,
+			/* 0xD2 */ false,
+			/* 0xD3 */ false,
+			/* 0xD4 */ false,
+			/* 0xD5 */ false,
+			/* 0xD6 */ false,
+			/* 0xD7 */ false,
+			/* 0xD8 */ false,
+			/* 0xD9 */ false,
+			/* 0xDA */ false,
+			/* 0xDB */ false,
+			/* 0xDC */ false,
+			/* 0xDD */ false,
+			/* 0xDE */ false,
+			/* 0xDF */ false,
+			/* 0xE0 */ false,
+			/* 0xE1 */ false,
+			/* 0xE2 */ false,
+			/* 0xE3 */ false,
+			/* 0xE4 */ false,
+			/* 0xE5 */ false,
+			/* 0xE6 */ false,
+			/* 0xE7 */ false,
+			/* 0xE8 */ false,
+			/* 0xE9 */ false,
+			/* 0xEA */ false,
+			/* 0xEB */ false,
+			/* 0xEC */ false,
+			/* 0xED */ false,
+			/* 0xEE */ false,
+			/* 0xEF */ false,
+			/* 0xF0 */ false,
+			/* 0xF1 */ false,
+			/* 0xF2 */ false,
+			/* 0xF3 */ false,
+			/* 0xF4 */ false,
+			/* 0xF5 */ false,
+			/* 0xF6 */ false,
+			/* 0xF7 */ false,
+			/* 0xF8 */ false,
+			/* 0xF9 */ false,
+			/* 0xFA */ false,
+			/* 0xFB */ false,
+			/* 0xFC */ false,
+			/* 0xFD */ false,
+			/* 0xFE */ false
+		};
+
 	public:
 		template<typename T>
 		static String Encode(const T& value)
@@ -2516,7 +2775,7 @@ namespace AL
 		{
 			auto length = string.GetLength();
 
-			if (length % 2)
+			if ((length % 2) != 0)
 			{
 
 				return false;
@@ -2526,15 +2785,21 @@ namespace AL
 				length / 2
 			);
 
-			size_t i = 0;
-
-			for (auto lpBuffer = &buffer[0], lpBufferEnd = &buffer[buffer.GetSize()]; lpBuffer != lpBufferEnd; ++lpBuffer)
+			for (size_t i = 0; i < length; )
 			{
-				// TODO: verify
+				auto c1 = string[i++];
+				auto c2 = string[i++];
 
-				*lpBuffer = Decode(
-					string[i++],
-					string[i++]
+				if (!HEX_TABLE_VALID_BYTES[static_cast<uint8>(c1)] ||
+					!HEX_TABLE_VALID_BYTES[static_cast<uint8>(c2)])
+				{
+
+					return false;
+				}
+
+				buffer[i] = Decode(
+					c1,
+					c2
 				);
 			}
 

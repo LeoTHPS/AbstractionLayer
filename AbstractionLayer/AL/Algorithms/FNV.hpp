@@ -33,7 +33,7 @@ namespace AL::Algorithms
 		template<size_t S>
 		static constexpr Hash Calculate(const char(&string)[S], size_t index = 0, Hash hash = _FNV_Constants<T>::Offset)
 		{
-			for (index = 0; index < (S - 1); ++index)
+			for (; index < (S - 1); ++index)
 			{
 				hash ^= static_cast<T>(
 					static_cast<uint8>(string[index])
@@ -47,7 +47,7 @@ namespace AL::Algorithms
 
 		static Hash Calculate(const void* lpBuffer, size_t size, size_t index = 0, Hash hash = _FNV_Constants<T>::Offset)
 		{
-			for (index = 0; index < size; ++index)
+			for (; index < size; ++index)
 			{
 				hash ^= static_cast<T>(
 					static_cast<const uint8*>(lpBuffer)[index]

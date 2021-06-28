@@ -96,7 +96,7 @@ namespace AL::Algorithms
 		template<size_t S>
 		static constexpr Hash Calculate(const char(&string)[S], size_t index = 0, uint16 crc = _CRC_Constants<uint16>::CRC)
 		{
-			for (index = 0; index < (S - 1); ++index)
+			for (; index < (S - 1); ++index)
 			{
 				if (((static_cast<uint8>(string[index]) >> 7 & 1) == 1) ^ ((crc >> 15 & 1) == 1))
 				{
@@ -184,7 +184,7 @@ namespace AL::Algorithms
 
 		static Hash Calculate(const void* lpBuffer, size_t size, size_t index = 0, uint16 crc = _CRC_Constants<uint16>::CRC)
 		{
-			for (index = 0; index < size; ++index)
+			for (; index < size; ++index)
 			{
 				for (size_t b = 0; b < 8; ++b)
 				{
