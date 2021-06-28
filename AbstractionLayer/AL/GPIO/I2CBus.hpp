@@ -283,11 +283,22 @@ namespace AL::GPIO
 				size
 			);
 
-			Write(
-				address,
-				_lpBuffer,
-				sizeof(I2CRegister) + size
-			);
+			try
+			{
+				Write(
+					address,
+					_lpBuffer,
+					sizeof(I2CRegister) + size
+				);
+			}
+			catch (Exceptions::Exception&)
+			{
+				delete[] _lpBuffer;
+
+				throw;
+			}
+
+			delete[] _lpBuffer;
 #else
 			throw Exceptions::NotImplementedException();
 #endif
