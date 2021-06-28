@@ -164,7 +164,7 @@ namespace AL::WiFi
 
 		bool IsOpen() const
 		{
-			return hClient != NULL;
+			return isOpen;
 		}
 
 		bool IsConnected() const
