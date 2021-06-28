@@ -289,11 +289,10 @@ namespace AL::GPIO::Devices
 		
 		static Stepper_28BYJ_48_Phases Stepper_28BYJ_48_Phases_Previous(Stepper_28BYJ_48_Phases phase)
 		{
-			switch (phase)
+			if (phase <= Stepper_28BYJ_48_Phases::Phase_1)
 			{
-				case Stepper_28BYJ_48_Phases::Phase_0:
-				case Stepper_28BYJ_48_Phases::Phase_1:
-					return Stepper_28BYJ_48_Phases::Phase_8;
+
+				return Stepper_28BYJ_48_Phases::Phase_8;
 			}
 
 			typedef typename Get_Enum_Or_Integer_Base<Stepper_28BYJ_48_Phases>::Type Stepper_28BYJ_48_Phases_Base_Type;
