@@ -744,14 +744,16 @@ namespace AL::Lua
 	};
 }
 
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(nullptr_t,         &AL::Lua::Stack::_lua_getnil,           &AL::Lua::Stack::_lua_pushnil,           &AL::Lua::Stack::_lua_pop<nullptr_t>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(bool,              &AL::Lua::Stack::_lua_getboolean,       &AL::Lua::Stack::_lua_pushboolean,       &AL::Lua::Stack::_lua_pop<bool>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(void*,             &AL::Lua::Stack::_lua_getlightuserdata, &AL::Lua::Stack::_lua_pushlightuserdata, &AL::Lua::Stack::_lua_pop<void*>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(lua_Number,        &AL::Lua::Stack::_lua_getnumber,        &AL::Lua::Stack::_lua_pushnumber,        &AL::Lua::Stack::_lua_pop<lua_Number>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(lua_Integer,       &AL::Lua::Stack::_lua_getinteger,       &AL::Lua::Stack::_lua_pushinteger,       &AL::Lua::Stack::_lua_pop<lua_Integer>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(const char*,       &AL::Lua::Stack::_lua_getstring,        &AL::Lua::Stack::_lua_pushstring,        &AL::Lua::Stack::_lua_pop<const char*>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(const AL::String&, &AL::Lua::Stack::_lua_getString,        &AL::Lua::Stack::_lua_pushString,        &AL::Lua::Stack::_lua_pop<const AL::String&>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(lua_CFunction,     &AL::Lua::Stack::_lua_getcfunction,     &AL::Lua::Stack::_lua_pushcfunction,     &AL::Lua::Stack::_lua_pop<lua_CFunction>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(nullptr_t,     &AL::Lua::Stack::_lua_getnil,           &AL::Lua::Stack::_lua_pushnil,           &AL::Lua::Stack::_lua_pop<nullptr_t>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(bool,          &AL::Lua::Stack::_lua_getboolean,       &AL::Lua::Stack::_lua_pushboolean,       &AL::Lua::Stack::_lua_pop<bool>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(void*,         &AL::Lua::Stack::_lua_getlightuserdata, &AL::Lua::Stack::_lua_pushlightuserdata, &AL::Lua::Stack::_lua_pop<void*>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(lua_Number,    &AL::Lua::Stack::_lua_getnumber,        &AL::Lua::Stack::_lua_pushnumber,        &AL::Lua::Stack::_lua_pop<lua_Number>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(lua_Integer,   &AL::Lua::Stack::_lua_getinteger,       &AL::Lua::Stack::_lua_pushinteger,       &AL::Lua::Stack::_lua_pop<lua_Integer>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(const char*,   &AL::Lua::Stack::_lua_getstring,        &AL::Lua::Stack::_lua_pushstring,        &AL::Lua::Stack::_lua_pop<const char*>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(AL::String,    &AL::Lua::Stack::_lua_getString,        &AL::Lua::Stack::_lua_pushString,        &AL::Lua::Stack::_lua_pop<AL::String>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(lua_CFunction, &AL::Lua::Stack::_lua_getcfunction,     &AL::Lua::Stack::_lua_pushcfunction,     &AL::Lua::Stack::_lua_pop<lua_CFunction>);
+
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(const AL::String&, AL::String);
 
 AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int8,  lua_Integer);
 AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint8, lua_Integer);
