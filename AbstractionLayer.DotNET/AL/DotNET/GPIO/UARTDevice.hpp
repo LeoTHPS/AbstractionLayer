@@ -1,6 +1,7 @@
 #pragma once
 #include "AL/DotNET/Common.hpp"
 
+#include "UARTDeviceFlags.hpp"
 #include "UARTDeviceSpeeds.hpp"
 
 #include <AL/GPIO/UARTDevice.hpp>
@@ -17,6 +18,16 @@ namespace AL::DotNET::GPIO
 		/// <exception cref="AL::DotNET::Exceptions::Exception" />
 		static void Open([::System::Runtime::InteropServices::Out] UARTDevice^% device, ::System::String^ name, UARTDeviceSpeeds speed)
 		{
+			Open(
+				device,
+				name,
+				speed,
+				UARTDeviceFlags::None
+			);
+		}
+		/// <exception cref="AL::DotNET::Exceptions::Exception" />
+		static void Open([::System::Runtime::InteropServices::Out] UARTDevice^% device, ::System::String^ name, UARTDeviceSpeeds speed, UARTDeviceFlags flags)
+		{
 			device = gcnew UARTDevice();
 
 			try
@@ -24,7 +35,8 @@ namespace AL::DotNET::GPIO
 				AL::GPIO::UARTDevice::Open(
 					*device->lpDevice,
 					Marshal::ToNativeString(name),
-					static_cast<AL::GPIO::UARTDeviceSpeeds>(speed)
+					static_cast<AL::GPIO::UARTDeviceSpeeds>(speed),
+					static_cast<AL::GPIO::UARTDeviceFlags>(flags)
 				);
 			}
 			catch (const AL::Exceptions::Exception& exception)

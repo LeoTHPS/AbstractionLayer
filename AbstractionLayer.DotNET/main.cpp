@@ -17,6 +17,7 @@
 #include "AL/DotNET/FileSystem/LogFile.hpp"
 
 #include "AL/DotNET/GPIO/UARTDevice.hpp"
+#include "AL/DotNET/GPIO/UARTDeviceFlags.hpp"
 #include "AL/DotNET/GPIO/UARTDeviceSpeeds.hpp"
 
 #include "AL/DotNET/GPIO/Devices/BN_180.hpp"
