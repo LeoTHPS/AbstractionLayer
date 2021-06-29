@@ -3,6 +3,7 @@
 
 #include "Pin.hpp"
 
+#include "UARTDeviceFlags.hpp"
 #include "UARTDeviceSpeeds.hpp"
 
 #if defined(AL_PLATFORM_LINUX)
@@ -34,10 +35,11 @@ namespace AL::GPIO
 		HFILE hFile;
 		String name;
 		UARTDeviceSpeeds speed;
+		BitMask<UARTDeviceFlags> flags;
 
 		UARTDevice(const UARTDevice&) = delete;
 
-		UARTDevice(HFILE hFile, String&& name, UARTDeviceSpeeds speed)
+		UARTDevice(HFILE hFile, String&& name, UARTDeviceSpeeds speed, UARTDeviceFlags flags)
 			: hFile(
 				hFile
 			),
@@ -46,14 +48,21 @@ namespace AL::GPIO
 			),
 			speed(
 				speed
+			),
+			flags(
+				flags
 			)
 		{
 		}
 
 	public:
 		// @throw AL::Exceptions::Exception
-		static void Open(UARTDevice& device, String&& name, UARTDeviceSpeeds speed)
+		static void Open(UARTDevice& device, String&& name, UARTDeviceSpeeds speed, UARTDeviceFlags flags = UARTDeviceFlags::None)
 		{
+			BitMask<UARTDeviceFlags> _flags(
+				flags
+			);
+
 #if defined(AL_PLATFORM_LINUX)
 			int fd;
 
@@ -70,28 +79,60 @@ namespace AL::GPIO
 			termios options;
 			tcgetattr(fd, &options);
 			cfmakeraw(&options);
-			cfsetispeed(&options, static_cast<typename Get_Enum_Base<UARTDeviceSpeeds>::Type>(speed));
-			cfsetospeed(&options, static_cast<typename Get_Enum_Base<UARTDeviceSpeeds>::Type>(speed));
+			cfsetspeed(&options, static_cast<typename Get_Enum_Base<UARTDeviceSpeeds>::Type>(speed));
 
-			options.c_cc[VMIN] = 0;
+			options.c_cc[VMIN] = 1;
 			options.c_cc[VTIME] = 0;
 
+			options.c_cflag |= CS8;
 			options.c_cflag |= CLOCAL | CREAD;
 			options.c_cflag &= ~(PARENB | CSTOPB | CSIZE);
-			options.c_cflag |= CS8;
 			options.c_cflag &= ~(ICANON | ECHO | ECHOE | ISIG | OPOST);
 
-			tcsetattr(fd, TCSANOW, &options);
+			if (_flags.IsSet(UARTDeviceFlags::Parity))
+			{
+				options.c_cflag |= PARENB;
+
+				if (_flags.IsSet(UARTDeviceFlags::Parity_Odd))
+				{
+
+					options.c_cflag |= PARODD;
+				}
+			}
+			
+			if (_flags.IsSet(UARTDeviceFlags::Use2StopBits))
+			{
+
+				options.c_cflag |= CSTOPB;
+			}
+
+			tcsetattr(
+				fd,
+				TCSANOW,
+				&options
+			);
 
 			int status;
-			ioctl(fd, TIOCMGET, &status);
+
+			ioctl(
+				fd,
+				TIOCMGET,
+				&status
+			);
+			
 			status |= TIOCM_DTR | TIOCM_RTS;
-			ioctl(fd, TIOCMSET, &status);
+			
+			ioctl(
+				fd,
+				TIOCMSET,
+				&status
+			);
 
 			device = UARTDevice(
 				fd,
 				Move(name),
-				speed
+				speed,
+				flags
 			);
 #elif defined(AL_PLATFORM_WINDOWS)
 			HANDLE hFile;
@@ -122,6 +163,23 @@ namespace AL::GPIO
 			dcb.ByteSize = 8;
 			dcb.StopBits = ONESTOPBIT;
 			
+			if (_flags.IsSet(UARTDeviceFlags::Parity))
+			{
+				dcb.Parity = EVENPARITY;
+
+				if (_flags.IsSet(UARTDeviceFlags::Parity_Odd))
+				{
+
+					dcb.Parity = ODDPARITY;
+				}
+			}
+
+			if (_flags.IsSet(UARTDeviceFlags::Use2StopBits))
+			{
+
+				dcb.StopBits = TWOSTOPBITS;
+			}
+
 			if (!SetCommState(hFile, &dcb))
 			{
 				CloseHandle(hFile);
@@ -150,19 +208,21 @@ namespace AL::GPIO
 			device = UARTDevice(
 				hFile,
 				Move(name),
-				speed
+				speed,
+				flags
 			);
 #else
 			throw Exceptions::NotImplementedException();
 #endif
 		}
 		// @throw AL::Exceptions::Exception
-		static void Open(UARTDevice& device, const String& name, UARTDeviceSpeeds speed)
+		static void Open(UARTDevice& device, const String& name, UARTDeviceSpeeds speed, UARTDeviceFlags flags = UARTDeviceFlags::None)
 		{
 			Open(
 				device,
 				String(name),
-				speed
+				speed,
+				flags
 			);
 		}
 
@@ -170,7 +230,8 @@ namespace AL::GPIO
 			: UARTDevice(
 				FILE_HANDLE_NULL,
 				"",
-				UARTDeviceSpeeds::Default
+				UARTDeviceSpeeds::Default,
+				UARTDeviceFlags::None
 			)
 		{
 		}
@@ -184,6 +245,9 @@ namespace AL::GPIO
 			),
 			speed(
 				device.speed
+			),
+			flags(
+				Move(device.flags)
 			)
 		{
 			device.hFile = FILE_HANDLE_NULL;
@@ -203,6 +267,11 @@ namespace AL::GPIO
 		auto& GetName() const
 		{
 			return name;
+		}
+
+		auto GetFlags() const
+		{
+			return flags;
 		}
 
 		auto GetSpeed() const
@@ -226,27 +295,34 @@ namespace AL::GPIO
 		{
 			AL_ASSERT(IsOpen(), "UARTDevice not open");
 
+			for (size_t totalBytesRead = 0; totalBytesRead < size; )
+			{
 #if defined(AL_PLATFORM_LINUX)
-			if (read(hFile, lpBuffer, size) == -1)
-			{
+				int bytesRead;
 
-				throw Exceptions::SystemException(
-					"read"
-				);
-			}
+				if ((bytesRead = read(hFile, &reinterpret_cast<uint8*>(lpBuffer)[totalBytesRead], size - totalBytesRead)) == -1)
+				{
+
+					throw Exceptions::SystemException(
+						"read"
+					);
+				}
 #elif defined(AL_PLATFORM_WINDOWS)
-			DWORD bytesRead;
+				DWORD bytesRead;
 
-			if (!ReadFile(hFile, lpBuffer, static_cast<DWORD>(size), &bytesRead, nullptr))
-			{
+				if (!ReadFile(hFile, &reinterpret_cast<uint8*>(lpBuffer)[totalBytesRead], static_cast<DWORD>(size - totalBytesRead), &bytesRead, nullptr))
+				{
 
-				throw Exceptions::SystemException(
-					"ReadFile"
-				);
-			}
+					throw Exceptions::SystemException(
+						"ReadFile"
+					);
+				}
 #else
-			throw Exceptions::NotImplementedException();
+				throw Exceptions::NotImplementedException();
 #endif
+
+				totalBytesRead += bytesRead;
+			}
 		}
 
 		// @throw AL::Exceptions::Exception
@@ -265,27 +341,34 @@ namespace AL::GPIO
 		{
 			AL_ASSERT(IsOpen(), "UARTDevice not open");
 
+			for (size_t totalBytesWritten = 0; totalBytesWritten < size; )
+			{
 #if defined(AL_PLATFORM_LINUX)
-			if (write(hFile, lpBuffer, size) == -1)
-			{
+				int bytesWritten;
 
-				throw Exceptions::SystemException(
-					"write"
-				);
-			}
+				if ((bytesWritten = write(hFile, &reinterpret_cast<const uint8*>(lpBuffer)[totalBytesWritten], size - totalBytesWritten)) == -1)
+				{
+
+					throw Exceptions::SystemException(
+						"write"
+					);
+				}
 #elif defined(AL_PLATFORM_WINDOWS)
-			DWORD bytesWritten;
+				DWORD bytesWritten;
 
-			if (!WriteFile(hFile, lpBuffer, static_cast<DWORD>(size), &bytesWritten, nullptr))
-			{
+				if (!WriteFile(hFile, &reinterpret_cast<const uint8*>(lpBuffer)[totalBytesWritten], static_cast<DWORD>(size - totalBytesWritten), &bytesWritten, nullptr))
+				{
 
-				throw Exceptions::SystemException(
-					"WriteFile"
-				);
-			}
+					throw Exceptions::SystemException(
+						"WriteFile"
+					);
+				}
 #else
-			throw Exceptions::NotImplementedException();
+				throw Exceptions::NotImplementedException();
 #endif
+
+				totalBytesWritten += bytesWritten;
+			}
 		}
 
 		void Close()
@@ -315,6 +398,10 @@ namespace AL::GPIO
 
 			speed = device.speed;
 			device.speed = UARTDeviceSpeeds::Default;
+
+			flags = Move(
+				device.flags
+			);
 
 			return *this;
 		}

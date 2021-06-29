@@ -13,6 +13,7 @@ namespace AL::GPIO::Devices
 	{
 		GPIO::UARTDevice device;
 		String           deviceName;
+		UARTDeviceFlags  deviceFlags;
 		UARTDeviceSpeeds deviceSpeed;
 
 	public:
@@ -26,16 +27,23 @@ namespace AL::GPIO::Devices
 			deviceName(
 				Move(uartDevice.deviceName)
 			),
+			deviceFlags(
+				uartDevice.deviceFlags
+			),
 			deviceSpeed(
 				uartDevice.deviceSpeed
 			)
 		{
+			uartDevice.deviceFlags = UARTDeviceFlags::None;
 			uartDevice.deviceSpeed = UARTDeviceSpeeds::Default;
 		}
 
-		UARTDevice(String&& deviceName, UARTDeviceSpeeds deviceSpeed)
+		UARTDevice(String&& deviceName, UARTDeviceSpeeds deviceSpeed, UARTDeviceFlags flags = UARTDeviceFlags::None)
 			: deviceName(
 				Move(deviceName)
+			),
+			deviceFlags(
+				flags
 			),
 			deviceSpeed(
 				deviceSpeed
@@ -55,6 +63,9 @@ namespace AL::GPIO::Devices
 
 			deviceSpeed = uartDevice.deviceSpeed;
 			uartDevice.deviceSpeed = UARTDeviceSpeeds::Default;
+
+			deviceFlags = uartDevice.deviceFlags;
+			uartDevice.deviceFlags = UARTDeviceFlags::None;
 
 			return *this;
 		}
@@ -77,7 +88,8 @@ namespace AL::GPIO::Devices
 				GPIO::UARTDevice::Open(
 					device,
 					deviceName,
-					deviceSpeed
+					deviceSpeed,
+					deviceFlags
 				);
 			}
 			catch (Exceptions::Exception& exception)
