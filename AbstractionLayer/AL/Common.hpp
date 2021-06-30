@@ -4056,6 +4056,7 @@ namespace AL
 #include "OS/MutexCondition.hpp"
 
 #include "OS/Thread.hpp"
+#include "OS/ThreadPool.hpp"
 
 #include "OS/AsyncFunction.hpp"
 
