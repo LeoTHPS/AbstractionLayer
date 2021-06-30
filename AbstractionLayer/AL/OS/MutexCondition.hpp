@@ -11,16 +11,16 @@ namespace AL::OS
 {
 	class MutexCondition
 	{
-#if defined(AL_PLATFORM_LINUX)
-		std::condition_variable condition;
-#elif defined(AL_PLATFORM_WINDOWS)
-		CONDITION_VARIABLE condition;
-#endif
-
 		MutexCondition(MutexCondition&&) = delete;
 		MutexCondition(const MutexCondition&) = delete;
 
 	public:
+#if defined(AL_PLATFORM_LINUX)
+		typedef std::condition_variable Type;
+#elif defined(AL_PLATFORM_WINDOWS)
+		typedef CONDITION_VARIABLE Type;
+#endif
+
 		MutexCondition()
 		{
 #if defined(AL_PLATFORM_WINDOWS)
@@ -85,39 +85,41 @@ namespace AL::OS
 					exception.what()
 				);
 			}
+
+			return timer.GetElapsed() < duration;
 #elif defined(AL_PLATFORM_WINDOWS)
 			Timer timer;
 
 			if (SleepConditionVariableCS(&condition, &(mutex.operator CRITICAL_SECTION &()), static_cast<DWORD>(duration.ToMilliseconds())) == 0)
 			{
+				auto errorCode = GetLastError();
+
+				if (errorCode == ERROR_TIMEOUT)
+				{
+
+					return false;
+				}
 
 				throw Exceptions::SystemException(
-					"SleepConditionVariableCS"
+					"SleepConditionVariableCS",
+					errorCode
 				);
 			}
-#endif
 
-			return timer.GetElapsed() < duration;
+			return true;
+#endif
 		}
 
-#if defined(AL_PLATFORM_LINUX)
-		operator std::condition_variable& ()
+		operator Type& ()
 		{
 			return condition;
 		}
-		operator const std::condition_variable& () const
+		operator const Type& () const
 		{
 			return condition;
 		}
-#elif defined(AL_PLATFORM_WINDOWS)
-		operator CONDITION_VARIABLE& ()
-		{
-			return condition;
-		}
-		operator const CONDITION_VARIABLE& () const
-		{
-			return condition;
-		}
-#endif
+
+	private:
+		Type condition;
 	};
 }
