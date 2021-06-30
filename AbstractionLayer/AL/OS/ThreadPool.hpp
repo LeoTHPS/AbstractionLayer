@@ -257,6 +257,11 @@ namespace AL::OS
 			return isRunning;
 		}
 
+		auto GetWorkerCount() const
+		{
+			return workers.GetSize();
+		}
+
 		// @throw AL::Exceptions::Exception
 		void Start(size_t threadCount)
 		{
