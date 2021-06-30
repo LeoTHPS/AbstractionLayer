@@ -9,21 +9,21 @@ namespace AL::OS
 {
 	class Mutex
 	{
-#if defined(AL_PLATFORM_LINUX)
-		std::mutex mutex;
-#elif defined(AL_PLATFORM_WINDOWS)
-		CRITICAL_SECTION section;
-#endif
-
 		Mutex(Mutex&&) = delete;
 		Mutex(const Mutex&) = delete;
 
 	public:
+#if defined(AL_PLATFORM_LINUX)
+		typedef std::mutex Type;
+#elif defined(AL_PLATFORM_WINDOWS)
+		typedef CRITICAL_SECTION Type;
+#endif
+
 		Mutex()
 		{
 #if defined(AL_PLATFORM_WINDOWS)
 			InitializeCriticalSection(
-				&section
+				&mutex
 			);
 #endif
 		}
@@ -31,7 +31,7 @@ namespace AL::OS
 		virtual ~Mutex()
 		{
 #if defined(AL_PLATFORM_WINDOWS)
-			DeleteCriticalSection(&section);
+			DeleteCriticalSection(&mutex);
 #endif
 		}
 
@@ -40,7 +40,7 @@ namespace AL::OS
 #if defined(AL_PLATFORM_LINUX)
 			mutex.lock();
 #elif defined(AL_PLATFORM_WINDOWS)
-			EnterCriticalSection(&section);
+			EnterCriticalSection(&mutex);
 #endif
 		}
 
@@ -49,29 +49,21 @@ namespace AL::OS
 #if defined(AL_PLATFORM_LINUX)
 			mutex.unlock();
 #elif defined(AL_PLATFORM_WINDOWS)
-			LeaveCriticalSection(&section);
+			LeaveCriticalSection(&mutex);
 #endif
 		}
 
-#if defined(AL_PLATFORM_LINUX)
-		operator std::mutex& ()
+		operator Type& ()
 		{
 			return mutex;
 		}
-		operator const std::mutex& () const
+		operator const Type& () const
 		{
 			return mutex;
 		}
-#elif defined(AL_PLATFORM_WINDOWS)
-		operator CRITICAL_SECTION& ()
-		{
-			return section;
-		}
-		operator const CRITICAL_SECTION& () const
-		{
-			return section;
-		}
-#endif
+
+	private:
+		Type mutex;
 	};
 
 	class MutexGuard
