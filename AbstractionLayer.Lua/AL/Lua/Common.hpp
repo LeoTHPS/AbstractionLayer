@@ -784,7 +784,6 @@ AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint64, lua_Integer);
 	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(double, lua_Number);
 #endif
 
-
 #include "AL/Exceptions/LuaException.hpp"
 
 inline lua_State* AL::Lua::Stack::GetHandle() const
