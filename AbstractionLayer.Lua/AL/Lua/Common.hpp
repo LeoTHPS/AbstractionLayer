@@ -5,6 +5,10 @@
 
 #include <AL/FileSystem/Path.hpp>
 
+#if defined(AL_PLATFORM_WINDOWS)
+	#define LUA_BUILD_AS_DLL
+#endif
+
 #include "Lua543/lua.hpp"
 
 #define AL_LUA_GET_GLOBAL(state, type, name)                     state.GetGlobal<type>(name)
