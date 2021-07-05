@@ -193,6 +193,76 @@ namespace AL::Lua
 	{
 		friend State;
 
+		State* lpState;
+
+		Stack(const Stack&) = delete;
+
+		explicit Stack(State& state)
+			: lpState(
+				&state
+			)
+		{
+		}
+
+	public:
+		Stack(Stack&& stack)
+			: lpState(
+				stack.lpState
+			)
+		{
+			stack.lpState = nullptr;
+		}
+
+		virtual ~Stack()
+		{
+		}
+
+		lua_State* GetHandle() const;
+
+		template<typename T>
+		T    Get(size_t index = 1) const
+		{
+			return Extensions::Type_Functions<T>::Get(
+				GetHandle(),
+				index
+			);
+		}
+
+		template<typename T>
+		void Push(T value)
+		{
+			Extensions::Type_Functions<T>::Push(
+				GetHandle(),
+				Forward<T>(value)
+			);
+		}
+
+		template<typename T>
+		T    Pop()
+		{
+			return Extensions::Type_Functions<T>::Pop(
+				GetHandle()
+			);
+		}
+		void Pop(size_t count = 1)
+		{
+			lua_pop(
+				GetHandle(),
+				static_cast<int>(count & 0x7FFFFFFF)
+			);
+		}
+
+		auto& operator = (Stack&& stack)
+		{
+			lpState = stack.lpState;
+			stack.lpState = nullptr;
+
+			return *this;
+		}
+	};
+
+	class State
+	{
 		template<auto F>
 		class Function
 		{
@@ -529,76 +599,6 @@ namespace AL::Lua
 			}
 		};
 
-		State* lpState;
-
-		Stack(const Stack&) = delete;
-
-		explicit Stack(State& state)
-			: lpState(
-				&state
-			)
-		{
-		}
-
-	public:
-		Stack(Stack&& stack)
-			: lpState(
-				stack.lpState
-			)
-		{
-			stack.lpState = nullptr;
-		}
-
-		virtual ~Stack()
-		{
-		}
-
-		lua_State* GetHandle() const;
-
-		template<typename T>
-		T    Get(size_t index = 1) const
-		{
-			return Extensions::Type_Functions<T>::Get(
-				GetHandle(),
-				index
-			);
-		}
-
-		template<typename T>
-		void Push(T value)
-		{
-			Extensions::Type_Functions<T>::Push(
-				GetHandle(),
-				Forward<T>(value)
-			);
-		}
-
-		template<typename T>
-		T    Pop()
-		{
-			return Extensions::Type_Functions<T>::Pop(
-				GetHandle()
-			);
-		}
-		void Pop(size_t count = 1)
-		{
-			lua_pop(
-				GetHandle(),
-				static_cast<int>(count & 0x7FFFFFFF)
-			);
-		}
-
-		auto& operator = (Stack&& stack)
-		{
-			lpState = stack.lpState;
-			stack.lpState = nullptr;
-
-			return *this;
-		}
-	};
-
-	class State
-	{
 		bool isCreated = false;
 
 		lua_State* lua;
@@ -639,7 +639,7 @@ namespace AL::Lua
 			return isCreated;
 		}
 
-		auto GetHandle() const
+		lua_State* GetHandle() const
 		{
 			return lua;
 		}
@@ -674,25 +674,28 @@ namespace AL::Lua
 		}
 
 		template<typename T>
-		auto GetGlobal(const String& name)
+		auto GetGlobal(const String& name) const
 		{
 			lua_getglobal(
-				lua,
+				GetHandle(),
 				name.GetCString()
 			);
 
-			return GetStack().Pop<T>();
+			return Extensions::Type_Functions<T>::Pop(
+				GetHandle()
+			);
 		}
 
 		template<typename T>
 		void SetGlobal(const String& name, T value)
 		{
-			GetStack().Push<T>(
+			Extensions::Type_Functions<T>::Push(
+				GetHandle(),
 				Forward<T>(value)
 			);
 
 			lua_setglobal(
-				lua,
+				GetHandle(),
 				name.GetCString()
 			);
 		}
@@ -702,15 +705,15 @@ namespace AL::Lua
 		{
 			SetGlobal(
 				name,
-				&Stack::Function<F>::Execute
+				&Function<F>::Execute
 			);
 		}
 
 		template<typename F, typename ... TArgs>
 		auto CallGlobalFunction(const String& name, TArgs ... args)
 		{
-			return Stack::LuaFunction<F>::Execute(
-				lua,
+			return LuaFunction<F>::Execute(
+				GetHandle(),
 				name,
 				Forward<TArgs>(args) ...
 			);
@@ -745,8 +748,10 @@ namespace AL::Lua
 		virtual void OnDestroy()
 		{
 			lua_close(
-				lua
+				GetHandle()
 			);
+
+			lua = nullptr;
 		}
 	};
 }
