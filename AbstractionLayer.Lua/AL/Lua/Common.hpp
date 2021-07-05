@@ -23,7 +23,7 @@
 
 #define AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(type, get, push, pop) \
 	template<> \
-	struct AL::Lua::Stack::Type_Functions<type> \
+	struct AL::Lua::Extensions::Type_Functions<type> \
 	{ \
 		static constexpr auto Get  = get; \
 		static constexpr auto Push = push; \
@@ -32,22 +32,167 @@
 
 #define AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(type, alias) \
 	template<> \
-	struct AL::Lua::Stack::Type_Functions<type> \
-		: public AL::Lua::Stack::Type_Functions<alias> \
+	struct AL::Lua::Extensions::Type_Functions<type> \
+		: public AL::Lua::Extensions::Type_Functions<alias> \
 	{ \
 	}
 
 namespace AL::Lua
 {
+	namespace Extensions
+	{
+		template<typename T>
+		struct Type_Functions;
+
+		static nullptr_t     getnil(lua_State* lua, size_t index)
+		{
+			return nullptr;
+		}
+		static const char*   getstring(lua_State* lua, size_t index)
+		{
+			auto value = lua_tostring(
+				lua,
+				static_cast<int>(index & 0x7FFFFFFF)
+			);
+
+			return value;
+		}
+		static String        getString(lua_State* lua, size_t index)
+		{
+			auto lpString = getstring(
+				lua,
+				index
+			);
+
+			return String(
+				lpString ? lpString : ""
+			);
+		}
+		static bool          getboolean(lua_State* lua, size_t index)
+		{
+			auto value = lua_toboolean(
+				lua,
+				static_cast<int>(index & 0x7FFFFFFF)
+			);
+
+			return value == 1;
+		}
+		static void*         getlightuserdata(lua_State* lua, size_t index)
+		{
+			auto value = lua_touserdata(
+				lua,
+				static_cast<int>(index & 0x7FFFFFFF)
+			);
+
+			return value;
+		}
+		static lua_Number    getnumber(lua_State* lua, size_t index)
+		{
+			auto value = lua_tonumber(
+				lua,
+				static_cast<int>(index & 0x7FFFFFFF)
+			);
+
+			return value;
+		}
+		static lua_Integer   getinteger(lua_State* lua, size_t index)
+		{
+			auto value = lua_tointeger(
+				lua,
+				static_cast<int>(index & 0x7FFFFFFF)
+			);
+
+			return value;
+		}
+		static lua_CFunction getcfunction(lua_State* lua, size_t index)
+		{
+			auto value = lua_tocfunction(
+				lua,
+				static_cast<int>(index & 0x7FFFFFFF)
+			);
+
+			return value;
+		}
+
+		static void pushnil(lua_State* lua, nullptr_t)
+		{
+			lua_pushnil(
+				lua
+			);
+		}
+		static void pushstring(lua_State* lua, const char* value)
+		{
+			lua_pushstring(
+				lua,
+				value
+			);
+		}
+		static void pushString(lua_State* lua, const String& value)
+		{
+			pushstring(
+				lua,
+				value.GetCString()
+			);
+		}
+		static void pushboolean(lua_State* lua, bool value)
+		{
+			lua_pushboolean(
+				lua,
+				value ? 1 : 0
+			);
+		}
+		static void pushlightuserdata(lua_State* lua, void* value)
+		{
+			lua_pushlightuserdata(
+				lua,
+				value
+			);
+		}
+		static void pushnumber(lua_State* lua, lua_Number value)
+		{
+			lua_pushnumber(
+				lua,
+				value
+			);
+		}
+		static void pushinteger(lua_State* lua, lua_Integer value)
+		{
+			lua_pushinteger(
+				lua,
+				value
+			);
+		}
+		static void pushcfunction(lua_State* lua, lua_CFunction value)
+		{
+			lua_pushcfunction(
+				lua,
+				value
+			);
+		}
+
+		template<typename T>
+		static T    pop(lua_State* lua, size_t count = 1)
+		{
+			auto value = Type_Functions<T>::Get(
+				lua,
+				1
+			);
+
+			lua_pop(
+				lua,
+				static_cast<int>(count & 0x7FFFFFFF)
+			);
+
+			return value;
+		}
+	}
+
 	class State;
 
 	class Stack
 	{
 		friend State;
 
-		template<typename T>
-		struct Type_Functions;
-		
 		template<auto F>
 		class Function
 		{
@@ -74,7 +219,7 @@ namespace AL::Lua
 						GetArg<INDEXES>(lua) ...
 					);
 
-					Type_Functions<T>::Push(
+					Extensions::Type_Functions<T>::Push(
 						lua,
 						result
 					);
@@ -86,7 +231,7 @@ namespace AL::Lua
 				static constexpr auto Get(lua_State* lua)
 				{
 					return static_cast<T_ARG>(
-						Type_Functions<T_ARG>::Get(lua, INDEX + 1)
+						Extensions::Type_Functions<T_ARG>::Get(lua, INDEX + 1)
 					);
 				}
 
@@ -126,7 +271,7 @@ namespace AL::Lua
 				static constexpr auto Get(lua_State* lua)
 				{
 					return static_cast<T_ARG>(
-						Type_Functions<T_ARG>::Get(lua, INDEX + 1)
+						Extensions::Type_Functions<T_ARG>::Get(lua, INDEX + 1)
 					);
 				}
 
@@ -172,7 +317,7 @@ namespace AL::Lua
 				static constexpr auto Get(lua_State* lua)
 				{
 					return static_cast<T_ARG>(
-						Type_Functions<T_ARG>::Get(lua, INDEX + 1)
+						Extensions::Type_Functions<T_ARG>::Get(lua, INDEX + 1)
 					);
 				}
 
@@ -190,7 +335,7 @@ namespace AL::Lua
 				template<typename T_RETURN, typename ... T_RETURN_VALUES>
 				static constexpr void PushReturnValues(lua_State* lua, T_RETURN value, T_RETURN_VALUES ... values)
 				{
-					Type_Functions<T_RETURN>::Push(
+					Extensions::Type_Functions<T_RETURN>::Push(
 						lua,
 						Forward<T_RETURN>(value)
 					);
@@ -242,7 +387,7 @@ namespace AL::Lua
 						1
 					);
 
-					return Type_Functions<T_RETURN>::Pop(
+					return Extensions::Type_Functions<T_RETURN>::Pop(
 						lua
 					);
 				}
@@ -254,7 +399,7 @@ namespace AL::Lua
 				template<typename _T_ARG, typename ... _T_ARGS>
 				static constexpr void PushArgs(lua_State* lua, _T_ARG arg, _T_ARGS ... args)
 				{
-					Type_Functions<_T_ARG>::Push(
+					Extensions::Type_Functions<_T_ARG>::Push(
 						lua,
 						Forward<_T_ARG>(arg)
 					);
@@ -295,7 +440,7 @@ namespace AL::Lua
 				template<typename _T_ARG, typename ... _T_ARGS>
 				static constexpr void PushArgs(lua_State* lua, _T_ARG arg, _T_ARGS ... args)
 				{
-					Type_Functions<_T_ARG>::Push(
+					Extensions::Type_Functions<_T_ARG>::Push(
 						lua,
 						Forward<_T_ARG>(arg)
 					);
@@ -351,7 +496,7 @@ namespace AL::Lua
 				template<typename _T_ARG, typename ... _T_ARGS>
 				static constexpr void PushArgs(lua_State* lua, _T_ARG arg, _T_ARGS ... args)
 				{
-					Type_Functions<_T_ARG>::Push(
+					Extensions::Type_Functions<_T_ARG>::Push(
 						lua,
 						Forward<_T_ARG>(arg)
 					);
@@ -365,7 +510,7 @@ namespace AL::Lua
 				template<size_t INDEX>
 				static constexpr auto PopReturnValue(lua_State* lua)
 				{
-					return Type_Functions<typename Get_Type_Sequence<INDEX, T_RETURN ...>::Type>::Pop(
+					return Extensions::Type_Functions<typename Get_Type_Sequence<INDEX, T_RETURN ...>::Type>::Pop(
 						lua
 					);
 				}
@@ -413,7 +558,7 @@ namespace AL::Lua
 		template<typename T>
 		T    Get(size_t index = 1) const
 		{
-			return Type_Functions<T>::Get(
+			return Extensions::Type_Functions<T>::Get(
 				GetHandle(),
 				index
 			);
@@ -422,7 +567,7 @@ namespace AL::Lua
 		template<typename T>
 		void Push(T value)
 		{
-			Type_Functions<T>::Push(
+			Extensions::Type_Functions<T>::Push(
 				GetHandle(),
 				Forward<T>(value)
 			);
@@ -431,7 +576,7 @@ namespace AL::Lua
 		template<typename T>
 		T    Pop()
 		{
-			return Type_Functions<T>::Pop(
+			return Extensions::Type_Functions<T>::Pop(
 				GetHandle()
 			);
 		}
@@ -449,148 +594,6 @@ namespace AL::Lua
 			stack.lpState = nullptr;
 
 			return *this;
-		}
-
-		static nullptr_t     _lua_getnil(lua_State* lua, size_t index)
-		{
-			return nullptr;
-		}
-		static const char*   _lua_getstring(lua_State* lua, size_t index)
-		{
-			auto value = lua_tostring(
-				lua,
-				static_cast<int>(index & 0x7FFFFFFF)
-			);
-
-			return value;
-		}
-		static String        _lua_getString(lua_State* lua, size_t index)
-		{
-			auto lpString = _lua_getstring(
-				lua,
-				index
-			);
-
-			return String(
-				lpString
-			);
-		}
-		static bool          _lua_getboolean(lua_State* lua, size_t index)
-		{
-			auto value = lua_toboolean(
-				lua,
-				static_cast<int>(index & 0x7FFFFFFF)
-			);
-
-			return value == 1;
-		}
-		static void*         _lua_getlightuserdata(lua_State* lua, size_t index)
-		{
-			auto value = lua_touserdata(
-				lua,
-				static_cast<int>(index & 0x7FFFFFFF)
-			);
-
-			return value;
-		}
-		static lua_Number    _lua_getnumber(lua_State* lua, size_t index)
-		{
-			auto value = lua_tonumber(
-				lua,
-				static_cast<int>(index & 0x7FFFFFFF)
-			);
-
-			return value;
-		}
-		static lua_Integer   _lua_getinteger(lua_State* lua, size_t index)
-		{
-			auto value = lua_tointeger(
-				lua,
-				static_cast<int>(index & 0x7FFFFFFF)
-			);
-
-			return value;
-		}
-		static lua_CFunction _lua_getcfunction(lua_State* lua, size_t index)
-		{
-			auto value = lua_tocfunction(
-				lua,
-				static_cast<int>(index & 0x7FFFFFFF)
-			);
-
-			return value;
-		}
-
-		static void _lua_pushnil(lua_State* lua, nullptr_t)
-		{
-			lua_pushnil(
-				lua
-			);
-		}
-		static void _lua_pushstring(lua_State* lua, const char* value)
-		{
-			lua_pushstring(
-				lua,
-				value
-			);
-		}
-		static void _lua_pushString(lua_State* lua, const String& value)
-		{
-			_lua_pushstring(
-				lua,
-				value.GetCString()
-			);
-		}
-		static void _lua_pushboolean(lua_State* lua, bool value)
-		{
-			lua_pushboolean(
-				lua,
-				value ? 1 : 0
-			);
-		}
-		static void _lua_pushlightuserdata(lua_State* lua, void* value)
-		{
-			lua_pushlightuserdata(
-				lua,
-				value
-			);
-		}
-		static void _lua_pushnumber(lua_State* lua, lua_Number value)
-		{
-			lua_pushnumber(
-				lua,
-				value
-			);
-		}
-		static void _lua_pushinteger(lua_State* lua, lua_Integer value)
-		{
-			lua_pushinteger(
-				lua,
-				value
-			);
-		}
-		static void _lua_pushcfunction(lua_State* lua, lua_CFunction value)
-		{
-			lua_pushcfunction(
-				lua,
-				value
-			);
-		}
-
-		template<typename T>
-		static T    _lua_pop(lua_State* lua, size_t count = 1)
-		{
-			auto value = Type_Functions<T>::Get(
-				lua,
-				1
-			);
-
-			lua_pop(
-				lua,
-				static_cast<int>(count & 0x7FFFFFFF)
-			);
-
-			return value;
 		}
 	};
 
@@ -748,16 +751,14 @@ namespace AL::Lua
 	};
 }
 
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(nullptr_t,     &AL::Lua::Stack::_lua_getnil,           &AL::Lua::Stack::_lua_pushnil,           &AL::Lua::Stack::_lua_pop<nullptr_t>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(bool,          &AL::Lua::Stack::_lua_getboolean,       &AL::Lua::Stack::_lua_pushboolean,       &AL::Lua::Stack::_lua_pop<bool>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(void*,         &AL::Lua::Stack::_lua_getlightuserdata, &AL::Lua::Stack::_lua_pushlightuserdata, &AL::Lua::Stack::_lua_pop<void*>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(lua_Number,    &AL::Lua::Stack::_lua_getnumber,        &AL::Lua::Stack::_lua_pushnumber,        &AL::Lua::Stack::_lua_pop<lua_Number>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(lua_Integer,   &AL::Lua::Stack::_lua_getinteger,       &AL::Lua::Stack::_lua_pushinteger,       &AL::Lua::Stack::_lua_pop<lua_Integer>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(const char*,   &AL::Lua::Stack::_lua_getstring,        &AL::Lua::Stack::_lua_pushstring,        &AL::Lua::Stack::_lua_pop<const char*>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(AL::String,    &AL::Lua::Stack::_lua_getString,        &AL::Lua::Stack::_lua_pushString,        &AL::Lua::Stack::_lua_pop<AL::String>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(lua_CFunction, &AL::Lua::Stack::_lua_getcfunction,     &AL::Lua::Stack::_lua_pushcfunction,     &AL::Lua::Stack::_lua_pop<lua_CFunction>);
-
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(const AL::String&, AL::String);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(nullptr_t,     &AL::Lua::Extensions::getnil,           &AL::Lua::Extensions::pushnil,           &AL::Lua::Extensions::pop<nullptr_t>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(bool,          &AL::Lua::Extensions::getboolean,       &AL::Lua::Extensions::pushboolean,       &AL::Lua::Extensions::pop<bool>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(void*,         &AL::Lua::Extensions::getlightuserdata, &AL::Lua::Extensions::pushlightuserdata, &AL::Lua::Extensions::pop<void*>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(lua_Number,    &AL::Lua::Extensions::getnumber,        &AL::Lua::Extensions::pushnumber,        &AL::Lua::Extensions::pop<lua_Number>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(lua_Integer,   &AL::Lua::Extensions::getinteger,       &AL::Lua::Extensions::pushinteger,       &AL::Lua::Extensions::pop<lua_Integer>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(const char*,   &AL::Lua::Extensions::getstring,        &AL::Lua::Extensions::pushstring,        &AL::Lua::Extensions::pop<const char*>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(AL::String,    &AL::Lua::Extensions::getString,        &AL::Lua::Extensions::pushString,        &AL::Lua::Extensions::pop<AL::String>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(lua_CFunction, &AL::Lua::Extensions::getcfunction,     &AL::Lua::Extensions::pushcfunction,     &AL::Lua::Extensions::pop<lua_CFunction>);
 
 AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int8,  lua_Integer);
 AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint8, lua_Integer);
@@ -783,6 +784,8 @@ AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint64, lua_Integer);
 	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(float,  lua_Number);
 	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(double, lua_Number);
 #endif
+
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(const AL::String&, AL::String);
 
 #include "AL/Exceptions/LuaException.hpp"
 
