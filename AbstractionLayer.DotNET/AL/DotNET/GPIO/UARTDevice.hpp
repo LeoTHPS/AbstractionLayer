@@ -14,6 +14,15 @@ namespace AL::DotNET::GPIO
 	{
 		AL::GPIO::UARTDevice* const lpDevice;
 
+		explicit UARTDevice(AL::GPIO::UARTDevice&& device)
+			: lpDevice(
+				new AL::GPIO::UARTDevice(
+					Move(device)
+				)
+			)
+		{
+		}
+
 	public:
 		/// <exception cref="AL::DotNET::Exceptions::Exception" />
 		static void Open([::System::Runtime::InteropServices::Out] UARTDevice^% device, ::System::String^ name, UARTDeviceSpeeds speed)
@@ -28,12 +37,12 @@ namespace AL::DotNET::GPIO
 		/// <exception cref="AL::DotNET::Exceptions::Exception" />
 		static void Open([::System::Runtime::InteropServices::Out] UARTDevice^% device, ::System::String^ name, UARTDeviceSpeeds speed, UARTDeviceFlags flags)
 		{
-			device = gcnew UARTDevice();
+			AL::GPIO::UARTDevice _device;
 
 			try
 			{
 				AL::GPIO::UARTDevice::Open(
-					*device->lpDevice,
+					_device,
 					Marshal::ToNativeString(name),
 					static_cast<AL::GPIO::UARTDeviceSpeeds>(speed),
 					static_cast<AL::GPIO::UARTDeviceFlags>(flags)
@@ -41,19 +50,15 @@ namespace AL::DotNET::GPIO
 			}
 			catch (const AL::Exceptions::Exception& exception)
 			{
-				delete device;
 
 				throw gcnew Exceptions::Exception(
 					exception
 				);
 			}
-		}
 
-		UARTDevice()
-			: lpDevice(
-				new AL::GPIO::UARTDevice()
-			)
-		{
+			device = gcnew UARTDevice(
+				Move(_device)
+			);
 		}
 
 		virtual ~UARTDevice()
