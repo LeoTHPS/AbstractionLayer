@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{33AC2AE0-65E6-48D7-8A19-81DB38493D66}</ProjectGuid>
+    <RootNamespace>AbstractionLayer</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)Build\$(Configuration)_$(PlatformShortName)\</OutDir>
+    <IntDir>$(SolutionDir)Build\$(Configuration)_$(PlatformShortName)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)Build\$(Configuration)_$(PlatformShortName)\</OutDir>
+    <IntDir>$(SolutionDir)Build\$(Configuration)_$(PlatformShortName)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)Build\$(Configuration)_$(PlatformShortName)\</OutDir>
+    <IntDir>$(SolutionDir)Build\$(Configuration)_$(PlatformShortName)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)Build\$(Configuration)_$(PlatformShortName)\</OutDir>
+    <IntDir>$(SolutionDir)Build\$(Configuration)_$(PlatformShortName)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
+      <PrecompiledHeader>Create</PrecompiledHeader>
+      <PrecompiledHeaderFile>AL/Common.hpp</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
+      <PrecompiledHeader>Create</PrecompiledHeader>
+      <PrecompiledHeaderFile>AL/Common.hpp</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
+      <PrecompiledHeader>Create</PrecompiledHeader>
+      <PrecompiledHeaderFile>AL/Common.hpp</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
+      <PrecompiledHeader>Create</PrecompiledHeader>
+      <PrecompiledHeaderFile>AL/Common.hpp</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="AL\Algorithms\CRC.hpp" />
+    <ClInclude Include="AL\Algorithms\FNV.hpp" />
+    <ClInclude Include="AL\Algorithms\Isaac.hpp" />
+    <ClInclude Include="AL\Algorithms\Sha1.hpp" />
+    <ClInclude Include="AL\Assembly\Instructions\Move.hpp" />
+    <ClInclude Include="AL\Bluetooth\Device.hpp" />
+    <ClInclude Include="AL\Bluetooth\Radio.hpp" />
+    <ClInclude Include="AL\Collections\Array.hpp" />
+    <ClInclude Include="AL\Collections\BitSet.hpp" />
+    <ClInclude Include="AL\Collections\ByteBuffer.hpp" />
+    <ClInclude Include="AL\Collections\CircularQueue.hpp" />
+    <ClInclude Include="AL\Collections\Dictionary.hpp" />
+    <ClInclude Include="AL\Collections\EncryptedString.hpp" />
+    <ClInclude Include="AL\Collections\Iterator.hpp" />
+    <ClInclude Include="AL\Collections\KeyValuePair.hpp" />
+    <ClInclude Include="AL\Collections\List.hpp" />
+    <ClInclude Include="AL\Collections\Map.hpp" />
+    <ClInclude Include="AL\Collections\MPMCQueue.hpp" />
+    <ClInclude Include="AL\Collections\MPSCQueue.hpp" />
+    <ClInclude Include="AL\Collections\Graph.hpp" />
+    <ClInclude Include="AL\Collections\Queue.hpp" />
+    <ClInclude Include="AL\Collections\Set.hpp" />
+    <ClInclude Include="AL\Collections\Stack.hpp" />
+    <ClInclude Include="AL\Collections\String.hpp" />
+    <ClInclude Include="AL\Collections\Tuple.hpp" />
+    <ClInclude Include="AL\Collections\UnorderedSet.hpp" />
+    <ClInclude Include="AL\Common.hpp" />
+    <ClInclude Include="AL\DirectX\Direct2D.hpp" />
+    <ClInclude Include="AL\DirectX\Direct3D.hpp" />
+    <ClInclude Include="AL\DirectX\Direct3D10.hpp" />
+    <ClInclude Include="AL\DirectX\Direct3D11.hpp" />
+    <ClInclude Include="AL\DirectX\Direct3D12.hpp" />
+    <ClInclude Include="AL\DirectX\DirectSound.hpp" />
+    <ClInclude Include="AL\DirectX\FeatureLevels.hpp" />
+    <ClInclude Include="AL\DirectX\Resource.hpp" />
+    <ClInclude Include="AL\DotNET\Marshal.hpp" />
+    <ClInclude Include="AL\DotNET\Runtime.hpp" />
+    <ClInclude Include="AL\Exceptions\CommDialogException.hpp" />
+    <ClInclude Include="AL\Exceptions\DependencyMissingException.hpp" />
+    <ClInclude Include="AL\Exceptions\DirectSoundException.hpp" />
+    <ClInclude Include="AL\Exceptions\DotNETException.hpp" />
+    <ClInclude Include="AL\Exceptions\Exception.hpp" />
+    <ClInclude Include="AL\Exceptions\SocketException.hpp" />
+    <ClInclude Include="AL\Exceptions\SystemException.hpp" />
+    <ClInclude Include="AL\Exceptions\NotImplementedException.hpp" />
+    <ClInclude Include="AL\FileSystem\BinaryFile.hpp" />
+    <ClInclude Include="AL\FileSystem\Directory.hpp" />
+    <ClInclude Include="AL\FileSystem\File.hpp" />
+    <ClInclude Include="AL\FileSystem\INIFile.hpp" />
+    <ClInclude Include="AL\FileSystem\LogFile.hpp" />
+    <ClInclude Include="AL\FileSystem\Path.hpp" />
+    <ClInclude Include="AL\FileSystem\TextFile.hpp" />
+    <ClInclude Include="AL\GPIO\Devices\AHT10.hpp" />
+    <ClInclude Include="AL\GPIO\Devices\BMP180.hpp" />
+    <ClInclude Include="AL\GPIO\Devices\BN_180.hpp" />
+    <ClInclude Include="AL\GPIO\Devices\Device.hpp" />
+    <ClInclude Include="AL\GPIO\Devices\DHT22.hpp" />
+    <ClInclude Include="AL\GPIO\Devices\I2CDevice.hpp" />
+    <ClInclude Include="AL\GPIO\Devices\RCWL_0516.hpp" />
+    <ClInclude Include="AL\GPIO\Devices\SPIDevice.hpp" />
+    <ClInclude Include="AL\GPIO\Devices\MCP3008.hpp" />
+    <ClInclude Include="AL\GPIO\Devices\SSD1306.hpp" />
+    <ClInclude Include="AL\GPIO\Devices\Stepper_28BYJ_48.hpp" />
+    <ClInclude Include="AL\GPIO\Devices\UARTDevice.hpp" />
+    <ClInclude Include="AL\GPIO\I2CBus.hpp" />
+    <ClInclude Include="AL\GPIO\I2CDevice.hpp" />
+    <ClInclude Include="AL\GPIO\Pin.hpp" />
+    <ClInclude Include="AL\GPIO\PWMPin.hpp" />
+    <ClInclude Include="AL\GPIO\SPIDevice.hpp" />
+    <ClInclude Include="AL\GPIO\UARTDevice.hpp" />
+    <ClInclude Include="AL\GPIO\UARTDeviceSpeeds.hpp" />
+    <ClInclude Include="AL\GPIO\UARTDeviceFlags.hpp" />
+    <ClInclude Include="AL\Graphics\Color.hpp" />
+    <ClInclude Include="AL\Graphics\Colors.hpp" />
+    <ClInclude Include="AL\Graphics\Rectangle.hpp" />
+    <ClInclude Include="AL\Graphics\RenderTarget.hpp" />
+    <ClInclude Include="AL\Graphics\RenderWindow.hpp" />
+    <ClInclude Include="AL\Graphics\Vector.hpp" />
+    <ClInclude Include="AL\Input\InputState.hpp" />
+    <ClInclude Include="AL\Input\KeyboardEvent.hpp" />
+    <ClInclude Include="AL\Input\KeyboardEvents.hpp" />
+    <ClInclude Include="AL\Input\KeyboardState.hpp" />
+    <ClInclude Include="AL\Input\Keys.hpp" />
+    <ClInclude Include="AL\Input\MouseButtons.hpp" />
+    <ClInclude Include="AL\Input\MouseEvent.hpp" />
+    <ClInclude Include="AL\Input\MouseEvents.hpp" />
+    <ClInclude Include="AL\Input\MousePosition.hpp" />
+    <ClInclude Include="AL\Input\MouseState.hpp" />
+    <ClInclude Include="AL\Assembly\Address.hpp" />
+    <ClInclude Include="AL\Assembly\Assembler.hpp" />
+    <ClInclude Include="AL\Assembly\Buffer.hpp" />
+    <ClInclude Include="AL\Assembly\Instructions\Instruction.hpp" />
+    <ClInclude Include="AL\Assembly\Instructions\Add.hpp" />
+    <ClInclude Include="AL\Assembly\Instructions\Call.hpp" />
+    <ClInclude Include="AL\Assembly\Instructions\Compare.hpp" />
+    <ClInclude Include="AL\Assembly\Instructions\Copy.hpp" />
+    <ClInclude Include="AL\Assembly\Instructions\Divide.hpp" />
+    <ClInclude Include="AL\Assembly\Instructions\Jump.hpp" />
+    <ClInclude Include="AL\Assembly\Instructions\JumpIfEqual.hpp" />
+    <ClInclude Include="AL\Assembly\Instructions\JumpIfGreaterThan.hpp" />
+    <ClInclude Include="AL\Assembly\Instructions\JumpIfLessThan.hpp" />
+    <ClInclude Include="AL\Assembly\Instructions\JumpIfNotEqual.hpp" />
+    <ClInclude Include="AL\Assembly\Instructions\JumpIfNotZero.hpp" />
+    <ClInclude Include="AL\Assembly\Instructions\Multiply.hpp" />
+    <ClInclude Include="AL\Assembly\Instructions\Pop.hpp" />
+    <ClInclude Include="AL\Assembly\Instructions\Push.hpp" />
+    <ClInclude Include="AL\Assembly\Instructions\Registers.hpp" />
+    <ClInclude Include="AL\Assembly\Instructions\Return.hpp" />
+    <ClInclude Include="AL\Assembly\Instructions\ShiftLeft.hpp" />
+    <ClInclude Include="AL\Assembly\Instructions\ShiftRight.hpp" />
+    <ClInclude Include="AL\Assembly\Instructions\Subtract.hpp" />
+    <ClInclude Include="AL\OpenGL\Device.hpp" />
+    <ClInclude Include="AL\OS\AsyncFunction.hpp" />
+    <ClInclude Include="AL\OS\CompletionPort.hpp" />
+    <ClInclude Include="AL\OS\FileDialog.hpp" />
+    <ClInclude Include="AL\OS\MutexCondition.hpp" />
+    <ClInclude Include="AL\OS\Detour.hpp" />
+    <ClInclude Include="AL\OS\Dialog.hpp" />
+    <ClInclude Include="AL\OS\Environment.hpp" />
+    <ClInclude Include="AL\OS\ErrorCode.hpp" />
+    <ClInclude Include="AL\OS\Console.hpp" />
+    <ClInclude Include="AL\OS\Debug.hpp" />
+    <ClInclude Include="AL\OS\Library.hpp" />
+    <ClInclude Include="AL\OS\Mutex.hpp" />
+    <ClInclude Include="AL\OS\OpenFileDialog.hpp" />
+    <ClInclude Include="AL\OS\NamedPipe.hpp" />
+    <ClInclude Include="AL\OS\Process.hpp" />
+    <ClInclude Include="AL\OS\ntdll.hpp" />
+    <ClInclude Include="AL\OS\SaveFileDialog.hpp" />
+    <ClInclude Include="AL\OS\System.hpp" />
+    <ClInclude Include="AL\OS\Thread.hpp" />
+    <ClInclude Include="AL\OS\ThreadPool.hpp" />
+    <ClInclude Include="AL\OS\ThreadPoolTask.hpp" />
+    <ClInclude Include="AL\OS\ThreadPoolTaskHandle.hpp" />
+    <ClInclude Include="AL\OS\Timer.hpp" />
+    <ClInclude Include="AL\OS\Window.hpp" />
+    <ClInclude Include="AL\Sockets\IPAddress.hpp" />
+    <ClInclude Include="AL\Sockets\IPEndPoint.hpp" />
+    <ClInclude Include="AL\Sockets\Socket.hpp" />
+    <ClInclude Include="AL\Sockets\WinSock.hpp" />
+    <ClInclude Include="AL\FileSystem\DataFile.hpp" />
+    <ClInclude Include="AL\USB\Device.hpp" />
+    <ClInclude Include="AL\Web\DOM\Element.hpp" />
+    <ClInclude Include="AL\Web\DOM\ElementAttribute.hpp" />
+    <ClInclude Include="AL\WiFi\NetworkCipherAlgorithms.hpp" />
+    <ClInclude Include="AL\WiFi\NetworkInformation.hpp" />
+    <ClInclude Include="AL\WiFi\Device.hpp" />
+    <ClInclude Include="AL\WiFi\NetworkAuthAlgorithms.hpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
