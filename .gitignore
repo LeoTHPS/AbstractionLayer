@@ -5,7 +5,6 @@
 *.sln.docstates
 
 # Visual Studio solution/project files
-*.sln
 *.vcxproj.filters
 
 # Build results
