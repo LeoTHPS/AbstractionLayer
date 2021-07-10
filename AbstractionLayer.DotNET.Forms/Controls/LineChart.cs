@@ -5,62 +5,62 @@ using System.Collections.Generic;
 
 namespace AL.DotNET.Forms.Controls
 {
-    public partial class WaveForm
+    public partial class LineChart
         : UserControl
     {
-        const int WAVE_SAMPLE_REFERENCE_LINE_PADDING = 15;
+        const int DATA_SAMPLE_REFERENCE_LINE_PADDING = 15;
 
-        Color              waveColor;
-        readonly List<int> waveSamples;
-        int                waveSampleMin = 0;
-        int                waveSampleMax = 0;
-        uint               waveSampleSpacing = 10;
-        HScrollBar         waveScrollBar;
+        readonly List<int> dataSamples;
+        int                dataSampleMin = 0;
+        int                dataSampleMax = 0;
+        Color              dataSampleColor;
+        uint               dataSampleSpacing = 10;
+        HScrollBar         dataSampleScrollBar;
         
-        public Color WaveColor
+        public IReadOnlyList<int> Samples
         {
             get
             {
-                return waveColor;
+                return dataSamples;
+            }
+        }
+
+        public Color SampleColor
+        {
+            get
+            {
+                return dataSampleColor;
             }
             set
             {
-                waveColor = value;
-
-                Refresh();
-            }
-        }
-        
-        public IReadOnlyList<int> WaveSamples
-        {
-            get
-            {
-                return waveSamples;
-            }
-        }
-        
-        public uint WaveSampleSpacing
-        {
-            get
-            {
-                return waveSampleSpacing;
-            }
-            set
-            {
-                waveSampleSpacing = value;
+                dataSampleColor = value;
 
                 Refresh();
             }
         }
 
-        public WaveForm()
+        public uint SampleSpacing
         {
-            waveColor = ForeColor;
-            waveSamples = new List<int>();
+            get
+            {
+                return dataSampleSpacing;
+            }
+            set
+            {
+                dataSampleSpacing = value;
+
+                Refresh();
+            }
+        }
+
+        public LineChart()
+        {
+            dataSampleColor = ForeColor;
+            dataSamples = new List<int>();
 
             InitializeComponent();
             
-            waveScrollBar.Scroll += delegate (object _sender, ScrollEventArgs _e)
+            dataSampleScrollBar.Scroll += delegate (object _sender, ScrollEventArgs _e)
             {
                 if (_e.NewValue != _e.OldValue)
                 {
@@ -69,64 +69,64 @@ namespace AL.DotNET.Forms.Controls
             };
         }
 
-        public void AddWaveSample(int value)
+        public void AddSample(int value)
         {
-            waveSamples.Add(
+            dataSamples.Add(
                 value
             );
 
-            if (value < waveSampleMin)
+            if (value < dataSampleMin)
             {
 
-                waveSampleMin = value;
+                dataSampleMin = value;
             }
 
-            if (value > waveSampleMax)
+            if (value > dataSampleMax)
             {
 
-                waveSampleMax = value;
+                dataSampleMax = value;
             }
 
-            ++waveScrollBar.Maximum;
+            ++dataSampleScrollBar.Maximum;
 
             Refresh();
         }
 
-        public void AddWaveSampleRange(int[] values)
+        public void AddSamples(int[] values)
         {
-            waveSamples.AddRange(
+            dataSamples.AddRange(
                 values
             );
 
             foreach (var value in values)
             {
-                if (value < waveSampleMin)
+                if (value < dataSampleMin)
                 {
 
-                    waveSampleMin = value;
+                    dataSampleMin = value;
                 }
 
-                if (value > waveSampleMax)
+                if (value > dataSampleMax)
                 {
 
-                    waveSampleMax = value;
+                    dataSampleMax = value;
                 }
             }
 
-            waveScrollBar.Maximum += values.Length;
+            dataSampleScrollBar.Maximum += values.Length;
 
             Refresh();
         }
 
-        public void ClearWaveSamples()
+        public void ClearSamples()
         {
-            waveSamples.Clear();
-            waveSampleMin = 0;
-            waveSampleMax = 0;
+            dataSamples.Clear();
+            dataSampleMin = 0;
+            dataSampleMax = 0;
 
-            waveScrollBar.Value = 0;
-            waveScrollBar.Minimum = 0;
-            waveScrollBar.Maximum = 0;
+            dataSampleScrollBar.Value = 0;
+            dataSampleScrollBar.Minimum = 0;
+            dataSampleScrollBar.Maximum = 0;
 
             Refresh();
         }
@@ -138,11 +138,11 @@ namespace AL.DotNET.Forms.Controls
                 6.0f
             );
 
-            var refWaveColor = Color.FromArgb(
+            var refDataSampleColor = Color.FromArgb(
                 70,
-                WaveColor.R,
-                WaveColor.G,
-                WaveColor.B
+                SampleColor.R,
+                SampleColor.G,
+                SampleColor.B
             );
 
             GetSampleRectangle(
@@ -156,8 +156,8 @@ namespace AL.DotNET.Forms.Controls
             
             OnPaint_References(
                 e,
-                new Pen(refWaveColor),
-                new SolidBrush(refWaveColor),
+                new Pen(refDataSampleColor),
+                new SolidBrush(refDataSampleColor),
                 font,
                 rectangle,
                 out Rectangle sampleContentRectangle
@@ -165,8 +165,8 @@ namespace AL.DotNET.Forms.Controls
 
             OnPaint_Samples(
                 e,
-                new Pen(WaveColor),
-                new SolidBrush(WaveColor),
+                new Pen(SampleColor),
+                new SolidBrush(SampleColor),
                 font,
                 sampleContentRectangle
             );
@@ -178,17 +178,17 @@ namespace AL.DotNET.Forms.Controls
         {
             base.OnClientSizeChanged(e);
             
-            if (waveScrollBar != null)
+            if (dataSampleScrollBar != null)
             {
                 GetSampleRectangle(
                     out Rectangle sampleAreaRectangle
                 );
 
-                if ((sampleAreaRectangle.Height % WAVE_SAMPLE_REFERENCE_LINE_PADDING) != 0)
+                if ((sampleAreaRectangle.Height % DATA_SAMPLE_REFERENCE_LINE_PADDING) != 0)
                 {
                     ClientSize = new Size(
                         ClientSize.Width,
-                        (ClientSize.Height - sampleAreaRectangle.Height) + ((sampleAreaRectangle.Height / WAVE_SAMPLE_REFERENCE_LINE_PADDING) * WAVE_SAMPLE_REFERENCE_LINE_PADDING)
+                        (ClientSize.Height - sampleAreaRectangle.Height) + ((sampleAreaRectangle.Height / DATA_SAMPLE_REFERENCE_LINE_PADDING) * DATA_SAMPLE_REFERENCE_LINE_PADDING)
                     );
                 }
             }
@@ -198,17 +198,17 @@ namespace AL.DotNET.Forms.Controls
         {
             SuspendLayout();
 
-            ClientSize = new Size(400, WAVE_SAMPLE_REFERENCE_LINE_PADDING * 10);
+            ClientSize = new Size(400, DATA_SAMPLE_REFERENCE_LINE_PADDING * 10);
             BorderStyle = BorderStyle.FixedSingle;
 
-            InitializeComponent_WaveScrollBar();
+            InitializeComponent_DataSampleScrollBar();
 
             ResumeLayout(false);
         }
 
-        void InitializeComponent_WaveScrollBar()
+        void InitializeComponent_DataSampleScrollBar()
         {
-            waveScrollBar = new HScrollBar
+            dataSampleScrollBar = new HScrollBar
             {
                 Anchor = AnchorStyles.Left | AnchorStyles.Bottom | AnchorStyles.Right,
 
@@ -217,10 +217,10 @@ namespace AL.DotNET.Forms.Controls
                 Maximum = 0
             };
 
-            waveScrollBar.Size = new Size(ClientSize.Width, waveScrollBar.Height);
-            waveScrollBar.Location = new Point(ClientRectangle.Left, ClientRectangle.Bottom - waveScrollBar.Height);
+            dataSampleScrollBar.Size = new Size(ClientSize.Width, dataSampleScrollBar.Height);
+            dataSampleScrollBar.Location = new Point(ClientRectangle.Left, ClientRectangle.Bottom - dataSampleScrollBar.Height);
 
-            Controls.Add(waveScrollBar);
+            Controls.Add(dataSampleScrollBar);
         }
 
         void GetSampleRectangle(out Rectangle rectangle)
@@ -233,16 +233,16 @@ namespace AL.DotNET.Forms.Controls
             rectangle.Height -= Margin.Top;
             rectangle.Height -= Margin.Bottom;
 
-            rectangle.Height -= waveScrollBar.Height;
+            rectangle.Height -= dataSampleScrollBar.Height;
         }
         
         void OnPaint_Samples(PaintEventArgs e, Pen pen, Brush brush, Font font, Rectangle rectangle)
         {
-            if (waveSamples.Count != 0)
+            if (dataSamples.Count != 0)
             {
-                var sampleOffset = waveScrollBar.Value;
+                var sampleOffset = dataSampleScrollBar.Value;
 
-                int GetWaveSamplePosition_Y(long _value, long _min, long _max, Rectangle _rectangle)
+                int GetDataSamplePosition_Y(long _value, long _min, long _max, Rectangle _rectangle)
                 {
                     long delta = 0;
 
@@ -265,14 +265,14 @@ namespace AL.DotNET.Forms.Controls
                     return (int)(_rectangle.Top + y);
                 }
 
-                var sampleValue = waveSamples[sampleOffset];
+                var sampleValue = dataSamples[sampleOffset];
 
                 int x_prev;
 
-                var y_prev = GetWaveSamplePosition_Y(
+                var y_prev = GetDataSamplePosition_Y(
                     sampleValue,
-                    waveSampleMin,
-                    waveSampleMax,
+                    dataSampleMin,
+                    dataSampleMax,
                     rectangle
                 );
 
@@ -280,18 +280,18 @@ namespace AL.DotNET.Forms.Controls
                     pen,
                     rectangle.Left,
                     y_prev,
-                    x_prev = (rectangle.Left + (int)WaveSampleSpacing),
+                    x_prev = (rectangle.Left + (int)SampleSpacing),
                     y_prev
                 );
 
-                for (int i = (sampleOffset + 1), x = x_prev; (i < waveSamples.Count) && (x < rectangle.Right); ++i, x += (int)WaveSampleSpacing)
+                for (int i = (sampleOffset + 1), x = x_prev; (i < dataSamples.Count) && (x < rectangle.Right); ++i, x += (int)SampleSpacing)
                 {
-                    sampleValue = waveSamples[i];
+                    sampleValue = dataSamples[i];
 
-                    var y = GetWaveSamplePosition_Y(
+                    var y = GetDataSamplePosition_Y(
                         sampleValue,
-                        waveSampleMin,
-                        waveSampleMax,
+                        dataSampleMin,
+                        dataSampleMax,
                         rectangle
                     );
 
@@ -307,7 +307,7 @@ namespace AL.DotNET.Forms.Controls
                         pen,
                         x,
                         y,
-                        x_prev = (x + (int)WaveSampleSpacing) < rectangle.Right ? (x + (int)WaveSampleSpacing) : rectangle.Right,
+                        x_prev = (x + (int)SampleSpacing) < rectangle.Right ? (x + (int)SampleSpacing) : rectangle.Right,
                         y_prev = y
                     );
                 }
@@ -316,30 +316,30 @@ namespace AL.DotNET.Forms.Controls
 
         void OnPaint_References(PaintEventArgs e, Pen pen, Brush brush, Font font, Rectangle rectangle, out Rectangle contentRectangle)
         {
-            if (waveSampleMin == waveSampleMax)
+            if (dataSampleMin == dataSampleMax)
             {
-                var waveSampleMetrics = e.Graphics.MeasureString(
-                    waveSampleMin.ToString(),
+                var dataSampleMetrics = e.Graphics.MeasureString(
+                    dataSampleMin.ToString(),
                     font
                 );
 
                 contentRectangle = new Rectangle(
-                   rectangle.X + (int)Math.Round(waveSampleMetrics.Width),
+                   rectangle.X + (int)Math.Round(dataSampleMetrics.Width),
                    rectangle.Y,
-                   rectangle.Width - (int)Math.Round(waveSampleMetrics.Width),
+                   rectangle.Width - (int)Math.Round(dataSampleMetrics.Width),
                    rectangle.Height
                 );
 
                 e.Graphics.DrawLine(
                     pen,
-                    rectangle.Left + waveSampleMetrics.Width,
+                    rectangle.Left + dataSampleMetrics.Width,
                     rectangle.Top + (rectangle.Height / 2),
                     rectangle.Right,
                     rectangle.Top + (rectangle.Height / 2)
                 );
 
                 e.Graphics.DrawString(
-                    waveSampleMin.ToString(),
+                    dataSampleMin.ToString(),
                     font,
                     brush,
                     rectangle.Left,
@@ -348,43 +348,43 @@ namespace AL.DotNET.Forms.Controls
             }
             else
             {
-                var waveSampleMinMetrics = e.Graphics.MeasureString(
-                    waveSampleMin.ToString(),
+                var dataSampleMinMetrics = e.Graphics.MeasureString(
+                    dataSampleMin.ToString(),
                     font
                 );
 
-                var waveSampleMaxMetrics = e.Graphics.MeasureString(
-                    waveSampleMax.ToString(),
+                var dataSampleMaxMetrics = e.Graphics.MeasureString(
+                    dataSampleMax.ToString(),
                     font
                 );
 
-                var waveSampleLargestMetrics = (waveSampleMaxMetrics.Width > waveSampleMinMetrics.Width) ? waveSampleMaxMetrics : waveSampleMinMetrics;
+                var dataSampleLargestMetrics = (dataSampleMaxMetrics.Width > dataSampleMinMetrics.Width) ? dataSampleMaxMetrics : dataSampleMinMetrics;
 
                 contentRectangle = new Rectangle(
-                   rectangle.X + (int)Math.Round(waveSampleLargestMetrics.Width),
+                   rectangle.X + (int)Math.Round(dataSampleLargestMetrics.Width),
                    rectangle.Y,
-                   rectangle.Width - (int)Math.Round(waveSampleLargestMetrics.Width),
+                   rectangle.Width - (int)Math.Round(dataSampleLargestMetrics.Width),
                    rectangle.Height
                 );
 
-                int waveSampleReferenceCount = (rectangle.Height / WAVE_SAMPLE_REFERENCE_LINE_PADDING) - 1;
+                int dataSampleReferenceCount = (rectangle.Height / DATA_SAMPLE_REFERENCE_LINE_PADDING) - 1;
                 
-                for (int i = 0, y = rectangle.Bottom; i < waveSampleReferenceCount; ++i, y -= WAVE_SAMPLE_REFERENCE_LINE_PADDING)
+                for (int i = 0, y = rectangle.Bottom; i < dataSampleReferenceCount; ++i, y -= DATA_SAMPLE_REFERENCE_LINE_PADDING)
                 {
                     e.Graphics.DrawLine(
                         pen,
                         contentRectangle.Left,
-                        y - WAVE_SAMPLE_REFERENCE_LINE_PADDING,
+                        y - DATA_SAMPLE_REFERENCE_LINE_PADDING,
                         contentRectangle.Right,
-                        y - WAVE_SAMPLE_REFERENCE_LINE_PADDING
+                        y - DATA_SAMPLE_REFERENCE_LINE_PADDING
                     );
                     
                     e.Graphics.DrawString(
-                        Math.Round(waveSampleMin + (((float)(waveSampleMax - waveSampleMin) / waveSampleReferenceCount) * (i + 1)), 0).ToString(),
+                        Math.Round(dataSampleMin + (((float)(dataSampleMax - dataSampleMin) / dataSampleReferenceCount) * (i + 1)), 0).ToString(),
                         font,
                         brush,
                         rectangle.Left,
-                        ((y - WAVE_SAMPLE_REFERENCE_LINE_PADDING) - (font.GetHeight() / 2)) + 1
+                        ((y - DATA_SAMPLE_REFERENCE_LINE_PADDING) - (font.GetHeight() / 2)) + 1
                     );
                 }
             }

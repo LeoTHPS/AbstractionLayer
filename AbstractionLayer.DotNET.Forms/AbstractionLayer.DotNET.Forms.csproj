@@ -80,7 +80,7 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Controls\WaveForm.cs">
+    <Compile Include="Controls\LineChart.cs">
       <SubType>UserControl</SubType>
     </Compile>
   </ItemGroup>
