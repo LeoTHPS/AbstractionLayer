@@ -8,12 +8,11 @@ namespace AL.DotNET.Forms.Controls
     public partial class LineChart
         : UserControl
     {
-        const int DATA_SAMPLE_REFERENCE_LINE_PADDING = 15;
-
         List<int>[] dataSamples;
         int         dataSampleMin = 0;
         int         dataSampleMax = 0;
         Color[]     dataSampleColor;
+        uint        dataSampleMaxCount = 0;
         HScrollBar  dataSampleScrollBar;
 
         public IReadOnlyList<int>[] Samples
@@ -40,17 +39,14 @@ namespace AL.DotNET.Forms.Controls
                 ForeColor
             };
 
-            SampleSpacing = 10;
+            SampleSpacing = 20;
             SampleChannelCount = 1;
 
             InitializeComponent();
-            
-            dataSampleScrollBar.Scroll += delegate (object _sender, ScrollEventArgs _e)
+
+            dataSampleScrollBar.ValueChanged += delegate (object _sender, EventArgs _e)
             {
-                if (_e.NewValue != _e.OldValue)
-                {
-                    Refresh();
-                }
+                Refresh();
             };
         }
         
@@ -176,70 +172,24 @@ namespace AL.DotNET.Forms.Controls
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            var font = new Font(
-                Font.FontFamily,
-                6.0f
-            );
-
-            var refDataSampleColor = Color.FromArgb(
-                70,
-                ForeColor.R,
-                ForeColor.G,
-                ForeColor.B
-            );
+            base.OnPaint(e);
 
             GetSampleRectangle(
                 out Rectangle rectangle
             );
-
-//            e.Graphics.DrawRectangle(
-//                new Pen(ForeColor),
-//                rectangle
-//            );
             
-            OnPaint_References(
-                e,
-                new Pen(refDataSampleColor),
-                new SolidBrush(refDataSampleColor),
-                font,
-                rectangle,
-                out Rectangle sampleContentRectangle
-            );
-
             OnPaint_Samples(
                 e,
-                font,
-                sampleContentRectangle
+                rectangle
             );
-
-            base.OnPaint(e);
         }
         
-        protected override void OnClientSizeChanged(EventArgs e)
-        {
-            base.OnClientSizeChanged(e);
-            
-            if (dataSampleScrollBar != null)
-            {
-                GetSampleRectangle(
-                    out Rectangle sampleAreaRectangle
-                );
-
-                if ((sampleAreaRectangle.Height % DATA_SAMPLE_REFERENCE_LINE_PADDING) != 0)
-                {
-                    ClientSize = new Size(
-                        ClientSize.Width,
-                        (ClientSize.Height - sampleAreaRectangle.Height) + ((sampleAreaRectangle.Height / DATA_SAMPLE_REFERENCE_LINE_PADDING) * DATA_SAMPLE_REFERENCE_LINE_PADDING)
-                    );
-                }
-            }
-        }
-
         void InitializeComponent()
         {
             SuspendLayout();
 
-            ClientSize = new Size(400, DATA_SAMPLE_REFERENCE_LINE_PADDING * 10);
+            Font = new Font(Font.FontFamily, 6.0f);
+            ClientSize = new Size(400, 150);
             BorderStyle = BorderStyle.FixedSingle;
 
             InitializeComponent_DataSampleScrollBar();
@@ -292,27 +242,22 @@ namespace AL.DotNET.Forms.Controls
 
         void UpdateScrollBarRange()
         {
-            int dataSampleMaxCount = 0;
-
-            foreach (var dataSampleList in dataSamples)
-            {
-                if (dataSampleList.Count > dataSampleMaxCount)
-                {
-                    dataSampleMaxCount = dataSampleList.Count;
-                }
-            }
-            
             dataSampleScrollBar.Minimum = 0;
-            dataSampleScrollBar.Maximum = dataSampleMaxCount;
+            dataSampleScrollBar.Maximum = (int)dataSampleMaxCount;
         }
 
         void UpdateDataSampleMinMax(bool refresh)
         {
             dataSampleMin = 0;
             dataSampleMax = 0;
-
+            
             foreach (var dataSampleList in dataSamples)
             {
+                if (dataSampleList.Count > dataSampleMaxCount)
+                {
+                    dataSampleMaxCount = (uint)dataSampleList.Count;
+                }
+
                 foreach (var dataSample in dataSampleList)
                 {
                     if (dataSample < dataSampleMin)
@@ -334,182 +279,109 @@ namespace AL.DotNET.Forms.Controls
             }
         }
         
-        void OnPaint_Samples(PaintEventArgs e, Font font, Rectangle rectangle)
+        void OnPaint_Samples(PaintEventArgs e, Rectangle rectangle)
         {
-            for (uint i = 0; i < SampleChannelCount; ++i)
+            for (uint channel = 0; channel < SampleChannelCount; ++channel)
             {
-                var color = dataSampleColor[i];
-
-                var pen = new Pen(
-                    color
-                );
-
-                var brush = new SolidBrush(
-                    color
-                );
+                var color = dataSampleColor[channel];
 
                 OnPaint_Samples(
                     e,
-                    pen,
-                    brush,
-                    font,
                     rectangle,
-                    i
+                    new Pen(color),
+                    new SolidBrush(color),
+                    channel
                 );
             }
         }
-        void OnPaint_Samples(PaintEventArgs e, Pen pen, Brush brush, Font font, Rectangle rectangle, uint index)
+        void OnPaint_Samples(PaintEventArgs e, Rectangle rectangle, Pen pen, Brush brush, uint channel)
         {
-            if (dataSamples[index].Count != 0)
+            var dataSamples = this.dataSamples[channel];
+            
+            for (int i = dataSampleScrollBar.Value, x = rectangle.X, y = -1; i < dataSamples.Count; ++i)
             {
-                var sampleOffset = dataSampleScrollBar.Value;
-
-                int GetDataSamplePosition_Y(long _value, long _min, long _max, Rectangle _rectangle)
+                if (!OnPaint_Sample(e, rectangle, pen, brush, dataSamples[i], dataSampleMin, dataSampleMax, ref x, ref y))
                 {
-                    long delta = 0;
 
-                    if ((_min < 0) && (_max > 0))
-                    {
-                        delta = -_min;
-
-                        _min += delta;
-                        _max += delta;
-
-                        _value += delta;
-                    }
-
-                    long range = _max - _min;
-
-                    var y = (long)Math.Round(
-                        (_rectangle.Height / (double)range) * _value
-                    );
-
-                    return (int)(_rectangle.Bottom - y);
-                }
-
-                var sampleValue = dataSamples[index][sampleOffset];
-
-                int x_prev;
-
-                var y_prev = GetDataSamplePosition_Y(
-                    sampleValue,
-                    dataSampleMin,
-                    dataSampleMax,
-                    rectangle
-                );
-
-                e.Graphics.DrawLine(
-                    pen,
-                    rectangle.Left,
-                    y_prev,
-                    x_prev = (rectangle.Left + (int)SampleSpacing),
-                    y_prev
-                );
-
-                for (int i = (sampleOffset + 1), x = x_prev; (i < dataSamples[index].Count) && (x < rectangle.Right); ++i, x += (int)SampleSpacing)
-                {
-                    sampleValue = dataSamples[index][i];
-
-                    var y = GetDataSamplePosition_Y(
-                        sampleValue,
-                        dataSampleMin,
-                        dataSampleMax,
-                        rectangle
-                    );
-
-                    e.Graphics.DrawLine(
-                        pen,
-                        x_prev,
-                        y_prev,
-                        x,
-                        y
-                    );
-
-                    e.Graphics.DrawLine(
-                        pen,
-                        x,
-                        y,
-                        x_prev = (x + (int)SampleSpacing) < rectangle.Right ? (x + (int)SampleSpacing) : rectangle.Right,
-                        y_prev = y
-                    );
+                    break;
                 }
             }
         }
-
-        void OnPaint_References(PaintEventArgs e, Pen pen, Brush brush, Font font, Rectangle rectangle, out Rectangle contentRectangle)
+        
+        bool OnPaint_Sample(PaintEventArgs e, Rectangle rectangle, Pen pen, Brush brush, int value, int minValue, int maxValue, ref int x, ref int y)
         {
-            if (dataSampleMin == dataSampleMax)
+            if (x >= rectangle.Right)
             {
-                var dataSampleMetrics = e.Graphics.MeasureString(
-                    dataSampleMin.ToString(),
-                    font
-                );
 
-                contentRectangle = new Rectangle(
-                   rectangle.X + (int)Math.Round(dataSampleMetrics.Width),
-                   rectangle.Y,
-                   rectangle.Width - (int)Math.Round(dataSampleMetrics.Width),
-                   rectangle.Height
-                );
+                return false;
+            }
 
+            if ((x + SampleSpacing) > rectangle.Right)
+            {
+
+                rectangle.Width -= (x + (int)SampleSpacing) - rectangle.Right;
+            }
+
+            int GetDataSamplePosition_Y(long _value, long _min, long _max, Rectangle _rectangle, float _fontHeight)
+            {
+                long delta = 0;
+
+                if ((_min < 0) && (_max > 0))
+                {
+                    delta = -_min;
+
+                    _min += delta;
+                    _max += delta;
+
+                    _value += delta;
+                }
+
+                return (int)(_rectangle.Bottom - (long)Math.Round(((_rectangle.Height - _fontHeight) / (double)(_max - _min)) * _value));
+            }
+
+            var fontHeight = Font.GetHeight();
+
+            var _y = GetDataSamplePosition_Y(
+                value,
+                minValue,
+                maxValue,
+                rectangle,
+                fontHeight
+            );
+
+            e.Graphics.DrawLine(
+                pen,
+                x,
+                _y,
+                x + (int)SampleSpacing,
+                _y
+            );
+
+            var valueString = value.ToString();
+
+            e.Graphics.DrawString(
+                valueString,
+                Font,
+                brush,
+                x + ((SampleSpacing / 2) - (e.Graphics.MeasureString(valueString, Font).Width / 2)),
+                _y - fontHeight
+            );
+
+            if (y != -1)
+            {
                 e.Graphics.DrawLine(
                     pen,
-                    rectangle.Left + dataSampleMetrics.Width,
-                    rectangle.Top + (rectangle.Height / 2),
-                    rectangle.Right,
-                    rectangle.Top + (rectangle.Height / 2)
-                );
-
-                e.Graphics.DrawString(
-                    dataSampleMin.ToString(),
-                    font,
-                    brush,
-                    rectangle.Left,
-                    ((rectangle.Top + (rectangle.Height / 2)) - (font.GetHeight() / 2)) + 1
+                    x,
+                    y,
+                    x,
+                    _y
                 );
             }
-            else
-            {
-                var dataSampleMinMetrics = e.Graphics.MeasureString(
-                    dataSampleMin.ToString(),
-                    font
-                );
 
-                var dataSampleMaxMetrics = e.Graphics.MeasureString(
-                    dataSampleMax.ToString(),
-                    font
-                );
+            x += (int)SampleSpacing;
+            y = _y;
 
-                var dataSampleLargestMetrics = (dataSampleMaxMetrics.Width > dataSampleMinMetrics.Width) ? dataSampleMaxMetrics : dataSampleMinMetrics;
-
-                contentRectangle = new Rectangle(
-                   rectangle.X + (int)Math.Round(dataSampleLargestMetrics.Width),
-                   rectangle.Y,
-                   rectangle.Width - (int)Math.Round(dataSampleLargestMetrics.Width),
-                   rectangle.Height
-                );
-
-                int dataSampleReferenceCount = (rectangle.Height / DATA_SAMPLE_REFERENCE_LINE_PADDING) - 1;
-                
-                for (int i = 0, y = rectangle.Bottom; i < dataSampleReferenceCount; ++i, y -= DATA_SAMPLE_REFERENCE_LINE_PADDING)
-                {
-                    e.Graphics.DrawLine(
-                        pen,
-                        contentRectangle.Left,
-                        y - DATA_SAMPLE_REFERENCE_LINE_PADDING,
-                        contentRectangle.Right,
-                        y - DATA_SAMPLE_REFERENCE_LINE_PADDING
-                    );
-                    
-                    e.Graphics.DrawString(
-                        Math.Round(dataSampleMin + (((float)(dataSampleMax - dataSampleMin) / dataSampleReferenceCount) * (i + 1)), 0).ToString(),
-                        font,
-                        brush,
-                        rectangle.Left,
-                        ((y - DATA_SAMPLE_REFERENCE_LINE_PADDING) - (font.GetHeight() / 2)) + 1
-                    );
-                }
-            }
+            return true;
         }
     }
 }
