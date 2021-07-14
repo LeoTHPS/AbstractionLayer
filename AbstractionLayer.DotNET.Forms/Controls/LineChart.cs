@@ -25,7 +25,7 @@ namespace AL.DotNET.Forms.Controls
 
         public uint SampleSpacing { get; private set; }
 
-        public uint SampleChannelCount { get; private set; }
+        public uint SampleGroupCount { get; private set; }
         
         public LineChart()
         {
@@ -40,7 +40,7 @@ namespace AL.DotNET.Forms.Controls
             };
 
             SampleSpacing = 20;
-            SampleChannelCount = 1;
+            SampleGroupCount = 1;
 
             InitializeComponent();
 
@@ -50,15 +50,15 @@ namespace AL.DotNET.Forms.Controls
             };
         }
         
-        public void AddSample(uint channel, int value, bool refresh = true)
+        public void AddSample(uint group, int value, bool refresh = true)
         {
-            if (channel >= SampleChannelCount)
+            if (group >= SampleGroupCount)
             {
 
                 throw new IndexOutOfRangeException();
             }
 
-            dataSamples[channel].Add(value);
+            dataSamples[group].Add(value);
 
             UpdateDataSampleMinMax(false);
             UpdateScrollBarRange();
@@ -69,15 +69,15 @@ namespace AL.DotNET.Forms.Controls
                 Refresh();
             }
         }
-        public void AddSamples(uint channel, int[] values, bool refresh = true)
+        public void AddSamples(uint group, int[] values, bool refresh = true)
         {
-            if (channel >= SampleChannelCount)
+            if (group >= SampleGroupCount)
             {
 
                 throw new IndexOutOfRangeException();
             }
 
-            dataSamples[channel].AddRange(values);
+            dataSamples[group].AddRange(values);
 
             UpdateDataSampleMinMax(false);
             UpdateScrollBarRange();
@@ -91,7 +91,7 @@ namespace AL.DotNET.Forms.Controls
 
         public void ClearSamples(bool refresh = true)
         {
-            for (uint i = 0; i < SampleChannelCount; ++i)
+            for (uint i = 0; i < SampleGroupCount; ++i)
             {
                 dataSamples[i].Clear();
             }
@@ -105,15 +105,15 @@ namespace AL.DotNET.Forms.Controls
                 Refresh();
             }
         }
-        public void ClearSamples(uint channel, bool refresh = true)
+        public void ClearSamples(uint group, bool refresh = true)
         {
-            if (channel >= SampleChannelCount)
+            if (group >= SampleGroupCount)
             {
 
                 throw new IndexOutOfRangeException();
             }
 
-            dataSamples[channel].Clear();
+            dataSamples[group].Clear();
 
             UpdateDataSampleMinMax(false);
 
@@ -124,15 +124,15 @@ namespace AL.DotNET.Forms.Controls
             }
         }
 
-        public void SetSampleColor(uint channel, Color value, bool refresh = true)
+        public void SetSampleColor(uint group, Color value, bool refresh = true)
         {
-            if (channel >= SampleChannelCount)
+            if (group >= SampleGroupCount)
             {
 
                 throw new IndexOutOfRangeException();
             }
 
-            dataSampleColor[channel] = value;
+            dataSampleColor[group] = value;
 
             if (refresh)
             {
@@ -152,7 +152,7 @@ namespace AL.DotNET.Forms.Controls
             }
         }
 
-        public void SetSampleChannelCount(uint value, bool refresh = true)
+        public void SetSampleGroupCount(uint value, bool refresh = true)
         {
             ClearSamples(
                 refresh
@@ -167,7 +167,7 @@ namespace AL.DotNET.Forms.Controls
                 dataSampleColor[i] = ForeColor;
             }
 
-            SampleChannelCount = value;
+            SampleGroupCount = value;
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -281,22 +281,22 @@ namespace AL.DotNET.Forms.Controls
         
         void OnPaint_Samples(PaintEventArgs e, Rectangle rectangle)
         {
-            for (uint channel = 0; channel < SampleChannelCount; ++channel)
+            for (uint group = 0; group < SampleGroupCount; ++group)
             {
-                var color = dataSampleColor[channel];
+                var color = dataSampleColor[group];
 
                 OnPaint_Samples(
                     e,
                     rectangle,
                     new Pen(color),
                     new SolidBrush(color),
-                    channel
+                    group
                 );
             }
         }
-        void OnPaint_Samples(PaintEventArgs e, Rectangle rectangle, Pen pen, Brush brush, uint channel)
+        void OnPaint_Samples(PaintEventArgs e, Rectangle rectangle, Pen pen, Brush brush, uint group)
         {
-            var dataSamples = this.dataSamples[channel];
+            var dataSamples = this.dataSamples[group];
             
             for (int i = dataSampleScrollBar.Value, x = rectangle.X, y = -1; i < dataSamples.Count; ++i)
             {
