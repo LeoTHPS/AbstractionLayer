@@ -10,14 +10,13 @@ namespace AL.DotNET.Forms.Controls
     {
         const int DATA_SAMPLE_REFERENCE_LINE_PADDING = 15;
 
-        readonly List<int> dataSamples;
-        int                dataSampleMin = 0;
-        int                dataSampleMax = 0;
-        Color              dataSampleColor;
-        uint               dataSampleSpacing = 10;
-        HScrollBar         dataSampleScrollBar;
-        
-        public IReadOnlyList<int> Samples
+        List<int>[] dataSamples;
+        int         dataSampleMin = 0;
+        int         dataSampleMax = 0;
+        Color[]     dataSampleColor;
+        HScrollBar  dataSampleScrollBar;
+
+        public IReadOnlyList<int>[] Samples
         {
             get
             {
@@ -25,38 +24,24 @@ namespace AL.DotNET.Forms.Controls
             }
         }
 
-        public Color SampleColor
-        {
-            get
-            {
-                return dataSampleColor;
-            }
-            set
-            {
-                dataSampleColor = value;
+        public uint SampleSpacing { get; private set; }
 
-                Refresh();
-            }
-        }
-
-        public uint SampleSpacing
-        {
-            get
-            {
-                return dataSampleSpacing;
-            }
-            set
-            {
-                dataSampleSpacing = value;
-
-                Refresh();
-            }
-        }
-
+        public uint SampleChannelCount { get; private set; }
+        
         public LineChart()
         {
-            dataSampleColor = ForeColor;
-            dataSamples = new List<int>();
+            dataSamples = new List<int>[]
+            {
+                new List<int>()
+            };
+
+            dataSampleColor = new Color[]
+            {
+                ForeColor
+            };
+
+            SampleSpacing = 10;
+            SampleChannelCount = 1;
 
             InitializeComponent();
             
@@ -68,67 +53,125 @@ namespace AL.DotNET.Forms.Controls
                 }
             };
         }
-
-        public void AddSample(int value)
+        
+        public void AddSample(uint channel, int value, bool refresh = true)
         {
-            dataSamples.Add(
-                value
-            );
-
-            if (value < dataSampleMin)
+            if (channel >= SampleChannelCount)
             {
 
-                dataSampleMin = value;
+                throw new IndexOutOfRangeException();
             }
 
-            if (value > dataSampleMax)
+            dataSamples[channel].Add(value);
+
+            UpdateDataSampleMinMax(false);
+            UpdateScrollBarRange();
+
+            if (refresh)
             {
 
-                dataSampleMax = value;
+                Refresh();
+            }
+        }
+        public void AddSamples(uint channel, int[] values, bool refresh = true)
+        {
+            if (channel >= SampleChannelCount)
+            {
+
+                throw new IndexOutOfRangeException();
             }
 
-            ++dataSampleScrollBar.Maximum;
+            dataSamples[channel].AddRange(values);
 
-            Refresh();
+            UpdateDataSampleMinMax(false);
+            UpdateScrollBarRange();
+
+            if (refresh)
+            {
+
+                Refresh();
+            }
         }
 
-        public void AddSamples(int[] values)
+        public void ClearSamples(bool refresh = true)
         {
-            dataSamples.AddRange(
-                values
-            );
-
-            foreach (var value in values)
+            for (uint i = 0; i < SampleChannelCount; ++i)
             {
-                if (value < dataSampleMin)
-                {
+                dataSamples[i].Clear();
+            }
+            
+            ResetScrollBar(false);
+            UpdateDataSampleMinMax(false);
 
-                    dataSampleMin = value;
-                }
+            if (refresh)
+            {
 
-                if (value > dataSampleMax)
-                {
+                Refresh();
+            }
+        }
+        public void ClearSamples(uint channel, bool refresh = true)
+        {
+            if (channel >= SampleChannelCount)
+            {
 
-                    dataSampleMax = value;
-                }
+                throw new IndexOutOfRangeException();
             }
 
-            dataSampleScrollBar.Maximum += values.Length;
+            dataSamples[channel].Clear();
 
-            Refresh();
+            UpdateDataSampleMinMax(false);
+
+            if (refresh)
+            {
+
+                Refresh();
+            }
         }
 
-        public void ClearSamples()
+        public void SetSampleColor(uint channel, Color value, bool refresh = true)
         {
-            dataSamples.Clear();
-            dataSampleMin = 0;
-            dataSampleMax = 0;
+            if (channel >= SampleChannelCount)
+            {
 
-            dataSampleScrollBar.Value = 0;
-            dataSampleScrollBar.Minimum = 0;
-            dataSampleScrollBar.Maximum = 0;
+                throw new IndexOutOfRangeException();
+            }
 
-            Refresh();
+            dataSampleColor[channel] = value;
+
+            if (refresh)
+            {
+
+                Refresh();
+            }
+        }
+
+        public void SetSampleSpacing(uint value, bool refresh = true)
+        {
+            SampleSpacing = value;
+
+            if (refresh)
+            {
+
+                Refresh();
+            }
+        }
+
+        public void SetSampleChannelCount(uint value, bool refresh = true)
+        {
+            ClearSamples(
+                refresh
+            );
+
+            dataSamples = new List<int>[value];
+            dataSampleColor = new Color[value];
+
+            for (int i = 0; i < dataSamples.Length; ++i)
+            {
+                dataSamples[i] = new List<int>();
+                dataSampleColor[i] = ForeColor;
+            }
+
+            SampleChannelCount = value;
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -140,9 +183,9 @@ namespace AL.DotNET.Forms.Controls
 
             var refDataSampleColor = Color.FromArgb(
                 70,
-                SampleColor.R,
-                SampleColor.G,
-                SampleColor.B
+                ForeColor.R,
+                ForeColor.G,
+                ForeColor.B
             );
 
             GetSampleRectangle(
@@ -165,8 +208,6 @@ namespace AL.DotNET.Forms.Controls
 
             OnPaint_Samples(
                 e,
-                new Pen(SampleColor),
-                new SolidBrush(SampleColor),
                 font,
                 sampleContentRectangle
             );
@@ -222,7 +263,7 @@ namespace AL.DotNET.Forms.Controls
 
             Controls.Add(dataSampleScrollBar);
         }
-
+        
         void GetSampleRectangle(out Rectangle rectangle)
         {
             rectangle = ClientRectangle;
@@ -236,9 +277,90 @@ namespace AL.DotNET.Forms.Controls
             rectangle.Height -= dataSampleScrollBar.Height;
         }
         
-        void OnPaint_Samples(PaintEventArgs e, Pen pen, Brush brush, Font font, Rectangle rectangle)
+        void ResetScrollBar(bool refresh)
         {
-            if (dataSamples.Count != 0)
+            dataSampleScrollBar.Value = 0;
+            dataSampleScrollBar.Minimum = 0;
+            dataSampleScrollBar.Maximum = 0;
+
+            if (refresh)
+            {
+
+                Refresh();
+            }
+        }
+
+        void UpdateScrollBarRange()
+        {
+            int dataSampleMaxCount = 0;
+
+            foreach (var dataSampleList in dataSamples)
+            {
+                if (dataSampleList.Count > dataSampleMaxCount)
+                {
+                    dataSampleMaxCount = dataSampleList.Count;
+                }
+            }
+            
+            dataSampleScrollBar.Minimum = 0;
+            dataSampleScrollBar.Maximum = dataSampleMaxCount;
+        }
+
+        void UpdateDataSampleMinMax(bool refresh)
+        {
+            dataSampleMin = 0;
+            dataSampleMax = 0;
+
+            foreach (var dataSampleList in dataSamples)
+            {
+                foreach (var dataSample in dataSampleList)
+                {
+                    if (dataSample < dataSampleMin)
+                    {
+                        dataSampleMin = dataSample;
+                    }
+
+                    if (dataSample > dataSampleMax)
+                    {
+                        dataSampleMax = dataSample;
+                    }
+                }
+            }
+
+            if (refresh)
+            {
+
+                Refresh();
+            }
+        }
+        
+        void OnPaint_Samples(PaintEventArgs e, Font font, Rectangle rectangle)
+        {
+            for (uint i = 0; i < SampleChannelCount; ++i)
+            {
+                var color = dataSampleColor[i];
+
+                var pen = new Pen(
+                    color
+                );
+
+                var brush = new SolidBrush(
+                    color
+                );
+
+                OnPaint_Samples(
+                    e,
+                    pen,
+                    brush,
+                    font,
+                    rectangle,
+                    i
+                );
+            }
+        }
+        void OnPaint_Samples(PaintEventArgs e, Pen pen, Brush brush, Font font, Rectangle rectangle, uint index)
+        {
+            if (dataSamples[index].Count != 0)
             {
                 var sampleOffset = dataSampleScrollBar.Value;
 
@@ -262,10 +384,10 @@ namespace AL.DotNET.Forms.Controls
                         (_rectangle.Height / (double)range) * _value
                     );
 
-                    return (int)(_rectangle.Top + y);
+                    return (int)(_rectangle.Bottom - y);
                 }
 
-                var sampleValue = dataSamples[sampleOffset];
+                var sampleValue = dataSamples[index][sampleOffset];
 
                 int x_prev;
 
@@ -284,9 +406,9 @@ namespace AL.DotNET.Forms.Controls
                     y_prev
                 );
 
-                for (int i = (sampleOffset + 1), x = x_prev; (i < dataSamples.Count) && (x < rectangle.Right); ++i, x += (int)SampleSpacing)
+                for (int i = (sampleOffset + 1), x = x_prev; (i < dataSamples[index].Count) && (x < rectangle.Right); ++i, x += (int)SampleSpacing)
                 {
-                    sampleValue = dataSamples[i];
+                    sampleValue = dataSamples[index][i];
 
                     var y = GetDataSamplePosition_Y(
                         sampleValue,
