@@ -23,8 +23,8 @@
 
 	#define LUA_FLOAT_FLOAT		    1
 	#define LUA_FLOAT_DOUBLE	    2
-	#define LUA_FLOAT_LONGDOUBLE	3
-	#define LUA_FLOAT_TYPE	        LUA_FLOAT_DOUBLE
+	#define LUA_FLOAT_LONGDOUBLE    3
+	#define LUA_FLOAT_TYPE          LUA_FLOAT_DOUBLE
 
 	#if LUA_FLOAT_TYPE == LUA_FLOAT_FLOAT
 		typedef float               lua_Number;
@@ -34,7 +34,7 @@
 		typedef long double         lua_Number;
 	#endif
 
-	typedef void(*    lua_CFunction)(lua_State*);
+	typedef void(*                  lua_CFunction)(lua_State*);
 #endif
 
 #define AL_DEPENDENCY_LUA_MISSING_VERSION "Lua 5.4.3"
