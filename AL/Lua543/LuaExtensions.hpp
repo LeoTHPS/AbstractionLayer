@@ -8,10 +8,10 @@
 
 	#include <lua.hpp>
 #else
-	#define LUA_INT_INT		        1
-	#define LUA_INT_LONG		    2
-	#define LUA_INT_LONGLONG	    3
-	#define LUA_INT_TYPE	        LUA_INT_LONGLONG
+	#define LUA_INT_INT             1
+	#define LUA_INT_LONG            2
+	#define LUA_INT_LONGLONG        3
+	#define LUA_INT_TYPE            LUA_INT_LONGLONG
 
 	#if LUA_INT_TYPE == LUA_INT_INT
 		typedef int                 lua_Integer;
