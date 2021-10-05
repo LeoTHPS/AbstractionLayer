@@ -343,10 +343,6 @@ namespace AL::Hardware
 					"SetCommTimeouts"
 				);
 			}
-#else
-			throw DependencyMissingException(
-				"Linux/Windows"
-			);
 #endif
 
 			isOpen = True;
@@ -418,8 +414,6 @@ namespace AL::Hardware
 				}
 
 				totalBytesRead += bytesRead;
-#else
-				throw NotImplementedException();
 #endif
 			}
 		}
@@ -472,8 +466,6 @@ namespace AL::Hardware
 				}
 
 				totalBytesWritten += bytesWritten;
-#else
-				throw NotImplementedException();
 #endif
 			}
 		}

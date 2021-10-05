@@ -12,20 +12,12 @@
 
 	#include <sys/ioctl.h>
 
-	#if __has_include(<linux/i2c.h>)
-		#define AL_DEPENDENCY_LIBI2C
-
-		extern "C"
-		{
-			#include <linux/i2c.h>
-		}
-	#endif
-
 	#if __has_include(<linux/i2c-dev.h>)
 		#define AL_DEPENDENCY_LIBI2C_DEV
 
 		extern "C"
 		{
+			#include <linux/i2c.h>
 			#include <linux/i2c-dev.h>
 		}
 	#endif
@@ -124,7 +116,12 @@ namespace AL::Hardware
 	{
 		Bool   isOpen = False;
 
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
 		int    fd;
+	#endif
+#endif
+
 		String path;
 
 		I2CBus(const I2CBus&) = delete;
@@ -134,9 +131,13 @@ namespace AL::Hardware
 			: isOpen(
 				bus.isOpen
 			),
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
 			fd(
 				bus.fd
 			),
+	#endif
+#endif
 			path(
 				Move(path)
 			)
@@ -183,8 +184,9 @@ namespace AL::Hardware
 				!IsOpen(),
 				"I2CBus already open"
 			);
-			
-#if defined(AL_DEPENDENCY_LIBI2C_DEV)
+
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
 			if ((fd = ::open(GetPath().GetCString(), O_RDWR)) == -1)
 			{
 
@@ -192,21 +194,30 @@ namespace AL::Hardware
 					"open"
 				);
 			}
+	#else
+			throw DependencyMissingException(
+				"libi2c-dev"
+			);
+	#endif
 #else
 			throw DependencyMissingException(
-				"libi2c"
+				"Linux"
 			);
 #endif
+
+			isOpen = True;
 		}
 
 		Void Close()
 		{
 			if (IsOpen())
 			{
-#if defined(AL_DEPENDENCY_LIBI2C_DEV)
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
 				::close(
 					fd
 				);
+	#endif
 #endif
 
 				isOpen = False;
@@ -235,8 +246,9 @@ namespace AL::Hardware
 				IsOpen(),
 				"I2CBus not open"
 			);
-			
-#if defined(AL_DEPENDENCY_LIBI2C_DEV)
+
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
 			::i2c_msg i2c_buffer;
 			i2c_buffer.flags = I2C_M_RD;
 			i2c_buffer.addr = static_cast<__u16>(address);
@@ -254,6 +266,9 @@ namespace AL::Hardware
 					"ioctl"
 				);
 			}
+	#else
+			throw NotImplementedException();
+	#endif
 #else
 			throw NotImplementedException();
 #endif
@@ -282,7 +297,8 @@ namespace AL::Hardware
 				"I2CBus not open"
 			);
 
-#if defined(AL_DEPENDENCY_LIBI2C_DEV)
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
 			::i2c_msg i2c_buffer;
 			i2c_buffer.flags = 0;
 			i2c_buffer.addr = static_cast<__u16>(address);
@@ -300,6 +316,9 @@ namespace AL::Hardware
 					"ioctl"
 				);
 			}
+	#else
+			throw NotImplementedException();
+	#endif
 #else
 			throw NotImplementedException();
 #endif
@@ -330,7 +349,8 @@ namespace AL::Hardware
 				"I2CBus not open"
 			);
 
-#if defined(AL_DEPENDENCY_LIBI2C_DEV)
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
 			::i2c_msg i2c_buffers[2];
 				
 			// TX
@@ -360,6 +380,9 @@ namespace AL::Hardware
 					"ioctl"
 				);
 			}
+	#else
+			throw NotImplementedException();
+	#endif
 #else
 			throw NotImplementedException();
 #endif
@@ -387,7 +410,8 @@ namespace AL::Hardware
 				"I2CBus not open"
 			);
 
-#if defined(AL_DEPENDENCY_LIBI2C_DEV)
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
 			Collections::Array<::i2c_msg> i2c_buffers(
 				count
 			);
@@ -457,6 +481,9 @@ namespace AL::Hardware
 					"ioctl"
 				);
 			}
+	#else
+			throw NotImplementedException();
+	#endif
 #else
 			throw NotImplementedException();
 #endif
@@ -469,7 +496,11 @@ namespace AL::Hardware
 			isOpen = bus.isOpen;
 			bus.isOpen = False;
 
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
 			fd = bus.fd;
+	#endif
+#endif
 
 			path = Move(
 				bus.path

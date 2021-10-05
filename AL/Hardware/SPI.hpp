@@ -30,7 +30,11 @@ namespace AL::Hardware
 		Bool     isOpen = False;
 		Bool     isCSChangeEnabled = False;
 
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_SPIDEV)
 		int      fd;
+	#endif
+#endif
 
 		String   path;
 		SPIModes mode;
@@ -45,9 +49,13 @@ namespace AL::Hardware
 			isCSChangeEnabled(
 				device.isCSChangeEnabled
 			),
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_SPIDEV)
 			fd(
 				device.fd
 			),
+	#endif
+#endif
 			path(
 				Move(device.path)
 			),
@@ -136,7 +144,8 @@ namespace AL::Hardware
 				"SPIDevice already open"
 			);
 
-#if defined(AL_DEPENDENCY_SPIDEV)
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_SPIDEV)
 			if ((fd = ::open(GetPath().GetCString(), O_RDWR)) == -1)
 			{
 
@@ -176,7 +185,7 @@ namespace AL::Hardware
 					OS::SystemException(
 						"ioctl"
 					),
-					"Error setting SPIMode"
+					"Error setting mode"
 				);
 			}
 
@@ -195,7 +204,7 @@ namespace AL::Hardware
 					OS::SystemException(
 						"ioctl"
 					),
-					"Error setting SPIBitCount"
+					"Error setting bit count"
 				);
 			}
 
@@ -214,12 +223,17 @@ namespace AL::Hardware
 					OS::SystemException(
 						"ioctl"
 					),
-					"Error setting SPISpeed"
+					"Error setting speed"
 				);
 			}
-#else
+	#else
 			throw DependencyMissingException(
 				"spidev"
+			);
+	#endif
+#else
+			throw DependencyMissingException(
+				"Linux"
 			);
 #endif
 
@@ -230,10 +244,12 @@ namespace AL::Hardware
 		{
 			if (IsOpen())
 			{
-#if defined(AL_DEPENDENCY_SPIDEV)
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_SPIDEV)
 				::close(
 					fd
 				);
+	#endif
 #endif
 
 				isOpen = False;
@@ -327,7 +343,8 @@ namespace AL::Hardware
 				"SPIDevice not open"
 			);
 
-#if defined(AL_DEPENDENCY_SPIDEV)
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_SPIDEV)
 			::spi_ioc_transfer transfer = { 0 };
 			transfer.cs_change = IsCSChangeEnabled() ? 1 : 0;
 			transfer.len = static_cast<decltype(transfer.len)>(size);
@@ -343,6 +360,9 @@ namespace AL::Hardware
 					"ioctl"
 				);
 			}
+	#else
+			throw NotImplementedException();
+	#endif
 #else
 			throw NotImplementedException();
 #endif
@@ -355,7 +375,11 @@ namespace AL::Hardware
 			isOpen = device.isOpen;
 			device.isOpen = False;
 
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_SPIDEV)
 			fd = device.fd;
+	#endif
+#endif
 
 			path = Move(
 				device.path
