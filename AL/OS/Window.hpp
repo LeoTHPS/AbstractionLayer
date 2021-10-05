@@ -51,6 +51,7 @@ namespace AL::OS
 		Void DrawString(const String& string, T x, T y)
 		{
 #if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
 			throw NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
 			device.DrawString(
@@ -64,6 +65,7 @@ namespace AL::OS
 		Void DrawString(const String& string, const Drawing::Rectangle<T>& rectangle)
 		{
 #if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
 			throw NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
 			device.DrawString(
@@ -78,6 +80,7 @@ namespace AL::OS
 		Void FillRectangle(const Drawing::Rectangle<T>& rectangle, Drawing::Color color)
 		{
 #if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
 			throw NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
 			auto brush = Windows::GDI::SolidColorBrush::Create(
