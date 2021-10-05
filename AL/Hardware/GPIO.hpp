@@ -4,20 +4,22 @@
 #include "AL/OS/Debug.hpp"
 #include "AL/OS/SystemException.hpp"
 
-#if __has_include(<wiringPi.h>)
-	#define AL_DEPENDENCY_WIRINGPI
+#if defined(AL_PLATFORM_LINUX)
+	#if __has_include(<wiringPi.h>)
+		#define AL_DEPENDENCY_WIRINGPI
 
-	#include <wiringPi.h>
-#elif __has_include(<gpiod.h>)
-	#define AL_DEPENDENCY_GPIOD
+		#include <wiringPi.h>
+	#elif __has_include(<gpiod.h>)
+		#define AL_DEPENDENCY_GPIOD
 
-	#include <gpiod.h>
-#else
-	#include <fcntl.h>
-	#include <unistd.h>
+		#include <gpiod.h>
+	#else
+		#include <fcntl.h>
+		#include <unistd.h>
 
-	#include <sys/stat.h>
-	#include <sys/ioctl.h>
+		#include <sys/stat.h>
+		#include <sys/ioctl.h>
+	#endif
 #endif
 
 namespace AL::Hardware
@@ -53,12 +55,16 @@ namespace AL::Hardware
 		GPIOPinValue      value = 0;
 		GPIOPinDirections direction = GPIOPinDirections::Out;
 
+#if defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_GPIOD)
 		::gpiod_chip*     lpChip;
 		::gpiod_line*     lpLine;
 	#elif defined(AL_DEPENDENCY_WIRINGPI)
-		
+
+	#else
+
 	#endif
+#endif
 
 	public:
 		GPIO(GPIO&& gpio)
@@ -76,14 +82,24 @@ namespace AL::Hardware
 			),
 			direction(
 				gpio.direction
-			),
+			)
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_GPIOD)
+			,
 			lpChip(
 				gpio.lpChip
 			),
 			lpLine(
 				gpio.lpLine
 			)
+	#elif defined(AL_DEPENDENCY_WIRINGPI)
+
+	#else
+
+	#endif
+#endif
 		{
+			gpio.isOpen = False;
 		}
 
 		GPIO(GPIOBus bus, GPIOPin pin)
@@ -133,7 +149,8 @@ namespace AL::Hardware
 				"GPIO already open"
 			);
 
-#if defined(AL_DEPENDENCY_GPIOD)
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_GPIOD)
 			if ((lpChip = ::gpiod_chip_open_by_number(static_cast<unsigned int>(GetBus()))) == nullptr)
 			{
 
@@ -166,7 +183,7 @@ namespace AL::Hardware
 					SetDirection(GPIOPinDirections::Out, value);
 					break;
 			}
-#elif defined(AL_DEPENDENCY_WIRINGPI)
+	#elif defined(AL_DEPENDENCY_WIRINGPI)
 			::wiringPiSetupGpio();
 
 			switch (GetDirection())
@@ -180,7 +197,7 @@ namespace AL::Hardware
 					::digitalWrite(static_cast<int>(GetPin()), static_cast<int>(value));
 					break;
 			}
-#else
+	#else
 			OS::Debug::WriteLine(
 				"Warning: Initializing GPIO pin #%u on bus #%u using sysfs - wiringPi/gpiod is recommended",
 				GetPin(),
@@ -189,6 +206,11 @@ namespace AL::Hardware
 
 			// TODO: implement
 			throw NotImplementedException();
+	#endif
+#else
+			throw DependencyMissingException(
+				"Linux"
+			);
 #endif
 
 			isOpen = True;
@@ -198,7 +220,8 @@ namespace AL::Hardware
 		{
 			if (IsOpen())
 			{
-#if defined(AL_DEPENDENCY_GPIOD)
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_GPIOD)
 				::gpiod_line_release(
 					lpLine
 				);
@@ -206,10 +229,11 @@ namespace AL::Hardware
 				::gpiod_chip_close(
 					lpChip
 				);
-#elif defined(AL_DEPENDENCY_WIRINGPI)
+	#elif defined(AL_DEPENDENCY_WIRINGPI)
 				// TODO: implement
-#else
+	#else
 				// TODO: implement
+	#endif
 #endif
 
 				isOpen = False;
@@ -224,7 +248,8 @@ namespace AL::Hardware
 				"GPIO not open"
 			);
 
-#if defined(AL_DEPENDENCY_GPIOD)
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_GPIOD)
 			if ((value = ::gpiod_line_get_value(lpLine)) == GPIOPinValue(-1))
 			{
 
@@ -232,14 +257,17 @@ namespace AL::Hardware
 					"gpiod_line_get_value"
 				);
 			}
-#elif defined(AL_DEPENDENCY_WIRINGPI)
+	#elif defined(AL_DEPENDENCY_WIRINGPI)
 			value = static_cast<GPIOPinValue>(
 				::digitalRead(
 					static_cast<int>(GetPin())
 				)
 			);
-#else
+	#else
 			// TODO: implement
+			throw NotImplementedException();
+	#endif
+#else
 			throw NotImplementedException();
 #endif
 
@@ -277,7 +305,8 @@ namespace AL::Hardware
 				"Invalid GPIO direction"
 			);
 
-#if defined(AL_DEPENDENCY_GPIOD)
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_GPIOD)
 			if (::gpiod_line_set_value(lpLine, static_cast<int>(value)) == -1)
 			{
 
@@ -285,13 +314,16 @@ namespace AL::Hardware
 					"gpiod_line_set_value"
 				);
 			}
-#elif defined(AL_DEPENDENCY_WIRINGPI)
+	#elif defined(AL_DEPENDENCY_WIRINGPI)
 			::digitalWrite(
 				static_cast<int>(GetPin()),
 				static_cast<int>(value)
 			);
-#else
+	#else
 			// TODO: implement
+			throw NotImplementedException();
+	#endif
+#else
 			throw NotImplementedException();
 #endif
 
@@ -335,7 +367,8 @@ namespace AL::Hardware
 				"GPIO not open"
 			);
 
-#if defined(AL_DEPENDENCY_GPIOD)
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_GPIOD)
 			// TODO: remove this when libgpiod2 is released
 			{
 				::gpiod_line_release(
@@ -376,7 +409,7 @@ namespace AL::Hardware
 				default:
 					throw NotImplementedException();
 			}
-#elif defined(AL_DEPENDENCY_WIRINGPI)
+	#elif defined(AL_DEPENDENCY_WIRINGPI)
 			switch (direction)
 			{
 				case GPIOPinDirections::In:
@@ -391,8 +424,11 @@ namespace AL::Hardware
 				default:
 					throw NotImplementedException();
 			}
-#else
+	#else
 			// TODO: implement
+			throw NotImplementedException();
+	#endif
+#else
 			throw NotImplementedException();
 #endif
 
@@ -429,7 +465,8 @@ namespace AL::Hardware
 				"GPIO not open"
 			);
 
-#if defined(AL_DEPENDENCY_GPIOD)
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_GPIOD)
 			// TODO: remove this when libgpiod2 is released
 			{
 				::gpiod_line_release(
@@ -520,11 +557,14 @@ namespace AL::Hardware
 					);
 				}
 			} while (expectedEventType && (event.event_type != expectedEventType));
-#elif defined(AL_DEPENDENCY_WIRINGPI)
+	#elif defined(AL_DEPENDENCY_WIRINGPI)
 			// TODO: implement
 			throw NotImplementedException();
-#else
+	#else
 			// TODO: implement
+			throw NotImplementedException();
+	#endif
+#else
 			throw NotImplementedException();
 #endif
 
@@ -542,12 +582,20 @@ namespace AL::Hardware
 			pin = gpio.pin;
 			value = gpio.value;
 			direction = gpio.direction;
-			
+
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_GPIOD)
 			lpChip = gpio.lpChip;
 			gpio.lpChip = nullptr;
 
 			lpLine = gpio.lpLine;
 			gpio.lpLine = nullptr;
+	#elif defined(AL_DEPENDENCY_WIRINGPI)
+
+	#else
+
+	#endif
+#endif
 
 			return *this;
 		}

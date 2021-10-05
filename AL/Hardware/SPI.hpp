@@ -3,15 +3,17 @@
 
 #include "AL/OS/SystemException.hpp"
 
-#include <fcntl.h>
-#include <unistd.h>
+#if defined(AL_PLATFORM_LINUX)
+	#include <fcntl.h>
+	#include <unistd.h>
 
-#include <sys/ioctl.h>
+	#include <sys/ioctl.h>
 
-#if __has_include(<linux/spi/spidev.h>)
-	#define AL_DEPENDENCY_SPIDEV
+	#if __has_include(<linux/spi/spidev.h>)
+		#define AL_DEPENDENCY_SPIDEV
 
-	#include <linux/spi/spidev.h>
+		#include <linux/spi/spidev.h>
+	#endif
 #endif
 
 namespace AL::Hardware

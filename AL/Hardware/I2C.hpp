@@ -5,28 +5,30 @@
 
 #include "AL/OS/SystemException.hpp"
 
-#include <fcntl.h>
-#include <unistd.h>
-#include <termios.h>
+#if defined(AL_PLATFORM_LINUX)
+	#include <fcntl.h>
+	#include <unistd.h>
+	#include <termios.h>
 
-#include <sys/ioctl.h>
+	#include <sys/ioctl.h>
 
-#if __has_include(<linux/i2c.h>)
-	#define AL_DEPENDENCY_LIBI2C
+	#if __has_include(<linux/i2c.h>)
+		#define AL_DEPENDENCY_LIBI2C
 
-	extern "C"
-	{
-		#include <linux/i2c.h>
-	}
-#endif
+		extern "C"
+		{
+			#include <linux/i2c.h>
+		}
+	#endif
 
-#if __has_include(<linux/i2c-dev.h>)
-	#define AL_DEPENDENCY_LIBI2C_DEV
+	#if __has_include(<linux/i2c-dev.h>)
+		#define AL_DEPENDENCY_LIBI2C_DEV
 
-	extern "C"
-	{
-		#include <linux/i2c-dev.h>
-	}
+		extern "C"
+		{
+			#include <linux/i2c-dev.h>
+		}
+	#endif
 #endif
 
 namespace AL::Hardware
