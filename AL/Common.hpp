@@ -179,6 +179,8 @@
 
 	#include <Windows.h>
 
+	// Generally these undefs go in the file that it impacts
+	// - But GetMessage is so common that it's going here.
 	#undef GetMessage
 #endif
 
