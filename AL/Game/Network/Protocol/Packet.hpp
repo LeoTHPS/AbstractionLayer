@@ -140,6 +140,70 @@ namespace AL::Game::Network::Protocol
 			);
 		}
 
+		template<typename T>
+		inline bool Read(T& value)
+		{
+			if (!buffer.Read(value))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		inline bool Read(String& value)
+		{
+			if (!buffer.Read(value))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		inline bool Read(Void* lpBuffer, size_t size)
+		{
+			if (!buffer.Read(lpBuffer, size))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+
+		template<typename T>
+		inline bool Write(T value)
+		{
+			if (!buffer.Write(value))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		inline bool Write(const String& value)
+		{
+			if (!buffer.Write(value))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		inline bool Write(const Void* lpBuffer, size_t size)
+		{
+			if (!buffer.Write(lpBuffer, size))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+
 		Bool SetReadPosition(size_t value)
 		{
 			if (!buffer.SetReadPosition(sizeof(Header) + value))
