@@ -3,11 +3,15 @@
 
 #include "AL/OS/SystemException.hpp"
 
-#include <fcntl.h>
-#include <unistd.h>
-#include <termios.h>
+#if defined(AL_PLATFORM_LINUX)
+	#include <fcntl.h>
+	#include <unistd.h>
+	#include <termios.h> // speed_t
 
-#include <sys/ioctl.h>
+	#include <sys/ioctl.h>
+#elif defined(AL_PLATFORM_WINDOWS)
+
+#endif
 
 namespace AL::Hardware
 {
@@ -16,14 +20,22 @@ namespace AL::Hardware
 		None         = 0x0,
 
 		Parity       = 0x1,
-		Parity_Odd   = Parity | 0x2,
-		Parity_Even  = Parity | 0x4
+		Parity_Odd   = 0x2 | Parity,
+		Parity_Even  = 0x4 | Parity,
+
+		Use2StopBits = 0x8
 	};
 
 	AL_DEFINE_ENUM_FLAG_OPERATORS(UARTDeviceFlags);
 
-	enum class UARTDeviceSpeeds : ::speed_t
+	enum class UARTDeviceSpeeds
+#if defined(AL_PLATFORM_LINUX)
+		: ::speed_t
+#elif defined(AL_PLATFORM_WINDOWS)
+		: ::DWORD
+#endif
 	{
+#if defined(AL_PLATFORM_LINUX)
 		Baud_50      = B50,
 		Baud_75      = B75,
 		Baud_110     = B110,
@@ -54,15 +66,40 @@ namespace AL::Hardware
 		Baud_3000000 = B3000000,
 		Baud_3500000 = B3500000,
 		Baud_4000000 = B4000000,
-		
+
 		Default      = Baud_9600
+#elif defined(AL_PLATFORM_WINDOWS)
+		Baud_110     = CBR_110,
+		Baud_300     = CBR_300,
+		Baud_600     = CBR_600,
+		Baud_1200    = CBR_1200,
+		Baud_2400    = CBR_2400,
+		Baud_4800    = CBR_4800,
+		Baud_9600    = CBR_9600,
+		Baud_14400   = CBR_14400,
+		Baud_19200   = CBR_19200,
+		Baud_38400   = CBR_38400,
+		Baud_56000   = CBR_56000,
+		Baud_57600   = CBR_57600,
+		Baud_115200  = CBR_115200,
+		Baud_128000  = CBR_128000,
+		Baud_256000  = CBR_256000,
+
+		Default      = Baud_9600
+#else
+		Default      = 0
+#endif
 	};
 
 	class UARTDevice
 	{
 		Bool                     isOpen = False;
 
+#if defined(AL_PLATFORM_LINUX)
 		int                      fd;
+#elif defined(AL_PLATFORM_WINDOWS)
+		::HANDLE                 hFile;
+#endif
 
 		String                   path;
 		BitMask<UARTDeviceFlags> flags;
@@ -75,9 +112,15 @@ namespace AL::Hardware
 			: isOpen(
 				device.isOpen
 			),
+#if defined(AL_PLATFORM_LINUX)
 			fd(
 				device.fd
 			),
+#elif defined(AL_PLATFORM_WINDOWS)
+			hFile(
+				device.hFile
+			),
+#endif
 			path(
 				Move(device.path)
 			),
@@ -149,6 +192,7 @@ namespace AL::Hardware
 				"UARTDevice already open"
 			);
 
+#if defined(AL_PLATFORM_LINUX)
 			if ((fd = ::open(GetPath().GetCString(), O_RDWR | O_NOCTTY | O_NDELAY)) == -1)
 			{
 
@@ -198,11 +242,11 @@ namespace AL::Hardware
 				}
 			}
 
-//			if (GetFlags().IsSet(UARTDeviceFlags::Use2StopBits))
-//			{
-//
-//				options.c_cflag |= CSTOPB;
-//			}
+			if (GetFlags().IsSet(UARTDeviceFlags::Use2StopBits))
+			{
+
+				options.c_cflag |= CSTOPB;
+			}
 
 			::tcsetattr(
 				fd,
@@ -225,6 +269,85 @@ namespace AL::Hardware
 				TIOCMSET,
 				&status
 			);
+#elif defined(AL_PLATFORM_WINDOWS)
+			if ((hFile = ::CreateFileA(GetPath().GetCString(), GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)) == INVALID_HANDLE_VALUE)
+			{
+
+				throw OS::SystemException(
+					"CreateFileA"
+				);
+			}
+
+			::DCB dcb = { 0 };
+			dcb.DCBlength = sizeof(::DCB);
+
+			if (!::GetCommState(hFile, &dcb))
+			{
+				::CloseHandle(
+					hFile
+				);
+
+				throw OS::SystemException(
+					"GetCommState"
+				);
+			}
+
+			dcb.Parity   = NOPARITY;
+			dcb.fBinary  = TRUE;
+			dcb.BaudRate = static_cast<::DWORD>(GetSpeed());
+			dcb.ByteSize = 8;
+			dcb.StopBits = ONESTOPBIT;
+
+			if (GetFlags().IsSet(UARTDeviceFlags::Parity))
+			{
+				dcb.Parity = EVENPARITY;
+
+				if (GetFlags().IsSet(UARTDeviceFlags::Parity_Odd))
+				{
+
+					dcb.Parity = ODDPARITY;
+				}
+			}
+
+			if (GetFlags().IsSet(UARTDeviceFlags::Use2StopBits))
+			{
+
+				dcb.StopBits = TWOSTOPBITS;
+			}
+
+			if (!::SetCommState(hFile, &dcb))
+			{
+				::CloseHandle(
+					hFile
+				);
+
+				throw OS::SystemException(
+					"SetCommState"
+				);
+			}
+
+			::COMMTIMEOUTS timeouts              = { 0 };
+			timeouts.ReadIntervalTimeout         = MAXWORD;
+			timeouts.ReadTotalTimeoutConstant    = 0;
+			timeouts.ReadTotalTimeoutMultiplier  = 0;
+			timeouts.WriteTotalTimeoutConstant   = 50;
+			timeouts.WriteTotalTimeoutMultiplier = 10;
+
+			if (!::SetCommTimeouts(hFile, &timeouts))
+			{
+				::CloseHandle(
+					hFile
+				);
+
+				throw OS::SystemException(
+					"SetCommTimeouts"
+				);
+			}
+#else
+			throw DependencyMissingException(
+				"Linux/Windows"
+			);
+#endif
 
 			isOpen = True;
 		}
@@ -233,9 +356,15 @@ namespace AL::Hardware
 		{
 			if (IsOpen())
 			{
+#if defined(AL_PLATFORM_LINUX)
 				::close(
 					fd
 				);
+#elif defined(AL_PLATFORM_WINDOWS)
+				::CloseHandle(
+					hFile
+				);
+#endif
 
 				isOpen = False;
 			}
@@ -265,6 +394,7 @@ namespace AL::Hardware
 
 			for (size_t totalBytesRead = 0; totalBytesRead < size; )
 			{
+#if defined(AL_PLATFORM_LINUX)
 				int bytesRead;
 
 				if ((bytesRead = ::read(fd, &reinterpret_cast<uint8*>(lpBuffer)[totalBytesRead], size - totalBytesRead)) == -1)
@@ -276,6 +406,21 @@ namespace AL::Hardware
 				}
 
 				totalBytesRead += bytesRead;
+#elif defined(AL_PLATFORM_WINDOWS)
+				::DWORD bytesRead;
+
+				if (!::ReadFile(hFile, &reinterpret_cast<uint8*>(lpBuffer)[totalBytesRead], static_cast<::DWORD>(size - totalBytesRead), &bytesRead, nullptr))
+				{
+
+					throw OS::SystemException(
+						"ReadFile"
+					);
+				}
+
+				totalBytesRead += bytesRead;
+#else
+				throw NotImplementedException();
+#endif
 			}
 		}
 
@@ -303,6 +448,7 @@ namespace AL::Hardware
 
 			for (size_t totalBytesWritten = 0; totalBytesWritten < size; )
 			{
+#if defined(AL_PLATFORM_LINUX)
 				int bytesWritten;
 
 				if ((bytesWritten = ::write(fd, &reinterpret_cast<const uint8*>(lpBuffer)[totalBytesWritten], size - totalBytesWritten)) == -1)
@@ -314,6 +460,21 @@ namespace AL::Hardware
 				}
 
 				totalBytesWritten += bytesWritten;
+#elif defined(AL_PLATFORM_WINDOWS)
+				::DWORD bytesWritten;
+
+				if (!::WriteFile(hFile, &reinterpret_cast<const uint8*>(lpBuffer)[totalBytesWritten], static_cast<::DWORD>(size - totalBytesWritten), &bytesWritten, nullptr))
+				{
+
+					throw OS::SystemException(
+						"WriteFile"
+					);
+				}
+
+				totalBytesWritten += bytesWritten;
+#else
+				throw NotImplementedException();
+#endif
 			}
 		}
 
@@ -324,7 +485,11 @@ namespace AL::Hardware
 			isOpen = device.isOpen;
 			device.isOpen = False;
 
+#if defined(AL_PLATFORM_LINUX)
 			fd = device.fd;
+#elif defined(AL_PLATFORM_WINDOWS)
+			hFile = device.hFile;
+#endif
 
 			path = Move(
 				device.path
