@@ -196,7 +196,7 @@ namespace AL
 	typedef BOOL(WINAPI DllMain)(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved);
 #endif
 
-	inline void Spin(TimeSpan duration)
+	inline Void Spin(TimeSpan duration)
 	{
 #if defined(AL_PLATFORM_LINUX)
 		auto duration_Microseconds = duration.ToMicroseconds();
@@ -261,7 +261,7 @@ namespace AL
 #endif
 	}
 
-	inline void Sleep(TimeSpan duration)
+	inline Void Sleep(TimeSpan duration)
 	{
 #if defined(AL_PLATFORM_LINUX)
 		::usleep(
