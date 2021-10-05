@@ -21,8 +21,8 @@
 		typedef long long           lua_Integer;
 	#endif
 
-	#define LUA_FLOAT_FLOAT		    1
-	#define LUA_FLOAT_DOUBLE	    2
+	#define LUA_FLOAT_FLOAT         1
+	#define LUA_FLOAT_DOUBLE        2
 	#define LUA_FLOAT_LONGDOUBLE    3
 	#define LUA_FLOAT_TYPE          LUA_FLOAT_DOUBLE
 
