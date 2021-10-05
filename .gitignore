@@ -1,23 +1,5 @@
-# User-specific files
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
-
-# Visual Studio solution/project files
-*.vcxproj.filters
+# Visual Studio Code
+/.vscode/
 
 # Build results
 *.o
-obj/
-Build/
-
-# Visual Studio cache/options
-.vs/
-*.aps
-
-# Test Projects
-/Test/
-/Test.Lua/
-/Test.Linux/
-/Test.DotNET/
