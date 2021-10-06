@@ -97,7 +97,7 @@ namespace AL::Hardware::Drivers
 				);
 			}
 
-			bool nmeaStarted = false;
+			Bool nmeaStarted = False;
 
 			for (size_t i = 0; device.IsOpen(); )
 			{
@@ -108,7 +108,7 @@ namespace AL::Hardware::Drivers
 				if (!nmeaStarted && (c == '$'))
 				{
 
-					nmeaStarted = true;
+					nmeaStarted = True;
 				}
 
 				if (nmeaStarted)
