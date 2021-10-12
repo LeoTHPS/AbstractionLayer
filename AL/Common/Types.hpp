@@ -5,6 +5,7 @@ namespace AL
 {
 	template<int S_LONG>
 	struct _int32_;
+
 	template<>
 	struct _int32_<4>
 	{
@@ -15,7 +16,7 @@ namespace AL
 	{
 		typedef signed int Type;
 	};
-	
+
 	template<int S_LONG>
 	struct _uint32_;
 	template<>
