@@ -208,7 +208,7 @@ namespace AL::OS
 						TimeSpan::FromMilliseconds(10)
 					);
 				}
-			} while (!isStopping);
+			} while (!isStopping || (context.TaskQueue.GetSize() != 0));
 		}
 	};
 }
