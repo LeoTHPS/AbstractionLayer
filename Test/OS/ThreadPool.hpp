@@ -31,10 +31,14 @@ static void AL_OS_ThreadPool()
 		pool.Post(
 			[](uint32 _i)
 			{
+				Sleep(
+					TimeSpan::FromMilliseconds(1)
+				);
+
 #if defined(AL_TEST_SHOW_CONSOLE_OUTPUT)
 				Console::WriteLine(
-					"[Thread.ID: %u] i = %u",
-					GetCurrentThreadId(),
+					"[Thread.ID: %lu] i = %lu",
+					OS::GetCurrentThreadId(),
 					_i
 				);
 #endif
