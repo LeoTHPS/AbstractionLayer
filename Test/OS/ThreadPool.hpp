@@ -33,7 +33,7 @@ static void AL_OS_ThreadPool()
 			{
 #if defined(AL_TEST_SHOW_CONSOLE_OUTPUT)
 				Console::WriteLine(
-					"[Thread.ID: %lu] i = %lu",
+					"[Thread.ID: %u] i = %u",
 					GetCurrentThreadId(),
 					_i
 				);

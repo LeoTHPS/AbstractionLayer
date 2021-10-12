@@ -42,6 +42,8 @@
 			"Completed in %lluus", \
 			timer.GetElapsed().ToMicroseconds() \
 		); \
+		\
+		AL::OS::Console::WriteLine(); \
 	} \
 	catch (const AL::Exception& exception) \
 	{ \
