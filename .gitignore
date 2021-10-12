@@ -3,3 +3,4 @@
 
 # Build results
 *.o
+/Test/Test
