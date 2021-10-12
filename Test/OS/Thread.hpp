@@ -19,7 +19,7 @@ static void AL_OS_Thread()
 #if defined(AL_TEST_SHOW_CONSOLE_OUTPUT)
 				Console::WriteLine(
 					"GetCurrentThreadId() = %lu",
-					GetCurrentThreadId()
+					OS::GetCurrentThreadId()
 				);
 #endif
 			}
@@ -53,7 +53,7 @@ static void AL_OS_Thread()
 #if defined(AL_TEST_SHOW_CONSOLE_OUTPUT)
 	Console::WriteLine(
 		"thread.IsRunning() = %s",
-		thread.IsRunning() ? "True" : "False"
+		ToString(thread.IsRunning()).GetCString()
 	);
 #endif
 }
