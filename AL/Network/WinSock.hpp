@@ -17,8 +17,8 @@ namespace AL::Network
 {
 	class WinSock
 	{
-		inline static WSADATA data;
-		inline static size_t  loadCount = 0;
+		inline static ::WSADATA data;
+		inline static size_t    loadCount = 0;
 
 		WinSock() = delete;
 
