@@ -177,6 +177,7 @@ namespace AL::Network
 		Bool isBlocking                     = True;
 		Bool isConnected                    = False;
 		Bool isListening                    = False;
+		Bool isWinSockLoaded                = False;
 
 #if defined(AL_PLATFORM_LINUX)
 		int             socket              = INVALID_SOCKET;
@@ -211,6 +212,9 @@ namespace AL::Network
 			isListening(
 				socket.isListening
 			),
+			isWinSockLoaded(
+				socket.isWinSockLoaded
+			),
 			socket(
 				socket.socket
 			),
@@ -235,12 +239,20 @@ namespace AL::Network
 			socket.isBlocking = True;
 			socket.isConnected = False;
 			socket.isListening = False;
+			socket.isWinSockLoaded = False;
 
 			socket.socket = INVALID_SOCKET;
 		}
 
 		Socket(SocketTypes type, SocketProtocols protocol, AddressFamilies addressFamily)
-			: socketType(
+			: isWinSockLoaded(
+#if defined(AL_PLATFORM_LINUX)
+				False
+#elif defined(AL_PLATFORM_WINDOWS)
+				WinSock::TryLoad()
+#endif
+			),
+			socketType(
 				type
 			),
 			socketProtocol(
@@ -259,6 +271,14 @@ namespace AL::Network
 
 				Close();
 			}
+
+#if defined(AL_PLATFORM_WINDOWS)
+			if (isWinSockLoaded)
+			{
+
+				WinSock::Unload();
+			}
+#endif
 		}
 
 		Bool IsOpen() const
@@ -1257,6 +1277,9 @@ namespace AL::Network
 
 			isListening = socket.isListening;
 			socket.isListening = False;
+
+			isWinSockLoaded = socket.isWinSockLoaded;
+			socket.isWinSockLoaded = False;
 
 			this->socket = socket.socket;
 			socket.socket = INVALID_SOCKET;

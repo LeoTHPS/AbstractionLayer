@@ -49,6 +49,8 @@ namespace AL::Network
 			}
 		};
 
+		Bool            isWinSockLoaded = False;
+
 		Address         address;
 		AddressFamilies addressFamily;
 
@@ -178,6 +180,13 @@ namespace AL::Network
 		}
 
 		IPAddress()
+			: isWinSockLoaded(
+#if defined(AL_PLATFORM_LINUX)
+				False
+#elif defined(AL_PLATFORM_WINDOWS)
+				WinSock::TryLoad()
+#endif
+			)
 		{
 		}
 
@@ -202,7 +211,14 @@ namespace AL::Network
 		}
 
 		IPAddress(in_addr&& address)
-			: address(
+			: isWinSockLoaded(
+#if defined(AL_PLATFORM_LINUX)
+				False
+#elif defined(AL_PLATFORM_WINDOWS)
+				WinSock::TryLoad()
+#endif
+			),
+			address(
 				Move(address)
 			),
 			addressFamily(
@@ -218,7 +234,14 @@ namespace AL::Network
 		}
 
 		IPAddress(in6_addr&& address)
-			: address(
+			: isWinSockLoaded(
+#if defined(AL_PLATFORM_LINUX)
+				False
+#elif defined(AL_PLATFORM_WINDOWS)
+				WinSock::TryLoad()
+#endif
+			),
+			address(
 				Move(address)
 			),
 			addressFamily(
@@ -234,16 +257,27 @@ namespace AL::Network
 		}
 
 		IPAddress(IPAddress&& address)
-			: address(
+			: isWinSockLoaded(
+				address.isWinSockLoaded
+			),
+			address(
 				Move(address.address)
 			),
 			addressFamily(
 				address.addressFamily
 			)
 		{
+			address.isWinSockLoaded = False;
 		}
 		IPAddress(const IPAddress& address)
-			: address(
+			: isWinSockLoaded(
+#if defined(AL_PLATFORM_LINUX)
+				False
+#elif defined(AL_PLATFORM_WINDOWS)
+				address.isWinSockLoaded && WinSock::TryLoad()
+#endif
+			),
+			address(
 				Move(address.address)
 			),
 			addressFamily(
@@ -254,6 +288,13 @@ namespace AL::Network
 
 		virtual ~IPAddress()
 		{
+#if defined(AL_PLATFORM_WINDOWS)
+			if (isWinSockLoaded)
+			{
+
+				WinSock::Unload();
+			}
+#endif
 		}
 
 		Bool IsV4() const
@@ -465,6 +506,20 @@ namespace AL::Network
 
 		IPAddress& operator = (uint32 address)
 		{
+#if defined(AL_PLATFORM_WINDOWS)
+			if (isWinSockLoaded)
+			{
+
+				WinSock::Unload();
+			}
+#endif
+
+#if defined(AL_PLATFORM_LINUX)
+			isWinSockLoaded = False;
+#elif defined(AL_PLATFORM_WINDOWS)
+			isWinSockLoaded = WinSock::TryLoad();
+#endif
+
 			this->address.v4.s_addr = address;
 			addressFamily = AddressFamilies::IPv4;
 
@@ -473,6 +528,20 @@ namespace AL::Network
 
 		IPAddress& operator = (in_addr&& address)
 		{
+#if defined(AL_PLATFORM_WINDOWS)
+			if (isWinSockLoaded)
+			{
+
+				WinSock::Unload();
+			}
+#endif
+
+#if defined(AL_PLATFORM_LINUX)
+			isWinSockLoaded = False;
+#elif defined(AL_PLATFORM_WINDOWS)
+			isWinSockLoaded = WinSock::TryLoad();
+#endif
+
 			this->address.v4 = Move(address);
 			addressFamily = AddressFamilies::IPv4;
 
@@ -480,6 +549,20 @@ namespace AL::Network
 		}
 		IPAddress& operator = (const in_addr& address)
 		{
+#if defined(AL_PLATFORM_WINDOWS)
+			if (isWinSockLoaded)
+			{
+
+				WinSock::Unload();
+			}
+#endif
+
+#if defined(AL_PLATFORM_LINUX)
+			isWinSockLoaded = False;
+#elif defined(AL_PLATFORM_WINDOWS)
+			isWinSockLoaded = WinSock::TryLoad();
+#endif
+
 			this->address.v4 = address;
 			addressFamily = AddressFamilies::IPv4;
 
@@ -488,6 +571,20 @@ namespace AL::Network
 
 		IPAddress& operator = (in6_addr&& address)
 		{
+#if defined(AL_PLATFORM_WINDOWS)
+			if (isWinSockLoaded)
+			{
+
+				WinSock::Unload();
+			}
+#endif
+
+#if defined(AL_PLATFORM_LINUX)
+			isWinSockLoaded = False;
+#elif defined(AL_PLATFORM_WINDOWS)
+			isWinSockLoaded = WinSock::TryLoad();
+#endif
+
 			this->address.v6 = Move(address);
 			addressFamily = AddressFamilies::IPv6;
 
@@ -495,6 +592,20 @@ namespace AL::Network
 		}
 		IPAddress& operator = (const in6_addr& address)
 		{
+#if defined(AL_PLATFORM_WINDOWS)
+			if (isWinSockLoaded)
+			{
+
+				WinSock::Unload();
+			}
+#endif
+
+#if defined(AL_PLATFORM_LINUX)
+			isWinSockLoaded = False;
+#elif defined(AL_PLATFORM_WINDOWS)
+			isWinSockLoaded = WinSock::TryLoad();
+#endif
+
 			this->address.v6 = address;
 			addressFamily = AddressFamilies::IPv6;
 
@@ -503,6 +614,17 @@ namespace AL::Network
 
 		IPAddress& operator = (IPAddress&& address)
 		{
+#if defined(AL_PLATFORM_WINDOWS)
+			if (isWinSockLoaded)
+			{
+
+				WinSock::Unload();
+			}
+#endif
+
+			isWinSockLoaded = address.isWinSockLoaded;
+			address.isWinSockLoaded = False;
+
 			this->address = Move(address.address);
 			addressFamily = address.addressFamily;
 
@@ -510,6 +632,20 @@ namespace AL::Network
 		}
 		IPAddress& operator = (const IPAddress& address)
 		{
+#if defined(AL_PLATFORM_WINDOWS)
+			if (isWinSockLoaded)
+			{
+
+				WinSock::Unload();
+			}
+#endif
+
+#if defined(AL_PLATFORM_LINUX)
+			isWinSockLoaded = False;
+#elif defined(AL_PLATFORM_WINDOWS)
+			isWinSockLoaded = address.isWinSockLoaded && WinSock::TryLoad();
+#endif
+
 			this->address = address.address;
 			addressFamily = address.addressFamily;
 
