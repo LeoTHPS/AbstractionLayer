@@ -39,7 +39,7 @@ namespace AL::Network
 		}
 
 		// @throw AL::Exception
-		static void Load()
+		static Void Load()
 		{
 			if (++loadCount == 1)
 			{
@@ -53,7 +53,7 @@ namespace AL::Network
 			}
 		}
 
-		static void Unload()
+		static Void Unload()
 		{
 			if (GetLoadCount() && !--loadCount)
 			{
