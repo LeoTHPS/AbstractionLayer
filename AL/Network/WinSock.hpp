@@ -53,6 +53,21 @@ namespace AL::Network
 			}
 		}
 
+		static Bool TryLoad()
+		{
+			try
+			{
+				Load();
+			}
+			catch (const Exception&)
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+
 		static Void Unload()
 		{
 			if (GetLoadCount() && !--loadCount)
