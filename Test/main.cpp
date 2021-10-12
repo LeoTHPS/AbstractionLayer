@@ -10,6 +10,7 @@
 #include "Collections/MPSCQueue.hpp"
 #include "Collections/Queue.hpp"
 #include "Collections/String.hpp"
+#include "Collections/StringBuilder.hpp"
 
 #include "Common/Function.hpp"
 
@@ -75,6 +76,7 @@ int main(int argc, char* argv[])
 	AL_TEST_EXECUTE(AL_Collections_MPSCQueue);
 	AL_TEST_EXECUTE(AL_Collections_Queue);
 	AL_TEST_EXECUTE(AL_Collections_String);
+	AL_TEST_EXECUTE(AL_Collections_StringBuilder);
 
 	AL_TEST_EXECUTE(AL_Function);
 
