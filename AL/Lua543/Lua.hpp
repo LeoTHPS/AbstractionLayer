@@ -8,16 +8,6 @@
 
 #include "AL/FileSystem/Path.hpp"
 
-#define AL_LUA_GET_GLOBAL(state, type, name)                     state.GetGlobal<type>(name)
-
-#define AL_LUA_SET_GLOBAL(state, value)                          AL_LUA_SET_GLOBAL_EX(state, #value, value)
-#define AL_LUA_SET_GLOBAL_EX(state, name, value)                 state.SetGlobal(name, value)
-
-#define AL_LUA_SET_GLOBAL_FUNCTION(state, value)                 AL_LUA_SET_GLOBAL_FUNCTION_EX(state, #value, value)
-#define AL_LUA_SET_GLOBAL_FUNCTION_EX(state, name, value)        state.SetGlobalFunction<&value>(name)
-
-#define AL_LUA_CALL_GLOBAL_FUNCTION(state, signature, name, ...) state.CallGlobalFunction<signature>(name, __VA_ARGS__)
-
 namespace AL::Lua543
 {
 	class State;
@@ -74,7 +64,8 @@ namespace AL::Lua543
 		T    Pop()
 		{
 			return Extensions::Type_Functions<T>::Pop(
-				GetHandle()
+				GetHandle(),
+				1
 			);
 		}
 		Void Pop(size_t count = 1)
@@ -291,7 +282,8 @@ namespace AL::Lua543
 					);
 
 					return Extensions::Type_Functions<T_RETURN>::Pop(
-						lua
+						lua,
+						1
 					);
 				}
 
@@ -414,7 +406,8 @@ namespace AL::Lua543
 				static constexpr auto PopReturnValue(::lua_State* lua)
 				{
 					return Extensions::Type_Functions<typename Get_Type_Sequence<INDEX, T_RETURN ...>::Type>::Pop(
-						lua
+						lua,
+						1
 					);
 				}
 			};
@@ -518,7 +511,8 @@ namespace AL::Lua543
 			);
 
 			return Extensions::Type_Functions<T>::Pop(
-				GetHandle()
+				GetHandle(),
+				1
 			);
 		}
 

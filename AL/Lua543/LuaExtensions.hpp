@@ -34,24 +34,24 @@
 		typedef long double         lua_Number;
 	#endif
 
-	typedef void(*                  lua_CFunction)(lua_State*);
+	typedef int(*                   lua_CFunction)(lua_State*);
+
+	#define AL_DEPENDENCY_LUA_MISSING_VERSION "Lua 5.4.3"
 #endif
 
-#define AL_DEPENDENCY_LUA_MISSING_VERSION "Lua 5.4.3"
-
-#define AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(type, get, push, pop) \
+#define AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(__type__, __get__, __push__, __pop__) \
 	template<> \
-	struct AL::Lua543::Extensions::Type_Functions<type> \
+	struct AL::Lua543::Extensions::Type_Functions<__type__> \
 	{ \
-		static constexpr auto Get  = get; \
-		static constexpr auto Push = push; \
-		static constexpr auto Pop  = pop; \
+		static constexpr auto Get  = __get__; \
+		static constexpr auto Push = __push__; \
+		static constexpr auto Pop  = __pop__; \
 	}
 
-#define AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(type, alias) \
+#define AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(__type__, __alias__) \
 	template<> \
-	struct AL::Lua543::Extensions::Type_Functions<type> \
-		: public AL::Lua543::Extensions::Type_Functions<alias> \
+	struct AL::Lua543::Extensions::Type_Functions<__type__> \
+		: public AL::Lua543::Extensions::Type_Functions<__alias__> \
 	{ \
 	}
 
@@ -69,7 +69,7 @@ namespace AL::Lua543::Extensions
 #if defined(AL_DEPENDENCY_LUA)
 		auto value = ::lua_tostring(
 			lua,
-			static_cast<int>(index & 0x7FFFFFFF)
+			static_cast<int>(index & Integer<int>::SignedCastMask)
 		);
 
 		return value;
@@ -95,7 +95,7 @@ namespace AL::Lua543::Extensions
 #if defined(AL_DEPENDENCY_LUA)
 		auto value = ::lua_toboolean(
 			lua,
-			static_cast<int>(index & 0x7FFFFFFF)
+			static_cast<int>(index & Integer<int>::SignedCastMask)
 		);
 
 		return value == 1;
@@ -110,7 +110,7 @@ namespace AL::Lua543::Extensions
 #if defined(AL_DEPENDENCY_LUA)
 		auto value = ::lua_touserdata(
 			lua,
-			static_cast<int>(index & 0x7FFFFFFF)
+			static_cast<int>(index & Integer<int>::SignedCastMask)
 		);
 
 		return value;
@@ -125,7 +125,7 @@ namespace AL::Lua543::Extensions
 #if defined(AL_DEPENDENCY_LUA)
 		auto value = ::lua_tonumber(
 			lua,
-			static_cast<int>(index & 0x7FFFFFFF)
+			static_cast<int>(index & Integer<int>::SignedCastMask)
 		);
 
 		return value;
@@ -140,7 +140,7 @@ namespace AL::Lua543::Extensions
 #if defined(AL_DEPENDENCY_LUA)
 		auto value = ::lua_tointeger(
 			lua,
-			static_cast<int>(index & 0x7FFFFFFF)
+			static_cast<int>(index & Integer<int>::SignedCastMask)
 		);
 
 		return value;
@@ -155,7 +155,7 @@ namespace AL::Lua543::Extensions
 #if defined(AL_DEPENDENCY_LUA)
 		auto value = ::lua_tocfunction(
 			lua,
-			static_cast<int>(index & 0x7FFFFFFF)
+			static_cast<int>(index & Integer<int>::SignedCastMask)
 		);
 
 		return value;
@@ -264,12 +264,12 @@ namespace AL::Lua543::Extensions
 #endif
 	}
 
-	static Void             pop(::lua_State* lua, size_t count = 1)
+	static Void             pop(::lua_State* lua, size_t count)
 	{
 #if defined(AL_DEPENDENCY_LUA)
 		::lua_pop(
 			lua,
-			static_cast<int>(count & 0x7FFFFFFF)
+			static_cast<int>(count & Integer<int>::SignedCastMask)
 		);
 #else
 		throw DependencyMissingException(
@@ -278,7 +278,7 @@ namespace AL::Lua543::Extensions
 #endif
 	}
 	template<typename T>
-	static T                pop(::lua_State* lua, size_t count = 1)
+	static T                pop(::lua_State* lua, size_t count)
 	{
 #if defined(AL_DEPENDENCY_LUA)
 		auto value = Type_Functions<T>::Get(
@@ -435,8 +435,8 @@ namespace AL::Lua543::Extensions
 #if defined(AL_DEPENDENCY_LUA)
 		::lua_call(
 			lua,
-			static_cast<int>(argCount & 0x7FFFFFFF),
-			static_cast<int>(returnCount & 0x7FFFFFFF)
+			static_cast<int>(argCount & Integer<int>::SignedCastMask),
+			static_cast<int>(returnCount & Integer<int>::SignedCastMask)
 		);
 #else
 		throw DependencyMissingException(
