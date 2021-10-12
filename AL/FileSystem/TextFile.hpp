@@ -18,6 +18,9 @@ namespace AL::FileSystem
 		TextFileLineEndings lineEnding = TextFileLineEndings::Auto;
 
 	public:
+		static constexpr char LF[]   = "\n";
+		static constexpr char CRLF[] = "\r\n";
+
 		using File::File;
 
 		auto GetLineEnding() const
@@ -148,7 +151,7 @@ namespace AL::FileSystem
 
 					for (size_t i = 0; i < charsRead; ++i, ++lpBuffer)
 					{
-						if (*lpBuffer == '\n')
+						if (*lpBuffer == LF[0])
 						{
 
 							return i;
@@ -165,18 +168,18 @@ namespace AL::FileSystem
 
 					for (size_t i = 0; i < charsRead; ++i, ++lpBuffer)
 					{
-						if (*lpBuffer == '\n')
+						if (*lpBuffer == CRLF[1])
 						{
-							if (__lpPrevChunkFirstChar && (*__lpPrevChunkFirstChar == '\r'))
+							if (__lpPrevChunkFirstChar && (*__lpPrevChunkFirstChar == CRLF[0]))
 							{
 
 								return i;
 							}
 						}
 
-						if (*lpBuffer == '\r')
+						if (*lpBuffer == CRLF[0])
 						{
-							if (((i + 1) < charsRead) && (*(lpBuffer + 1) == '\n'))
+							if (((i + 1) < charsRead) && (*(lpBuffer + 1) == CRLF[1]))
 							{
 
 								return i;
@@ -337,18 +340,18 @@ namespace AL::FileSystem
 			{
 				case TextFileLineEndings::Auto:
 #if defined(AL_PLATFORM_LINUX)
-					Write("\n");
+					Write(LF);
 #elif defined(AL_PLATFORM_WINDOWS)
-					Write("\r\n");
+					Write(CRLF);
 #endif
 					break;
 
 				case TextFileLineEndings::LF:
-					Write("\n");
+					Write(LF);
 					break;
 
 				case TextFileLineEndings::CRLF:
-					Write("\r\n");
+					Write(CRLF);
 					break;
 			}
 		}
