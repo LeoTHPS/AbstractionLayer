@@ -1,14 +1,14 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#include "IDevice.hpp"
+#include "IDriver.hpp"
 
 #include "AL/Hardware/GPIO.hpp"
 
 namespace AL::Hardware::Drivers
 {
 	class RCWL_0516
-		: public IDevice<Void, Bool, Void>
+		: public IDriver<Void, Bool, Void>
 	{
 		Bool isOpen = False;
 

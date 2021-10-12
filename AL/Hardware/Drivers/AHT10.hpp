@@ -1,7 +1,7 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#include "IDevice.hpp"
+#include "IDriver.hpp"
 
 #include "AL/Hardware/I2C.hpp"
 
@@ -28,7 +28,7 @@ namespace AL::Hardware::Drivers
 	AL_DEFINE_ENUM_FLAG_OPERATORS(AHT10DataFlags);
 
 	class AHT10
-		: public IDevice<AHT10DataFlags, AHT10Data, Void>
+		: public IDriver<AHT10DataFlags, AHT10Data, Void>
 	{
 		Bool      isOpen = False;
 		Bool      isBusAllocated = False;

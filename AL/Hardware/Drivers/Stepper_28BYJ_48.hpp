@@ -1,7 +1,7 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#include "IDevice.hpp"
+#include "IDriver.hpp"
 
 #include "AL/Hardware/GPIO.hpp"
 
@@ -21,7 +21,7 @@ namespace AL::Hardware::Drivers
 	};
 
 	class Stepper_28BYJ_48
-		: public IDevice<Void, Stepper_28BYJ_48_Phases, Stepper_28BYJ_48_Phases>
+		: public IDriver<Void, Stepper_28BYJ_48_Phases, Stepper_28BYJ_48_Phases>
 	{
 		Bool isOpen = False;
 

@@ -1,14 +1,14 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#include "IDevice.hpp"
+#include "IDriver.hpp"
 
 #include "AL/Hardware/UART.hpp"
 
 namespace AL::Hardware::Drivers
 {
 	class BN_180
-		: public IDevice<Void, String, Void>
+		: public IDriver<Void, String, Void>
 	{
 		Bool       isOpen = False;
 

@@ -1,7 +1,7 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#include "IDevice.hpp"
+#include "IDriver.hpp"
 
 #include "AL/Hardware/I2C.hpp"
 
@@ -36,7 +36,7 @@ namespace AL::Hardware::Drivers
 	AL_DEFINE_ENUM_FLAG_OPERATORS(BMP180DataFlags);
 
 	class BMP180
-		: public IDevice<BMP180DataFlags, BMP180Data, Void>
+		: public IDriver<BMP180DataFlags, BMP180Data, Void>
 	{
 #pragma pack(push, 1)
 		struct device_info

@@ -1,14 +1,14 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#include "IDevice.hpp"
+#include "IDriver.hpp"
 
 #include "AL/Hardware/SPI.hpp"
 
 namespace AL::Hardware::Drivers
 {
 	class MCP3008
-		: public IDevice<uint8, uint16, Void>
+		: public IDriver<uint8, uint16, Void>
 	{
 		Bool      isOpen = False;
 

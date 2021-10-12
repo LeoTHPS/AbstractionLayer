@@ -4,22 +4,22 @@
 namespace AL::Hardware::Drivers
 {
 	template<typename T_CHANNEL, typename T_DATA_READ, typename T_DATA_WRITE>
-	class IDevice;
+	class IDriver;
 
 	template<typename T_DATA_READ, typename T_DATA_WRITE>
-	class IDevice<Void, T_DATA_READ, T_DATA_WRITE>
+	class IDriver<Void, T_DATA_READ, T_DATA_WRITE>
 	{
-		IDevice(const IDevice&) = delete;
+		IDriver(const IDriver&) = delete;
 
 	public:
 		typedef T_DATA_READ  ReadData;
 		typedef T_DATA_WRITE WriteData;
 
-		IDevice()
+		IDriver()
 		{
 		}
 
-		virtual ~IDevice()
+		virtual ~IDriver()
 		{
 		}
 
@@ -37,20 +37,20 @@ namespace AL::Hardware::Drivers
 		virtual Void Write(const WriteData& data) = 0;
 	};
 	template<typename T_CHANNEL, typename T_DATA_READ, typename T_DATA_WRITE>
-	class IDevice
+	class IDriver
 	{
-		IDevice(const IDevice&) = delete;
+		IDriver(const IDriver&) = delete;
 
 	public:
 		typedef T_CHANNEL    Channel;
 		typedef T_DATA_READ  ReadData;
 		typedef T_DATA_WRITE WriteData;
 
-		IDevice()
+		IDriver()
 		{
 		}
 
-		virtual ~IDevice()
+		virtual ~IDriver()
 		{
 		}
 
@@ -69,18 +69,18 @@ namespace AL::Hardware::Drivers
 	};
 
 	template<typename T_DATA_READ>
-	class IDevice<Void, T_DATA_READ, Void>
+	class IDriver<Void, T_DATA_READ, Void>
 	{
-		IDevice(const IDevice&) = delete;
+		IDriver(const IDriver&) = delete;
 
 	public:
 		typedef T_DATA_READ ReadData;
 
-		IDevice()
+		IDriver()
 		{
 		}
 
-		virtual ~IDevice()
+		virtual ~IDriver()
 		{
 		}
 
@@ -95,19 +95,19 @@ namespace AL::Hardware::Drivers
 		virtual Void Read(ReadData& data) = 0;
 	};
 	template<typename T_CHANNEL, typename T_DATA_READ>
-	class IDevice<T_CHANNEL, T_DATA_READ, Void>
+	class IDriver<T_CHANNEL, T_DATA_READ, Void>
 	{
-		IDevice(const IDevice&) = delete;
+		IDriver(const IDriver&) = delete;
 
 	public:
 		typedef T_CHANNEL   Channel;
 		typedef T_DATA_READ ReadData;
 
-		IDevice()
+		IDriver()
 		{
 		}
 
-		virtual ~IDevice()
+		virtual ~IDriver()
 		{
 		}
 
