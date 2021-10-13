@@ -16,10 +16,12 @@ static void AL_Lua543_do_the_thing()
 		"the_thing"
 	);
 
+#if defined(AL_TEST_SHOW_CONSOLE_OUTPUT)
 	OS::Console::WriteLine(
 		"[do_the_thing] the_thing = %lu",
 		the_thing
 	);
+#endif
 
 	AL_Lua543_State.SetGlobal(
 		"the_thing",
