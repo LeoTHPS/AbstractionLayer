@@ -27,7 +27,7 @@ namespace AL
 	}
 
 	template<typename T>
-	inline typename Remove_Reference<T>::Type&& Move(T&& value)
+	constexpr typename Remove_Reference<T>::Type&& Move(T&& value)
 	{
 		return static_cast<typename Remove_Reference<T>::Type&&>(
 			value
@@ -35,14 +35,14 @@ namespace AL
 	}
 
 	template<typename T>
-	inline typename Remove_Reference<T>::Type&& Forward(typename Remove_Reference<T>::Type& value)
+	constexpr T&& Forward(typename Remove_Reference<T>::Type& value)
 	{
 		return static_cast<T&&>(
 			value
 		);
 	}
 	template<typename T>
-	inline typename Remove_Reference<T>::Type&& Forward(typename Remove_Reference<T>::Type&& value)
+	constexpr T&& Forward(typename Remove_Reference<T>::Type&& value)
 	{
 		return static_cast<T&&>(
 			value
