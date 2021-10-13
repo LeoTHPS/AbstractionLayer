@@ -38,10 +38,9 @@ namespace AL
 
 		BitMask(BitMask&& mask)
 			: Value(
-				mask.Value
+				Move(mask.Value)
 			)
 		{
-			mask.Value = 0;
 		}
 
 		BitMask(const BitMask& mask)
@@ -114,8 +113,9 @@ namespace AL
 
 		BitMask& operator = (BitMask&& mask)
 		{
-			Value = mask.Value;
-			mask.Value = 0;
+			Value = Move(
+				mask.Value
+			);
 
 			return *this;
 		}
