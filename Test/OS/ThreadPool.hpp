@@ -26,7 +26,7 @@ static void AL_OS_ThreadPool()
 		);
 	}
 
-	for (uint32 i = 0; i < 100; ++i)
+	for (uint32 i = 0; i < 10; ++i)
 	{
 		pool.Post(
 			[](uint32 _i)
