@@ -46,7 +46,7 @@ namespace AL::FileSystem
 
 			auto lpString = string;
 			auto lpDelimiter = delimiter;
-			
+
 			for (size_t i = 0; i < delimiterLength; ++i, ++lpString, ++lpDelimiter)
 			{
 				if (*lpString != *lpDelimiter)
@@ -101,6 +101,7 @@ namespace AL::FileSystem
 		template<typename T_CHUNK, typename ... T_CHUNKS>
 		static String Combine2(String& buffer, const T_CHUNK& chunk, const T_CHUNKS& ... chunks)
 		{
+			// TODO: debug this
 			if (!buffer.EndsWith('/') && !buffer.EndsWith('\\') &&
 				!String_StartsWith(chunk, '/') && !String_StartsWith(chunk, '\\'))
 			{
