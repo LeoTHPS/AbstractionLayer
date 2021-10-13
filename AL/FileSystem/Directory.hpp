@@ -4,10 +4,12 @@
 #include "Path.hpp"
 #include "File.hpp"
 
+#include "AL/OS/ErrorCode.hpp"
 #include "AL/OS/SystemException.hpp"
 
 #if defined(AL_PLATFORM_LINUX)
 	#include <fcntl.h>
+	#include <dirent.h>
 
 	#include <sys/stat.h>
 	#include <sys/types.h>
@@ -102,8 +104,6 @@ namespace AL::FileSystem
 					"CreateDirectoryA"
 				);
 			}
-#else
-			throw NotImplementedException();
 #endif
 
 			return True;
@@ -192,8 +192,45 @@ namespace AL::FileSystem
 		static Void Enumerate(const String& path, const DirectoryEnumCallback& callback)
 		{
 #if defined(AL_PLATFORM_LINUX)
-			// TODO: implement
-			throw NotImplementedException();
+			::DIR* lpDIR;
+			::dirent64* lpEntry;
+
+			if ((lpDIR = ::opendir(path.GetCString())) == NULL)
+			{
+
+				throw OS::SystemException(
+					"opendir"
+				);
+			}
+
+			while ((lpEntry = ::readdir64(lpDIR)) != NULL)
+			{
+				auto _path = Path::Combine(
+					path,
+					lpEntry->d_name
+				);
+
+				try
+				{
+					if (!callback(_path))
+					{
+
+						break;
+					}
+				}
+				catch (Exception&)
+				{
+					::closedir(
+						lpDIR
+					);
+
+					throw;
+				}
+			}
+
+			::closedir(
+				lpDIR
+			);
 #elif defined(AL_PLATFORM_WINDOWS)
 			auto pattern = String::Format(
 				"%s/*",
@@ -252,8 +289,6 @@ namespace AL::FileSystem
 			::FindClose(
 				hFind
 			);
-#else
-			throw NotImplementedException();
 #endif
 		}
 
@@ -269,8 +304,55 @@ namespace AL::FileSystem
 		static Void EnumerateFiles(const String& path, const DirectoryEnumFilesCallback& callback)
 		{
 #if defined(AL_PLATFORM_LINUX)
-			// TODO: implement
-			throw NotImplementedException();
+			::DIR* lpDIR;
+			::dirent64* lpEntry;
+
+			if ((lpDIR = ::opendir(path.GetCString())) == NULL)
+			{
+
+				throw OS::SystemException(
+					"opendir"
+				);
+			}
+
+			while ((lpEntry = ::readdir64(lpDIR)) != NULL)
+			{
+				if (lpEntry->d_type != DT_REG)
+				{
+
+					continue;
+				}
+
+				auto _path = Path::Combine(
+					path,
+					lpEntry->d_name
+				);
+
+				File _file(
+					AL::Move(_path)
+				);
+
+				try
+				{
+					if (!callback(_file))
+					{
+
+						break;
+					}
+				}
+				catch (Exception&)
+				{
+					::closedir(
+						lpDIR
+					);
+
+					throw;
+				}
+			}
+
+			::closedir(
+				lpDIR
+			);
 #elif defined(AL_PLATFORM_WINDOWS)
 			auto pattern = String::Format(
 				"%s/*",
@@ -336,8 +418,6 @@ namespace AL::FileSystem
 			::FindClose(
 				hFind
 			);
-#else
-			throw NotImplementedException();
 #endif
 		}
 
@@ -353,8 +433,55 @@ namespace AL::FileSystem
 		static Void EnumerateDirectories(const String& path, const DirectoryEnumDirectoriesCallback& callback)
 		{
 #if defined(AL_PLATFORM_LINUX)
-			// TODO: implement
-			throw NotImplementedException();
+			::DIR* lpDIR;
+			::dirent64* lpEntry;
+
+			if ((lpDIR = ::opendir(path.GetCString())) == NULL)
+			{
+
+				throw OS::SystemException(
+					"opendir"
+				);
+			}
+
+			while ((lpEntry = ::readdir64(lpDIR)) != NULL)
+			{
+				if (lpEntry->d_type != DT_DIR)
+				{
+
+					continue;
+				}
+
+				auto _path = Path::Combine(
+					path,
+					lpEntry->d_name
+				);
+
+				Directory _directory(
+					AL::Move(_path)
+				);
+
+				try
+				{
+					if (!callback(_directory))
+					{
+
+						break;
+					}
+				}
+				catch (Exception&)
+				{
+					::closedir(
+						lpDIR
+					);
+
+					throw;
+				}
+			}
+
+			::closedir(
+				lpDIR
+			);
 #elif defined(AL_PLATFORM_WINDOWS)
 			auto pattern = String::Format(
 				"%s/*",
@@ -420,8 +547,6 @@ namespace AL::FileSystem
 			::FindClose(
 				hFind
 			);
-#else
-			throw NotImplementedException();
 #endif
 		}
 
