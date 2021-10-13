@@ -22,6 +22,7 @@
 
 #include "Lua543/Lua.hpp"
 
+#include "OS/Process.hpp"
 #include "OS/Thread.hpp"
 #include "OS/ThreadPool.hpp"
 #include "OS/Window.hpp"
@@ -61,6 +62,8 @@
 				); \
 			} while ((lpInnerException = lpInnerException->GetInnerException()) != nullptr); \
 		} \
+		\
+		AL::OS::Console::WriteLine(); \
 	}
 
 int main(int argc, char* argv[])
@@ -88,6 +91,7 @@ int main(int argc, char* argv[])
 
 	AL_TEST_EXECUTE(AL_Lua543);
 
+	AL_TEST_EXECUTE(AL_OS_Process);
 	AL_TEST_EXECUTE(AL_OS_Thread);
 	AL_TEST_EXECUTE(AL_OS_ThreadPool);
 	AL_TEST_EXECUTE(AL_OS_Window);
