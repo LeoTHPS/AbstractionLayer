@@ -18,9 +18,15 @@ namespace AL::FileSystem
 	class File;
 	class Directory;
 
-	typedef Function<Void(const Path& path)>           DirectoryEnumCallback;
-	typedef Function<Void(const File& file)>           DirectoryEnumFilesCallback;
-	typedef Function<Void(const Directory& directory)> DirectoryEnumDirectoriesCallback;
+	// @throw AL::Exception
+	// @return False to stop enumeration
+	typedef Function<Bool(const Path& path)>           DirectoryEnumCallback;
+	// @throw AL::Exception
+	// @return False to stop enumeration
+	typedef Function<Bool(const File& file)>           DirectoryEnumFilesCallback;
+	// @throw AL::Exception
+	// @return False to stop enumeration
+	typedef Function<Bool(const Directory& directory)> DirectoryEnumDirectoriesCallback;
 
 	class Directory
 	{
@@ -212,9 +218,22 @@ namespace AL::FileSystem
 					fileData.cFileName
 				);
 
-				callback(
-					_path
-				);
+				try
+				{
+					if (!callback(_path))
+					{
+
+						break;
+					}
+				}
+				catch (Exception&)
+				{
+					::FindClose(
+						hFind
+					);
+
+					throw;
+				}
 			} while (::FindNextFileA(hFind, &fileData));
 
 			auto lastError = OS::GetLastError();
@@ -282,9 +301,22 @@ namespace AL::FileSystem
 						AL::Move(filePath)
 					);
 
-					callback(
-						file
-					);
+					try
+					{
+						if (!callback(file))
+						{
+
+							break;
+						}
+					}
+					catch (Exception&)
+					{
+						::FindClose(
+							hFind
+						);
+
+						throw;
+					}
 				}
 			} while (::FindNextFileA(hFind, &fileData));
 
@@ -353,9 +385,22 @@ namespace AL::FileSystem
 						AL::Move(directoryPath)
 					);
 
-					callback(
-						directory
-					);
+					try
+					{
+						if (!callback(directory))
+						{
+
+							break;
+						}
+					}
+					catch (Exception&)
+					{
+						::FindClose(
+							hFind
+						);
+
+						throw;
+					}
 				}
 			} while (::FindNextFileA(hFind, &fileData));
 
