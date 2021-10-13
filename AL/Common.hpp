@@ -113,6 +113,7 @@
 #include "Common/Math.hpp"
 #include "Common/GUID.hpp"
 #include "Common/String.hpp"
+#include "Common/StringBuilder.hpp"
 
 #include "Common/Regex.hpp"
 
