@@ -50,7 +50,7 @@
 	catch (const AL::Exception& exception) \
 	{ \
 		AL::OS::Console::WriteLine( \
-			exception.GetMessage().GetCString() \
+			exception.GetMessage() \
 		); \
 		\
 		if (auto lpInnerException = exception.GetInnerException()) \
@@ -58,7 +58,7 @@
 			do \
 			{ \
 				AL::OS::Console::WriteLine( \
-					lpInnerException->GetMessage().GetCString() \
+					lpInnerException->GetMessage() \
 				); \
 			} while ((lpInnerException = lpInnerException->GetInnerException()) != nullptr); \
 		} \
