@@ -16,10 +16,6 @@
 
 #include "FileSystem/File.hpp"
 
-#include "Game/Network/Client.hpp"
-
-#include "Game/Storage/DataFile.hpp"
-
 #include "Lua543/Lua.hpp"
 
 #include "OS/Process.hpp"
@@ -84,10 +80,6 @@ int main(int argc, char* argv[])
 	AL_TEST_EXECUTE(AL_Function);
 
 	AL_TEST_EXECUTE(AL_FileSystem_File);
-
-	AL_TEST_EXECUTE(AL_Game_Network_Client);
-
-	AL_TEST_EXECUTE(AL_Game_Storage_DataFile);
 
 	AL_TEST_EXECUTE(AL_Lua543);
 
