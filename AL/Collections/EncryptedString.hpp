@@ -4,11 +4,11 @@
 #include "Array.hpp"
 #include "String.hpp"
 
-#define AL_ENCRYPTED_STRING(__value__)					AL_ENCRYPTED_STRING_EX(__value__, 0x45)
-#define AL_ENCRYPTED_STRING_EX(__value__, __seed__)		AL::Collections::EncryptedString<__seed__, (sizeof(__value__) / sizeof(AL::String::Char)) - 1>(__value__).Decrypt()
+#define AL_ENCRYPTED_STRING(__value__)               AL_ENCRYPTED_STRING_EX(__value__, 0x45)
+#define AL_ENCRYPTED_STRING_EX(__value__, __seed__)  AL::Collections::EncryptedString<__seed__, (sizeof(__value__) / sizeof(AL::String::Char)) - 1>(__value__).Decrypt()
 
-#define AL_ENCRYPTED_WSTRING(__value__)					AL_ENCRYPTED_WSTRING_EX(__value__, 0x45)
-#define AL_ENCRYPTED_WSTRING_EX(__value__, __seed__)	AL::Collections::EncryptedWString<__seed__, (sizeof(__value__) / sizeof(AL::WString::Char)) - 1>(__value__).Decrypt()
+#define AL_ENCRYPTED_WSTRING(__value__)              AL_ENCRYPTED_WSTRING_EX(__value__, 0x45)
+#define AL_ENCRYPTED_WSTRING_EX(__value__, __seed__) AL::Collections::EncryptedWString<__seed__, (sizeof(__value__) / sizeof(AL::WString::Char)) - 1>(__value__).Decrypt()
 
 namespace AL::Collections
 {
