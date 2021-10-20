@@ -188,6 +188,8 @@ namespace AL::OS
 						"CreateThread"
 					);
 				}
+#else
+				throw PlatformNotSupportedException();
 #endif
 
 				isRunning = True;
@@ -216,6 +218,10 @@ namespace AL::OS
 	#else
 				throw NotImplementedException();
 	#endif
+#elif defined(AL_PLATFORM_WINDOWS)
+
+#else
+				throw PlatformNotSupportedException();
 #endif
 
 				isDetatched = True;
@@ -258,6 +264,8 @@ namespace AL::OS
 				);
 
 				hThread = NULL;
+#else
+				throw PlatformNotSupportedException();
 #endif
 
 				isRunning = False;
@@ -276,11 +284,11 @@ namespace AL::OS
 
 				while (timer.GetElapsed() < maxWaitTime)
 				{
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_PTHREAD)
 					ErrorCode errorCode;
 					Void*     threadRetValue;
 
-#if defined(AL_PLATFORM_LINUX)
-	#if defined(AL_DEPENDENCY_PTHREAD)
 					if ((errorCode = ::pthread_join(pthread, &threadRetValue)) != 0)
 					{
 						if (errorCode == ESRCH)
@@ -305,6 +313,8 @@ namespace AL::OS
 							"WaitForSingleObject"
 						);
 					}
+#else
+					throw PlatformNotSupportedException();
 #endif
 				}
 
@@ -312,7 +322,7 @@ namespace AL::OS
 			}
 		};
 
-		INativeThread* lpNativeThread;
+		INativeThread*     lpNativeThread;
 
 		Thread(Thread&&) = delete;
 		Thread(const Thread&) = delete;
@@ -534,14 +544,16 @@ namespace AL::OS
 			::syscall(SYS_gettid)
 		);
 	#else
-		throw NotImplementedException();
+		throw DependencyMissingException(
+			"pthread"
+		);
 	#endif
 #elif defined(AL_PLATFORM_WINDOWS)
 		return static_cast<uint32>(
 			::GetCurrentThreadId()
 		);
 #else
-		throw NotImplementedException();
+		throw PlatformNotSupportedException();
 #endif
 	}
 }

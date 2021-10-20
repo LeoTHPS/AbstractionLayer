@@ -66,8 +66,6 @@ namespace AL::Hardware
 		Baud_3000000 = B3000000,
 		Baud_3500000 = B3500000,
 		Baud_4000000 = B4000000,
-
-		Default      = Baud_9600
 #elif defined(AL_PLATFORM_WINDOWS)
 		Baud_110     = CBR_110,
 		Baud_300     = CBR_300,
@@ -84,11 +82,9 @@ namespace AL::Hardware
 		Baud_115200  = CBR_115200,
 		Baud_128000  = CBR_128000,
 		Baud_256000  = CBR_256000,
+#endif
 
 		Default      = Baud_9600
-#else
-		Default      = 0
-#endif
 	};
 
 	class UARTDevice
@@ -343,6 +339,8 @@ namespace AL::Hardware
 					"SetCommTimeouts"
 				);
 			}
+#else
+			throw PlatformNotSupportedException();
 #endif
 
 			isOpen = True;
@@ -414,6 +412,8 @@ namespace AL::Hardware
 				}
 
 				totalBytesRead += bytesRead;
+#else
+				throw PlatformNotSupportedException();
 #endif
 			}
 		}
@@ -466,6 +466,8 @@ namespace AL::Hardware
 				}
 
 				totalBytesWritten += bytesWritten;
+#else
+				throw PlatformNotSupportedException();
 #endif
 			}
 		}

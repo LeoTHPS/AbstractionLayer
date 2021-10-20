@@ -1,8 +1,8 @@
 #pragma once
-#include "AL/Common.hpp"
+#include <AL/Common.hpp>
 
-#include "AL/OS/Thread.hpp"
-#include "AL/OS/Console.hpp"
+#include <AL/OS/Thread.hpp>
+#include <AL/OS/Console.hpp>
 
 static void AL_OS_Thread()
 {

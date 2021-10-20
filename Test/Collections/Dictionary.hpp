@@ -1,9 +1,9 @@
 #pragma once
-#include "AL/Common.hpp"
+#include <AL/Common.hpp>
 
-#include "AL/OS/Console.hpp"
+#include <AL/OS/Console.hpp>
 
-#include "AL/Collections/Dictionary.hpp"
+#include <AL/Collections/Dictionary.hpp>
 
 static void AL_Collections_Dictionary()
 {

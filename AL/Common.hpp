@@ -6,63 +6,92 @@
 #endif
 
 #if defined(__GNUC__)
-	#define AL_PLATFORM_LINUX
-
-	#if defined(__i386__)
-		#define AL_PLATFORM_LINUX32
-	#elif defined(__x86_64__)
-		#define AL_PLATFORM_LINUX64
-	#elif defined(__arm__)
-		#define AL_PLATFORM_LINUX_ARM
-	#elif defined(__aarch64__)
-		#define AL_PLATFORM_LINUX_ARM64
-	#endif
+	#define AL_COMPILER_GNU
 #elif defined(_MSC_VER)
-	#define AL_PLATFORM_WINDOWS
+	#define AL_COMPILER_MSVC
+#elif defined(__clang__)
+	#define AL_COMPILER_CLANG
+#else
+	#error Compiler not supported
+#endif
 
-	#if defined(_M_IX86)
-		#define AL_PLATFORM_WIN32
-	#elif defined(_M_X64)
-		#define AL_PLATFORM_WIN64
-	#elif defined(_M_ARM)
-		#define AL_PLATFORM_WIN_ARM
-	#elif defined(_M_ARM64)
-		#define AL_PLATFORM_WIN_ARM64
-	#endif
+#if defined(__linux__)
+	#define AL_PLATFORM_LINUX
+#elif defined(_WIN32) || defined(_WIN64)
+	#define AL_PLATFORM_WINDOWS
 #else
 	#error Platform not supported
 #endif
 
-#if defined(AL_PLATFORM_LINUX32) || defined(AL_PLATFORM_WIN32)
-	#define AL_X86
-#elif defined(AL_PLATFORM_LINUX64) || defined(AL_PLATFORM_WIN64)
-	#define AL_X86_64
-#elif defined(AL_PLATFORM_LINUX_ARM) || defined(AL_PLATFORM_WIN_ARM)
-	#define AL_ARM
-#elif defined(AL_PLATFORM_LINUX_ARM64) || defined(AL_PLATFORM_WIN_ARM64)
-	#defined AL_ARM64
+#if defined(__i386__) || defined(_M_IX86)
+	#define      AL_X86
+	#define AL_ARCH_X86
+#elif defined(__x86_64__) || defined(_M_X64)
+	#define      AL_X86_64
+	#define AL_ARCH_X86_64
+#elif defined(__arm__) || defined(_M_ARM)
+	#define      AL_ARM
+	#define AL_ARCH_ARM
+#elif defined(__aarch64__)
+	#define      AL_ARM64
+	#define AL_ARCH_ARM64
 #endif
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_COMPILER_GNU)
+	#define AL_VECTORCALL
+
 	#if defined(AL_X86)
 		#define AL_CDECL    __attribute__((cdecl))
+		#define AL_STDCALL  __attribute__((stdcall))
 		#define AL_FASTCALL __attribute__((fastcall))
-	#endif
-
-	#if defined(AL_X86) || defined(AL_X86_64)
+		#define AL_THISCALL __attribute__((thiscall))
+	#elif defined(AL_X86_64)
 		#define AL_STDCALL  __attribute__((stdcall))
 		#define AL_THISCALL __attribute__((thiscall))
+	#else
+		#define AL_CDECL
+		#define AL_STDCALL
+		#define AL_FASTCALL
+		#define AL_THISCALL
 	#endif
-#elif defined(AL_PLATFORM_WINDOWS)
+#elif defined(AL_COMPILER_MSVC)
 	#if defined(AL_X86)
 		#define AL_CDECL      __cdecl
-		#define AL_FASTCALL   __fastcall
-	#endif
-
-	#if defined(AL_X86) || defined(AL_X86_64)
 		#define AL_STDCALL    __stdcall
+		#define AL_FASTCALL   __fastcall
 		#define AL_THISCALL   __thiscall
 		#define AL_VECTORCALL __vectorcall
+	#elif defined(AL_X86_64)
+		#define AL_CDECL
+		#define AL_STDCALL    __stdcall
+		#define AL_FASTCALL
+		#define AL_THISCALL   __thiscall
+		#define AL_VECTORCALL __vectorcall
+	#else
+		#define AL_CDECL
+		#define AL_STDCALL
+		#define AL_FASTCALL
+		#define AL_THISCALL
+		#define AL_VECTORCALL
+	#endif
+#elif defined(AL_COMPILER_CLANG)
+	#define AL_CDECL
+
+	#if defined(AL_X86)
+		#define AL_STDCALL    __stdcall
+		#define AL_FASTCALL   __fastcall
+		#define AL_THISCALL   __thiscall
+		#define AL_VECTORCALL __vectorcall
+	#elif defined(AL_X86_64)
+		#define AL_STDCALL
+		#define AL_FASTCALL
+		#define AL_THISCALL   __thiscall
+		#define AL_VECTORCALL __vectorcall
+	#else
+		#define AL_STDCALL
+		#define AL_FASTCALL
+		#define AL_THISCALL
+		#define AL_VECTORCALL
 	#endif
 #endif
 
@@ -84,22 +113,52 @@
 	#define AL_ASSERT(__condition__, __message__)     
 #endif
 
-#if defined(AL_PLATFORM_LINUX)
-	#define AL_NAKED      __attribute__((naked))
+#if defined(AL_COMPILER_GNU)
+	#if defined(__GXX_RTTI)
+		#define AL_RTTI
+	#endif
 
-	#define AL_INLINE     __attribute__((always_inline))
-	#define AL_NO_INLINE  __attribute__((noinline))
+	#define AL_NAKED          __attribute__((naked))
 
-	#define AL_DLL_EXPORT 
-	#define AL_DLL_IMPORT 
-#elif defined(AL_PLATFORM_WINDOWS)
-	#define AL_NAKED      __declspec(naked)
+	#define AL_INLINE         __attribute__((always_inline))
+	#define AL_NO_INLINE      __attribute__((noinline))
 
-	#define AL_INLINE     __forceinline
-	#define AL_NO_INLINE  __declspec(noinline)
+	#define AL_DLL_EXPORT
+	#define AL_DLL_IMPORT
+#elif defined(AL_COMPILER_MSVC)
+	#if defined(_CPPRTTI)
+		#define AL_RTTI
+	#endif
 
-	#define AL_DLL_EXPORT __declspec(dllexport)
-	#define AL_DLL_IMPORT __declspec(dllimport)
+	#define AL_NAKED          __declspec(naked)
+
+	#define AL_INLINE         __forceinline
+	#define AL_NO_INLINE      __declspec(noinline)
+
+	#if defined(AL_PLATFORM_WINDOWS)
+		#define AL_DLL_EXPORT __declspec(dllexport)
+		#define AL_DLL_IMPORT __declspec(dllimport)
+	#else
+		#define AL_DLL_EXPORT
+		#define AL_DLL_IMPORT
+	#endif
+#elif defined(AL_COMPILER_CLANG)
+	#if __has_feature(cxx_rtti)
+		#define AL_RTTI
+	#endif
+
+	#define AL_NAKED          __declspec(naked)
+
+	#define AL_INLINE         __forceinline
+	#define AL_NO_INLINE      __declspec(noinline)
+
+	#if defined(AL_PLATFORM_WINDOWS)
+		#define AL_DLL_EXPORT __declspec(dllexport)
+		#define AL_DLL_IMPORT __declspec(dllimport)
+	#else
+		#define AL_DLL_EXPORT
+		#define AL_DLL_IMPORT
+	#endif
 #endif
 
 #include "Common/Types.hpp"
@@ -111,6 +170,9 @@
 #include "Common/Platforms.hpp"
 
 #include "Common/Math.hpp"
+#include "Common/BitMask.hpp"
+#include "Common/BitConverter.hpp"
+
 #include "Common/GUID.hpp"
 #include "Common/String.hpp"
 #include "Common/StringBuilder.hpp"
@@ -119,9 +181,6 @@
 
 #include "Common/Function.hpp"
 #include "Common/Event.hpp"
-
-#include "Common/BitMask.hpp"
-#include "Common/BitConverter.hpp"
 
 #include "Common/DateTime.hpp"
 #include "Common/Time.hpp"
@@ -134,6 +193,8 @@
 #include "Common/Exception.hpp"
 #include "Common/NotImplementedException.hpp"
 #include "Common/DependencyMissingException.hpp"
+#include "Common/PlatformNotSupportedException.hpp"
+#include "Common/OperationNotSupportedException.hpp"
 
 #if defined(AL_PLATFORM_LINUX)
 	#include <time.h> // timespec/timespec_get

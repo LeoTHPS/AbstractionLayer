@@ -1,7 +1,9 @@
 #pragma once
-#include "AL/Common.hpp"
+#include <AL/Common.hpp>
 
-#include "AL/Collections/Queue.hpp"
+#include <AL/OS/Console.hpp>
+
+#include <AL/Collections/Queue.hpp>
 
 static void AL_Collections_Queue()
 {

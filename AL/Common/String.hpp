@@ -3,17 +3,21 @@
 
 #include "AL/Collections/String.hpp"
 
-#define AL_DEFINE_STRING_CONVERSION(__type__, __toString__, __fromString__) \
+#define AL_DEFINE_TO_STRING(__type__, ...) \
 	template<> \
-	inline AL::String AL::ToString __toString__ \
-	template<> \
-	inline __type__ AL::FromString __fromString__
+	inline AL::String AL::ToString __VA_ARGS__
 
-#define AL_DEFINE_WSTRING_CONVERSION(__type__, __toString__, __fromString__) \
+#define AL_DEFINE_FROM_STRING(__type__, ...) \
 	template<> \
-	inline AL::WString AL::ToWString __toString__ \
+	inline __type__ AL::FromString __VA_ARGS__
+
+#define AL_DEFINE_TO_WSTRING(__type__, ...) \
 	template<> \
-	inline __type__ AL::FromWString __fromString__
+	inline AL::WString AL::ToWString __VA_ARGS__
+
+#define AL_DEFINE_FROM_WSTRING(__type__, ...) \
+	template<> \
+	inline __type__ AL::FromWString __VA_ARGS__
 
 namespace AL
 {
@@ -127,19 +131,22 @@ namespace AL
 	}
 }
 
-AL_DEFINE_STRING_CONVERSION(
+AL_DEFINE_TO_STRING(
 	AL::int8,
-	(AL::int8 _value)
+	(AL::int8 value)
 	{
 		return AL::String::Format(
 			"%i",
-			_value
+			value
 		);
-	},
-	(const AL::String& _string)
+	}
+);
+AL_DEFINE_FROM_STRING(
+	AL::int8,
+	(const AL::String& string)
 	{
 		auto value = std::strtol(
-			_string.GetCString(),
+			string.GetCString(),
 			nullptr,
 			0
 		);
@@ -149,19 +156,22 @@ AL_DEFINE_STRING_CONVERSION(
 		);
 	}
 );
-AL_DEFINE_WSTRING_CONVERSION(
+AL_DEFINE_TO_WSTRING(
 	AL::int8,
-	(AL::int8 _value)
+	(AL::int8 value)
 	{
 		return AL::WString::Format(
 			L"%i",
-			_value
+			value
 		);
-	},
-	(const AL::WString& _string)
+	}
+);
+AL_DEFINE_FROM_WSTRING(
+	AL::int8,
+	(const AL::WString& string)
 	{
 		auto value = std::wcstol(
-			_string.GetCString(),
+			string.GetCString(),
 			nullptr,
 			0
 		);
@@ -171,19 +181,22 @@ AL_DEFINE_WSTRING_CONVERSION(
 		);
 	}
 );
-AL_DEFINE_STRING_CONVERSION(
+AL_DEFINE_TO_STRING(
 	AL::uint8,
-	(AL::uint8 _value)
+	(AL::uint8 value)
 	{
 		return AL::String::Format(
 			"%u",
-			_value
+			value
 		);
-	},
-	(const AL::String& _string)
+	}
+);
+AL_DEFINE_FROM_STRING(
+	AL::uint8,
+	(const AL::String& string)
 	{
 		auto value = std::strtoul(
-			_string.GetCString(),
+			string.GetCString(),
 			nullptr,
 			0
 		);
@@ -193,19 +206,22 @@ AL_DEFINE_STRING_CONVERSION(
 		);
 	}
 );
-AL_DEFINE_WSTRING_CONVERSION(
+AL_DEFINE_TO_WSTRING(
 	AL::uint8,
-	(AL::uint8 _value)
+	(AL::uint8 value)
 	{
 		return AL::WString::Format(
 			L"%u",
-			_value
+			value
 		);
-	},
-	(const AL::WString& _string)
+	}
+);
+AL_DEFINE_FROM_WSTRING(
+	AL::uint8,
+	(const AL::WString& string)
 	{
 		auto value = std::wcstoul(
-			_string.GetCString(),
+			string.GetCString(),
 			nullptr,
 			0
 		);
@@ -216,19 +232,22 @@ AL_DEFINE_WSTRING_CONVERSION(
 	}
 );
 
-AL_DEFINE_STRING_CONVERSION(
+AL_DEFINE_TO_STRING(
 	AL::int16,
-	(AL::int16 _value)
+	(AL::int16 value)
 	{
 		return AL::String::Format(
 			"%i",
-			_value
+			value
 		);
-	},
-	(const AL::String& _string)
+	}
+);
+AL_DEFINE_FROM_STRING(
+	AL::int16,
+	(const AL::String& string)
 	{
 		auto value = std::strtol(
-			_string.GetCString(),
+			string.GetCString(),
 			nullptr,
 			0
 		);
@@ -238,19 +257,22 @@ AL_DEFINE_STRING_CONVERSION(
 		);
 	}
 );
-AL_DEFINE_WSTRING_CONVERSION(
+AL_DEFINE_TO_WSTRING(
 	AL::int16,
-	(AL::int16 _value)
+	(AL::int16 value)
 	{
 		return AL::WString::Format(
 			L"%i",
-			_value
+			value
 		);
-	},
-	(const AL::WString& _string)
+	}
+);
+AL_DEFINE_FROM_WSTRING(
+	AL::int16,
+	(const AL::WString& string)
 	{
 		auto value = std::wcstol(
-			_string.GetCString(),
+			string.GetCString(),
 			nullptr,
 			0
 		);
@@ -260,19 +282,22 @@ AL_DEFINE_WSTRING_CONVERSION(
 		);
 	}
 );
-AL_DEFINE_STRING_CONVERSION(
+AL_DEFINE_TO_STRING(
 	AL::uint16,
-	(AL::uint16 _value)
+	(AL::uint16 value)
 	{
 		return AL::String::Format(
 			"%u",
-			_value
+			value
 		);
-	},
-	(const AL::String& _string)
+	}
+);
+AL_DEFINE_FROM_STRING(
+	AL::uint16,
+	(const AL::String& string)
 	{
 		auto value = std::strtoul(
-			_string.GetCString(),
+			string.GetCString(),
 			nullptr,
 			0
 		);
@@ -282,19 +307,22 @@ AL_DEFINE_STRING_CONVERSION(
 		);
 	}
 );
-AL_DEFINE_WSTRING_CONVERSION(
+AL_DEFINE_TO_WSTRING(
 	AL::uint16,
-	(AL::uint16 _value)
+	(AL::uint16 value)
 	{
 		return AL::WString::Format(
 			L"%u",
-			_value
+			value
 		);
-	},
-	(const AL::WString& _string)
+	}
+);
+AL_DEFINE_FROM_WSTRING(
+	AL::uint16,
+	(const AL::WString& string)
 	{
 		auto value = std::wcstoul(
-			_string.GetCString(),
+			string.GetCString(),
 			nullptr,
 			0
 		);
@@ -305,19 +333,22 @@ AL_DEFINE_WSTRING_CONVERSION(
 	}
 );
 
-AL_DEFINE_STRING_CONVERSION(
+AL_DEFINE_TO_STRING(
 	AL::int32,
-	(AL::int32 _value)
+	(AL::int32 value)
 	{
 		return AL::String::Format(
 			"%i",
-			_value
+			value
 		);
-	},
-	(const AL::String& _string)
+	}
+);
+AL_DEFINE_FROM_STRING(
+	AL::int32,
+	(const AL::String& string)
 	{
 		auto value = std::strtol(
-			_string.GetCString(),
+			string.GetCString(),
 			nullptr,
 			0
 		);
@@ -327,19 +358,22 @@ AL_DEFINE_STRING_CONVERSION(
 		);
 	}
 );
-AL_DEFINE_WSTRING_CONVERSION(
+AL_DEFINE_TO_WSTRING(
 	AL::int32,
-	(AL::int32 _value)
+	(AL::int32 value)
 	{
 		return AL::WString::Format(
 			L"%i",
-			_value
+			value
 		);
-	},
-	(const AL::WString& _string)
+	}
+);
+AL_DEFINE_FROM_WSTRING(
+	AL::int32,
+	(const AL::WString& string)
 	{
 		auto value = std::wcstol(
-			_string.GetCString(),
+			string.GetCString(),
 			nullptr,
 			0
 		);
@@ -349,19 +383,22 @@ AL_DEFINE_WSTRING_CONVERSION(
 		);
 	}
 );
-AL_DEFINE_STRING_CONVERSION(
+AL_DEFINE_TO_STRING(
 	AL::uint32,
-	(AL::uint32 _value)
+	(AL::uint32 value)
 	{
 		return AL::String::Format(
 			"%u",
-			_value
+			value
 		);
-	},
-	(const AL::String& _string)
+	}
+);
+AL_DEFINE_FROM_STRING(
+	AL::uint32,
+	(const AL::String& string)
 	{
 		auto value = std::strtoul(
-			_string.GetCString(),
+			string.GetCString(),
 			nullptr,
 			0
 		);
@@ -371,19 +408,22 @@ AL_DEFINE_STRING_CONVERSION(
 		);
 	}
 );
-AL_DEFINE_WSTRING_CONVERSION(
+AL_DEFINE_TO_WSTRING(
 	AL::uint32,
-	(AL::uint32 _value)
+	(AL::uint32 value)
 	{
 		return AL::WString::Format(
 			L"%u",
-			_value
+			value
 		);
-	},
-	(const AL::WString& _string)
+	}
+);
+AL_DEFINE_FROM_WSTRING(
+	AL::uint32,
+	(const AL::WString& string)
 	{
 		auto value = std::wcstoul(
-			_string.GetCString(),
+			string.GetCString(),
 			nullptr,
 			0
 		);
@@ -394,19 +434,22 @@ AL_DEFINE_WSTRING_CONVERSION(
 	}
 );
 
-AL_DEFINE_STRING_CONVERSION(
+AL_DEFINE_TO_STRING(
 	AL::int64,
-	(AL::int64 _value)
+	(AL::int64 value)
 	{
 		return AL::String::Format(
 			"%lli",
-			_value
+			value
 		);
-	},
-	(const AL::String& _string)
+	}
+);
+AL_DEFINE_FROM_STRING(
+	AL::int64,
+	(const AL::String& string)
 	{
 		auto value = std::strtoll(
-			_string.GetCString(),
+			string.GetCString(),
 			nullptr,
 			0
 		);
@@ -416,19 +459,22 @@ AL_DEFINE_STRING_CONVERSION(
 		);
 	}
 );
-AL_DEFINE_WSTRING_CONVERSION(
+AL_DEFINE_TO_WSTRING(
 	AL::int64,
-	(AL::int64 _value)
+	(AL::int64 value)
 	{
 		return AL::WString::Format(
 			L"%lli",
-			_value
+			value
 		);
-	},
-	(const AL::WString& _string)
+	}
+);
+AL_DEFINE_FROM_WSTRING(
+	AL::int64,
+	(const AL::WString& string)
 	{
 		auto value = std::wcstoll(
-			_string.GetCString(),
+			string.GetCString(),
 			nullptr,
 			0
 		);
@@ -438,19 +484,22 @@ AL_DEFINE_WSTRING_CONVERSION(
 		);
 	}
 );
-AL_DEFINE_STRING_CONVERSION(
+AL_DEFINE_TO_STRING(
 	AL::uint64,
-	(AL::uint64 _value)
+	(AL::uint64 value)
 	{
 		return AL::String::Format(
 			"%llu",
-			_value
+			value
 		);
-	},
-	(const AL::String& _string)
+	}
+);
+AL_DEFINE_FROM_STRING(
+	AL::uint64,
+	(const AL::String& string)
 	{
 		auto value = std::strtoull(
-			_string.GetCString(),
+			string.GetCString(),
 			nullptr,
 			0
 		);
@@ -460,19 +509,22 @@ AL_DEFINE_STRING_CONVERSION(
 		);
 	}
 );
-AL_DEFINE_WSTRING_CONVERSION(
+AL_DEFINE_TO_WSTRING(
 	AL::uint64,
-	(AL::uint64 _value)
+	(AL::uint64 value)
 	{
 		return AL::WString::Format(
 			L"%llu",
-			_value
+			value
 		);
-	},
-	(const AL::WString& _string)
+	}
+);
+AL_DEFINE_FROM_WSTRING(
+	AL::uint64,
+	(const AL::WString& string)
 	{
 		auto value = std::wcstoull(
-			_string.GetCString(),
+			string.GetCString(),
 			nullptr,
 			0
 		);
@@ -483,19 +535,22 @@ AL_DEFINE_WSTRING_CONVERSION(
 	}
 );
 
-AL_DEFINE_STRING_CONVERSION(
+AL_DEFINE_TO_STRING(
 	AL::Float,
-	(AL::Float _value)
+	(AL::Float value)
 	{
 		return AL::String::Format(
 			"%f",
-			_value
+			value
 		);
-	},
-	(const AL::String& _string)
+	}
+);
+AL_DEFINE_FROM_STRING(
+	AL::Float,
+	(const AL::String& string)
 	{
 		auto value = std::strtof(
-			_string.GetCString(),
+			string.GetCString(),
 			nullptr
 		);
 
@@ -504,19 +559,22 @@ AL_DEFINE_STRING_CONVERSION(
 		);
 	}
 );
-AL_DEFINE_WSTRING_CONVERSION(
+AL_DEFINE_TO_WSTRING(
 	AL::Float,
-	(AL::Float _value)
+	(AL::Float value)
 	{
 		return AL::WString::Format(
 			L"%f",
-			_value
+			value
 		);
-	},
-	(const AL::WString& _string)
+	}
+);
+AL_DEFINE_FROM_WSTRING(
+	AL::Float,
+	(const AL::WString& string)
 	{
 		auto value = std::wcstof(
-			_string.GetCString(),
+			string.GetCString(),
 			nullptr
 		);
 
@@ -525,19 +583,23 @@ AL_DEFINE_WSTRING_CONVERSION(
 		);
 	}
 );
-AL_DEFINE_STRING_CONVERSION(
+
+AL_DEFINE_TO_STRING(
 	AL::Double,
-	(AL::Double _value)
+	(AL::Double value)
 	{
 		return AL::String::Format(
 			"%f",
-			_value
+			value
 		);
-	},
-	(const AL::String& _string)
+	}
+);
+AL_DEFINE_FROM_STRING(
+	AL::Double,
+	(const AL::String& string)
 	{
 		auto value = std::strtod(
-			_string.GetCString(),
+			string.GetCString(),
 			nullptr
 		);
 
@@ -546,19 +608,22 @@ AL_DEFINE_STRING_CONVERSION(
 		);
 	}
 );
-AL_DEFINE_WSTRING_CONVERSION(
+AL_DEFINE_TO_WSTRING(
 	AL::Double,
-	(AL::Double _value)
+	(AL::Double value)
 	{
 		return AL::WString::Format(
 			L"%f",
-			_value
+			value
 		);
-	},
-	(const AL::WString& _string)
+	}
+);
+AL_DEFINE_FROM_WSTRING(
+	AL::Double,
+	(const AL::WString& string)
 	{
 		auto value = std::wcstod(
-			_string.GetCString(),
+			string.GetCString(),
 			nullptr
 		);
 
@@ -568,25 +633,130 @@ AL_DEFINE_WSTRING_CONVERSION(
 	}
 );
 
-AL_DEFINE_STRING_CONVERSION(
+AL_DEFINE_TO_STRING(
 	AL::Bool,
-	(AL::Bool _value)
+	(AL::Bool value)
 	{
-		return _value ? "true" : "false";
-	},
-	(const AL::String& _string)
-	{
-		return _string.ToLower() == "true";
+		return value ? "true" : "false";
 	}
 );
-AL_DEFINE_WSTRING_CONVERSION(
+AL_DEFINE_FROM_STRING(
 	AL::Bool,
-	(AL::Bool _value)
+	(const AL::String& string)
 	{
-		return _value ? L"true" : L"false";
-	},
-	(const AL::WString& _wstring)
+		return string.ToLower() == "true";
+	}
+);
+AL_DEFINE_TO_WSTRING(
+	AL::Bool,
+	(AL::Bool value)
 	{
-		return _wstring.ToLower() == L"true";
+		return value ? L"true" : L"false";
+	}
+);
+AL_DEFINE_FROM_WSTRING(
+	AL::Bool,
+	(const AL::WString& wstring)
+	{
+		return wstring.ToLower() == L"true";
+	}
+);
+
+AL_DEFINE_TO_STRING(
+	AL::Platforms,
+	(AL::Platforms value)
+	{
+		String string;
+		Bool   string_IsAppended = False;
+		auto   string_AppendIfSet = [&string, &string_IsAppended, value](const String::Char* _lpBuffer, Platforms _flag)
+		{
+			if (BitMask<Platforms>::IsSet(value, _flag))
+			{
+				if (string_IsAppended)
+				{
+					string.Append(
+						" | "
+					);
+				}
+
+				string.Append(
+					_lpBuffer
+				);
+
+				string_IsAppended = True;
+			}
+		};
+
+		// Linux/Windows
+		{
+			string_AppendIfSet("Linux",   Platforms::Linux);
+			string_AppendIfSet("Windows", Platforms::Windows);
+		}
+
+		// GNU/MSVC/Clang
+		{
+			string_AppendIfSet("GNU",   Platforms::GNU);
+			string_AppendIfSet("MSVC",  Platforms::MSVC);
+			string_AppendIfSet("Clang", Platforms::Clang);
+		}
+
+		// x86/x86_64/ARM/ARM64
+		{
+			string_AppendIfSet("x86",    Platforms::x86);
+			string_AppendIfSet("x86_64", Platforms::x86_64);
+			string_AppendIfSet("ARM",    Platforms::ARM);
+			string_AppendIfSet("ARM64",  Platforms::ARM64);
+		}
+
+		return string;
+	}
+);
+AL_DEFINE_TO_WSTRING(
+	AL::Platforms,
+	(AL::Platforms value)
+	{
+		WString wstring;
+		Bool    wstring_IsAppended = False;
+		auto    wstring_AppendIfSet = [&wstring, &wstring_IsAppended, value](const WString::Char* _lpBuffer, Platforms _flag)
+		{
+			if (BitMask<Platforms>::IsSet(value, _flag))
+			{
+				if (wstring_IsAppended)
+				{
+					wstring.Append(
+						L" | "
+					);
+				}
+
+				wstring.Append(
+					_lpBuffer
+				);
+
+				wstring_IsAppended = True;
+			}
+		};
+
+		// Linux/Windows
+		{
+			wstring_AppendIfSet(L"Linux",   Platforms::Linux);
+			wstring_AppendIfSet(L"Windows", Platforms::Windows);
+		}
+
+		// GNU/MSVC/Clang
+		{
+			wstring_AppendIfSet(L"GNU",   Platforms::GNU);
+			wstring_AppendIfSet(L"MSVC",  Platforms::MSVC);
+			wstring_AppendIfSet(L"Clang", Platforms::Clang);
+		}
+
+		// x86/x86_64/ARM/ARM64
+		{
+			wstring_AppendIfSet(L"x86",    Platforms::x86);
+			wstring_AppendIfSet(L"x86_64", Platforms::x86_64);
+			wstring_AppendIfSet(L"ARM",    Platforms::ARM);
+			wstring_AppendIfSet(L"ARM64",  Platforms::ARM64);
+		}
+
+		return wstring;
 	}
 );

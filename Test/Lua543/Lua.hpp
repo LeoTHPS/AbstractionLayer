@@ -1,9 +1,9 @@
 #pragma once
-#include "AL/Common.hpp"
+#include <AL/Common.hpp>
 
-#include "AL/Lua543/Lua.hpp"
+#include <AL/OS/Console.hpp>
 
-#include "AL/OS/Console.hpp"
+#include <AL/Lua543/Lua.hpp>
 
 static AL::Lua543::State AL_Lua543_State;
 

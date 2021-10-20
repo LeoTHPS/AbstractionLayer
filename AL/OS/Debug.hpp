@@ -45,6 +45,8 @@ namespace AL::OS
 			::OutputDebugStringA(
 				message.GetCString()
 			);
+	#else
+			throw PlatformNotSupportedException();
 	#endif
 #endif
 		}
@@ -71,6 +73,8 @@ namespace AL::OS
 			::OutputDebugStringW(
 				message.GetCString()
 			);
+	#else
+			throw PlatformNotSupportedException();
 	#endif
 #endif
 		}
@@ -128,6 +132,8 @@ namespace AL::OS
 			::OutputDebugStringA(
 				message.GetCString()
 			);
+	#else
+			throw PlatformNotSupportedException();
 	#endif
 #endif
 		}
@@ -154,6 +160,8 @@ namespace AL::OS
 			::OutputDebugStringW(
 				message.GetCString()
 			);
+	#else
+			throw PlatformNotSupportedException();
 	#endif
 #endif
 		}

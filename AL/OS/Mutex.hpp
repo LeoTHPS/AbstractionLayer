@@ -45,6 +45,8 @@ namespace AL::OS
 			::EnterCriticalSection(
 				&mutex
 			);
+#else
+			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -56,6 +58,8 @@ namespace AL::OS
 			::LeaveCriticalSection(
 				&mutex
 			);
+#else
+			throw PlatformNotSupportedException();
 #endif
 		}
 

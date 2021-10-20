@@ -15,13 +15,17 @@ namespace AL::OS
 
 	inline ErrorCode GetLastError()
 	{
-		return static_cast<ErrorCode>(
 #if defined(AL_PLATFORM_LINUX)
+		return static_cast<ErrorCode>(
 			errno
+		);		
 #elif defined(AL_PLATFORM_WINDOWS)
+		return static_cast<ErrorCode>(
 			::GetLastError()
-#endif
 		);
+#else
+		throw PlatformNotSupportedException();
+#endif
 	}
 
 	inline String GetErrorString(ErrorCode errorCode)
@@ -74,6 +78,8 @@ namespace AL::OS
 		}
 
 		return string;
+#else
+		throw PlatformNotSupportedException();
 #endif
 	}
 

@@ -1,7 +1,7 @@
-#include "AL/Common.hpp"
+#include <AL/Common.hpp>
 
-#include "AL/OS/Timer.hpp"
-#include "AL/OS/Console.hpp"
+#include <AL/OS/Timer.hpp>
+#include <AL/OS/Console.hpp>
 
 #include "Collections/Array.hpp"
 #include "Collections/ArrayList.hpp"
@@ -65,7 +65,10 @@
 int main(int argc, char* argv[])
 {
 	AL::OS::Console::SetTitle(
-		"AbstractionLayer Tests"
+		AL::String::Format(
+			"AbstractionLayer Tests [%s]",
+			AL::ToString(AL::Platforms::Machine).GetCString()
+		)
 	);
 
 	AL_TEST_EXECUTE(AL_Collections_Array);

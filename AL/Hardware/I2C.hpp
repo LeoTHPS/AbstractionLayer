@@ -200,9 +200,7 @@ namespace AL::Hardware
 			);
 	#endif
 #else
-			throw DependencyMissingException(
-				"Linux"
-			);
+			throw PlatformNotSupportedException();
 #endif
 
 			isOpen = True;
@@ -270,7 +268,7 @@ namespace AL::Hardware
 			throw NotImplementedException();
 	#endif
 #else
-			throw NotImplementedException();
+			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -320,7 +318,7 @@ namespace AL::Hardware
 			throw NotImplementedException();
 	#endif
 #else
-			throw NotImplementedException();
+			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -384,7 +382,7 @@ namespace AL::Hardware
 			throw NotImplementedException();
 	#endif
 #else
-			throw NotImplementedException();
+			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -485,7 +483,7 @@ namespace AL::Hardware
 			throw NotImplementedException();
 	#endif
 #else
-			throw NotImplementedException();
+			throw PlatformNotSupportedException();
 #endif
 		}
 

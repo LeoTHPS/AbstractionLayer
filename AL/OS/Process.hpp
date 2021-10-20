@@ -318,6 +318,8 @@ namespace AL::OS
 					"VirtualProtectEx"
 				);
 			}
+#else
+			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -345,6 +347,8 @@ namespace AL::OS
 			throw SystemException(
 				"VirtualAllocEx"
 			);
+#else
+			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -367,6 +371,8 @@ namespace AL::OS
 					"VirtualFreeEx"
 				);
 			}
+#else
+			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -425,7 +431,7 @@ namespace AL::OS
 				);
 			}
 #else
-			throw NotImplementedException();
+			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -473,6 +479,8 @@ namespace AL::OS
 					"WriteProcessMemory"
 				);
 			}
+#else
+			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -608,6 +616,8 @@ namespace AL::OS
 					}
 				}
 			} while ((address = (reinterpret_cast<size_t>(mbi.BaseAddress) + mbi.RegionSize)) < addressEnd);
+#else
+			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -778,6 +788,8 @@ namespace AL::OS
 				hProcess,
 				isCurrentProcess
 			);
+#else
+			throw PlatformNotSupportedException();
 #endif
 
 			return True;
@@ -842,6 +854,8 @@ namespace AL::OS
 			processId = static_cast<ProcessId>(
 				::GetCurrentProcessId()
 			);
+#else
+			throw PlatformNotSupportedException();
 #endif
 
 			if (!Open(process, processId))
@@ -937,6 +951,8 @@ namespace AL::OS
 			::CloseHandle(
 				hSnapshot
 			);
+#else
+			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -972,6 +988,8 @@ namespace AL::OS
 				_info.hProcess,
 				False
 			);
+#else
+			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -1254,6 +1272,8 @@ inline AL::Bool AL::OS::ProcessMemory::Open(ProcessMemory& processMemory, Proces
 		hMemory,
 		flags
 	);
+#else
+	throw PlatformNotSupportedException();
 #endif
 
 	return True;

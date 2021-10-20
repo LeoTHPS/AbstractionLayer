@@ -3,7 +3,7 @@
 
 namespace AL
 {
-	enum class Platforms : uint8
+	enum class Platforms : uint16
 	{
 		x86        = 0x1,
 		x86_64     = 0x2,
@@ -11,24 +11,36 @@ namespace AL
 		ARM        = 0x4,
 		ARM64      = 0x8,
 
-		Linux      = 0x10,
-		Windows    = 0x20,
+		GNU        = 0x10,
+		MSVC       = 0x20,
+		Clang      = 0x40,
 
-#if defined(AL_PLATFORM_WINDOWS)
-		Machine    = Windows
-#elif defined(AL_PLATFORM_LINUX)
-		Machine    = Linux
-#else
-		Machine    = 0
+		Linux      = 0x100,
+		Windows    = 0x200,
+
+		Machine    =
+
+#if defined(AL_PLATFORM_LINUX)
+		Linux
+#elif defined(AL_PLATFORM_WINDOWS)
+		Windows
 #endif
 
-#if defined(AL_X86)
+#if defined(AL_COMPILER_GNU)
+		| GNU
+#elif defined(AL_COMPILER_MSVC)
+		| MSVC
+#elif defined(AL_COMPILER_CLANG)
+		| Clang
+#endif
+
+#if defined(AL_ARCH_X86)
 		| x86
-#elif defined(AL_X86_64)
+#elif defined(AL_ARCH_X86_64)
 		| x86_64
-#elif defined(AL_ARM)
+#elif defined(AL_ARCH_ARM)
 		| ARM
-#elif defined(AL_ARM64)
+#elif defined(AL_ARCH_ARM64)
 		| ARM64
 #endif
 	};

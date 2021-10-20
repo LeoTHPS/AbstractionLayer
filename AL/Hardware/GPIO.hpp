@@ -208,9 +208,7 @@ namespace AL::Hardware
 			throw NotImplementedException();
 	#endif
 #else
-			throw DependencyMissingException(
-				"Linux"
-			);
+			throw PlatformNotSupportedException();
 #endif
 
 			isOpen = True;
@@ -268,7 +266,7 @@ namespace AL::Hardware
 			throw NotImplementedException();
 	#endif
 #else
-			throw NotImplementedException();
+			throw PlatformNotSupportedException();
 #endif
 
 			this->value = value;
@@ -324,7 +322,7 @@ namespace AL::Hardware
 			throw NotImplementedException();
 	#endif
 #else
-			throw NotImplementedException();
+			throw PlatformNotSupportedException();
 #endif
 
 			this->value = value;
@@ -429,7 +427,7 @@ namespace AL::Hardware
 			throw NotImplementedException();
 	#endif
 #else
-			throw NotImplementedException();
+			throw PlatformNotSupportedException();
 #endif
 
 			if ((this->direction = direction) == GPIOPinDirections::Out)
@@ -565,7 +563,7 @@ namespace AL::Hardware
 			throw NotImplementedException();
 	#endif
 #else
-			throw NotImplementedException();
+			throw PlatformNotSupportedException();
 #endif
 
 			return True;

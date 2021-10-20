@@ -1,9 +1,9 @@
 #pragma once
-#include "AL/Common.hpp"
+#include <AL/Common.hpp>
 
-#include "AL/OS/Console.hpp"
+#include <AL/OS/Console.hpp>
 
-#include "AL/FileSystem/File.hpp"
+#include <AL/FileSystem/File.hpp>
 
 static void AL_FileSystem_File()
 {

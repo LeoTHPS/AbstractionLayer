@@ -1,11 +1,11 @@
 #pragma once
-#include "AL/Common.hpp"
+#include <AL/Common.hpp>
 
-#include "AL/OS/Console.hpp"
+#include <AL/OS/Console.hpp>
 
-#include "AL/FileSystem/TextFile.hpp" // TextFile::LF
+#include <AL/FileSystem/TextFile.hpp> // TextFile::LF
 
-#include "AL/Collections/StringBuilder.hpp"
+#include <AL/Collections/StringBuilder.hpp>
 
 static void AL_Collections_StringBuilder()
 {

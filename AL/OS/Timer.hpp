@@ -105,10 +105,12 @@ namespace AL::OS
 					(integer.QuadPart - start) / frequency
 				)
 			);
+#else
+			throw PlatformNotSupportedException();
 #endif
 		}
 
-		void Reset()
+		Void Reset()
 		{
 #if defined(AL_PLATFORM_LINUX)
 			::timespec_get(
@@ -123,6 +125,8 @@ namespace AL::OS
 			start = static_cast<Double>(
 				integer.QuadPart
 			);
+#else
+			throw PlatformNotSupportedException();
 #endif
 		}
 

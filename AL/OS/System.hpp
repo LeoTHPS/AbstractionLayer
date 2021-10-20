@@ -50,6 +50,8 @@ namespace AL::OS
 				case TIME_ZONE_ID_DAYLIGHT:
 					return -static_cast<int8>(zoneInfo.Bias / 60) + 1;
 			}
+#else
+			throw PlatformNotSupportedException();
 #endif
 
 			return 0;
@@ -123,6 +125,8 @@ namespace AL::OS
 			dateTime.Milliseconds = static_cast<uint32>(
 				systemTime.wMilliseconds
 			);
+#else
+			throw PlatformNotSupportedException();
 #endif
 
 			return dateTime;
@@ -145,6 +149,8 @@ namespace AL::OS
 			return Timestamp::FromSeconds(
 				(integer.Value - 116444736000000000) / 10000000
 			);
+#else
+			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -161,6 +167,8 @@ namespace AL::OS
 			return static_cast<size_t>(
 				systemInfo.dwPageSize
 			);
+#else
+			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -176,6 +184,8 @@ namespace AL::OS
 			return reinterpret_cast<size_t>(
 				systemInfo.lpMinimumApplicationAddress
 			);
+#else
+			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -191,6 +201,8 @@ namespace AL::OS
 			return reinterpret_cast<size_t>(
 				systemInfo.lpMaximumApplicationAddress
 			);
+#else
+			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -207,6 +219,8 @@ namespace AL::OS
 			return static_cast<size_t>(
 				systemInfo.dwNumberOfProcessors
 			);
+#else
+			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -223,7 +237,7 @@ namespace AL::OS
 
 				++count;
 			}
-			
+
 			if (::sysconf(_SC_LEVEL2_CACHE_SIZE) != -1)
 			{
 
@@ -262,6 +276,8 @@ namespace AL::OS
 					return True;
 				}
 			);
+#else
+			throw PlatformNotSupportedException();
 #endif
 
 			return count;
@@ -316,6 +332,8 @@ namespace AL::OS
 					return True;
 				}
 			);
+#else
+			throw PlatformNotSupportedException();
 #endif
 
 			return size;
@@ -370,6 +388,8 @@ namespace AL::OS
 					return True;
 				}
 			);
+#else
+			throw PlatformNotSupportedException();
 #endif
 
 			return lineSize;

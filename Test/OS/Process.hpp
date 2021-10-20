@@ -1,8 +1,8 @@
 #pragma once
-#include "AL/Common.hpp"
+#include <AL/Common.hpp>
 
-#include "AL/OS/Console.hpp"
-#include "AL/OS/Process.hpp"
+#include <AL/OS/Console.hpp>
+#include <AL/OS/Process.hpp>
 
 static void AL_OS_Process()
 {

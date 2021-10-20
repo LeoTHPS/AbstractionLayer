@@ -305,11 +305,208 @@ namespace AL
 	{
 	};
 
+	template<typename ... TYPES>
+	struct Type_Sequence
+	{
+	};
+
+	template<size_t I, typename ... TYPES>
+	struct Get_Type_Sequence;
+	template<size_t I, typename TYPE, typename ... TYPES>
+	struct Get_Type_Sequence<I, TYPE, TYPES ...>
+		: public Get_Type_Sequence<I - 1, TYPES ...>
+	{
+	};
+	template<typename TYPE, typename ... TYPES>
+	struct Get_Type_Sequence<0, TYPE, TYPES ...>
+	{
+		typedef TYPE Type;
+	};
+	template<size_t I, typename TYPE, typename ... TYPES>
+	struct Get_Type_Sequence<I, Type_Sequence<TYPE, TYPES ...>>
+		: public Get_Type_Sequence<I - 1, Type_Sequence<TYPES ...>>
+	{
+	};
+	template<typename TYPE, typename ... TYPES>
+	struct Get_Type_Sequence<0, Type_Sequence<TYPE, TYPES ...>>
+	{
+		typedef TYPE Type;
+	};
+
+	template<size_t ... INDEXES>
+	struct Index_Sequence
+	{
+	};
+
+	template<size_t I, size_t COUNT, typename INDEXES>
+	struct _Make_Index_Sequence;
+	template<size_t I, size_t ... INDEXES>
+	struct _Make_Index_Sequence<I, I, Index_Sequence<INDEXES ...>>
+	{
+		typedef Index_Sequence<INDEXES ...> Type;
+	};
+	template<size_t I, size_t COUNT, size_t ... INDEXES>
+	struct _Make_Index_Sequence<I, COUNT, Index_Sequence<INDEXES ...>>
+		: public _Make_Index_Sequence<I + 1, COUNT, Index_Sequence<INDEXES ..., I>>
+	{
+	};
+
+	template<size_t COUNT>
+	using Make_Index_Sequence = _Make_Index_Sequence<0, COUNT, Index_Sequence<>>;
+
+	template<size_t I, size_t NOT, size_t COUNT, typename INDEXES>
+	struct _Make_Index_Sequence_Not;
+	template<size_t I, size_t NOT, size_t ... INDEXES>
+	struct _Make_Index_Sequence_Not<I, NOT, I, Index_Sequence<INDEXES ...>>
+	{
+		typedef Index_Sequence<INDEXES ...> Type;
+	};
+	template<size_t I, size_t NOT, size_t COUNT, size_t ... INDEXES>
+	struct _Make_Index_Sequence_Not<I, NOT, COUNT, Index_Sequence<INDEXES ...>>
+		: public _Make_Index_Sequence_Not<I + 1, NOT, COUNT, Index_Sequence<INDEXES ..., I>>
+	{
+	};
+	template<size_t NOT, size_t COUNT, size_t ... INDEXES>
+	struct _Make_Index_Sequence_Not<NOT, NOT, COUNT, Index_Sequence<INDEXES ...>>
+		: public _Make_Index_Sequence_Not<NOT + 1, NOT, COUNT, Index_Sequence<INDEXES ...>>
+	{
+	};
+
+	template<size_t COUNT, size_t NOT>
+	using Make_Index_Sequence_Not = _Make_Index_Sequence_Not<0, NOT, COUNT, Index_Sequence<>>;
+
+	template<size_t I, size_t I_END, typename INDEXES>
+	struct _Make_Index_Sequence_Range;
+	template<size_t I, size_t I_END, size_t ... INDEXES>
+	struct _Make_Index_Sequence_Range<I, I_END, Index_Sequence<INDEXES ...>>
+		: public _Make_Index_Sequence_Range<I + 1, I_END, Index_Sequence<INDEXES ..., I>>
+	{
+	};
+	template<size_t I_END, size_t ... INDEXES>
+	struct _Make_Index_Sequence_Range<I_END, I_END, Index_Sequence<INDEXES ...>>
+	{
+		typedef Index_Sequence<INDEXES ...> Type;
+	};
+
+	template<size_t I, size_t COUNT>
+	using Make_Index_Sequence_Range = _Make_Index_Sequence_Range<I, I + COUNT, Index_Sequence<>>;
+
+	template<size_t I, size_t COUNT, typename INDEXES>
+	struct _Make_Index_Sequence_Reverse;
+	template<size_t I, size_t ... INDEXES>
+	struct _Make_Index_Sequence_Reverse<I, I, Index_Sequence<INDEXES ...>>
+	{
+		typedef Index_Sequence<INDEXES ...> Type;
+	};
+	template<size_t I, size_t COUNT, size_t ... INDEXES>
+	struct _Make_Index_Sequence_Reverse<I, COUNT, Index_Sequence<INDEXES ...>>
+		: public _Make_Index_Sequence_Reverse<I + 1, COUNT, Index_Sequence<I, INDEXES ...>>
+	{
+	};
+
+	template<size_t COUNT>
+	using Make_Index_Sequence_Reverse = _Make_Index_Sequence_Reverse<0, COUNT, Index_Sequence<>>;
+
+	template<size_t I, size_t I_END, typename INDEXES>
+	struct _Make_Index_Sequence_Range_Reverse;
+	template<size_t I, size_t I_END, size_t ... INDEXES>
+	struct _Make_Index_Sequence_Range_Reverse<I, I_END, Index_Sequence<INDEXES ...>>
+		: public _Make_Index_Sequence_Range_Reverse<I + 1, I_END, Index_Sequence<I, INDEXES ...>>
+	{
+	};
+	template<size_t I_END, size_t ... INDEXES>
+	struct _Make_Index_Sequence_Range_Reverse<I_END, I_END, Index_Sequence<INDEXES ...>>
+	{
+		typedef Index_Sequence<INDEXES ...> Type;
+	};
+
+	template<size_t I, size_t COUNT>
+	using Make_Index_Sequence_Range_Reverse = _Make_Index_Sequence_Range_Reverse<I, I + COUNT, Index_Sequence<>>;
+
+	template<size_t I, size_t NOT, size_t COUNT, typename INDEXES>
+	struct _Make_Index_Sequence_Reverse_Not;
+	template<size_t I, size_t NOT, size_t ... INDEXES>
+	struct _Make_Index_Sequence_Reverse_Not<I, NOT, I, Index_Sequence<INDEXES ...>>
+	{
+		typedef Index_Sequence<INDEXES ...> Type;
+	};
+	template<size_t I, size_t NOT, size_t COUNT, size_t ... INDEXES>
+	struct _Make_Index_Sequence_Reverse_Not<I, NOT, COUNT, Index_Sequence<INDEXES ...>>
+		: public _Make_Index_Sequence_Reverse_Not<I + 1, NOT, COUNT, Index_Sequence<I, INDEXES ...>>
+	{
+	};
+	template<size_t NOT, size_t COUNT, size_t ... INDEXES>
+	struct _Make_Index_Sequence_Reverse_Not<NOT, NOT, COUNT, Index_Sequence<INDEXES ...>>
+		: public _Make_Index_Sequence_Reverse_Not<NOT + 1, NOT, COUNT, Index_Sequence<INDEXES ...>>
+	{
+	};
+
+	template<size_t COUNT, size_t NOT>
+	using Make_Index_Sequence_Reverse_Not = _Make_Index_Sequence_Reverse_Not<0, NOT, COUNT, Index_Sequence<>>;
+
+	template<typename F>
+	struct Get_Function_Traits;
+	template<typename T, typename ... TArgs>
+	struct Get_Function_Traits<T(TArgs ...)>
+	{
+		typedef T                        Return;
+		typedef Type_Sequence<TArgs ...> Arguments;
+
+		static constexpr Bool IsMember = False;
+	};
+	template<typename T, typename ... TArgs>
+	struct Get_Function_Traits<T(*)(TArgs ...)>
+	{
+		typedef T                        Return;
+		typedef Type_Sequence<TArgs ...> Arguments;
+
+		static constexpr Bool IsMember = False;
+	};
+	template<typename T, typename C, typename ... TArgs>
+	struct Get_Function_Traits<T(C::*)(TArgs ...)>
+	{
+		typedef T                        Return;
+		typedef Type_Sequence<TArgs ...> Arguments;
+
+		static constexpr Bool IsMember = True;
+	};
+
+	template<typename F, size_t I>
+	using Get_Function_Arg_Type = Get_Type_Sequence<I, typename Get_Function_Traits<F>::Arguments>;
+
 	template<typename T>
 	struct Type
 	{
+#if defined(AL_RTTI)
 		inline static const char*  Name = typeid(T).name();
-		inline static const size_t Hash = typeid(T).hash_code();
+#else
+		inline static const char*  Name = []()
+		{
+			// TODO: clean this up
+
+	#if defined(AL_COMPILER_GNU)
+			return __PRETTY_FUNCTION__;
+	#elif defined(AL_COMPILER_MSVC)
+			return __FUNCSIG__;
+	#elif defined(AL_COMPILER_CLANG)
+			return __PRETTY_FUNCTION__;
+	#endif
+		}();
+#endif
+
+		inline static const uint32 Hash = []()
+		{
+			uint32 hash = 0x811C9DC5;
+
+			for (auto lpName = Name; *lpName != 0; ++lpName)
+			{
+				hash ^= *lpName;
+				hash *= 0x1000193;
+			}
+
+			return hash;
+		}();
+		static constexpr size_t    Size = sizeof(T);
 	};
 
 	template<typename T>
@@ -529,175 +726,6 @@ namespace AL
 
 		typedef typename Get_Enum_Or_Integer_Base<T>::Type BaseType;
 	};
-
-	template<typename ... TYPES>
-	struct Type_Sequence
-	{
-	};
-
-	template<size_t I, typename ... TYPES>
-	struct Get_Type_Sequence;
-	template<size_t I, typename TYPE, typename ... TYPES>
-	struct Get_Type_Sequence<I, TYPE, TYPES ...>
-		: public Get_Type_Sequence<I - 1, TYPES ...>
-	{
-	};
-	template<typename TYPE, typename ... TYPES>
-	struct Get_Type_Sequence<0, TYPE, TYPES ...>
-	{
-		typedef TYPE Type;
-	};
-	template<size_t I, typename TYPE, typename ... TYPES>
-	struct Get_Type_Sequence<I, Type_Sequence<TYPE, TYPES ...>>
-		: public Get_Type_Sequence<I - 1, Type_Sequence<TYPES ...>>
-	{
-	};
-	template<typename TYPE, typename ... TYPES>
-	struct Get_Type_Sequence<0, Type_Sequence<TYPE, TYPES ...>>
-	{
-		typedef TYPE Type;
-	};
-
-	template<size_t ... INDEXES>
-	struct Index_Sequence
-	{
-	};
-
-	template<size_t I, size_t COUNT, typename INDEXES>
-	struct _Make_Index_Sequence;
-	template<size_t I, size_t ... INDEXES>
-	struct _Make_Index_Sequence<I, I, Index_Sequence<INDEXES ...>>
-	{
-		typedef Index_Sequence<INDEXES ...> Type;
-	};
-	template<size_t I, size_t COUNT, size_t ... INDEXES>
-	struct _Make_Index_Sequence<I, COUNT, Index_Sequence<INDEXES ...>>
-		: public _Make_Index_Sequence<I + 1, COUNT, Index_Sequence<INDEXES ..., I>>
-	{
-	};
-
-	template<size_t COUNT>
-	using Make_Index_Sequence = _Make_Index_Sequence<0, COUNT, Index_Sequence<>>;
-
-	template<size_t I, size_t NOT, size_t COUNT, typename INDEXES>
-	struct _Make_Index_Sequence_Not;
-	template<size_t I, size_t NOT, size_t ... INDEXES>
-	struct _Make_Index_Sequence_Not<I, NOT, I, Index_Sequence<INDEXES ...>>
-	{
-		typedef Index_Sequence<INDEXES ...> Type;
-	};
-	template<size_t I, size_t NOT, size_t COUNT, size_t ... INDEXES>
-	struct _Make_Index_Sequence_Not<I, NOT, COUNT, Index_Sequence<INDEXES ...>>
-		: public _Make_Index_Sequence_Not<I + 1, NOT, COUNT, Index_Sequence<INDEXES ..., I>>
-	{
-	};
-	template<size_t NOT, size_t COUNT, size_t ... INDEXES>
-	struct _Make_Index_Sequence_Not<NOT, NOT, COUNT, Index_Sequence<INDEXES ...>>
-		: public _Make_Index_Sequence_Not<NOT + 1, NOT, COUNT, Index_Sequence<INDEXES ...>>
-	{
-	};
-
-	template<size_t COUNT, size_t NOT>
-	using Make_Index_Sequence_Not = _Make_Index_Sequence_Not<0, NOT, COUNT, Index_Sequence<>>;
-
-	template<size_t I, size_t I_END, typename INDEXES>
-	struct _Make_Index_Sequence_Range;
-	template<size_t I, size_t I_END, size_t ... INDEXES>
-	struct _Make_Index_Sequence_Range<I, I_END, Index_Sequence<INDEXES ...>>
-		: public _Make_Index_Sequence_Range<I + 1, I_END, Index_Sequence<INDEXES ..., I>>
-	{
-	};
-	template<size_t I_END, size_t ... INDEXES>
-	struct _Make_Index_Sequence_Range<I_END, I_END, Index_Sequence<INDEXES ...>>
-	{
-		typedef Index_Sequence<INDEXES ...> Type;
-	};
-
-	template<size_t I, size_t COUNT>
-	using Make_Index_Sequence_Range = _Make_Index_Sequence_Range<I, I + COUNT, Index_Sequence<>>;
-	
-	template<size_t I, size_t COUNT, typename INDEXES>
-	struct _Make_Index_Sequence_Reverse;
-	template<size_t I, size_t ... INDEXES>
-	struct _Make_Index_Sequence_Reverse<I, I, Index_Sequence<INDEXES ...>>
-	{
-		typedef Index_Sequence<INDEXES ...> Type;
-	};
-	template<size_t I, size_t COUNT, size_t ... INDEXES>
-	struct _Make_Index_Sequence_Reverse<I, COUNT, Index_Sequence<INDEXES ...>>
-		: public _Make_Index_Sequence_Reverse<I + 1, COUNT, Index_Sequence<I, INDEXES ...>>
-	{
-	};
-
-	template<size_t COUNT>
-	using Make_Index_Sequence_Reverse = _Make_Index_Sequence_Reverse<0, COUNT, Index_Sequence<>>;
-
-	template<size_t I, size_t I_END, typename INDEXES>
-	struct _Make_Index_Sequence_Range_Reverse;
-	template<size_t I, size_t I_END, size_t ... INDEXES>
-	struct _Make_Index_Sequence_Range_Reverse<I, I_END, Index_Sequence<INDEXES ...>>
-		: public _Make_Index_Sequence_Range_Reverse<I + 1, I_END, Index_Sequence<I, INDEXES ...>>
-	{
-	};
-	template<size_t I_END, size_t ... INDEXES>
-	struct _Make_Index_Sequence_Range_Reverse<I_END, I_END, Index_Sequence<INDEXES ...>>
-	{
-		typedef Index_Sequence<INDEXES ...> Type;
-	};
-
-	template<size_t I, size_t COUNT>
-	using Make_Index_Sequence_Range_Reverse = _Make_Index_Sequence_Range_Reverse<I, I + COUNT, Index_Sequence<>>;
-
-	template<size_t I, size_t NOT, size_t COUNT, typename INDEXES>
-	struct _Make_Index_Sequence_Reverse_Not;
-	template<size_t I, size_t NOT, size_t ... INDEXES>
-	struct _Make_Index_Sequence_Reverse_Not<I, NOT, I, Index_Sequence<INDEXES ...>>
-	{
-		typedef Index_Sequence<INDEXES ...> Type;
-	};
-	template<size_t I, size_t NOT, size_t COUNT, size_t ... INDEXES>
-	struct _Make_Index_Sequence_Reverse_Not<I, NOT, COUNT, Index_Sequence<INDEXES ...>>
-		: public _Make_Index_Sequence_Reverse_Not<I + 1, NOT, COUNT, Index_Sequence<I, INDEXES ...>>
-	{
-	};
-	template<size_t NOT, size_t COUNT, size_t ... INDEXES>
-	struct _Make_Index_Sequence_Reverse_Not<NOT, NOT, COUNT, Index_Sequence<INDEXES ...>>
-		: public _Make_Index_Sequence_Reverse_Not<NOT + 1, NOT, COUNT, Index_Sequence<INDEXES ...>>
-	{
-	};
-
-	template<size_t COUNT, size_t NOT>
-	using Make_Index_Sequence_Reverse_Not = _Make_Index_Sequence_Reverse_Not<0, NOT, COUNT, Index_Sequence<>>;
-
-	template<typename F>
-	struct Get_Function_Traits;
-	template<typename T, typename ... TArgs>
-	struct Get_Function_Traits<T(TArgs ...)>
-	{
-		typedef T                        Return;
-		typedef Type_Sequence<TArgs ...> Arguments;
-
-		static constexpr Bool IsMember = False;
-	};
-	template<typename T, typename ... TArgs>
-	struct Get_Function_Traits<T(*)(TArgs ...)>
-	{
-		typedef T                        Return;
-		typedef Type_Sequence<TArgs ...> Arguments;
-
-		static constexpr Bool IsMember = False;
-	};
-	template<typename T, typename C, typename ... TArgs>
-	struct Get_Function_Traits<T(C::*)(TArgs ...)>
-	{
-		typedef T                        Return;
-		typedef Type_Sequence<TArgs ...> Arguments;
-
-		static constexpr Bool IsMember = True;
-	};
-
-	template<typename F, size_t I>
-	using Get_Function_Arg_Type = Get_Type_Sequence<I, typename Get_Function_Traits<F>::Arguments>;
 }
 
 template<AL::Bool IS_SIGNED>
