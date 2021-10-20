@@ -46,7 +46,7 @@ static void AL_Lua543()
 			"the_thing = 0;"             "\n"
 			""                           "\n"
 			"while (the_thing ~= 10) do" "\n"
-				"do_the_thing();"        "\n"
+			    "do_the_thing();"        "\n"
 			"end"
 		);
 	}
