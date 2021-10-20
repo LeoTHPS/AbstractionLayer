@@ -842,30 +842,7 @@ namespace AL::OS
 		}
 
 		// @throw AL::Exception
-		static Void OpenCurrent(Process& process)
-		{
-			ProcessId processId;
-
-#if defined(AL_PLATFORM_LINUX)
-			processId = static_cast<ProcessId>(
-				::getpid()
-			);
-#elif defined(AL_PLATFORM_WINDOWS)
-			processId = static_cast<ProcessId>(
-				::GetCurrentProcessId()
-			);
-#else
-			throw PlatformNotSupportedException();
-#endif
-
-			if (!Open(process, processId))
-			{
-
-				throw Exception(
-					"The current process could not be found"
-				);
-			}
-		}
+		static Void OpenCurrent(Process& process);
 
 		// @throw AL::Exception
 		static Void Enumerate(const ProcessEnumCallback& callback)
@@ -1185,6 +1162,30 @@ namespace AL::OS
 #endif
 	};
 
+	// @throw AL::Exception
+	inline auto GetCurrentProcess()
+	{
+		Process process;
+		Process::OpenCurrent(process);
+
+		return process;
+	}
+
+	inline auto GetCurrentProcessId()
+	{
+#if defined(AL_PLATFORM_LINUX)
+		return static_cast<ProcessId>(
+			::getpid()
+		);
+#elif defined(AL_PLATFORM_WINDOWS)
+		return static_cast<ProcessId>(
+			::GetCurrentProcessId()
+		);
+#else
+		throw PlatformNotSupportedException();
+#endif
+	}
+
 #if defined(AL_PLATFORM_WINDOWS)
 	AL_INLINE ::TEB* GetThreadEnvironmentBlock()
 	{
@@ -1277,4 +1278,16 @@ inline AL::Bool AL::OS::ProcessMemory::Open(ProcessMemory& processMemory, Proces
 #endif
 
 	return True;
+}
+
+// @throw AL::Exception
+inline AL::Void AL::OS::Process::OpenCurrent(Process& process)
+{
+	if (!Open(process, GetCurrentProcessId()))
+	{
+
+		throw Exception(
+			"The current process could not be found"
+		);
+	}
 }
