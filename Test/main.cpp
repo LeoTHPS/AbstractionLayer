@@ -3,6 +3,9 @@
 #include <AL/OS/Timer.hpp>
 #include <AL/OS/Console.hpp>
 
+#include <AL/OS/Thread.hpp>
+#include <AL/OS/Process.hpp>
+
 #include "Collections/Array.hpp"
 #include "Collections/ArrayList.hpp"
 #include "Collections/Dictionary.hpp"
@@ -62,14 +65,139 @@
 		AL::OS::Console::WriteLine(); \
 	}
 
+void main_display_build_information()
+{
+	AL::OS::Console::WriteLine(
+		"Compiler: %s",
+#if defined(AL_COMPILER_GNU)
+		"GNU"
+#elif defined(AL_COMPILER_MSVC)
+		"MSVC"
+#elif defined(AL_COMPILER_CLANG)
+		"CLANG"
+#else
+		"Undefined"
+#endif
+	);
+
+	AL::OS::Console::WriteLine(
+		"Architecture: %s",
+#if defined(AL_ARCH_X86)
+		"x86"
+#elif defined(AL_ARCH_X86_64)
+		"x86_64"
+#elif defined(AL_ARCH_ARM)
+		"ARM"
+#elif defined(AL_ARCH_ARM64)
+		"ARM64"
+#else
+		"Undefined"
+#endif
+	);
+}
+
+void main_display_system_information()
+{
+AL::OS::Console::WriteLine(
+		"OS: %s",
+#if defined(AL_PLATFORM_LINUX)
+		"Linux"
+#elif defined(AL_PLATFORM_WINDOWS)
+		"Windows"
+#else
+		"Undefined"
+#endif
+	);
+
+	AL::OS::Console::WriteLine(
+		"Timezone: %i",
+		AL::OS::System::GetTimezone()
+	);
+
+	AL::OS::Console::WriteLine(
+		"Timestamp: %llu",
+		AL::OS::System::GetTimestamp().ToSeconds()
+	);
+
+	AL::OS::Console::WriteLine(
+		"CPU Count: %llu",
+		AL::OS::System::GetProcessorCount()
+	);
+
+	AL::OS::Console::WriteLine(
+		"Page Size: %llu",
+		AL::OS::System::GetPageSize()
+	);
+
+#if defined(AL_PLATFORM_LINUX)
+
+#elif defined(AL_PLATFORM_WINDOWS)
+
+#endif
+}
+
+void main_display_thread_information()
+{
+	AL::OS::Console::WriteLine(
+		"Thread ID: %lu",
+		AL::OS::GetCurrentThreadId()
+	);
+
+#if defined(AL_PLATFORM_LINUX)
+
+#elif defined(AL_PLATFORM_WINDOWS)
+	auto lpTEB = AL::OS::GetThreadEnvironmentBlock();
+
+
+#endif
+}
+
+void main_display_process_information()
+{
+	AL::OS::Console::WriteLine(
+		"Process ID: %lu",
+		AL::OS::GetCurrentProcessId()
+	);
+
+#if defined(AL_PLATFORM_LINUX)
+
+#elif defined(AL_PLATFORM_WINDOWS)
+	auto lpPEB = AL::OS::GetProcessEnvironmentBlock();
+
+	AL::OS::Console::WriteLine(
+		"Session ID: %lu",
+		lpPEB->SessionId
+	);
+
+	AL::OS::Console::WriteLine(
+		"Image Path: %S",
+		lpPEB->ProcessParameters->ImagePathName.Buffer
+	);
+
+	AL::OS::Console::WriteLine(
+		"Parameters: %S",
+		lpPEB->ProcessParameters->CommandLine.Buffer
+	);
+
+	AL::OS::Console::WriteLine(
+		"Debugger Present: %s",
+		AL::ToString(AL::OS::IsDebuggerPresent()).GetCString()
+	);
+#endif
+}
+
 int main(int argc, char* argv[])
 {
 	AL::OS::Console::SetTitle(
-		AL::String::Format(
-			"AbstractionLayer Tests [%s]",
-			AL::ToString(AL::Platforms::Machine).GetCString()
-		)
+		"AbstractionLayer Tests"
 	);
+
+	main_display_build_information();
+	main_display_system_information();
+	main_display_thread_information();
+	main_display_process_information();
+
+	AL::OS::Console::WriteLine();
 
 	AL_TEST_EXECUTE(AL_Collections_Array);
 	AL_TEST_EXECUTE(AL_Collections_ArrayList);
