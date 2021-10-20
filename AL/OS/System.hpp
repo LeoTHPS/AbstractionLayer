@@ -206,7 +206,7 @@ namespace AL::OS
 #endif
 		}
 
-		static auto GetProcessorCount()
+		static size_t GetProcessorCount()
 		{
 #if defined(AL_PLATFORM_LINUX)
 			return static_cast<size_t>(
@@ -225,7 +225,7 @@ namespace AL::OS
 		}
 
 		// @throw AL::Exception
-		static auto GetProcessorCacheCount()
+		static size_t GetProcessorCacheCount()
 		{
 			size_t count = 0;
 
@@ -284,7 +284,7 @@ namespace AL::OS
 		}
 
 		// @throw AL::Exception
-		static auto GetProcessorCacheSize(size_t cacheLevel)
+		static size_t GetProcessorCacheSize(size_t cacheLevel)
 		{
 			size_t size = 0;
 
@@ -340,7 +340,7 @@ namespace AL::OS
 		}
 
 		// @throw AL::Exception
-		static auto GetProcessorCacheLineSize(size_t cacheLevel)
+		static size_t GetProcessorCacheLineSize(size_t cacheLevel)
 		{
 			size_t lineSize = 0;
 
