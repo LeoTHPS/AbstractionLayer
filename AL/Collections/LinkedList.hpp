@@ -490,6 +490,8 @@ namespace AL::Collections
 
 			lpNext->lpPrevious = lpPrevious;
 			lpPrevious->lpNext = lpNext;
+
+			--size;
 		}
 		template<typename T_ITERATOR>
 		Void Erase(T_ITERATOR first, T_ITERATOR last);
@@ -519,6 +521,8 @@ namespace AL::Collections
 			lpNode->lpNext        = it.lpNode;
 			lpNode->lpPrevious    = it.lpNode->lpPrevious;
 			it.lpNode->lpPrevious = lpNode;
+
+			++size;
 
 			return T_ITERATOR(
 				lpNode
