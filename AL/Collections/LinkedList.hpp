@@ -483,10 +483,11 @@ namespace AL::Collections
 		template<typename T_ITERATOR>
 		Void Erase(T_ITERATOR it)
 		{
-			auto lpNext     = it.lpNode->lpNext;
-			auto lpPrevious = it.lpNode->lpPrevious;
+			auto lpNode     = it.lpNode;
+			auto lpNext     = lpNode->lpNext;
+			auto lpPrevious = lpNode->lpPrevious;
 
-			delete it.lpNode;
+			delete lpNode;
 
 			lpNext->lpPrevious = lpPrevious;
 			lpPrevious->lpNext = lpNext;
@@ -514,13 +515,17 @@ namespace AL::Collections
 		template<typename T_ITERATOR>
 		T_ITERATOR Insert(T_ITERATOR it, Type&& value)
 		{
-			auto lpNode = new LinkedListNode<T>(
+			auto lpNode     = it.lpNode;
+			auto lpPrevious = lpNode->lpPrevious;
+
+			auto lpNewNode = new LinkedListNode<T>(
 				Move(value)
 			);
 
-			lpNode->lpNext        = it.lpNode;
-			lpNode->lpPrevious    = it.lpNode->lpPrevious;
-			it.lpNode->lpPrevious = lpNode;
+			lpNode->lpPrevious       = lpNewNode;
+			lpPrevious->lpNext       = lpNewNode;
+			lpNewNode->lpNext        = lpNode;
+			lpNewNode->lpPrevious    = lpPrevious;
 
 			++size;
 
