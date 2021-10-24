@@ -37,7 +37,7 @@ namespace AL::Collections
 	template<typename T>
 	struct Get_LinkedListNode_Value_Type<const LinkedListNode<T>>
 	{
-		typedef T Type;
+		typedef const T Type;
 	};
 
 	template<typename T>
