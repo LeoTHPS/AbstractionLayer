@@ -19,6 +19,8 @@
 
 #include "FileSystem/File.hpp"
 
+#include "HTML/Document.hpp"
+
 #include "Lua543/Lua.hpp"
 
 #include "OS/Process.hpp"
@@ -211,6 +213,8 @@ int main(int argc, char* argv[])
 	AL_TEST_EXECUTE(AL_Function);
 
 	AL_TEST_EXECUTE(AL_FileSystem_File);
+
+	AL_TEST_EXECUTE(AL_HTML_Document);
 
 	AL_TEST_EXECUTE(AL_Lua543);
 
