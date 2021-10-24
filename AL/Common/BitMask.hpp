@@ -12,17 +12,21 @@ namespace AL
 		{
 			typedef typename Get_Enum_Or_Integer_Base<Type>::Type TypeBase;
 
-			return static_cast<TypeBase>(flag) ? ((mask & flag) == flag) : False;
+			return static_cast<TypeBase>(flag) ? ((static_cast<TypeBase>(mask) & static_cast<TypeBase>(flag)) == static_cast<TypeBase>(flag)) : False;
 		}
 
 		static constexpr Type Add(Type mask, Type flag)
 		{
-			return mask | flag;
+			typedef typename Get_Enum_Or_Integer_Base<Type>::Type TypeBase;
+
+			return static_cast<Type>(static_cast<TypeBase>(mask) | static_cast<TypeBase>(flag));
 		}
 
 		static constexpr Type Remove(Type mask, Type flag)
 		{
-			return mask & ~flag;
+			typedef typename Get_Enum_Or_Integer_Base<Type>::Type TypeBase;
+
+			return static_cast<Type>(static_cast<TypeBase>(mask) & ~static_cast<TypeBase>(flag));
 		}
 
 		static constexpr Type Set(Type mask, Type flag, Bool set = True)
