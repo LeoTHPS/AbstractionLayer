@@ -169,7 +169,7 @@ namespace AL::Network
 
 				default:
 					::freeaddrinfo(lpResult);
-					throw NotImplementedException();
+					throw OperationNotSupportedException();
 			}
 
 			::freeaddrinfo(
@@ -413,7 +413,7 @@ namespace AL::Network
 						break;
 
 						default:
-							throw NotImplementedException();
+							throw OperationNotSupportedException();
 					}
 				}
 				break;
@@ -427,7 +427,7 @@ namespace AL::Network
 							if (!IsV4MappedToV6())
 							{
 
-								throw NotImplementedException();
+								throw OperationNotSupportedException();
 							}
 
 							address.address.v4.s_addr = *reinterpret_cast<const uint32*>(
@@ -448,13 +448,13 @@ namespace AL::Network
 							break;
 
 						default:
-							throw NotImplementedException();
+							throw OperationNotSupportedException();
 					}
 				}
 				break;
 
 				default:
-					throw NotImplementedException();
+					throw OperationNotSupportedException();
 			}
 
 			return address;
@@ -482,7 +482,7 @@ namespace AL::Network
 					break;
 
 				default:
-					throw NotImplementedException();
+					throw OperationNotSupportedException();
 			}
 
 			Collections::Array<String::Char> buffer(
@@ -685,7 +685,7 @@ namespace AL::Network
 				break;
 
 				default:
-					throw NotImplementedException();
+					throw OperationNotSupportedException();
 			}
 
 			return True;
