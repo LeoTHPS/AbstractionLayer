@@ -295,7 +295,7 @@ namespace AL::Collections
 
 		Bool SetCapacity(size_t value, Bool retainValues = True)
 		{
-			if (IsSelfHosted())
+			if (!IsSelfHosted())
 			{
 
 				return False;
