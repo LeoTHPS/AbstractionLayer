@@ -26,6 +26,17 @@ namespace AL
 			return handlerRefs.GetSize();
 		}
 
+		template<typename F>
+		Void Register(F&& handler)
+		{
+			Handler _handler(
+				Move(handler)
+			);
+
+			Register(
+				Move(_handler)
+			);
+		}
 		Void Register(Handler&& handler)
 		{
 			handlers.PushBack(
