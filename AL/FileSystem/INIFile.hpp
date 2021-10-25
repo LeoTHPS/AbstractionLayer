@@ -196,13 +196,9 @@ namespace AL::FileSystem
 				"INIFileField type is not Bool"
 			);
 
-			if (!GetString().Compare("true", True))
-			{
-
-				return False;
-			}
-
-			return True;
+			return FromString<Bool>(
+				GetValue()
+			);
 		}
 
 		template<typename T>
@@ -226,7 +222,11 @@ namespace AL::FileSystem
 			);
 
 			BaseConverterBuffer buffer;
-			HexConverter::Decode(buffer, GetString());
+
+			HexConverter::Decode(
+				buffer,
+				GetString()
+			);
 
 			return buffer;
 		}
@@ -252,7 +252,7 @@ namespace AL::FileSystem
 				"INIFileField type is not integer"
 			);
 
-			return Integer<T>::FromString(
+			return FromString<T>(
 				GetValue()
 			);
 		}
@@ -265,25 +265,16 @@ namespace AL::FileSystem
 				"INIFileField type is not decimal"
 			);
 
-			if constexpr (Is_Float<T>::Value)
-			{
-				return Float<T>::FromString(
-					GetValue()
-				);
-			}
-			else if constexpr (Is_Double<T>::Value)
-			{
-				return Double<T>::FromString(
-					GetValue()
-				);
-			}
-
-			throw NotImplementedException();
+			return FromString<T>(
+				GetValue()
+			);
 		}
 
 		Void SetBool(Bool value)
 		{
-			this->value = value ? "true" : "false";
+			this->value = ToString(
+				value
+			);
 
 			attributes.Value = INIFileFieldAttributes::Bool;
 		}
@@ -330,7 +321,7 @@ namespace AL::FileSystem
 			}
 			else
 			{
-				this->value = Integer<T>::ToString(
+				this->value = ToString(
 					value
 				);
 			}
@@ -344,25 +335,11 @@ namespace AL::FileSystem
 		template<typename T>
 		Void SetDecimal(T value)
 		{
-			if constexpr (Is_Float<T>::Value)
-			{
-				this->value = Float<T>::ToString(
-					value
-				);
-			}
-			else if constexpr (Is_Double<T>::Value)
-			{
-				this->value = Double<T>::ToString(
-					value
-				);
-			}
-			else
-			{
+			this->value = ToString(
+				value
+			);
 
-				throw NotImplementedException();
-			}
-
-			attributes.Mask = INIFileFieldAttributes::Decimal;
+			attributes.Value = INIFileFieldAttributes::Decimal;
 		}
 	};
 
