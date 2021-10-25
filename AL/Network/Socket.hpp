@@ -603,7 +603,7 @@ namespace AL::Network
 				);
 			}
 #elif defined(AL_PLATFORM_WINDOWS)
-			if ((socket.socket = ::WSAAccept(GetHandle(), nullptr, nullptr, nullptr, 0)) == INVALID_SOCKET)
+			if ((_socket.socket = ::WSAAccept(GetHandle(), nullptr, nullptr, nullptr, 0)) == INVALID_SOCKET)
 			{
 				auto lastError = OS::GetLastError();
 
@@ -663,7 +663,7 @@ namespace AL::Network
 			try
 			{
 				_socket.SetBlocking(
-					socket.IsBlocking()
+					IsBlocking()
 				);
 			}
 			catch (Exception& exception)
