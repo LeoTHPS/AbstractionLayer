@@ -50,22 +50,13 @@ namespace AL::OS
 
 		if (auto messageLength = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPSTR>(&lpMessageBuffer), 0, nullptr))
 		{
-			typename String::Container container(
-				messageLength + 1
-			);
-
-			memcpy(
-				&container[0],
-				lpMessageBuffer,
-				messageLength + 1
+			string.Assign(
+				reinterpret_cast<const typename String::Char*>(lpMessageBuffer),
+				messageLength
 			);
 
 			LocalFree(
 				lpMessageBuffer
-			);
-
-			string = String(
-				Move(container)
 			);
 
 			string.RemoveLast(

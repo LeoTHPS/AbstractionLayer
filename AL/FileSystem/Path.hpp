@@ -209,7 +209,7 @@ namespace AL::FileSystem
 				return False;
 			}
 #else
-			throw NotImplementedException();
+			throw PlatformNotSupportedException();
 #endif
 
 			return True;
@@ -251,7 +251,7 @@ namespace AL::FileSystem
 				return False;
 			}
 #else
-			throw NotImplementedException();
+			throw PlatformNotSupportedException();
 #endif
 
 			return True;
@@ -296,7 +296,7 @@ namespace AL::FileSystem
 
 			return False;
 #else
-			throw NotImplementedException();
+			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -328,25 +328,37 @@ namespace AL::FileSystem
 
 		Bool IsValid() const
 		{
-			return IsValid(
-				string
-			);
+			if (!IsValid(string))
+			{
+
+				return False;
+			}
+
+			return True;
 		}
 
 		// @throw AL::Exception
 		Bool IsFile() const
 		{
-			return IsFile(
-				string
-			);
+			if (!IsFile(string))
+			{
+
+				return False;
+			}
+
+			return True;
 		}
 
 		// @throw AL::Exception
 		Bool IsDirectory() const
 		{
-			return IsDirectory(
-				string
-			);
+			if (!IsDirectory(string))
+			{
+
+				return False;
+			}
+
+			return True;
 		}
 
 		auto& GetString() const

@@ -85,7 +85,7 @@ namespace AL::FileSystem
 				st.st_size
 			);
 #else
-			throw NotImplementedException();
+			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -163,7 +163,7 @@ namespace AL::FileSystem
 				hFile
 			);
 #else
-			throw NotImplementedException();
+			throw PlatformNotSupportedException();
 #endif
 			return True;
 		}
@@ -195,7 +195,7 @@ namespace AL::FileSystem
 				);
 			}
 #else
-			throw NotImplementedException();
+			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -361,7 +361,7 @@ namespace AL::FileSystem
 				);
 			}
 #else
-			throw NotImplementedException();
+			throw PlatformNotSupportedException();
 #endif
 
 			return True;

@@ -59,6 +59,8 @@ namespace AL::OS
 				x,
 				y
 			);
+#else
+			throw PlatformNotSupportedException();
 #endif
 		}
 		template<typename T>
@@ -72,6 +74,8 @@ namespace AL::OS
 				string,
 				rectangle
 			);
+#else
+			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -91,6 +95,8 @@ namespace AL::OS
 				rectangle,
 				brush
 			);
+#else
+			throw PlatformNotSupportedException();
 #endif
 		}
 
