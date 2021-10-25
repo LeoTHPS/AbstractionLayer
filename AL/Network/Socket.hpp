@@ -579,7 +579,7 @@ namespace AL::Network
 				IsListening(),
 				"Socket not listening"
 			);
-			
+
 			Socket _socket(
 				GetType(),
 				GetProtocol(),

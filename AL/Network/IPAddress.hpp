@@ -484,7 +484,7 @@ namespace AL::Network
 				default:
 					throw NotImplementedException();
 			}
-			
+
 			Collections::Array<String::Char> buffer(
 				String::END,
 				addressStringLength + 1
