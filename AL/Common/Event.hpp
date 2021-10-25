@@ -33,7 +33,7 @@ namespace AL
 			);
 
 			handlerRefs.PushBack(
-				handlers.GetBack()
+				&(*(--handlers.end()))
 			);
 		}
 		Void Register(const Handler& handler)
