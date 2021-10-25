@@ -78,20 +78,18 @@ namespace AL
 					);
 				}
 			}
-			else
+			else if constexpr (Is_Type<T, Bool>::Value)
 			{
-				auto result = T();
-
 				for (auto lpCallback : handlerRefs)
 				{
-					if (!(result = (*lpCallback)(Forward<TArgs>(args) ...)))
+					if (!(*lpCallback)(Forward<TArgs>(args) ...))
 					{
 
-						return result;
+						return False;
 					}
 				}
 
-				return result;
+				return True;
 			}
 		}
 
