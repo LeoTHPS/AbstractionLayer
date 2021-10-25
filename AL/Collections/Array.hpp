@@ -177,13 +177,13 @@ namespace AL::Collections
 
 		ArrayReverseIterator& operator += (size_t count)
 		{
-			lpValue += count;
+			lpValue -= count;
 
 			return *this;
 		}
 		ArrayReverseIterator& operator -= (size_t count)
 		{
-			lpValue -= count;
+			lpValue += count;
 
 			return *this;
 		}
@@ -263,7 +263,7 @@ namespace AL::Collections
 				memcpy(
 					lpDestination,
 					lpSource,
-					(sourceCount <= destinationCount) ? sourceCount : destinationCount
+					((sourceCount <= destinationCount) ? sourceCount : destinationCount) * sizeof(Type)
 				);
 			}
 			else
@@ -310,7 +310,7 @@ namespace AL::Collections
 				memcpy(
 					lpDestination,
 					lpSource,
-					(sourceCount <= destinationCount) ? sourceCount : destinationCount
+					((sourceCount <= destinationCount) ? sourceCount : destinationCount) * sizeof(Type)
 				);
 			}
 			else

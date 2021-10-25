@@ -175,16 +175,16 @@ namespace AL::Collections
 
 			return it;
 		}
-		
+
 		ArrayListReverseIterator& operator += (size_t count)
 		{
-			lpValue += count;
+			lpValue -= count;
 
 			return *this;
 		}
 		ArrayListReverseIterator& operator -= (size_t count)
 		{
-			lpValue -= count;
+			lpValue += count;
 
 			return *this;
 		}
@@ -617,12 +617,12 @@ namespace AL::Collections
 		template<typename T_ITERATOR>
 		T_ITERATOR Insert(T_ITERATOR it, const Type& value)
 		{
-			auto _it = Insert(
+			it = Insert(
 				it,
 				Type(value)
 			);
 
-			return _it;
+			return it;
 		}
 		template<typename T_ITERATOR>
 		T_ITERATOR Insert(T_ITERATOR it, const Type* lpValues, size_t count)
@@ -665,15 +665,11 @@ namespace AL::Collections
 
 		virtual Iterator      begin() override
 		{
-			return Iterator(
-				&container[0]
-			);
+			return container.begin();
 		}
 		virtual ConstIterator begin() const override
 		{
-			return ConstIterator(
-				&container[0]
-			);
+			return container.begin();
 		}
 
 		virtual Iterator      end() override
@@ -691,9 +687,7 @@ namespace AL::Collections
 
 		virtual ConstIterator cbegin() const override
 		{
-			return ConstIterator(
-				&container[0]
-			);
+			return container.cbegin();
 		}
 
 		virtual ConstIterator cend() const override
@@ -718,15 +712,11 @@ namespace AL::Collections
 
 		virtual ReverseIterator      rend() override
 		{
-			return ReverseIterator(
-				&container[-1]
-			);
+			return container.rend();
 		}
 		virtual ConstReverseIterator rend() const override
 		{
-			return ConstReverseIterator(
-				&container[-1]
-			);
+			return container.rend();
 		}
 
 		virtual ConstReverseIterator crbegin() const override
@@ -738,9 +728,7 @@ namespace AL::Collections
 
 		virtual ConstReverseIterator crend() const override
 		{
-			return ConstReverseIterator(
-				&container[-1]
-			);
+			return container.crend();
 		}
 
 		Type&       operator [] (size_t index)

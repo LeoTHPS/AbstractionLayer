@@ -21,12 +21,12 @@ static void AL_Collections_ArrayList()
 #if defined(AL_TEST_SHOW_CONSOLE_OUTPUT)
 		OS::Console::WriteLine(
 			"+%lu",
-			i
+			*(--array.end())
 		);
 #endif
 	}
 
-	for (auto it = array.rbegin(); it != array.rend(); ++it)
+	for (auto it = array.rbegin(); it != array.rend(); )
 	{
 #if defined(AL_TEST_SHOW_CONSOLE_OUTPUT)
 		OS::Console::WriteLine(
@@ -35,6 +35,8 @@ static void AL_Collections_ArrayList()
 		);
 #endif
 
-		array.PopBack();
+		array.Erase(
+			it++
+		);
 	}
 }
