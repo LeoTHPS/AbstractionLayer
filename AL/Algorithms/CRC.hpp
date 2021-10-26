@@ -41,6 +41,8 @@ namespace AL::Algorithms
 			0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94, 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 		};
 
+		uint32 hash;
+
 	public:
 		typedef uint32 Hash;
 
@@ -63,6 +65,80 @@ namespace AL::Algorithms
 			}
 
 			return ~crc;
+		}
+
+		CRC32()
+			: hash(
+				0xFFFFFFFF
+			)
+		{
+		}
+
+		CRC32(CRC32&& crc32)
+			: hash(
+				crc32.hash
+			)
+		{
+			crc32.hash = 0xFFFFFFFF;
+		}
+		CRC32(const CRC32& crc32)
+			: hash(
+				crc32.hash
+			)
+		{
+		}
+
+		Void Add(const Void* lpBuffer, size_t size)
+		{
+			for (size_t i = 0; i < size; ++i)
+			{
+				hash = TABLE[(hash ^ static_cast<Hash>(static_cast<const uint8*>(lpBuffer)[i])) & 0xFF] ^ (hash >> 8);
+			}
+		}
+
+		Void Reset()
+		{
+			hash = 0xFFFFFFFF;
+		}
+
+		Hash Calculate() const
+		{
+			return ~hash;
+		}
+
+		CRC32& operator = (CRC32&& crc32)
+		{
+			hash = crc32.hash;
+			crc32.hash = 0xFFFFFFFF;
+
+			return *this;
+		}
+		CRC32& operator = (const CRC32& crc32)
+		{
+			hash = crc32.hash;
+
+			return *this;
+		}
+
+		Bool operator == (const CRC32& crc32) const
+		{
+			if (Calculate() != crc32.Calculate())
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		Bool operator != (const CRC32& crc32) const
+		{
+			if (operator==(crc32))
+			{
+
+				return False;
+			}
+
+			return True;
 		}
 	};
 }

@@ -25,7 +25,7 @@ namespace AL::Algorithms
 	template<typename T>
 	class FNV
 	{
-		FNV() = delete;
+		T hash;
 
 	public:
 		typedef T Hash;
@@ -57,6 +57,84 @@ namespace AL::Algorithms
 			}
 
 			return hash;
+		}
+
+		FNV()
+			: hash(
+				_FNV_Constants<T>::Offset
+			)
+		{
+		}
+
+		FNV(FNV&& fnv)
+			: hash(
+				fnv.hash
+			)
+		{
+			fnv.hash = _FNV_Constants<T>::Offset;
+		}
+		FNV(const FNV& fnv)
+			: hash(
+				fnv.hash
+			)
+		{
+		}
+
+		Void Add(const Void* lpBuffer, size_t size)
+		{
+			for (size_t i = 0; i < size; ++i)
+			{
+				hash ^= static_cast<T>(
+					static_cast<const uint8*>(lpBuffer)[i]
+				);
+
+				hash *= _FNV_Constants<T>::Prime;
+			}
+		}
+
+		Void Reset()
+		{
+			hash = _FNV_Constants<T>::Offset;
+		}
+
+		Hash Calculate() const
+		{
+			return hash;
+		}
+
+		FNV& operator = (FNV&& fnv)
+		{
+			hash = fnv.hash;
+			fnv.hash = _FNV_Constants<T>::Offset;
+
+			return *this;
+		}
+		FNV& operator = (const FNV& fnv)
+		{
+			hash = fnv.hash;
+
+			return *this;
+		}
+
+		Bool operator == (const FNV& fnv) const
+		{
+			if (Calculate() != fnv.Calculate())
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		Bool operator != (const FNV& fnv) const
+		{
+			if (operator==(fnv))
+			{
+
+				return False;
+			}
+
+			return True;
 		}
 	};
 
