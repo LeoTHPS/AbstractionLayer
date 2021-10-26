@@ -281,6 +281,19 @@ namespace AL::Collections
 				}
 			}
 
+			if (it == end())
+			{
+				container.PushBack(
+					KeyValuePair<Key, Value>
+					{
+						Move(key),
+						Value()
+					}
+				);
+
+				it = --container.end();
+			}
+
 			return it->Value;
 		}
 		Value&       operator [] (const Key& key)
@@ -308,6 +321,19 @@ namespace AL::Collections
 
 					break;
 				}
+			}
+
+			if (it == end())
+			{
+				container.PushBack(
+					KeyValuePair<Key, Value>
+					{
+						key,
+						Value()
+					}
+				);
+
+				it = --container.end();
 			}
 
 			return it->Value;
