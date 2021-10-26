@@ -77,6 +77,7 @@ namespace AL::FileSystem
 			}
 		}
 
+		// @format: [Time: $timestamp] [Thread: $threadId] message
 		// @throw AL::Exception
 		template<typename ... TArgs>
 		Void WriteLine(const String& format, TArgs ... args)
