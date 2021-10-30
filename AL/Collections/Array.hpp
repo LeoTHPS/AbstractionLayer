@@ -86,6 +86,21 @@ namespace AL::Collections
 			return *this;
 		}
 
+		ArrayIterator operator + (size_t count) const
+		{
+			auto it = *this;
+			it += count;
+
+			return it;
+		}
+		ArrayIterator operator - (size_t count) const
+		{
+			auto it = *this;
+			it -= count;
+
+			return it;
+		}
+
 		Bool operator == (const ArrayIterator& it) const
 		{
 			if (lpValue != it.lpValue)
@@ -186,6 +201,21 @@ namespace AL::Collections
 			lpValue += count;
 
 			return *this;
+		}
+
+		ArrayReverseIterator operator + (size_t count) const
+		{
+			auto it = *this;
+			it += count;
+
+			return it;
+		}
+		ArrayReverseIterator operator - (size_t count) const
+		{
+			auto it = *this;
+			it -= count;
+
+			return it;
 		}
 
 		Bool operator == (const ArrayReverseIterator& it) const

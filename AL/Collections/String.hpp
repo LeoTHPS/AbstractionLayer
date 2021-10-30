@@ -1335,9 +1335,11 @@ namespace AL::Collections
 					length = _length - index;
 				}
 
+				auto it = cbegin() + index;
+
 				container.Erase(
-					index,
-					length
+					it,
+					it + length
 				);
 			}
 		}

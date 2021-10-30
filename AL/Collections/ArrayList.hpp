@@ -87,6 +87,21 @@ namespace AL::Collections
 			return *this;
 		}
 
+		ArrayListIterator operator + (size_t count) const
+		{
+			auto it = *this;
+			it += count;
+
+			return it;
+		}
+		ArrayListIterator operator - (size_t count) const
+		{
+			auto it = *this;
+			it -= count;
+
+			return it;
+		}
+
 		Bool operator == (const ArrayListIterator& it) const
 		{
 			if (lpValue != it.lpValue)
@@ -187,6 +202,21 @@ namespace AL::Collections
 			lpValue += count;
 
 			return *this;
+		}
+
+		ArrayListReverseIterator operator + (size_t count) const
+		{
+			auto it = *this;
+			it += count;
+
+			return it;
+		}
+		ArrayListReverseIterator operator - (size_t count) const
+		{
+			auto it = *this;
+			it -= count;
+
+			return it;
 		}
 
 		Bool operator == (const ArrayListReverseIterator& it) const
@@ -549,20 +579,33 @@ namespace AL::Collections
 		{
 			typedef typename Remove_Modifiers<T_ITERATOR>::Type _T_ITERATOR;
 
+			auto container_Erase = [this](size_t _i, size_t _count)
+			{
+				auto container_Capacity = container.GetCapacity();
+
+				if ((_i + _count) > container_Capacity)
+				{
+
+					_count = container_Capacity - _i;
+				}
+
+				Array<Type>::Move(
+					&container[_i + _count],
+					&container[_i],
+					_count
+				);
+			};
+
 			if constexpr (Is_Type<_T_ITERATOR, Iterator>::Value)
 			{
 				size_t i_first = GetIteratorDifference(begin(), first);
 				size_t i_last  = GetIteratorDifference(begin(), last);
-				size_t i_count = (i_last - i_first) + 1;
+				size_t i_count = i_last - i_first;
 
-				if (i_last < (GetSize() - 1))
-				{
-					Array<Type>::Move(
-						&container[i_last + 1],
-						&container[i_first],
-						i_count
-					);
-				}
+				container_Erase(
+					i_first,
+					i_count
+				);
 
 				size -= i_count;
 			}
@@ -570,16 +613,12 @@ namespace AL::Collections
 			{
 				size_t i_first = GetIteratorDifference(cbegin(), first);
 				size_t i_last  = GetIteratorDifference(cbegin(), last);
-				size_t i_count = (i_last - i_first) + 1;
+				size_t i_count = i_last - i_first;
 
-				if (i_last < (GetSize() - 1))
-				{
-					Array<Type>::Move(
-						&container[i_last + 1],
-						&container[i_first],
-						i_count
-					);
-				}
+				container_Erase(
+					i_first,
+					i_count
+				);
 
 				size -= i_count;
 			}
@@ -587,16 +626,12 @@ namespace AL::Collections
 			{
 				size_t i_first = GetIteratorDifference(rend(), first);
 				size_t i_last  = GetIteratorDifference(rend(), last);
-				size_t i_count = (i_last - i_first) + 1;
+				size_t i_count = i_last - i_first;
 
-				if (i_last < (GetSize() - 1))
-				{
-					Array<Type>::Move(
-						&container[i_last + 1],
-						&container[i_first],
-						i_count
-					);
-				}
+				container_Erase(
+					i_first,
+					i_count
+				);
 
 				size -= i_count;
 			}
@@ -604,16 +639,12 @@ namespace AL::Collections
 			{
 				size_t i_first = GetIteratorDifference(crend(), first);
 				size_t i_last  = GetIteratorDifference(crend(), last);
-				size_t i_count = (i_last - i_first) + 1;
+				size_t i_count = i_last - i_first;
 
-				if (i_last < (GetSize() - 1))
-				{
-					Array<Type>::Move(
-						&container[i_last + 1],
-						&container[i_first],
-						i_count
-					);
-				}
+				container_Erase(
+					i_first,
+					i_count
+				);
 
 				size -= i_count;
 			}
