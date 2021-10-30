@@ -547,20 +547,76 @@ namespace AL::Collections
 		template<typename T_ITERATOR>
 		Void Erase(T_ITERATOR first, T_ITERATOR last)
 		{
-			size_t i_first = &(*first) - &container[0];
-			size_t i_last  = &(*last) - &container[0];
-			size_t i_count = (i_last - i_first) + 1;
+			typedef typename Remove_Modifiers<T_ITERATOR>::Type _T_ITERATOR;
 
-			if (i_last < (GetSize() - 1))
+			if constexpr (Is_Type<_T_ITERATOR, Iterator>::Value)
 			{
-				Array<Type>::Move(
-					&container[i_last + 1],
-					&container[i_first],
-					i_count
-				);
-			}
+				size_t i_first = GetIteratorDifference(begin(), first);
+				size_t i_last  = GetIteratorDifference(begin(), last);
+				size_t i_count = (i_last - i_first) + 1;
 
-			size -= i_count;
+				if (i_last < (GetSize() - 1))
+				{
+					Array<Type>::Move(
+						&container[i_last + 1],
+						&container[i_first],
+						i_count
+					);
+				}
+
+				size -= i_count;
+			}
+			else if constexpr (Is_Type<_T_ITERATOR, ConstIterator>::Value)
+			{
+				size_t i_first = GetIteratorDifference(cbegin(), first);
+				size_t i_last  = GetIteratorDifference(cbegin(), last);
+				size_t i_count = (i_last - i_first) + 1;
+
+				if (i_last < (GetSize() - 1))
+				{
+					Array<Type>::Move(
+						&container[i_last + 1],
+						&container[i_first],
+						i_count
+					);
+				}
+
+				size -= i_count;
+			}
+			else if constexpr (Is_Type<_T_ITERATOR, ReverseIterator>::Value)
+			{
+				size_t i_first = GetIteratorDifference(rend(), first);
+				size_t i_last  = GetIteratorDifference(rend(), last);
+				size_t i_count = (i_last - i_first) + 1;
+
+				if (i_last < (GetSize() - 1))
+				{
+					Array<Type>::Move(
+						&container[i_last + 1],
+						&container[i_first],
+						i_count
+					);
+				}
+
+				size -= i_count;
+			}
+			else if constexpr (Is_Type<_T_ITERATOR, ConstReverseIterator>::Value)
+			{
+				size_t i_first = GetIteratorDifference(crend(), first);
+				size_t i_last  = GetIteratorDifference(crend(), last);
+				size_t i_count = (i_last - i_first) + 1;
+
+				if (i_last < (GetSize() - 1))
+				{
+					Array<Type>::Move(
+						&container[i_last + 1],
+						&container[i_first],
+						i_count
+					);
+				}
+
+				size -= i_count;
+			}
 		}
 
 		Void Remove(const Type& value)
