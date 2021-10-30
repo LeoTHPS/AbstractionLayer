@@ -10,9 +10,24 @@ CPPFLAGS     += -DAL_TEST_SHOW_CONSOLE_OUTPUT
 CXXFLAGS     += -Wall -g -std=c++2a -I"$(AL_INCLUDE)"
 #CXXFLAGS     += -O3
 #CXXFLAGS     += -Wno-unused-function
-LDLIBS       += -lpthread -lusb-1.0 -li2c -lgpiod -llua
 
-# Dependencies: apt install libpthread-stubs0-dev libusb-1.0-0-dev libi2c-dev libgpiod-dev/wiringpi liblua
+# Dependencies
+## Linux:   libpthread-stubs0-dev libusb-1.0-0-dev libi2c-dev libgpiod-dev/wiringpi liblua
+## Windows: 
+
+ifdef PLATFORM
+	ifeq ($(PLATFORM), LINUX)
+		LDLIBS += -lpthread -lusb-1.0 -li2c -lgpiod -llua
+	endif
+
+	ifeq ($(PLATFORM), WINDOWS)
+		LDLIBS += -luser32 -lntdll -lkernel32
+		LDLIBS += -lwsock32 -lws2_32
+		LDLIBS += -lshlwapi
+		LDLIBS += -lgdi32
+		LDLIBS += -ld3d11 -ld2d1 -ldxguid -ldwrite -lwinmm -ldsound -lwindowscodecs
+	endif
+endif
 
 .PHONY: clean
 
