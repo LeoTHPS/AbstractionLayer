@@ -14,6 +14,8 @@
 
 	#include <sys/stat.h>
 	#include <sys/types.h>
+#elif defined(AL_PLATFORM_WINDOWS)
+	#include <fileapi.h>
 #endif
 
 namespace AL::FileSystem
@@ -71,19 +73,21 @@ namespace AL::FileSystem
 				st.st_size
 			);
 #elif defined(AL_PLATFORM_WINDOWS)
-			struct _stat64 st;
+			::WIN32_FILE_ATTRIBUTE_DATA fileInfo;
 
-			if (::_stat64(path.GetCString(), &st) == -1)
+			if (!::GetFileAttributesExA(path.GetCString(), GET_FILEEX_INFO_LEVELS::GetFileExInfoStandard, &fileInfo))
 			{
 
 				throw OS::SystemException(
-					"_stat64"
+					"GetFileAttributesExA"
 				);
 			}
 
-			return static_cast<uint64>(
-				st.st_size
-			);
+			Integer<uint64> integer;
+			integer.Low.Value  = fileInfo.nFileSizeLow;
+			integer.High.Value = fileInfo.nFileSizeHigh;
+
+			return integer.Value;
 #else
 			throw PlatformNotSupportedException();
 #endif
