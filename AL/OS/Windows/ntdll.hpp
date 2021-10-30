@@ -7,7 +7,9 @@
 
 #include <winternl.h>
 
-#pragma comment(lib, "ntdll.lib")
+#if defined(AL_COMPILER_MSVC)
+	#pragma comment(lib, "ntdll.lib")
+#endif
 
 extern "C"
 {

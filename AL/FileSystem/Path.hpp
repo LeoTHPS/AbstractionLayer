@@ -13,7 +13,9 @@
 #elif defined(AL_PLATFORM_WINDOWS)
 	#include <Shlwapi.h>
 
-	#pragma comment(lib, "Shlwapi.lib")
+	#if defined(AL_COMPILER_MSVC)
+		#pragma comment(lib, "Shlwapi.lib")
+	#endif
 #endif
 
 #define AL_MAX_PATH FILENAME_MAX

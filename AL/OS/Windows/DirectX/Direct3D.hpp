@@ -45,8 +45,10 @@
 	#define AL_DEPENDENCY_DIRECT3D_11_VERSION 11.0
 #endif
 
-#pragma comment(lib, "d3d11.lib")
-#pragma comment(lib, "dxguid.lib")
+#if defined(AL_COMPILER_MSVC)
+	#pragma comment(lib, "d3d11.lib")
+	#pragma comment(lib, "dxguid.lib")
+#endif
 
 namespace AL::OS::Windows::DirectX
 {

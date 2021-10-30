@@ -18,9 +18,11 @@
 	#define DS_INCOMPLETE 0x08780014
 #endif
 
-#pragma comment(lib, "winmm.lib")
-#pragma comment(lib, "dsound.lib")
-#pragma comment(lib, "windowscodecs.lib")
+#if defined(AL_COMPILER_MSVC)
+	#pragma comment(lib, "winmm.lib")
+	#pragma comment(lib, "dsound.lib")
+	#pragma comment(lib, "windowscodecs.lib")
+#endif
 
 namespace AL::OS::Windows::DirectX
 {

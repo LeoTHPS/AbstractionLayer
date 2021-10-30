@@ -11,7 +11,9 @@
 #include <WS2tcpip.h>
 #include <MSWSock.h>
 
-#pragma comment(lib, "Ws2_32.lib")
+#if defined(AL_COMPILER_MSVC)
+	#pragma comment(lib, "Ws2_32.lib")
+#endif
 
 namespace AL::Network
 {

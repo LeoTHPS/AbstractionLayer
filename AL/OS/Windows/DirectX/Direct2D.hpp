@@ -71,10 +71,12 @@
 
 #include <wincodec.h>
 
-#pragma comment(lib, "d2d1.lib")
-#pragma comment(lib, "winmm.lib")
-#pragma comment(lib, "dwrite.lib")
-#pragma comment(lib, "windowscodecs.lib")
+#if defined(AL_COMPILER_MSVC)
+	#pragma comment(lib, "d2d1.lib")
+	#pragma comment(lib, "winmm.lib")
+	#pragma comment(lib, "dwrite.lib")
+	#pragma comment(lib, "windowscodecs.lib")
+#endif
 
 namespace AL::OS::Windows::DirectX
 {

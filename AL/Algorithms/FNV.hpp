@@ -2,7 +2,9 @@
 #include "AL/Common.hpp"
 
 #if defined(AL_PLATFORM_WINDOWS)
-	#pragma warning(disable: 4307)
+	#if defined(AL_COMPILER_MSVC)
+		#pragma warning(disable: 4307)
+	#endif
 #endif
 
 namespace AL::Algorithms
