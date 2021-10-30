@@ -186,6 +186,9 @@ namespace AL::OS::Windows
 
 				case WindowCursors::Help:
 					return ::LoadCursorA(NULL, IDC_HELP);
+
+				case WindowCursors::UserDefined:
+					throw OperationNotSupportedException();
 			}
 
 			return nullptr;
@@ -218,56 +221,56 @@ namespace AL::OS::Windows
 		NotSupported
 	};
 
+	template<typename T>
+	struct Get_Window_Clipboard_Data_Format
+	{
+		static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::NotSupported;
+	};
+	template<>
+	struct Get_Window_Clipboard_Data_Format<String>
+	{
+		static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::String;
+	};
+	template<>
+	struct Get_Window_Clipboard_Data_Format<typename String::Char*>
+	{
+		static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::String;
+	};
+	template<>
+	struct Get_Window_Clipboard_Data_Format<const typename String::Char*>
+	{
+		static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::String;
+	};
+	template<size_t S>
+	struct Get_Window_Clipboard_Data_Format<typename String::Char[S]>
+	{
+		static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::String;
+	};
+	template<>
+	struct Get_Window_Clipboard_Data_Format<WString>
+	{
+		static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::WString;
+	};
+	template<>
+	struct Get_Window_Clipboard_Data_Format<typename WString::Char*>
+	{
+		static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::WString;
+	};
+	template<>
+	struct Get_Window_Clipboard_Data_Format<const typename WString::Char*>
+	{
+		static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::WString;
+	};
+	template<size_t S>
+	struct Get_Window_Clipboard_Data_Format<typename WString::Char[S]>
+	{
+		static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::WString;
+	};
+
 	class Window
 	{
 		class Clipboard
 		{
-			template<typename T>
-			struct Get_Data_Format
-			{
-				static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::NotSupported;
-			};
-			template<>
-			struct Get_Data_Format<String>
-			{
-				static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::String;
-			};
-			template<>
-			struct Get_Data_Format<typename String::Char*>
-			{
-				static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::String;
-			};
-			template<>
-			struct Get_Data_Format<const typename String::Char*>
-			{
-				static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::String;
-			};
-			template<size_t S>
-			struct Get_Data_Format<typename String::Char[S]>
-			{
-				static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::String;
-			};
-			template<>
-			struct Get_Data_Format<WString>
-			{
-				static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::WString;
-			};
-			template<>
-			struct Get_Data_Format<typename WString::Char*>
-			{
-				static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::WString;
-			};
-			template<>
-			struct Get_Data_Format<const typename WString::Char*>
-			{
-				static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::WString;
-			};
-			template<size_t S>
-			struct Get_Data_Format<typename WString::Char[S]>
-			{
-				static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::WString;
-			};
-
 			Bool isCreated = False;
 
 			Window* const lpWindow;
@@ -370,7 +373,7 @@ namespace AL::OS::Windows
 			template<typename T>
 			Bool Get(T& value) const
 			{
-				static constexpr WindowClipboardDataFormats T_FORMAT = Get_Data_Format<T>::Value;
+				static constexpr WindowClipboardDataFormats T_FORMAT = Get_Window_Clipboard_Data_Format<T>::Value;
 
 				AL_ASSERT(
 					IsCreated(),
@@ -464,7 +467,7 @@ namespace AL::OS::Windows
 			template<typename T>
 			Void Set(const T& value)
 			{
-				static constexpr WindowClipboardDataFormats T_FORMAT = Get_Data_Format<T>::Value;
+				static constexpr WindowClipboardDataFormats T_FORMAT = Get_Window_Clipboard_Data_Format<T>::Value;
 
 				AL_ASSERT(
 					IsCreated(),
@@ -829,7 +832,7 @@ namespace AL::OS::Windows
 			return windowCursor;
 		}
 
-		auto GetHandle() const
+		::HWND GetHandle() const
 		{
 			return hWindow;
 		}
@@ -971,9 +974,13 @@ namespace AL::OS::Windows
 		// @throw AL::Exception
 		Bool SetTitle(const String& value)
 		{
-			SetTitle(
-				String(value)
-			);
+			if (!SetTitle(String(value)))
+			{
+
+				return False;
+			}
+
+			return True;
 		}
 
 		// @throw AL::Exception

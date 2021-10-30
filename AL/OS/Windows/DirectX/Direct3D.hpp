@@ -52,7 +52,7 @@
 
 namespace AL::OS::Windows::DirectX
 {
-	enum class AntiAliasing
+	enum class AntiAliasing : uint32
 	{
 		None     = 0,
 		Center   = D3D11_CENTER_MULTISAMPLE_PATTERN,
@@ -60,7 +60,7 @@ namespace AL::OS::Windows::DirectX
 	};
 
 	// https://docs.microsoft.com/en-us/windows/desktop/direct3d11/overviews-direct3d-11-devices-downlevel-intro
-	enum class FeatureLevels
+	enum class FeatureLevels : uint16
 	{
 		DX9_1  = D3D_FEATURE_LEVEL_9_1,
 		DX9_2  = D3D_FEATURE_LEVEL_9_2,

@@ -65,7 +65,7 @@ namespace AL::Network
 		{
 			::DWORD nBytesReturned = 0;
 
-			if (::WSAIoctl(s.hSocket, SIO_GET_EXTENSION_FUNCTION_POINTER, &guid, sizeof(guid), lpFunction, sizeof(F), &nBytesReturned, nullptr, nullptr) != 0)
+			if (::WSAIoctl(s.socket, SIO_GET_EXTENSION_FUNCTION_POINTER, &guid, sizeof(guid), lpFunction, sizeof(F), &nBytesReturned, nullptr, nullptr) != 0)
 			{
 
 				return False;
@@ -80,7 +80,7 @@ namespace AL::Network
 			return True;
 		}
 
-		static BOOL PASCAL FAR ConnectEx(__in const Socket& s, __in_bcount(namelen) const struct ::sockaddr FAR *name, __in int namelen, __in_opt ::PVOID lpSendBuffer, __in ::DWORD dwSendDataLength, __out ::LPDWORD lpdwBytesSent, __inout ::LPOVERLAPPED lpOverlapped)
+		static BOOL PASCAL FAR ConnectEx(const Socket& s, __in_bcount(namelen) const struct ::sockaddr FAR *name, int namelen, ::PVOID lpSendBuffer, ::DWORD dwSendDataLength, ::LPDWORD lpdwBytesSent, ::LPOVERLAPPED lpOverlapped)
 		{
 			::LPFN_CONNECTEX function;
 
@@ -100,7 +100,7 @@ namespace AL::Network
 			return FALSE;
 		}
 
-		static BOOL PASCAL FAR AcceptEx(__in const Socket& sListenSocket, __in const Socket& sAcceptSocket, __in ::PVOID lpOutputBuffer, __in ::DWORD dwReceiveDataLength, __in ::DWORD dwLocalAddressLength, __in ::DWORD dwRemoteAddressLength, __out ::LPDWORD lpdwBytesReceived, __inout ::LPOVERLAPPED lpOverlapped)
+		static BOOL PASCAL FAR AcceptEx(const Socket& sListenSocket, const Socket& sAcceptSocket, ::PVOID lpOutputBuffer, ::DWORD dwReceiveDataLength, ::DWORD dwLocalAddressLength, ::DWORD dwRemoteAddressLength, ::LPDWORD lpdwBytesReceived, ::LPOVERLAPPED lpOverlapped)
 		{
 			::LPFN_ACCEPTEX function;
 
@@ -116,7 +116,7 @@ namespace AL::Network
 			return FALSE;
 		}
 
-		static BOOL PASCAL FAR GetAcceptExSockaddrs(__in const Socket& s, __in ::PVOID lpOutputBuffer, __in ::DWORD dwReceiveDataLength, __in ::DWORD dwLocalAddressLength, __in ::DWORD dwRemoteAddressLength, __deref_out_bcount(*LocalSockaddrLength) struct ::sockaddr **LocalSockaddr, __out ::LPINT LocalSockaddrLength, __deref_out_bcount(*RemoteSockaddrLength) struct ::sockaddr **RemoteSockaddr, __out ::LPINT RemoteSockaddrLength)
+		static BOOL PASCAL FAR GetAcceptExSockaddrs(const Socket& s, ::PVOID lpOutputBuffer, ::DWORD dwReceiveDataLength, ::DWORD dwLocalAddressLength, ::DWORD dwRemoteAddressLength, struct ::sockaddr **LocalSockaddr, ::LPINT LocalSockaddrLength, struct ::sockaddr **RemoteSockaddr, ::LPINT RemoteSockaddrLength)
 		{
 			::LPFN_GETACCEPTEXSOCKADDRS function;
 
@@ -139,7 +139,7 @@ namespace AL::Network
 			return FALSE;
 		}
 
-		static BOOL PASCAL FAR DisconnectEx(__in const Socket& s, __inout_opt ::LPOVERLAPPED lpOverlapped, __in ::DWORD  dwFlags, __in ::DWORD  dwReserved)
+		static BOOL PASCAL FAR DisconnectEx(const Socket& s, ::LPOVERLAPPED lpOverlapped, ::DWORD  dwFlags, ::DWORD  dwReserved)
 		{
 			::LPFN_DISCONNECTEX function;
 
@@ -155,7 +155,7 @@ namespace AL::Network
 			return FALSE;
 		}
 
-		static BOOL PASCAL FAR TransmitFile(__in const Socket& s, __in ::HANDLE hFile, __in ::DWORD nNumberOfBytesToWrite, __in ::DWORD nNumberOfBytesPerSend, __inout_opt ::LPOVERLAPPED lpOverlapped, __in_opt ::LPTRANSMIT_FILE_BUFFERS lpTransmitBuffers, __in ::DWORD dwReserved)
+		static BOOL PASCAL FAR TransmitFile(const Socket& s, ::HANDLE hFile, ::DWORD nNumberOfBytesToWrite, ::DWORD nNumberOfBytesPerSend, ::LPOVERLAPPED lpOverlapped, ::LPTRANSMIT_FILE_BUFFERS lpTransmitBuffers, ::DWORD dwReserved)
 		{
 			::LPFN_TRANSMITFILE function;
 

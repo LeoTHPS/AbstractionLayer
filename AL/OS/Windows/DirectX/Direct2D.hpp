@@ -1628,7 +1628,7 @@ namespace AL::OS::Windows::DirectX
 
 			typename TransformedGeometry::Type* lpGeomtry;
 
-			if (FAILED(GetTarget()->CreateTransformedGeometry(sourceGeometry, transform, &lpGeomtry)))
+			if (FAILED(GetFactory()->CreateTransformedGeometry(sourceGeometry, transform, &lpGeomtry)))
 			{
 
 				throw Exception(
@@ -2239,7 +2239,7 @@ namespace AL::OS::Windows::DirectX
 
 			if (FAILED(hResult = lpTarget->EndDraw()))
 			{
-				if (hResult == D2DERR_RECREATE_TARGET)
+				if (hResult == static_cast<::HRESULT>(D2DERR_RECREATE_TARGET))
 				{
 
 					return False;

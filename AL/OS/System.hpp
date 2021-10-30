@@ -407,7 +407,7 @@ namespace AL::OS
 			{
 				switch (auto lastErrorCode = GetLastError())
 				{
-					case ::ERROR_INSUFFICIENT_BUFFER:
+					case ERROR_INSUFFICIENT_BUFFER:
 						break;
 
 					default:

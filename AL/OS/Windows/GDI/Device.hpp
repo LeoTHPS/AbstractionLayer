@@ -161,6 +161,8 @@ namespace AL::OS::Windows::GDI
 			paintStruct = Move(
 				device.paintStruct
 			);
+
+			return *this;
 		}
 
 		Bool operator == (const Device& device) const
