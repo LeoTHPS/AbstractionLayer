@@ -166,7 +166,7 @@ namespace AL::Lua543::Extensions
 #endif
 	}
 
-	static Void             pushnil(::lua_State* lua, nullptr_t)
+	static Void             pushnil(::lua_State* lua, ::std::nullptr_t)
 	{
 #if defined(AL_DEPENDENCY_LUA)
 		::lua_pushnil(
