@@ -341,7 +341,11 @@ namespace AL::Network
 				return False;
 			}
 #elif defined(AL_PLATFORM_WINDOWS)
+			if (!memcmp(&address.v6.u.Byte[0], &V4_BUFFER_PREFIX[0], 12))
+			{
 
+				return False;
+			}
 #endif
 
 			return True;
