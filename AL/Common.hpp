@@ -19,6 +19,14 @@
 	#define AL_PLATFORM_LINUX
 #elif defined(_WIN32) || defined(_WIN64)
 	#define AL_PLATFORM_WINDOWS
+
+	#if defined(__MINGW32__)
+		#define AL_PLATFORM_WINDOWS_MINGW32
+	#endif
+
+	#if defined(__MINGW64__)
+		#define AL_PLATFORM_WINDOWS_MINGW64
+	#endif
 #else
 	#error Platform not supported
 #endif
@@ -104,13 +112,16 @@
 #define _AL_CONCAT(__value1__, __value2__) __value1__##__value2__
 
 #if defined(AL_DEBUG)
-	#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_COMPILER_GNU)
 		#define AL_ASSERT(__condition__, __message__) _GLIBCXX_DEBUG_ASSERT((__condition__))
-	#elif defined(AL_PLATFORM_WINDOWS)
+	#elif defined(AL_COMPILER_MSVC)
 		#define AL_ASSERT(__condition__, __message__) _ASSERT_EXPR((__condition__), L##__message__)
+	#elif defined(AL_COMPILER_CLANG)
+		// TODO: find correct macro
+		#define AL_ASSERT(__condition__, __message__) 
 	#endif
 #else
-	#define AL_ASSERT(__condition__, __message__)     
+	#define AL_ASSERT(__condition__, __message__)     ((void)(__condition__))
 #endif
 
 #if defined(AL_COMPILER_GNU)
@@ -193,6 +204,7 @@
 #include "Common/Exception.hpp"
 #include "Common/NotImplementedException.hpp"
 #include "Common/DependencyMissingException.hpp"
+#include "Common/CompilerNotSupportedException.hpp"
 #include "Common/PlatformNotSupportedException.hpp"
 #include "Common/OperationNotSupportedException.hpp"
 

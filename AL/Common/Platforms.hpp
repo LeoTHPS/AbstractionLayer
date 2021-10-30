@@ -16,7 +16,8 @@ namespace AL
 		Clang      = 0x40,
 
 		Linux      = 0x100,
-		Windows    = 0x200,
+		MinGW      = 0x200,
+		Windows    = 0x400,
 
 		Machine    =
 
@@ -24,6 +25,10 @@ namespace AL
 		Linux
 #elif defined(AL_PLATFORM_WINDOWS)
 		Windows
+#endif
+
+#if defined(AL_PLATFORM_WINDOWS_MINGW32) || defined(AL_PLATFORM_WINDOWS_MINGW64)
+		| MinGW
 #endif
 
 #if defined(AL_COMPILER_GNU)
