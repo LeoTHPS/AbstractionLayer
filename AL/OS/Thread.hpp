@@ -306,7 +306,7 @@ namespace AL::OS
 					throw NotImplementedException();
 	#endif
 #elif defined(AL_PLATFORM_WINDOWS)
-					if (::WaitForSingleObject(hThread, static_cast<DWORD>((maxWaitTime - timer.GetElapsed()))) == 0)
+					if (::WaitForSingleObject(hThread, static_cast<::DWORD>((maxWaitTime - timer.GetElapsed()).ToMilliseconds())) == 0)
 					{
 
 						throw SystemException(
