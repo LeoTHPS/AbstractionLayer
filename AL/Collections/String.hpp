@@ -581,7 +581,7 @@ namespace AL::Collections
 		{
 			if (length <= GetLength())
 			{
-				for (size_t i = 0, j = GetLength() - length; i < length; ++i, --j)
+				for (size_t i = 0, j = GetLength() - length; i <= (GetLength() - length); ++i, --j)
 				{
 					if (!CompareAt(lpBuffer, length, j, ignoreCase))
 					{
@@ -836,7 +836,7 @@ namespace AL::Collections
 		{
 			if (length <= GetLength())
 			{
-				for (size_t i = 0, j = GetLength() - length; i < length; ++i, --j)
+				for (size_t i = 0, j = GetLength() - length; i <= (GetLength() - length); ++i, --j)
 				{
 					if (!CompareAt(lpBuffer, length, j, ignoreCase))
 					{
@@ -891,7 +891,7 @@ namespace AL::Collections
 		{
 			if (length <= GetLength())
 			{
-				for (size_t i = 0, j = GetLength() - length; i < length; ++i, --j)
+				for (size_t i = 0, j = GetLength() - length; i <= (GetLength() - length); ++i, --j)
 				{
 					if (!CompareAt(lpBuffer, length, j, ignoreCase))
 					{
@@ -1018,7 +1018,7 @@ namespace AL::Collections
 		{
 			if (!EndsWith(&c, 1, ignoreCase))
 			{
-				
+
 				return False;
 			}
 
@@ -1039,7 +1039,7 @@ namespace AL::Collections
 			auto stringLength = GetLength(
 				lpBuffer
 			);
-			
+
 			if (!EndsWith(lpBuffer, stringLength, ignoreCase))
 			{
 
@@ -1050,12 +1050,12 @@ namespace AL::Collections
 		}
 		Bool EndsWith(const Char* lpBuffer, size_t length, Bool ignoreCase = False) const
 		{
-			if (length < GetLength())
+			if (length <= GetLength())
 			{
 				if (CompareAt(lpBuffer, length, GetLength() - length, ignoreCase))
 				{
 
-					return False;
+					return True;
 				}
 			}
 
@@ -1143,7 +1143,7 @@ namespace AL::Collections
 		}
 		Bool CompareAt(const Char* lpBuffer, size_t length, size_t index, Bool ignoreCase = False) const
 		{
-			if ((index + length) >= GetLength())
+			if ((index + length) > GetLength())
 			{
 
 				return False;
@@ -1309,7 +1309,6 @@ namespace AL::Collections
 
 			if (i != NPOS)
 			{
-
 				Erase(
 					i,
 					length
