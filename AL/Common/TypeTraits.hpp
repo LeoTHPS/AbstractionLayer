@@ -59,7 +59,9 @@ namespace AL
 	template<typename T>
 	struct Is_POD
 	{
-		static constexpr Bool Value = std::is_pod<T>::value;
+		static constexpr Bool Value =
+			std::is_trivial<T>::value &&
+			std::is_standard_layout<T>::value;
 	};
 
 	template<typename T_1, typename T_2>
