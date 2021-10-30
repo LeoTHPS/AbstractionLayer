@@ -59,13 +59,13 @@ namespace AL::OS
 				lpMessageBuffer
 			);
 
-			string.RemoveLast(
-				"\n"
-			);
-			
-			string.RemoveLast(
-				"\r"
-			);
+			if (string.EndsWith("\r\n"))
+			{
+
+				string.RemoveLast(
+					"\r\n"
+				);
+			}
 		}
 
 		return string;
