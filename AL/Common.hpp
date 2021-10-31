@@ -5,7 +5,7 @@
 	#define AL_DEBUG
 #endif
 
-#if defined(__GNUC__)
+#if defined(__GNUC__) && !defined(__clang__)
 	#define AL_COMPILER_GNU
 #elif defined(_MSC_VER)
 	#define AL_COMPILER_MSVC
@@ -117,8 +117,7 @@
 	#elif defined(AL_COMPILER_MSVC)
 		#define AL_ASSERT(__condition__, __message__) _ASSERT_EXPR((__condition__), L##__message__)
 	#elif defined(AL_COMPILER_CLANG)
-		// TODO: find correct macro
-		#define AL_ASSERT(__condition__, __message__) 
+		#define AL_ASSERT(__condition__, __message__) _GLIBCXX_DEBUG_ASSERT((__condition__))
 	#endif
 #else
 	#define AL_ASSERT(__condition__, __message__)     ((void)(__condition__))
