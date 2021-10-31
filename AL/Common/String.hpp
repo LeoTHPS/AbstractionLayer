@@ -690,6 +690,7 @@ AL_DEFINE_TO_STRING(
 		// Linux/Windows
 		{
 			string_AppendIfSet("Linux",   Platforms::Linux);
+			string_AppendIfSet("MinGW",   Platforms::MinGW);
 			string_AppendIfSet("Windows", Platforms::Windows);
 		}
 
@@ -739,6 +740,7 @@ AL_DEFINE_TO_WSTRING(
 		// Linux/Windows
 		{
 			wstring_AppendIfSet(L"Linux",   Platforms::Linux);
+			wstring_AppendIfSet(L"MinGW",   Platforms::MinGW);
 			wstring_AppendIfSet(L"Windows", Platforms::Windows);
 		}
 
