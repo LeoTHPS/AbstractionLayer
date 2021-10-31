@@ -167,10 +167,10 @@ namespace AL::OS::Windows::DirectX
 		// @throw AL::Exception
 		auto GetVolume() const
 		{
-			::IDirectSoundBuffer* lpResource;
+			auto lpResource = GetResource();
 
 			AL_ASSERT(
-				(lpResource = GetResource()),
+				lpResource != nullptr,
 				"Resource not created"
 			);
 
@@ -192,10 +192,10 @@ namespace AL::OS::Windows::DirectX
 		// @throw AL::Exception
 		auto GetPosition() const
 		{
-			::IDirectSoundBuffer* lpResource;
+			auto lpResource = GetResource();
 
 			AL_ASSERT(
-				(lpResource = GetResource()),
+				lpResource != nullptr,
 				"Resource not created"
 			);
 
@@ -219,10 +219,10 @@ namespace AL::OS::Windows::DirectX
 		// @throw AL::Exception
 		Void SetVolume(float volume)
 		{
-			::IDirectSoundBuffer* lpResource;
+			auto lpResource = GetResource();
 
 			AL_ASSERT(
-				(lpResource = GetResource()),
+				lpResource != nullptr,
 				"Resource not created"
 			);
 			
@@ -245,10 +245,10 @@ namespace AL::OS::Windows::DirectX
 		// @throw AL::Exception
 		Void SetPosition(uint32 position)
 		{
-			::IDirectSoundBuffer* lpResource;
+			auto lpResource = GetResource();
 
 			AL_ASSERT(
-				(lpResource = GetResource()),
+				lpResource != nullptr,
 				"Resource not created"
 			);
 
@@ -267,10 +267,10 @@ namespace AL::OS::Windows::DirectX
 		// @throw AL::Exception
 		Void Play(Bool repeat = False)
 		{
-			::IDirectSoundBuffer* lpResource;
+			auto lpResource = GetResource();
 
 			AL_ASSERT(
-				(lpResource = GetResource()),
+				lpResource != nullptr,
 				"Resource not created"
 			);
 
@@ -301,10 +301,10 @@ namespace AL::OS::Windows::DirectX
 		// @throw AL::Exception
 		Void Pause()
 		{
-			::IDirectSoundBuffer* lpResource;
+			auto lpResource = GetResource();
 
 			AL_ASSERT(
-				(lpResource = GetResource()),
+				lpResource != nullptr,
 				"Resource not created"
 			);
 
@@ -327,10 +327,10 @@ namespace AL::OS::Windows::DirectX
 		// @throw AL::Exception
 		Void Stop()
 		{
-			::IDirectSoundBuffer* lpResource;
+			auto lpResource = GetResource();
 
 			AL_ASSERT(
-				(lpResource = GetResource()),
+				lpResource != nullptr,
 				"Resource not created"
 			);
 

@@ -22,38 +22,55 @@ static void AL_OS_Process()
 
 			Process process;
 
-			if (!Process::Open(process, _processId))
+			try
 			{
-
-				return True;
-			}
-
-			ProcessMemory processMemory;
-
-			if (!ProcessMemory::Open(processMemory, process))
-			{
-
-				return True;
-			}
-
-			ProcessMemoryEnumRegionsCallback enumProcessMemoryRegionsCallback(
-				[](const ProcessMemoryRegion& _processMemoryRegion)
+				if (!Process::Open(process, _processId))
 				{
-#if defined(AL_TEST_SHOW_CONSOLE_OUTPUT)
-					Console::WriteLine(
-						"Process Memory Region [Address: 0x%X, Size: %s]",
-						_processMemoryRegion.Address,
-						ToString(_processMemoryRegion.Size).GetCString()
-					);
-#endif
 
 					return True;
 				}
-			);
 
-			processMemory.EnumerateRegions(
-				enumProcessMemoryRegionsCallback
-			);
+				ProcessMemory processMemory;
+
+				if (!ProcessMemory::Open(processMemory, process))
+				{
+
+					return True;
+				}
+
+				uint64 processMemoryUsage           = 0;
+				uint64 processMemoryAllocationCount = 0;
+
+				ProcessMemoryEnumRegionsCallback enumProcessMemoryRegionsCallback(
+					[&processMemoryUsage, &processMemoryAllocationCount](const ProcessMemoryRegion& _processMemoryRegion)
+					{
+						processMemoryUsage += _processMemoryRegion.Size;
+
+						++processMemoryAllocationCount;
+
+						return True;
+					}
+				);
+
+				processMemory.EnumerateRegions(
+					enumProcessMemoryRegionsCallback
+				);
+
+#if defined(AL_TEST_SHOW_CONSOLE_OUTPUT)
+				Console::WriteLine(
+					"\tMemory Usage: %llu Bytes",
+					processMemoryUsage
+				);
+
+				Console::WriteLine(
+					"\tMemory Allocation Count: %llu",
+					processMemoryAllocationCount
+				);
+#endif
+			}
+			catch (const Exception&)
+			{
+			}
 
 			return True;
 		}

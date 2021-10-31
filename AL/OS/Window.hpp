@@ -334,7 +334,7 @@ namespace AL::OS
 			}
 
 			// @throw AL::Exception
-			virtual Void OnUpdate(TimeSpan delta)
+			virtual Void OnUpdate(TimeSpan delta) override
 			{
 				lpWindow->OnUpdate(
 					delta
@@ -427,7 +427,17 @@ namespace AL::OS
 		}
 
 		// @throw AL::Exception
-		Void Update(TimeSpan delta);
+		// @return False on close
+		Bool Update(TimeSpan delta)
+		{
+			if (!lpNativeWindow->Native_Update(delta))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
 
 	protected:
 		// @throw AL::Exception

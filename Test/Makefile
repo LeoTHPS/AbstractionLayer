@@ -1,5 +1,6 @@
 RM           ?= rm
 CXX          ?= g++
+CXX          = clang++
 
 SOURCE_FILES = main.cpp
 OBJECT_FILES = $(SOURCE_FILES:.cpp=.o)

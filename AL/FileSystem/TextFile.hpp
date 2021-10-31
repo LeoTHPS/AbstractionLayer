@@ -144,7 +144,7 @@ namespace AL::FileSystem
 
 			auto chunkBuffer_IndexOfEOL = [&chunkBuffer, &bytesRead](TextFileLineEndings _lineEnding, String::Char* _lpPrevChunkFirstChar)->size_t
 			{
-				auto chunkBuffer_IndexOf_LF = [&chunkBuffer, &bytesRead, _lineEnding]()->size_t
+				auto chunkBuffer_IndexOf_LF = [&chunkBuffer, &bytesRead]()->size_t
 				{
 					auto lpBuffer = &chunkBuffer[0];
 					auto charsRead = bytesRead / sizeof(String::Char);
@@ -161,7 +161,7 @@ namespace AL::FileSystem
 					return String::END;
 				};
 
-				auto chunkBuffer_IndexOf_CRLF = [&chunkBuffer, &bytesRead, _lineEnding](String::Char* __lpPrevChunkFirstChar)->size_t
+				auto chunkBuffer_IndexOf_CRLF = [&chunkBuffer, &bytesRead](String::Char* __lpPrevChunkFirstChar)->size_t
 				{
 					auto lpBuffer = &chunkBuffer[0];
 					auto charsRead = bytesRead / sizeof(String::Char);

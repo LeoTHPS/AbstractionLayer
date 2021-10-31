@@ -106,6 +106,9 @@ AL::OS::Console::WriteLine(
 		"Linux"
 #elif defined(AL_PLATFORM_WINDOWS)
 		"Windows"
+	#if defined(AL_PLATFORM_WINDOWS_MINGW32) || defined(AL_PLATFORM_WINDOWS_MINGW64)
+		" (MinGW)"
+	#endif
 #else
 		"Undefined"
 #endif
@@ -188,19 +191,8 @@ void main_display_process_information()
 #endif
 }
 
-int main(int argc, char* argv[])
+void main_execute_tests()
 {
-	AL::OS::Console::SetTitle(
-		"AbstractionLayer Tests"
-	);
-
-	main_display_build_information();
-	main_display_system_information();
-	main_display_thread_information();
-	main_display_process_information();
-
-	AL::OS::Console::WriteLine();
-
 	AL_TEST_EXECUTE(AL_Collections_Array);
 	AL_TEST_EXECUTE(AL_Collections_ArrayList);
 	AL_TEST_EXECUTE(AL_Collections_Dictionary);
@@ -222,6 +214,29 @@ int main(int argc, char* argv[])
 	AL_TEST_EXECUTE(AL_OS_Thread);
 	AL_TEST_EXECUTE(AL_OS_ThreadPool);
 	AL_TEST_EXECUTE(AL_OS_Window);
+}
+
+int main(int argc, char* argv[])
+{
+	AL::OS::Console::SetTitle(
+		"AbstractionLayer Tests"
+	);
+
+	main_display_build_information();
+	main_display_system_information();
+	main_display_thread_information();
+	main_display_process_information();
+
+	AL::OS::Console::WriteLine();
+
+	AL::OS::Timer timer;
+
+	main_execute_tests();
+
+	AL::OS::Console::WriteLine(
+		"All tests completed in %llums",
+		timer.GetElapsed().ToMilliseconds()
+	);
 
 	return 0;
 }

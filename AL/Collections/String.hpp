@@ -136,9 +136,9 @@ namespace AL::Collections
 		}
 
 		template<typename ... TArgs>
-		static auto Format(const Char* format, TArgs ... args);
+		static _String<Char> Format(const Char* format, TArgs ... args);
 		template<typename ... TArgs>
-		static auto Format(const _String& format, TArgs ... args)
+		static _String<Char> Format(const _String& format, TArgs ... args)
 		{
 			return Format(
 				format.GetCString(),
@@ -2047,7 +2047,7 @@ namespace AL::Collections
 
 template<>
 template<typename ... TArgs>
-inline auto AL::Collections::_String<char>::Format(const Char* format, TArgs ... args)
+inline AL::Collections::_String<char> AL::Collections::_String<char>::Format(const Char* format, TArgs ... args)
 {
 	auto bufferLength = ::std::snprintf(
 		nullptr,
@@ -2076,7 +2076,7 @@ inline auto AL::Collections::_String<char>::Format(const Char* format, TArgs ...
 }
 template<>
 template<typename ... TArgs>
-inline auto AL::Collections::_String<wchar_t>::Format(const Char* format, TArgs ... args)
+inline AL::Collections::_String<wchar_t> AL::Collections::_String<wchar_t>::Format(const Char* format, TArgs ... args)
 {
 	auto bufferLength = ::std::swprintf(
 		nullptr,

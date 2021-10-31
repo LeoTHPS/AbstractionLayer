@@ -323,7 +323,7 @@ namespace AL
 		};
 
 		Double          start = 0;
-		::LARGE_INTEGER integer = { 0 };
+		::LARGE_INTEGER integer = { .QuadPart = 0 };
 		Double          frequency = QueryPerformanceFrequency(
 			integer
 		);

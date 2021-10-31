@@ -59,7 +59,14 @@ namespace AL::Network
 		{
 			return in_addr
 			{
-				BitConverter::HostToNetwork(INADDR_ANY)
+#if defined(AL_PLATFORM_LINUX)
+				.s_addr = BitConverter::HostToNetwork(INADDR_ANY)
+#elif defined(AL_PLATFORM_WINDOWS)
+				.S_un =
+				{
+					.S_addr = BitConverter::HostToNetwork(INADDR_ANY)
+				}
+#endif
 			};
 		}
 		static IPAddress Any6()
@@ -69,18 +76,17 @@ namespace AL::Network
 
 		static IPAddress Loopback()
 		{
-			in_addr address;
+			return in_addr
+			{
 #if defined(AL_PLATFORM_LINUX)
-			address.s_addr = BitConverter::HostToNetwork(
-				INADDR_LOOPBACK
-			);
+				.s_addr = BitConverter::HostToNetwork(INADDR_LOOPBACK)
 #elif defined(AL_PLATFORM_WINDOWS)
-			address.S_un.S_addr = BitConverter::HostToNetwork(
-				INADDR_LOOPBACK
-			);
+				.S_un =
+				{
+					.S_addr = BitConverter::HostToNetwork(INADDR_LOOPBACK)
+				}
 #endif
-
-			return address;
+			};
 		}
 		static IPAddress Loopback6()
 		{
@@ -195,15 +201,21 @@ namespace AL::Network
 #if defined(AL_PLATFORM_LINUX)
 				in_addr
 				{
-					address
+					.s_addr = address
 				}
 #elif defined(AL_PLATFORM_WINDOWS)
 				in_addr
 				{
-					static_cast<UCHAR>((address & 0xFF000000) >> 24),
-					static_cast<UCHAR>((address & 0x00FF0000) >> 16),
-					static_cast<UCHAR>((address & 0x0000FF00) >> 8),
-					static_cast<UCHAR>((address & 0x000000FF) >> 0)
+					.S_un =
+					{
+						.S_un_b =
+						{
+							.s_b1 = static_cast<UCHAR>((address & 0xFF000000) >> 24),
+							.s_b2 = static_cast<UCHAR>((address & 0x00FF0000) >> 16),
+							.s_b3 = static_cast<UCHAR>((address & 0x0000FF00) >> 8),
+							.s_b4 = static_cast<UCHAR>((address & 0x000000FF) >> 0)
+						}
+					}
 				}
 #endif
 			)

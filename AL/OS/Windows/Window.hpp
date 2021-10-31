@@ -492,19 +492,19 @@ namespace AL::OS::Windows
 				}
 
 				size_t      dataSize;
-				::UINT      dataFormat;
+//				::UINT      dataFormat;
 				const void* lpDataSource;
 
 				if constexpr (T_FORMAT == WindowClipboardDataFormats::String)
 				{
 					dataSize = (String::GetLength(value) + 1) * sizeof(typename String::Char);
-					dataFormat = CF_TEXT;
+//					dataFormat = CF_TEXT;
 					lpDataSource = &value[0];
 				}
 				else if constexpr (T_FORMAT == WindowClipboardDataFormats::WString)
 				{
 					dataSize = (WString::GetLength(value) + 1) * sizeof(typename WString::Char);
-					dataFormat = CF_UNICODETEXT;
+//					dataFormat = CF_UNICODETEXT;
 					lpDataSource = &value[0];
 				}
 

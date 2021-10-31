@@ -191,7 +191,7 @@ namespace AL::Collections
 
 		ByteBuffer(const Void* lpBuffer, size_t size)
 			: buffer(
-				lpBuffer,
+				reinterpret_cast<const uint8*>(lpBuffer),
 				size
 			),
 			lpBuffer_R(

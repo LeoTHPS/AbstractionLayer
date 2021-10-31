@@ -2184,10 +2184,10 @@ namespace AL::OS::Windows::DirectX
 
 		Void BeginDraw()
 		{
-			Target::Type* lpTarget;
+			auto lpTarget = &(*GetTarget());
 
 			AL_ASSERT(
-				(lpTarget = &(*GetTarget())),
+				lpTarget != nullptr,
 				"Direct2D target not created"
 			);
 
@@ -2201,10 +2201,10 @@ namespace AL::OS::Windows::DirectX
 				"Direct2D not created"
 			);
 
-			Target::Type* lpTarget;
+			auto lpTarget = &(*GetTarget());
 
 			AL_ASSERT(
-				(lpTarget = &(*GetTarget())),
+				lpTarget != nullptr,
 				"Direct2D target not created"
 			);
 
@@ -2228,10 +2228,10 @@ namespace AL::OS::Windows::DirectX
 				"Direct2D not created"
 			);
 			
-			Target::Type* lpTarget;
+			auto lpTarget = &(*GetTarget());
 
 			AL_ASSERT(
-				(lpTarget = &(*GetTarget())),
+				lpTarget != nullptr,
 				"Direct2D target not created"
 			);
 
