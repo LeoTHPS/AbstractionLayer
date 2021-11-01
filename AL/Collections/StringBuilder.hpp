@@ -89,6 +89,14 @@ namespace AL::Collections
 
 			return *this;
 		}
+		_StringBuilder& Append(Char* value)
+		{
+			buffer.Append(
+				value
+			);
+
+			return *this;
+		}
 		_StringBuilder& Append(const Char* value)
 		{
 			buffer.Append(
@@ -116,6 +124,14 @@ namespace AL::Collections
 			return *this;
 		}
 		_StringBuilder& operator << (Char value)
+		{
+			Append(
+				value
+			);
+
+			return *this;
+		}
+		_StringBuilder& operator << (Char* value)
 		{
 			Append(
 				value
