@@ -176,14 +176,14 @@ namespace AL::Lua543
 				}
 			}
 
-			template<typename T_ARG, size_t I>
+			template<typename T_ARG>
 			static constexpr auto Detour_Pop(::lua_State* lua)
 			{
 				if constexpr (Extensions::Type_Functions<T_ARG>::IsDefined)
 				{
 					return Extensions::Type_Functions<T_ARG>::Pop(
 						lua,
-						I + 1
+						1
 					);
 				}
 				else if constexpr (Is_Const_Pointer<T_ARG>::Value)
@@ -191,7 +191,7 @@ namespace AL::Lua543
 					return reinterpret_cast<T_ARG>(
 						Extensions::Type_Functions<Void*>::Pop(
 							lua,
-							I + 1
+							1
 						)
 					);
 				}
@@ -200,7 +200,7 @@ namespace AL::Lua543
 					return reinterpret_cast<T_ARG>(
 						Extensions::Type_Functions<Void*>::Pop(
 							lua,
-							I + 1
+							1
 						)
 					);
 				}
@@ -212,7 +212,7 @@ namespace AL::Lua543
 					{
 						return Extensions::Type_Functions<T_ARG_NO_CONST_REF>::Pop(
 							lua,
-							I + 1
+							1
 						);
 					}
 				}
@@ -224,7 +224,7 @@ namespace AL::Lua543
 					{
 						return Extensions::Type_Functions<T_ARG_NO_REF>::Pop(
 							lua,
-							I + 1
+							1
 						);
 					}
 				}
@@ -460,8 +460,7 @@ namespace AL::Lua543
 					);
 
 					return Function_Utils::Detour_Pop<T_RETURN>(
-						lua,
-						1
+						lua
 					);
 				}
 
@@ -585,9 +584,8 @@ namespace AL::Lua543
 				{
 					typedef typename Get_Type_Sequence<INDEX, T_RETURN ...>::Type _T_RETURN;
 
-					return Function_Utils::Detour_Pop<_T_RETURN, 0>(
-						lua,
-						1
+					return Function_Utils::Detour_Pop<_T_RETURN>(
+						lua
 					);
 				}
 			};
