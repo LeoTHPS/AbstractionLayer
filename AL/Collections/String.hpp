@@ -95,11 +95,11 @@ namespace AL::Collections
 		static constexpr size_t                           NPOS = Integer<size_t>::Maximum;
 
 		template<size_t S>
-		static size_t GetLength(const Char(&buffer)[S])
+		static constexpr size_t GetLength(const Char(&buffer)[S])
 		{
 			return S - 1;
 		}
-		static size_t GetLength(const Char* lpBuffer, size_t offset = 0)
+		static           size_t GetLength(const Char* lpBuffer, size_t offset = 0)
 		{
 			size_t stringLength = 0;
 
@@ -110,7 +110,7 @@ namespace AL::Collections
 
 			return stringLength;
 		}
-		static size_t GetLength(const _String& string, size_t offset = 0)
+		static           size_t GetLength(const _String& string, size_t offset = 0)
 		{
 			auto stringLength = string.GetLength();
 
