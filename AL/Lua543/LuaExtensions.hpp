@@ -43,26 +43,76 @@
 	template<> \
 	struct AL::Lua543::Extensions::Type_Functions<__type__> \
 	{ \
+		static constexpr Bool IsAlias   = False; \
+		static constexpr Bool IsDefined = True; \
+		\
 		static constexpr auto Get  = __get__; \
 		static constexpr auto Push = __push__; \
 		static constexpr auto Pop  = __pop__; \
 	}
 
-#define AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(__type__, __alias__) \
+#define AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(__type__, __alias__, __cast__) \
 	template<> \
 	struct AL::Lua543::Extensions::Type_Functions<__type__> \
-		: public AL::Lua543::Extensions::Type_Functions<__alias__> \
 	{ \
+		static constexpr Bool IsAlias   = True; \
+		static constexpr Bool IsDefined = True; \
+		\
+		static constexpr __type__ Get(::lua_State* lua, size_t index) \
+		{ \
+			return __cast__<__type__>( \
+				Type_Functions<__alias__>::Get( \
+					lua, \
+					index \
+				) \
+			); \
+		}; \
+		static constexpr Void Push(::lua_State* lua, __type__ value) \
+		{ \
+			Type_Functions<__alias__>::Push( \
+				lua, \
+				__cast__<__alias__>(value) \
+			); \
+		}; \
+		static constexpr __type__ Pop(::lua_State* lua, size_t count) \
+		{ \
+			return __cast__<__type__>( \
+				Type_Functions<__alias__>::Pop( \
+					lua, \
+					count \
+				) \
+			); \
+		}; \
 	}
 
 namespace AL::Lua543::Extensions
 {
 	template<typename T>
-	struct Type_Functions;
+	struct Type_Functions
+	{
+		static constexpr Bool IsDefined = False;
+	};
 
 	static ::std::nullptr_t getnil(::lua_State* lua, size_t index)
 	{
 		return nullptr;
+	}
+	static char             getchar(::lua_State* lua, size_t index)
+	{
+#if defined(AL_DEPENDENCY_LUA)
+		auto value = ::lua_tointeger(
+			lua,
+			static_cast<int>(index & Integer<int>::SignedCastMask)
+		);
+
+		return static_cast<char>(
+			value
+		);
+#else
+		throw DependencyMissingException(
+			AL_DEPENDENCY_LUA_MISSING_VERSION
+		);
+#endif
 	}
 	static const char*      getstring(::lua_State* lua, size_t index)
 	{
@@ -120,7 +170,7 @@ namespace AL::Lua543::Extensions
 		);
 #endif
 	}
-	static lua_Number       getnumber(::lua_State* lua, size_t index)
+	static ::lua_Number     getnumber(::lua_State* lua, size_t index)
 	{
 #if defined(AL_DEPENDENCY_LUA)
 		auto value = ::lua_tonumber(
@@ -135,7 +185,7 @@ namespace AL::Lua543::Extensions
 		);
 #endif
 	}
-	static lua_Integer      getinteger(::lua_State* lua, size_t index)
+	static ::lua_Integer    getinteger(::lua_State* lua, size_t index)
 	{
 #if defined(AL_DEPENDENCY_LUA)
 		auto value = ::lua_tointeger(
@@ -171,6 +221,19 @@ namespace AL::Lua543::Extensions
 #if defined(AL_DEPENDENCY_LUA)
 		::lua_pushnil(
 			lua
+		);
+#else
+		throw DependencyMissingException(
+			AL_DEPENDENCY_LUA_MISSING_VERSION
+		);
+#endif
+	}
+	static Void             pushchar(::lua_State* lua, char value)
+	{
+#if defined(AL_DEPENDENCY_LUA)
+		::lua_pushinteger(
+			lua,
+			static_cast<::lua_Integer>(value)
 		);
 #else
 		throw DependencyMissingException(
@@ -224,7 +287,7 @@ namespace AL::Lua543::Extensions
 		);
 #endif
 	}
-	static Void             pushnumber(::lua_State* lua, lua_Number value)
+	static Void             pushnumber(::lua_State* lua, ::lua_Number value)
 	{
 #if defined(AL_DEPENDENCY_LUA)
 		::lua_pushnumber(
@@ -237,7 +300,7 @@ namespace AL::Lua543::Extensions
 		);
 #endif
 	}
-	static Void             pushinteger(::lua_State* lua, lua_Integer value)
+	static Void             pushinteger(::lua_State* lua, ::lua_Integer value)
 	{
 #if defined(AL_DEPENDENCY_LUA)
 		::lua_pushinteger(
@@ -451,55 +514,56 @@ AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(AL::Bool,         &AL::Lua543::Extensions::ge
 AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(AL::Void*,        &AL::Lua543::Extensions::getlightuserdata, &AL::Lua543::Extensions::pushlightuserdata, &AL::Lua543::Extensions::pop<AL::Void*>);
 AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(::lua_Number,     &AL::Lua543::Extensions::getnumber,        &AL::Lua543::Extensions::pushnumber,        &AL::Lua543::Extensions::pop<::lua_Number>);
 AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(::lua_Integer,    &AL::Lua543::Extensions::getinteger,       &AL::Lua543::Extensions::pushinteger,       &AL::Lua543::Extensions::pop<::lua_Integer>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(char,             &AL::Lua543::Extensions::getchar,          &AL::Lua543::Extensions::pushchar,          &AL::Lua543::Extensions::pop<char>);
 AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(const char*,      &AL::Lua543::Extensions::getstring,        &AL::Lua543::Extensions::pushstring,        &AL::Lua543::Extensions::pop<const char*>);
 AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(AL::String,       &AL::Lua543::Extensions::getString,        &AL::Lua543::Extensions::pushString,        &AL::Lua543::Extensions::pop<AL::String>);
 AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(::lua_CFunction,  &AL::Lua543::Extensions::getcfunction,     &AL::Lua543::Extensions::pushcfunction,     &AL::Lua543::Extensions::pop<::lua_CFunction>);
 
 #if LUA_INT_TYPE == LUA_INT_INT
-	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int8,   lua_Integer);
-	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint8,  lua_Integer);
+	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int8,   ::lua_Integer, static_cast);
+	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint8,  ::lua_Integer, static_cast);
 
-	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int16,  lua_Integer);
-	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint16, lua_Integer);
+	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int16,  ::lua_Integer, static_cast);
+	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint16, ::lua_Integer, static_cast);
 
-//	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int32,  lua_Integer);
-	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint32, lua_Integer);
+//	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int32,  ::lua_Integer, static_cast);
+	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint32, ::lua_Integer, static_cast);
 
-	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int64,  lua_Integer);
-	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint64, lua_Integer);
+	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int64,  ::lua_Integer, static_cast);
+	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint64, ::lua_Integer, static_cast);
 #elif LUA_INT_TYPE == LUA_INT_LONG
-	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int8,   lua_Integer);
-	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint8,  lua_Integer);
+	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int8,   ::lua_Integer, static_cast);
+	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint8,  ::lua_Integer, static_cast);
 
-	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int16,  lua_Integer);
-	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint16, lua_Integer);
+	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int16,  ::lua_Integer, static_cast);
+	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint16, ::lua_Integer, static_cast);
 
-	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int32,  lua_Integer);
-	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint32, lua_Integer);
+	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int32,  ::lua_Integer, static_cast);
+	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint32, ::lua_Integer, static_cast);
 
-//	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int64,  lua_Integer);
-//	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint64, lua_Integer);
+//	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int64,  ::lua_Integer, static_cast);
+//	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint64, ::lua_Integer, static_cast);
 #elif LUA_INT_TYPE == LUA_INT_LONGLONG
-	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int8,   lua_Integer);
-	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint8,  lua_Integer);
+	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int8,   ::lua_Integer, static_cast);
+	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint8,  ::lua_Integer, static_cast);
 
-	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int16,  lua_Integer);
-	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint16, lua_Integer);
+	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int16,  ::lua_Integer, static_cast);
+	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint16, ::lua_Integer, static_cast);
 
-	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int32,  lua_Integer);
-	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint32, lua_Integer);
+	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int32,  ::lua_Integer, static_cast);
+	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint32, ::lua_Integer, static_cast);
 
-//	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int64,  lua_Integer);
-	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint64, lua_Integer);
+//	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int64,  ::lua_Integer, static_cast);
+	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::uint64, ::lua_Integer, static_cast);
 #endif
 
 #if LUA_FLOAT_TYPE == LUA_FLOAT_FLOAT
-//	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::Double, lua_Number);
+//	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::Double, ::lua_Number,  static_cast);
 #elif LUA_FLOAT_TYPE == LUA_FLOAT_DOUBLE
-	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::Float,  lua_Number);
+	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::Float,  ::lua_Number,  static_cast);
 #elif LUA_FLOAT_TYPE == LUA_FLOAT_LONGDOUBLE
-	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::Float,  lua_Number);
-	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::Double, lua_Number);
+	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::Float,  ::lua_Number,  static_cast);
+	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::Double, ::lua_Number), static_cast;
 #endif
 
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(const AL::String&, AL::String);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(char*,          const char*,   const_cast);
