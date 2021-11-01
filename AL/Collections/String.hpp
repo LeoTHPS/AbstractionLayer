@@ -94,6 +94,11 @@ namespace AL::Collections
 		static constexpr Char                             END  = Constants::END;
 		static constexpr size_t                           NPOS = Integer<size_t>::Maximum;
 
+		template<size_t S>
+		static size_t GetLength(const Char(&buffer)[S])
+		{
+			return S - 1;
+		}
 		static size_t GetLength(const Char* lpBuffer, size_t offset = 0)
 		{
 			size_t stringLength = 0;
