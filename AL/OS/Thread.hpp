@@ -26,7 +26,7 @@ namespace AL::OS
 		static Void StartAndDetach(F&& function)
 		{
 #if defined(AL_PLATFORM_LINUX)
-			Linux::Thread::StartAndDetatch(
+			Linux::Thread::StartAndDetach(
 				Move(function)
 			);
 #elif defined(AL_PLATFORM_WINDOWS)
@@ -41,7 +41,7 @@ namespace AL::OS
 		static Void StartAndDetach(Void(*lpFunction)())
 		{
 #if defined(AL_PLATFORM_LINUX)
-			Linux::Thread::StartAndDetatch(
+			Linux::Thread::StartAndDetach(
 				lpFunction
 			);
 #elif defined(AL_PLATFORM_WINDOWS)
@@ -57,7 +57,7 @@ namespace AL::OS
 		static Void StartAndDetach(Void(C::*lpFunction)(), C* lpInstance)
 		{
 #if defined(AL_PLATFORM_LINUX)
-			Linux::Thread::StartAndDetatch(
+			Linux::Thread::StartAndDetach(
 				lpFunction,
 				lpInstance
 			);
@@ -75,7 +75,7 @@ namespace AL::OS
 		static Void StartAndDetach(Void(C::*lpFunction)() const, const C* lpInstance)
 		{
 #if defined(AL_PLATFORM_LINUX)
-			Linux::Thread::StartAndDetatch(
+			Linux::Thread::StartAndDetach(
 				lpFunction,
 				lpInstance
 			);
