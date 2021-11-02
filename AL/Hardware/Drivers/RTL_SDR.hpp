@@ -3,14 +3,12 @@
 
 #include "ISDR.hpp"
 
+#include "AL/OS/Process.hpp"
+
 #if __has_include(<rtl-sdr.h>)
 	#define AL_DEPENDENCY_RTL_SDR
 
 	#include <rtl-sdr.h>
-
-	#if defined(AL_COMPILER_MSVC)
-		#pragma comment(lib, "rtlsdr_static.lib")
-	#endif
 #else
 	typedef struct rtlsdr_dev rtlsdr_dev_t;
 #endif
@@ -28,19 +26,189 @@ namespace AL::Hardware::Drivers
 	class RTL_SDR
 		: public ISDR
 	{
-		Bool            isAutoGainEnabled      = False;
-		Bool            isTunerAutoGainEnabled = False;
+		class API
+		{
+			OS::Process        process;
+			OS::ProcessLibrary processLibrary;
 
-		::rtlsdr_dev_t* device;
-		uint32          deviceIndex;
-		int32           tunerIFGain = 0;
+			API(API&&) = delete;
+			API(const API&) = delete;
+
+		public:
+			#define AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(__function__) decltype(&::__function__) __function__
+
+#if defined(AL_DEPENDENCY_RTL_SDR)
+			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_get_device_count);
+			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_get_device_name);
+			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_get_device_usb_strings);
+			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_get_offset_tuning);
+			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_get_direct_sampling);
+			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_get_tuner_gain);
+			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_get_sample_rate);
+			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_get_center_freq);
+			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_get_freq_correction);
+			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_get_tuner_gains);
+			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_open);
+			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_close);
+			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_set_tuner_gain_mode);
+			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_set_tuner_gain);
+			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_set_tuner_if_gain);
+			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_set_sample_rate);
+			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_set_center_freq);
+			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_set_freq_correction);
+			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_set_agc_mode);
+			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_set_offset_tuning);
+			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_set_direct_sampling);
+			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_reset_buffer);
+			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_read_sync);
+			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_read_async);
+			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_cancel_async);
+			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_read_eeprom);
+			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_write_eeprom);
+#endif
+
+			#undef AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API
+
+			API()
+			{
+			}
+
+			virtual ~API()
+			{
+				if (IsLoaded())
+				{
+
+					process.Close();
+				}
+			}
+
+			Bool IsLoaded() const
+			{
+				return process.IsOpen();
+			}
+			
+			// @throw AL::Exception
+			Void LoadOnce()
+			{
+				if (!IsLoaded())
+				{
+					FileSystem::Path path(
+						""
+					);
+
+#if defined(AL_PLATFORM_LINUX)
+					path = "rtlsdr.so";
+#elif defined(AL_PLATFORM_WINDOWS)
+					path = "rtlsdr.dll";
+#else
+					throw PlatformNotSupportedException();
+#endif
+
+					OS::Process::OpenCurrent(
+						process
+					);
+
+					try
+					{
+						if (!OS::ProcessLibrary::Load(processLibrary, process, path))
+						{
+
+							throw Exception(
+								"File not found"
+							);
+						}
+					}
+					catch (Exception& exception)
+					{
+						process.Close();
+
+						throw Exception(
+							Move(exception),
+							"Error loading '%s'",
+							path.GetString().GetCString()
+						);
+					}
+
+					try
+					{
+						ResolveSymbols();
+					}
+					catch (Exception& exception)
+					{
+						process.Close();
+
+						throw Exception(
+							Move(exception),
+							"Error resolving symbols"
+						);
+					}
+				}
+			}
+
+		private:
+			// @throw AL::Exception
+			Void ResolveSymbols()
+			{
+				#define AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(__function__) \
+					if (!processLibrary.GetExport(__function__, #__function__)) \
+					{ \
+						\
+						throw Exception( \
+							"Export '" #__function__ "' was not found" \
+						); \
+					}
+
+#if defined(AL_DEPENDENCY_RTL_SDR)
+				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_get_device_count);
+				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_get_device_name);
+				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_get_device_usb_strings);
+				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_get_offset_tuning);
+				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_get_direct_sampling);
+				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_get_tuner_gain);
+				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_get_sample_rate);
+				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_get_center_freq);
+				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_get_freq_correction);
+				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_get_tuner_gains);
+				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_open);
+				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_close);
+				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_set_tuner_gain_mode);
+				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_set_tuner_gain);
+				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_set_tuner_if_gain);
+				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_set_sample_rate);
+				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_set_center_freq);
+				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_set_freq_correction);
+				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_set_agc_mode);
+				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_set_offset_tuning);
+				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_set_direct_sampling);
+				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_reset_buffer);
+				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_read_sync);
+				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_read_async);
+				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_cancel_async);
+				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_read_eeprom);
+				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_write_eeprom);
+#endif
+
+				#undef AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API
+			}
+		};
+
+		inline static API api;
+
+		Bool              isAutoGainEnabled      = False;
+		Bool              isTunerAutoGainEnabled = False;
+
+		::rtlsdr_dev_t*   device;
+		uint32            deviceIndex;
+		int32             tunerIFGain = 0;
 
 	public:
 		// @throw AL::Exception
 		static uint32 GetDeviceCount()
 		{
 #if defined(AL_DEPENDENCY_RTL_SDR)
-			auto value = ::rtlsdr_get_device_count();
+			api.LoadOnce();
+
+			auto value = api.rtlsdr_get_device_count();
 
 			return static_cast<uint32>(
 				value
@@ -55,13 +223,10 @@ namespace AL::Hardware::Drivers
 		// @throw AL::Exception
 		static Void   ReadDeviceInfo(uint32 index, RTL_SDR_DeviceInfo& deviceInfo)
 		{
-			AL_ASSERT(
-				IsOpen(),
-				"RTL_SDR not open"
-			);
-
 #if defined(AL_DEPENDENCY_RTL_SDR)
-			auto name = ::rtlsdr_get_device_name(
+			api.LoadOnce();
+
+			auto name = api.rtlsdr_get_device_name(
 				index
 			);
 
@@ -69,7 +234,7 @@ namespace AL::Hardware::Drivers
 			char product[256]      = { 0 };
 			char manufacturer[256] = { 0 };
 
-			if (::rtlsdr_get_device_usb_strings(index, manufacturer, product, serial) != 0)
+			if (api.rtlsdr_get_device_usb_strings(index, manufacturer, product, serial) != 0)
 			{
 
 				throw Exception(
@@ -82,23 +247,24 @@ namespace AL::Hardware::Drivers
 			deviceInfo.Product      = product;
 			deviceInfo.Manufacturer = manufacturer;
 #else
-			throw NotImplementedException();
+			throw DependencyMissingException(
+				"rtl-sdr.h"
+			);
 #endif
 		}
 
 		// @throw AL::Exception
 		static Void   WriteDeviceInfo(uint32 index, const RTL_SDR_DeviceInfo& deviceInfo)
 		{
-			AL_ASSERT(
-				IsOpen(),
-				"RTL_SDR not open"
-			);
-
 #if defined(AL_DEPENDENCY_RTL_SDR)
+			api.LoadOnce();
+
 			// TODO: implement
 			throw NotImplementedException();
 #else
-			throw NotImplementedException();
+			throw DependencyMissingException(
+				"rtl-sdr.h"
+			);
 #endif
 		}
 
@@ -156,9 +322,7 @@ namespace AL::Hardware::Drivers
 
 		auto GetHandle() const
 		{
-#if defined(AL_DEPENDENCY_RTL_SDR)
 			return device;
-#endif
 		}
 
 		// @throw AL::Exception
@@ -187,7 +351,7 @@ namespace AL::Hardware::Drivers
 #if defined(AL_DEPENDENCY_RTL_SDR)
 			int value;
 
-			if ((value = ::rtlsdr_get_offset_tuning(GetHandle())) == -1)
+			if ((value = api.rtlsdr_get_offset_tuning(GetHandle())) == -1)
 			{
 
 				throw Exception(
@@ -227,7 +391,7 @@ namespace AL::Hardware::Drivers
 #if defined(AL_DEPENDENCY_RTL_SDR)
 			int value;
 
-			if ((value = ::rtlsdr_get_direct_sampling(GetHandle())) == -1)
+			if ((value = api.rtlsdr_get_direct_sampling(GetHandle())) == -1)
 			{
 
 				throw Exception(
@@ -252,7 +416,7 @@ namespace AL::Hardware::Drivers
 #if defined(AL_DEPENDENCY_RTL_SDR)
 			int32 value;
 
-			if ((value = ::rtlsdr_get_tuner_gain(GetHandle())) == 0)
+			if ((value = api.rtlsdr_get_tuner_gain(GetHandle())) == 0)
 			{
 
 				throw Exception(
@@ -292,7 +456,7 @@ namespace AL::Hardware::Drivers
 #if defined(AL_DEPENDENCY_RTL_SDR)
 			uint32 value;
 
-			if ((value = ::rtlsdr_get_sample_rate(GetHandle())) == 0)
+			if ((value = api.rtlsdr_get_sample_rate(GetHandle())) == 0)
 			{
 
 				throw Exception(
@@ -317,7 +481,7 @@ namespace AL::Hardware::Drivers
 #if defined(AL_DEPENDENCY_RTL_SDR)
 			uint64 value;
 
-			if ((value = ::rtlsdr_get_center_freq(GetHandle())) == 0)
+			if ((value = api.rtlsdr_get_center_freq(GetHandle())) == 0)
 			{
 
 				throw Exception(
@@ -342,7 +506,7 @@ namespace AL::Hardware::Drivers
 #if defined(AL_DEPENDENCY_RTL_SDR)
 			int32 value;
 
-			if ((value = ::rtlsdr_get_freq_correction(GetHandle())) == 0)
+			if ((value = api.rtlsdr_get_freq_correction(GetHandle())) == 0)
 			{
 			}
 
@@ -361,7 +525,7 @@ namespace AL::Hardware::Drivers
 			);
 
 #if defined(AL_DEPENDENCY_RTL_SDR)
-			auto gainCount = ::rtlsdr_get_tuner_gains(
+			auto gainCount = api.rtlsdr_get_tuner_gains(
 				GetHandle(),
 				nullptr
 			);
@@ -372,7 +536,7 @@ namespace AL::Hardware::Drivers
 					static_cast<size_t>(gainCount)
 				);
 
-				if (::rtlsdr_get_tuner_gains(GetHandle(), &gains[0]) <= 0)
+				if (api.rtlsdr_get_tuner_gains(GetHandle(), reinterpret_cast<int*>(&gains[0])) <= 0)
 				{
 
 					throw Exception(
@@ -384,7 +548,7 @@ namespace AL::Hardware::Drivers
 			{
 				auto lpGains = new int[gainCount];
 
-				if (::rtlsdr_get_tuner_gains(GetHandle(), lpGains) <= 0)
+				if (api.rtlsdr_get_tuner_gains(GetHandle(), lpGains) <= 0)
 				{
 					delete[] lpGains;
 
@@ -434,7 +598,9 @@ namespace AL::Hardware::Drivers
 			);
 
 #if defined(AL_DEPENDENCY_RTL_SDR)
-			if (::rtlsdr_open(&device, static_cast<::uint32_t>(GetIndex())) != 0)
+			api.LoadOnce();
+
+			if (api.rtlsdr_open(&device, static_cast<::uint32_t>(GetIndex())) != 0)
 			{
 
 				throw Exception(
@@ -453,7 +619,7 @@ namespace AL::Hardware::Drivers
 			if (IsOpen())
 			{
 #if defined(AL_DEPENDENCY_RTL_SDR)
-				::rtlsdr_close(
+				api.rtlsdr_close(
 					device
 				);
 #endif
@@ -471,7 +637,7 @@ namespace AL::Hardware::Drivers
 			);
 
 #if defined(AL_DEPENDENCY_RTL_SDR)
-			if (::rtlsdr_set_tuner_gain_mode(GetHandle(), 1) != 0)
+			if (api.rtlsdr_set_tuner_gain_mode(GetHandle(), 1) != 0)
 			{
 
 				throw Exception(
@@ -481,7 +647,7 @@ namespace AL::Hardware::Drivers
 
 			isAutoGainEnabled = False;
 
-			if (::rtlsdr_set_tuner_gain(GetHandle(), static_cast<int>(value)) != 0)
+			if (api.rtlsdr_set_tuner_gain(GetHandle(), static_cast<int>(value)) != 0)
 			{
 
 				throw Exception(
@@ -502,7 +668,7 @@ namespace AL::Hardware::Drivers
 			);
 
 #if defined(AL_DEPENDENCY_RTL_SDR)
-			if (::rtlsdr_set_tuner_gain_mode(GetHandle(), 1) != 0)
+			if (api.rtlsdr_set_tuner_gain_mode(GetHandle(), 1) != 0)
 			{
 
 				throw Exception(
@@ -510,7 +676,7 @@ namespace AL::Hardware::Drivers
 				);
 			}
 
-			if (::rtlsdr_set_tuner_if_gain(GetHandle(), static_cast<int>(stage), static_cast<int>(value)) != 0)
+			if (api.rtlsdr_set_tuner_if_gain(GetHandle(), static_cast<int>(stage), static_cast<int>(value)) != 0)
 			{
 
 				throw Exception(
@@ -534,7 +700,7 @@ namespace AL::Hardware::Drivers
 			);
 
 #if defined(AL_DEPENDENCY_RTL_SDR)
-			if (::rtlsdr_set_sample_rate(GetHandle(), static_cast<::uint32_t>(value)) != 0)
+			if (api.rtlsdr_set_sample_rate(GetHandle(), static_cast<::uint32_t>(value)) != 0)
 			{
 
 				throw Exception(
@@ -555,7 +721,7 @@ namespace AL::Hardware::Drivers
 			);
 
 #if defined(AL_DEPENDENCY_RTL_SDR)
-			if (::rtlsdr_set_center_freq(GetHandle(), static_cast<::uint32_t>(value & Integer<::uint32_t>::UnsignedCastMask)) != 0)
+			if (api.rtlsdr_set_center_freq(GetHandle(), static_cast<::uint32_t>(value & Integer<typename Get_Enum_Or_Integer_Base<::uint32_t>::Type>::UnsignedCastMask)) != 0)
 			{
 
 				throw Exception(
@@ -576,7 +742,7 @@ namespace AL::Hardware::Drivers
 			);
 
 #if defined(AL_DEPENDENCY_RTL_SDR)
-			if (::rtlsdr_set_freq_correction(GetHandle(), static_cast<int>(value)))
+			if (api.rtlsdr_set_freq_correction(GetHandle(), static_cast<int>(value)))
 			{
 
 				throw Exception(
@@ -597,7 +763,7 @@ namespace AL::Hardware::Drivers
 			);
 
 #if defined(AL_DEPENDENCY_RTL_SDR)
-			if (::rtlsdr_set_agc_mode(GetHandle(), set ? 1 : 0) != 0)
+			if (api.rtlsdr_set_agc_mode(GetHandle(), set ? 1 : 0) != 0)
 			{
 
 				throw Exception(
@@ -620,7 +786,7 @@ namespace AL::Hardware::Drivers
 			);
 
 #if defined(AL_DEPENDENCY_RTL_SDR)
-			if (::rtlsdr_set_offset_tuning(GetHandle(), set ? 1 : 0) != 0)
+			if (api.rtlsdr_set_offset_tuning(GetHandle(), set ? 1 : 0) != 0)
 			{
 
 				throw Exception(
@@ -641,7 +807,7 @@ namespace AL::Hardware::Drivers
 			);
 
 #if defined(AL_DEPENDENCY_RTL_SDR)
-			if (::rtlsdr_set_tuner_gain_mode(GetHandle(), set ? 0 : 1) != 0)
+			if (api.rtlsdr_set_tuner_gain_mode(GetHandle(), set ? 0 : 1) != 0)
 			{
 
 				throw Exception(
@@ -664,7 +830,7 @@ namespace AL::Hardware::Drivers
 			);
 
 #if defined(AL_DEPENDENCY_RTL_SDR)
-			if (::rtlsdr_set_direct_sampling(GetHandle(), set ? 2 : 0) != 0)
+			if (api.rtlsdr_set_direct_sampling(GetHandle(), set ? 2 : 0) != 0)
 			{
 
 				throw Exception(
@@ -685,7 +851,7 @@ namespace AL::Hardware::Drivers
 			);
 
 #if defined(AL_DEPENDENCY_RTL_SDR)
-			if (::rtlsdr_reset_buffer(GetHandle()) != 0)
+			if (api.rtlsdr_reset_buffer(GetHandle()) != 0)
 			{
 
 				throw Exception(
@@ -709,7 +875,7 @@ namespace AL::Hardware::Drivers
 #if defined(AL_DEPENDENCY_RTL_SDR)
 			int numberOfBytesRead;
 
-			if (::rtlsdr_read_sync(GetHandle(), lpBuffer, static_cast<int>(size & Integer<int>::SignedCastMask), &numberOfBytesRead) <= 0)
+			if (api.rtlsdr_read_sync(GetHandle(), lpBuffer, static_cast<int>(size & Integer<typename Get_Enum_Or_Integer_Base<::uint32_t>::Type>::SignedCastMask), &numberOfBytesRead) <= 0)
 			{
 
 				throw Exception(
@@ -740,7 +906,7 @@ namespace AL::Hardware::Drivers
 				.Callback = Move(callback)
 			};
 
-			if (::rtlsdr_read_async(GetHandle(), &ReadAsync_Detour, lpContext, 0, 0) != 0)
+			if (api.rtlsdr_read_async(GetHandle(), &ReadAsync_Detour, lpContext, 0, 0) != 0)
 			{
 				callback = Move(
 					lpContext->Callback
@@ -766,7 +932,7 @@ namespace AL::Hardware::Drivers
 			);
 
 #if defined(AL_DEPENDENCY_RTL_SDR)
-			if (::rtlsdr_cancel_async(GetHandle()) != 0)
+			if (api.rtlsdr_cancel_async(GetHandle()) != 0)
 			{
 
 				throw Exception(
@@ -787,7 +953,7 @@ namespace AL::Hardware::Drivers
 			);
 
 #if defined(AL_DEPENDENCY_RTL_SDR)
-			switch (::rtlsdr_read_eeprom(GetHandle(), reinterpret_cast<::uint8_t*>(lpBuffer), static_cast<::uint8_t>(offset), static_cast<::uint16_t>(size)))
+			switch (api.rtlsdr_read_eeprom(GetHandle(), reinterpret_cast<::uint8_t*>(lpBuffer), static_cast<::uint8_t>(offset), static_cast<::uint16_t>(size)))
 			{
 				case -1: throw Exception("Error calling 'rtlsdr_write_eeprom': Device handle is invalid");
 				case -2: throw Exception("Error calling 'rtlsdr_write_eeprom': EEPROM size exceeded");
@@ -807,7 +973,7 @@ namespace AL::Hardware::Drivers
 			);
 
 #if defined(AL_DEPENDENCY_RTL_SDR)
-			switch (::rtlsdr_write_eeprom(GetHandle(), reinterpret_cast<::uint8_t*>(const_cast<Void*>(lpBuffer)), static_cast<::uint8_t>(offset), static_cast<::uint16_t>(size)))
+			switch (api.rtlsdr_write_eeprom(GetHandle(), reinterpret_cast<::uint8_t*>(const_cast<Void*>(lpBuffer)), static_cast<::uint8_t>(offset), static_cast<::uint16_t>(size)))
 			{
 				case -1: throw Exception("Error calling 'rtlsdr_write_eeprom': Device handle is invalid");
 				case -2: throw Exception("Error calling 'rtlsdr_write_eeprom': EEPROM size exceeded");
@@ -821,7 +987,7 @@ namespace AL::Hardware::Drivers
 		RTL_SDR& operator = (RTL_SDR&& rtl_sdr)
 		{
 #if defined(AL_DEPENDENCY_RTL_SDR)
-			::rtlsdr_close(
+			api.rtlsdr_close(
 				device
 			);
 #endif
