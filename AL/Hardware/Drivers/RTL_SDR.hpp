@@ -52,6 +52,56 @@ namespace AL::Hardware::Drivers
 #endif
 		}
 
+		// @throw AL::Exception
+		static Void   ReadDeviceInfo(uint32 index, RTL_SDR_DeviceInfo& deviceInfo)
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"RTL_SDR not open"
+			);
+
+#if defined(AL_DEPENDENCY_RTL_SDR)
+			auto name = ::rtlsdr_get_device_name(
+				index
+			);
+
+			char serial[256]       = { 0 };
+			char product[256]      = { 0 };
+			char manufacturer[256] = { 0 };
+
+			if (::rtlsdr_get_device_usb_strings(index, manufacturer, product, serial) != 0)
+			{
+
+				throw Exception(
+					"Error calling 'rtlsdr_get_device_usb_strings'"
+				);
+			}
+
+			deviceInfo.Name         = name;
+			deviceInfo.Serial       = serial;
+			deviceInfo.Product      = product;
+			deviceInfo.Manufacturer = manufacturer;
+#else
+			throw NotImplementedException();
+#endif
+		}
+
+		// @throw AL::Exception
+		static Void   WriteDeviceInfo(uint32 index, const RTL_SDR_DeviceInfo& deviceInfo)
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"RTL_SDR not open"
+			);
+
+#if defined(AL_DEPENDENCY_RTL_SDR)
+			// TODO: implement
+			throw NotImplementedException();
+#else
+			throw NotImplementedException();
+#endif
+		}
+
 		RTL_SDR()
 			: RTL_SDR(
 				0
@@ -763,56 +813,6 @@ namespace AL::Hardware::Drivers
 				case -2: throw Exception("Error calling 'rtlsdr_write_eeprom': EEPROM size exceeded");
 				case -3: throw Exception("Error calling 'rtlsdr_write_eeprom': No EEPROM found");
 			}
-#else
-			throw NotImplementedException();
-#endif
-		}
-
-		// @throw AL::Exception
-		virtual Void ReadDeviceInfo(RTL_SDR_DeviceInfo& deviceInfo)
-		{
-			AL_ASSERT(
-				IsOpen(),
-				"RTL_SDR not open"
-			);
-
-#if defined(AL_DEPENDENCY_RTL_SDR)
-			auto name = ::rtlsdr_get_device_name(
-				GetIndex()
-			);
-
-			char serial[256]       = { 0 };
-			char product[256]      = { 0 };
-			char manufacturer[256] = { 0 };
-
-			if (::rtlsdr_get_device_usb_strings(GetIndex(), manufacturer, product, serial) != 0)
-			{
-
-				throw Exception(
-					"Error calling 'rtlsdr_get_device_usb_strings'"
-				);
-			}
-
-			deviceInfo.Name         = name;
-			deviceInfo.Serial       = serial;
-			deviceInfo.Product      = product;
-			deviceInfo.Manufacturer = manufacturer;
-#else
-			throw NotImplementedException();
-#endif
-		}
-
-		// @throw AL::Exception
-		virtual Void WriteDeviceInfo(const RTL_SDR_DeviceInfo& deviceInfo)
-		{
-			AL_ASSERT(
-				IsOpen(),
-				"RTL_SDR not open"
-			);
-
-#if defined(AL_DEPENDENCY_RTL_SDR)
-			// TODO: implement
-			throw NotImplementedException();
 #else
 			throw NotImplementedException();
 #endif
