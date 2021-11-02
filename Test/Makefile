@@ -1,6 +1,5 @@
 RM           ?= rm
 CXX          ?= g++
-CXX          = clang++
 
 SOURCE_FILES = main.cpp
 OBJECT_FILES = $(SOURCE_FILES:.cpp=.o)
@@ -8,7 +7,7 @@ OBJECT_FILES = $(SOURCE_FILES:.cpp=.o)
 AL_INCLUDE   ?= ..
 
 CPPFLAGS     += -DAL_TEST_SHOW_CONSOLE_OUTPUT
-CXXFLAGS     += -Wall -g -std=c++2a -I"$(AL_INCLUDE)"
+CXXFLAGS     += -Wall -Wfatal-errors -g -std=c++2a -I"$(AL_INCLUDE)"
 #CXXFLAGS     += -O3
 #CXXFLAGS     += -Wno-unused-function
 

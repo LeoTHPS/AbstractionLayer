@@ -19,6 +19,8 @@
 
 #include "FileSystem/File.hpp"
 
+#include "Hardware/Drivers/RTL_SDR.hpp"
+
 #include "HTML/Document.hpp"
 
 #include "Lua543/Lua.hpp"
@@ -205,6 +207,8 @@ void main_execute_tests()
 	AL_TEST_EXECUTE(AL_Function);
 
 	AL_TEST_EXECUTE(AL_FileSystem_File);
+
+	AL_TEST_EXECUTE(AL_Hardware_Drivers_RTL_SDR);
 
 	AL_TEST_EXECUTE(AL_HTML_Document);
 

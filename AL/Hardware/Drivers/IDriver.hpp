@@ -6,6 +6,28 @@ namespace AL::Hardware::Drivers
 	template<typename T_CHANNEL, typename T_DATA_READ, typename T_DATA_WRITE>
 	class IDriver;
 
+	template<>
+	class IDriver<Void, Void, Void>
+	{
+		IDriver(const IDriver&) = delete;
+
+	public:
+		IDriver()
+		{
+		}
+
+		virtual ~IDriver()
+		{
+		}
+
+		virtual Bool IsOpen() const = 0;
+
+		// @throw AL::Exception
+		virtual Void Open() = 0;
+
+		virtual Void Close() = 0;
+	};
+
 	template<typename T_DATA_READ, typename T_DATA_WRITE>
 	class IDriver<Void, T_DATA_READ, T_DATA_WRITE>
 	{
