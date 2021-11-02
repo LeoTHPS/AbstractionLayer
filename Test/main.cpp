@@ -19,6 +19,13 @@
 
 #include "FileSystem/File.hpp"
 
+#include "Game/Engine/Window.hpp"
+
+#include "Game/FileSystem/DataFile.hpp"
+#include "Game/FileSystem/ConfigFile.hpp"
+
+#include "Game/Network/ClientServer.hpp"
+
 #include "Hardware/Drivers/RTL_SDR.hpp"
 
 #include "HTML/Document.hpp"
@@ -43,9 +50,12 @@
 			__VA_ARGS__ \
 		); \
 		\
+		auto elapsed = timer.GetElapsed(); \
+		\
 		AL::OS::Console::WriteLine( \
-			"Completed in %lluus", \
-			timer.GetElapsed().ToMicroseconds() \
+			"Completed in %llu%s", \
+			(elapsed.ToMicroseconds() < 1000) ? elapsed.ToMicroseconds() : elapsed.ToMilliseconds(), \
+			(elapsed.ToMicroseconds() < 1000) ? "us" : "ms" \
 		); \
 		\
 		AL::OS::Console::WriteLine(); \
@@ -207,6 +217,13 @@ void main_execute_tests()
 	AL_TEST_EXECUTE(AL_Function);
 
 	AL_TEST_EXECUTE(AL_FileSystem_File);
+
+	AL_TEST_EXECUTE(AL_Game_Engine_Window);
+
+	AL_TEST_EXECUTE(AL_Game_FileSystem_DataFile);
+	AL_TEST_EXECUTE(AL_Game_FileSystem_ConfigFile);
+
+	AL_TEST_EXECUTE(AL_Game_Network_ClientServer);
 
 	AL_TEST_EXECUTE(AL_Hardware_Drivers_RTL_SDR);
 
