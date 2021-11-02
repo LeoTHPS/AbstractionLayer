@@ -835,6 +835,8 @@ namespace AL::OS
 #else
 			throw NotImplementedException();
 #endif
+
+			return True;
 		}
 
 		ProcessLibrary& operator = (ProcessLibrary&& processLibrary)
