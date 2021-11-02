@@ -7,10 +7,14 @@
 
 #include "AL/Collections/Array.hpp"
 
+#include "AL/FileSystem/Path.hpp"
+
 #if defined(AL_PLATFORM_LINUX)
-	#include "AL/FileSystem/Path.hpp"
+	#include "Linux/DLException.hpp"
+
 	#include "AL/FileSystem/Directory.hpp"
 
+	#include <dlfcn.h>
 	#include <fcntl.h>
 	#include <signal.h>
 	#include <unistd.h>
@@ -684,6 +688,189 @@ namespace AL::OS
 		}
 	};
 
+	class ProcessLibrary
+	{
+#if defined(AL_PLATFORM_LINUX)
+		typedef void*     Handle;
+#elif defined(AL_PLATFORM_WINDOWS)
+		typedef ::HMODULE Handle;
+#endif
+
+		Bool     isLoaded = False;
+
+		String   path;
+		Handle   hLibrary;
+		Process* lpProcess;
+
+		ProcessLibrary(const ProcessLibrary&) = delete;
+
+		ProcessLibrary(Process& process, Handle handle, String&& path)
+			: isLoaded(
+				True
+			),
+			path(
+				Move(path)
+			),
+			hLibrary(
+				handle
+			),
+			lpProcess(
+				&process
+			)
+		{
+		}
+
+	public:
+		// @throw AL::Exception
+		// @return False if file not found
+		static Bool Load(ProcessLibrary& library, Process& process, const FileSystem::Path& path);
+
+		ProcessLibrary()
+		{
+		}
+
+		ProcessLibrary(ProcessLibrary&& processLibrary)
+			: isLoaded(
+				processLibrary.isLoaded
+			),
+			path(
+				Move(processLibrary.path)
+			),
+			hLibrary(
+				processLibrary.hLibrary
+			),
+			lpProcess(
+				processLibrary.lpProcess
+			)
+		{
+			processLibrary.isLoaded = False;
+		}
+
+		virtual ~ProcessLibrary()
+		{
+			if (IsLoaded())
+			{
+#if defined(AL_PLATFORM_LINUX)
+				::dlclose(
+					hLibrary
+				);
+#endif
+			}
+		}
+
+		Bool IsLoaded() const
+		{
+			return isLoaded;
+		}
+
+		auto& GetPath() const
+		{
+			return path;
+		}
+
+		auto GetHandle() const
+		{
+			return hLibrary;
+		}
+
+		auto& GetProcess()
+		{
+			return *lpProcess;
+		}
+		auto& GetProcess() const
+		{
+			return *lpProcess;
+		}
+
+		// @throw AL::Exception
+		// @return False if export not found
+		template<typename T>
+		Bool GetExport(T*& lpValue, uint16 ordinal) const
+		{
+			auto name = ToString(
+				ordinal
+			);
+
+			if (!GetExport(lpValue, name))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		// @throw AL::Exception
+		// @return False if export not found
+		template<typename T>
+		Bool GetExport(T*& lpValue, const String& name) const
+		{
+#if defined(AL_PLATFORM_LINUX)
+			void* result;
+
+			if ((result = ::dlsym(GetHandle(), name.GetCString())) == NULL)
+			{
+
+				throw Linux::DLException(
+					"dlsym"
+				);
+			}
+
+			lpValue = reinterpret_cast<T*>(
+				result
+			);
+#elif defined(AL_PLATFORM_WINDOWS)
+			::FARPROC result;
+
+			if ((result = ::GetProcAddress(GetHandle(), name.GetCString())) == NULL)
+			{
+
+				throw SystemException(
+					"GetProcAddress"
+				);
+			}
+
+			lpValue = reinterpret_cast<T*>(
+				result
+			);
+#else
+			throw NotImplementedException();
+#endif
+		}
+
+		ProcessLibrary& operator = (ProcessLibrary&& processLibrary)
+		{
+			if (IsLoaded())
+			{
+#if defined(AL_PLATFORM_LINUX)
+				::dlclose(
+					GetHandle()
+				);
+#endif
+			}
+
+			isLoaded = processLibrary.isLoaded;
+			processLibrary.isLoaded = False;
+
+			path      = Move(processLibrary.path);
+			hLibrary  = processLibrary.hLibrary;
+			lpProcess = processLibrary.lpProcess;
+
+			return *this;
+		}
+
+		Bool operator == (const ProcessLibrary& processLibrary) const;
+		Bool operator != (const ProcessLibrary& processLibrary) const
+		{
+			if (operator==(processLibrary))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+	};
+
 	// @throw AL::Exception
 	// @return False to stop enumeration
 	typedef Function<Bool(ProcessId processId, const String& processName)> ProcessEnumCallback;
@@ -1272,6 +1459,55 @@ inline AL::Bool AL::OS::ProcessMemory::Open(ProcessMemory& processMemory, Proces
 		process,
 		hMemory,
 		flags
+	);
+#else
+	throw PlatformNotSupportedException();
+#endif
+
+	return True;
+}
+
+// @throw AL::Exception
+// @return False if file not found
+inline AL::Bool AL::OS::ProcessLibrary::Load(ProcessLibrary& library, Process& process, const FileSystem::Path& path)
+{
+	if (!path.Exists())
+	{
+
+		return False;
+	}
+
+#if defined(AL_PLATFORM_LINUX)
+	void* handle;
+
+	if ((handle = ::dlopen(path.GetString().GetCString(), RTLD_NOW | RTLD_GLOBAL)) == NULL)
+	{
+
+		throw Linux::DLException(
+			"dlopen"
+		);
+	}
+
+	library = ProcessLibrary(
+		process,
+		handle,
+		String(path.GetString())
+	);
+#elif defined(AL_PLATFORM_WINDOWS)
+	::HMODULE handle;
+
+	if ((handle = ::LoadLibraryA(path.GetString().GetCString())) == NULL)
+	{
+
+		throw SystemException(
+			"LoadLibraryA"
+		);
+	}
+
+	library = ProcessLibrary(
+		process,
+		handle,
+		String(path.GetString())
 	);
 #else
 	throw PlatformNotSupportedException();
