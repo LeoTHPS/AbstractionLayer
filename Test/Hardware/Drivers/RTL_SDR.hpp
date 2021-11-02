@@ -25,10 +25,10 @@ static void AL_Hardware_Drivers_RTL_SDR()
 
 #if defined(AL_TEST_SHOW_CONSOLE_OUTPUT)
 			OS::Console::WriteLine(
-				"Name:         %s\n"
-				"Serial:       %s\n"
-				"Product:      %s\n"
-				"Manufacturer: %s",
+				"Name:                 %s\n"
+				"Serial:               %s\n"
+				"Product:              %s\n"
+				"Manufacturer:         %s",
 				sdrInfo.Name.GetCString(),
 				sdrInfo.Serial.GetCString(),
 				sdrInfo.Product.GetCString(),
@@ -44,6 +44,23 @@ static void AL_Hardware_Drivers_RTL_SDR()
 
 			try
 			{
+				sdr.SetSampleRate(
+					2400000
+				);
+
+				sdr.SetTunerGain(
+					0
+				);
+
+				sdr.SetTunerIFGain(
+					0,
+					0
+				);
+
+				sdr.SetCenterFrequency(
+					0
+				);
+
 #if defined(AL_TEST_SHOW_CONSOLE_OUTPUT)
 				OS::Console::WriteLine(
 					"Index:                %lu\n"
