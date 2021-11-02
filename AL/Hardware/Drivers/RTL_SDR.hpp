@@ -419,9 +419,9 @@ namespace AL::Hardware::Drivers
 			if ((value = api.rtlsdr_get_tuner_gain(GetHandle())) == 0)
 			{
 
-				throw Exception(
+				/*throw Exception(
 					"Error calling 'rtlsdr_get_tuner_gain'"
-				);
+				);*/
 			}
 
 			return value;
@@ -484,9 +484,9 @@ namespace AL::Hardware::Drivers
 			if ((value = api.rtlsdr_get_center_freq(GetHandle())) == 0)
 			{
 
-				throw Exception(
+				/*throw Exception(
 					"Error calling 'rtlsdr_get_center_freq'"
-				);
+				);*/
 			}
 
 			return value;
@@ -755,7 +755,7 @@ namespace AL::Hardware::Drivers
 		}
 
 		// @throw AL::Exception
-		virtual Void EnableAutoGain(Bool set) override
+		virtual Void EnableAutoGain(Bool set = True) override
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -778,7 +778,7 @@ namespace AL::Hardware::Drivers
 		}
 
 		// @throw AL::Exception
-		virtual Void EnableOffsetTuning(Bool set) override
+		virtual Void EnableOffsetTuning(Bool set = True) override
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -799,7 +799,7 @@ namespace AL::Hardware::Drivers
 		}
 
 		// @throw AL::Exception
-		virtual Void EnableTunerAutoGain(Bool set) override
+		virtual Void EnableTunerAutoGain(Bool set = True) override
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -822,7 +822,7 @@ namespace AL::Hardware::Drivers
 		}
 
 		// @throw AL::Exception
-		virtual Void EnableDirectSampling(Bool set) override
+		virtual Void EnableDirectSampling(Bool set = True) override
 		{
 			AL_ASSERT(
 				IsOpen(),
