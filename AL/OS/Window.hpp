@@ -313,17 +313,25 @@ namespace AL::OS
 			// @throw AL::Exception
 			virtual Void OnOpen() override
 			{
+				Window::OnOpen();
+
 				lpWindow->OnOpen();
 			}
 
 			virtual Void OnClose() override
 			{
 				lpWindow->OnClose();
+
+				Window::OnClose();
 			}
 
 			// @throw AL::Exception
 			virtual Void OnPaint(Windows::GDI::Device& device) override
 			{
+				Window::OnPaint(
+					device
+				);
+
 				WindowGraphics graphics(
 					Move(device)
 				);
@@ -336,6 +344,10 @@ namespace AL::OS
 			// @throw AL::Exception
 			virtual Void OnUpdate(TimeSpan delta) override
 			{
+				Window::OnUpdate(
+					delta
+				);
+
 				lpWindow->OnUpdate(
 					delta
 				);
@@ -344,6 +356,12 @@ namespace AL::OS
 			// @throw AL::Exception
 			virtual Bool OnMouseEvent(const Hardware::MouseEvent& event) override
 			{
+				if (Window::OnMouseEvent(event))
+				{
+
+					return True;
+				}
+
 				if (lpWindow->OnMouseEvent(event))
 				{
 
@@ -356,6 +374,12 @@ namespace AL::OS
 			// @throw AL::Exception
 			virtual Bool OnKeyboardEvent(const Hardware::KeyboardEvent& event) override
 			{
+				if (Window::OnKeyboardEvent(event))
+				{
+
+					return True;
+				}
+
 				if (lpWindow->OnKeyboardEvent(event))
 				{
 
