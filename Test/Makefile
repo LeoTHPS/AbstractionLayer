@@ -7,13 +7,23 @@ OBJECT_FILES = $(SOURCE_FILES:.cpp=.o)
 AL_INCLUDE   ?= ..
 
 CPPFLAGS     += -DAL_TEST_SHOW_CONSOLE_OUTPUT
-CXXFLAGS     += -Wall -Wfatal-errors -g -std=c++2a -I"$(AL_INCLUDE)"
+CXXFLAGS     += -Wall -Wfatal-errors -g -std=c++2a -I. -I"$(AL_INCLUDE)"
 #CXXFLAGS     += -O3
 #CXXFLAGS     += -Wno-unused-function
 
 # Dependencies
-## Linux:   libpthread-stubs0-dev libusb-1.0-0-dev libi2c-dev libgpiod-dev/wiringpi liblua
+## Linux:   libpthread-stubs0-dev libusb-1.0-0-dev libi2c-dev libgpiod-dev/wiringpi liblua5.4-dev
 ## Windows: 
+
+ifdef COMPILER
+	ifeq ($(COMPILER), GNU)
+		CXX = g++
+	endif
+
+	ifeq ($(COMPILER), CLANG)
+		CXX = clang++
+	endif
+endif
 
 ifdef PLATFORM
 	ifeq ($(PLATFORM), LINUX)
