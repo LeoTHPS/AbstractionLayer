@@ -941,18 +941,18 @@ namespace AL::OS::Windows
 		// @throw AL::Exception
 		Bool SetTitle(String&& value)
 		{
-			if (!OnTitleChanging(value))
-			{
-
-				return False;
-			}
-
-			windowTitle = Move(
-				value
-			);
-
 			if (IsCreated() || isCreated)
 			{
+				if (!OnTitleChanging(value))
+				{
+
+					return False;
+				}
+
+				windowTitle = Move(
+					value
+				);
+
 				if (!::SetWindowTextA(GetHandle(), GetTitle().GetCString()))
 				{
 
@@ -963,6 +963,15 @@ namespace AL::OS::Windows
 			}
 			else
 			{
+				if (!OnTitleChanging(value))
+				{
+
+					return False;
+				}
+
+				windowTitle = Move(
+					value
+				);
 
 				OnTitleChanged(
 					GetTitle()
@@ -2476,6 +2485,7 @@ namespace AL::OS::Windows
 					}
 					return 1;
 
+					// TODO: handle like WM_SETTEXT
 					case WM_MOVE:
 					{
 						auto point = MAKEPOINTS(
@@ -2492,6 +2502,7 @@ namespace AL::OS::Windows
 					}
 					break;
 
+					// TODO: handle like WM_SETTEXT
 					case WM_SIZE:
 					{
 						switch (wParam)
@@ -2524,6 +2535,7 @@ namespace AL::OS::Windows
 					}
 					break;
 
+					// TODO: handle like WM_SETTEXT
 					case WM_SETICON:
 					{
 						if (lpWindow->windowSetIconPendingCount == 0)
@@ -2549,6 +2561,7 @@ namespace AL::OS::Windows
 					}
 					break;
 
+					// TODO: handle like WM_SETTEXT
 					case WM_SETCURSOR:
 					{
 						::SetCursor(
@@ -2559,13 +2572,26 @@ namespace AL::OS::Windows
 
 					case WM_SETTEXT:
 					{
-						String title(
-							reinterpret_cast<const String::Char*>(lParam)
+						auto lpTitle = reinterpret_cast<const String::Char*>(
+							lParam
 						);
 
-						lpWindow->windowTitle = Move(
-							title
-						);
+						if (lpTitle != lpWindow->windowTitle.GetCString())
+						{
+							String title(
+								reinterpret_cast<const String::Char*>(lParam)
+							);
+
+							if (!lpWindow->OnTitleChanging(title))
+							{
+
+								return TRUE;
+							}
+
+							lpWindow->windowTitle = Move(
+								title
+							);
+						}
 
 						lpWindow->OnTitleChanged(
 							lpWindow->GetTitle()
@@ -2573,6 +2599,7 @@ namespace AL::OS::Windows
 					}
 					break;
 
+					// TODO: handle like WM_SETTEXT
 					case WM_CLOSE:
 					{
 						lpWindow->isClosing = False;
