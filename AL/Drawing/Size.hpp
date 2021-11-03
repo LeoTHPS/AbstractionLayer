@@ -57,18 +57,21 @@ namespace AL::Drawing
 		}
 	};
 
-	typedef Size<int8>   SizeI8;
-	typedef Size<uint8>  SizeU8;
+	typedef Size<ssize_t> SizeI;
+	typedef Size<size_t>  SizeU;
 
-	typedef Size<int16>  SizeI16;
-	typedef Size<uint16> SizeU16;
+	typedef Size<int8>    SizeI8;
+	typedef Size<uint8>   SizeU8;
 
-	typedef Size<int32>  SizeI32;
-	typedef Size<uint32> SizeU32;
+	typedef Size<int16>   SizeI16;
+	typedef Size<uint16>  SizeU16;
 
-	typedef Size<int64>  SizeI64;
-	typedef Size<uint64> SizeU64;
+	typedef Size<int32>   SizeI32;
+	typedef Size<uint32>  SizeU32;
 
-	typedef Size<Float>  SizeF;
-	typedef Size<Double> SizeD;
+	typedef Size<int64>   SizeI64;
+	typedef Size<uint64>  SizeU64;
+
+	typedef Size<Float>   SizeF;
+	typedef Size<Double>  SizeD;
 }

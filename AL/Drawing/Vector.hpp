@@ -394,6 +394,11 @@ namespace AL::Drawing
 	};
 
 	template<size_t D>
+	using VectorI = Vector<D, ssize_t>;
+	template<size_t D>
+	using VectorU = Vector<D, size_t>;
+
+	template<size_t D>
 	using VectorI8 = Vector<D, int8>;
 	template<size_t D>
 	using VectorU8 = Vector<D, uint8>;
@@ -420,6 +425,8 @@ namespace AL::Drawing
 
 	template<typename T>
 	using Vector1    = Vector<1, T>;
+	using Vector1I   = VectorI<1>;
+	using Vector1U   = VectorU<1>;
 	using Vector1I8  = VectorI8<1>;
 	using Vector1U8  = VectorU8<1>;
 	using Vector1I16 = VectorI16<1>;
@@ -433,6 +440,8 @@ namespace AL::Drawing
 
 	template<typename T>
 	using Vector2    = Vector<2, T>;
+	using Vector2I   = VectorI<2>;
+	using Vector2U   = VectorU<2>;
 	using Vector2I8  = VectorI8<2>;
 	using Vector2U8  = VectorU8<2>;
 	using Vector2I16 = VectorI16<2>;
@@ -446,6 +455,8 @@ namespace AL::Drawing
 
 	template<typename T>
 	using Vector3    = Vector<3, T>;
+	using Vector3I   = VectorI<3>;
+	using Vector3U   = VectorU<3>;
 	using Vector3I8  = VectorI8<3>;
 	using Vector3U8  = VectorU8<3>;
 	using Vector3I16 = VectorI16<3>;
@@ -459,6 +470,8 @@ namespace AL::Drawing
 
 	template<typename T>
 	using Vector4    = Vector<4, T>;
+	using Vector4I   = VectorI<4>;
+	using Vector4U   = VectorU<4>;
 	using Vector4I8  = VectorI8<4>;
 	using Vector4U8  = VectorU8<4>;
 	using Vector4I16 = VectorI16<4>;
