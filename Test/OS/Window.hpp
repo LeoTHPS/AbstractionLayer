@@ -15,7 +15,6 @@ static void AL_OS_Window()
 	);
 
 	window.Open();
-	window.LoadContent();
 
 	Timer timer;
 
