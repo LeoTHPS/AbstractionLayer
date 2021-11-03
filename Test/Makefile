@@ -35,7 +35,7 @@ ifdef PLATFORM
 		LDLIBS += -lwsock32 -lws2_32
 		LDLIBS += -lshlwapi
 		LDLIBS += -lgdi32
-		LDLIBS += -ld3d11 -ld2d1 -ldxguid -ldwrite -lwinmm -ldsound -lwindowscodecs
+		LDLIBS += -ld3d11 -ld2d1 -ldxguid -ldwrite -lwinmm -ldsound -lwindowscodecs -lOle32
 	endif
 endif
 
