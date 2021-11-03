@@ -267,6 +267,89 @@ namespace AL::OS::Windows
 		static constexpr WindowClipboardDataFormats Value = WindowClipboardDataFormats::WString;
 	};
 
+	struct WindowMouseEvent
+	{
+		Hardware::MouseEvent Data;
+		Bool                 Handled = False;
+	};
+
+	struct WindowKeyboardEvent
+	{
+		Hardware::KeyboardEvent Data;
+		Bool                    Handled = False;
+	};
+
+	// @throw AL::Exception
+	typedef EventHandler<Void()>                                                            WindowOnCreateEventHandler;
+
+	typedef EventHandler<Void()>                                                            WindowOnDestroyEventHandler;
+
+	// @throw AL::Exception
+	typedef EventHandler<Void()>                                                            WindowOnLoadContentEventHandler;
+
+	typedef EventHandler<Void()>                                                            WindowOnUnloadContentEventHandler;
+
+	// @throw AL::Exception
+	typedef EventHandler<Void()>                                                            WindowOnOpenEventHandler;
+
+	// @return False to cancel
+	typedef EventHandler<Bool()>                                                            WindowOnClosingEventHandler;
+
+	typedef EventHandler<Void()>                                                            WindowOnCloseEventHandler;
+
+	// @throw AL::Exception
+	typedef EventHandler<Void(GDI::Device& device)>                                         WindowOnPaintEventHandler;
+
+	// @throw AL::Exception
+	typedef EventHandler<Void(TimeSpan delta)>                                              WindowOnUpdateEventHandler;
+
+	// @throw AL::Exception
+	typedef EventHandler<Void(const String& path)>                                          WindowOnFileDropEventHandler;
+
+	// @throw AL::Exception
+	typedef EventHandler<Void(const WindowIcon& icon)>                                      WindowOnIconChangedEventHandler;
+
+	// @throw AL::Exception
+	// @return False to cancel
+	typedef EventHandler<Bool(const WindowIcon& icon)>                                      WindowOnIconChangingEventHandler;
+
+	// @throw AL::Exception
+	typedef EventHandler<Void(const String& title)>                                         WindowOnTitleChangedEventHandler;
+
+	// @throw AL::Exception
+	// @return False to cancel
+	typedef EventHandler<Bool(const String& title)>                                         WindowOnTitleChangingEventHandler;
+
+	// @throw AL::Exception
+	typedef EventHandler<Void(const WindowCursor& cursor)>                                  WindowOnCursorChangedEventHandler;
+
+	// @throw AL::Exception
+	// @return False to cancel
+	typedef EventHandler<Bool(const WindowCursor& cursor)>                                  WindowOnCursorChangingEventHandler;
+
+	// @throw AL::Exception
+	typedef EventHandler<Void(WindowPosition::Type x, WindowPosition::Type y)>              WindowOnPositionChangedEventHandler;
+
+	// @throw AL::Exception
+	// @return False to cancel
+	typedef EventHandler<Bool(WindowPosition::Type x, WindowPosition::Type y)>              WindowOnPositionChangingEventHandler;
+
+	// @throw AL::Exception
+	typedef EventHandler<Void(WindowResolution::Type width, WindowResolution::Type height)> WindowOnResolutionChangedEventHandler;
+
+	// @throw AL::Exception
+	// @return False to cancel
+	typedef EventHandler<Bool(WindowResolution::Type width, WindowResolution::Type height)> WindowOnResolutionChangingEventHandler;
+
+	// @throw AL::Exception
+	typedef EventHandler<Void(WindowMouseEvent& event)>                                     WindowOnMouseEventEventHandler;
+
+	// @throw AL::Exception
+	typedef EventHandler<Void(WindowKeyboardEvent& event)>                                  WindowOnKeyboardEventEventHandler;
+
+	// @throw AL::Exception
+	typedef EventHandler<Void(WindowClipboardDataFormats format)>                           WindowOnClipboardDataChangedEventHandler;
+
 	class Window
 	{
 		class Clipboard
@@ -642,7 +725,7 @@ namespace AL::OS::Windows
 				{
 					result = 0;
 
-					GetWindow().OnClipboardDataChanged(
+					GetWindow().OnClipboardDataChanged.Execute(
 						GetFormat()
 					);
 
@@ -686,13 +769,84 @@ namespace AL::OS::Windows
 		Hardware::MouseState    mouseState;
 		Hardware::KeyboardState keyboardState;
 
-		Hardware::MouseEvent    lastMouseEvent;
-		Hardware::KeyboardEvent lastKeyboardEvent;
+		WindowMouseEvent        lastMouseEvent;
+		WindowKeyboardEvent     lastKeyboardEvent;
 
 		Window(Window&&) = delete;
 		Window(const Window&) = delete;
 
 	public:
+		// @throw AL::Exception
+		Event<WindowOnCreateEventHandler>               OnCreate;
+
+		Event<WindowOnDestroyEventHandler>              OnDestroy;
+
+		// @throw AL::Exception
+		Event<WindowOnLoadContentEventHandler>          OnLoadContent;
+
+		Event<WindowOnUnloadContentEventHandler>        OnUnloadContent;
+
+		// @throw AL::Exception
+		Event<WindowOnOpenEventHandler>                 OnOpen;
+
+		// @return False to cancel
+		Event<WindowOnClosingEventHandler>              OnClosing;
+
+		Event<WindowOnCloseEventHandler>                OnClose;
+
+		// @throw AL::Exception
+		Event<WindowOnPaintEventHandler>                OnPaint;
+
+		// @throw AL::Exception
+		Event<WindowOnUpdateEventHandler>               OnUpdate;
+
+		// @throw AL::Exception
+		Event<WindowOnFileDropEventHandler>             OnFileDrop;
+
+		// @throw AL::Exception
+		Event<WindowOnIconChangedEventHandler>          OnIconChanged;
+
+		// @throw AL::Exception
+		// @return False to cancel
+		Event<WindowOnIconChangingEventHandler>         OnIconChanging;
+
+		// @throw AL::Exception
+		Event<WindowOnTitleChangedEventHandler>         OnTitleChanged;
+
+		// @throw AL::Exception
+		// @return False to cancel
+		Event<WindowOnTitleChangingEventHandler>        OnTitleChanging;
+
+		// @throw AL::Exception
+		Event<WindowOnCursorChangedEventHandler>        OnCursorChanged;
+
+		// @throw AL::Exception
+		// @return False to cancel
+		Event<WindowOnCursorChangingEventHandler>       OnCursorChanging;
+
+		// @throw AL::Exception
+		Event<WindowOnPositionChangedEventHandler>      OnPositionChanged;
+
+		// @throw AL::Exception
+		// @return False to cancel
+		Event<WindowOnPositionChangingEventHandler>     OnPositionChanging;
+
+		// @throw AL::Exception
+		Event<WindowOnResolutionChangedEventHandler>    OnResolutionChanged;
+
+		// @throw AL::Exception
+		// @return False to cancel
+		Event<WindowOnResolutionChangingEventHandler>   OnResolutionChanging;
+
+		// @throw AL::Exception
+		Event<WindowOnMouseEventEventHandler>           OnMouseEvent;
+
+		// @throw AL::Exception
+		Event<WindowOnKeyboardEventEventHandler>        OnKeyboardEvent;
+
+		// @throw AL::Exception
+		Event<WindowOnClipboardDataChangedEventHandler> OnClipboardDataChanged;
+
 		explicit Window(String&& name)
 			: Window(
 				Move(name),
@@ -736,6 +890,8 @@ namespace AL::OS::Windows
 			windowClass.hInstance = hInstance;
 			windowClass.lpfnWndProc = &Window::NativeWindowProc;
 			windowClass.lpszClassName = windowName.GetCString();
+
+			RegisterEventHandlers();
 		}
 
 		virtual ~Window()
@@ -888,7 +1044,7 @@ namespace AL::OS::Windows
 		// @throw AL::Exception
 		Bool SetIcon(const WindowIcon& value)
 		{
-			if (!OnIconChanging(value))
+			if (!OnIconChanging.Execute(value))
 			{
 
 				return False;
@@ -930,7 +1086,7 @@ namespace AL::OS::Windows
 				windowClass.hIcon = value.GetHandle();
 				windowClass.hIconSm = value.GetHandle();
 
-				OnIconChanged(
+				OnIconChanged.Execute(
 					value
 				);
 			}
@@ -943,7 +1099,7 @@ namespace AL::OS::Windows
 		{
 			if (IsCreated() || isCreated)
 			{
-				if (!OnTitleChanging(value))
+				if (!OnTitleChanging.Execute(value))
 				{
 
 					return False;
@@ -963,7 +1119,7 @@ namespace AL::OS::Windows
 			}
 			else
 			{
-				if (!OnTitleChanging(value))
+				if (!OnTitleChanging.Execute(value))
 				{
 
 					return False;
@@ -973,7 +1129,7 @@ namespace AL::OS::Windows
 					value
 				);
 
-				OnTitleChanged(
+				OnTitleChanged.Execute(
 					GetTitle()
 				);
 			}
@@ -995,7 +1151,7 @@ namespace AL::OS::Windows
 		// @throw AL::Exception
 		Bool SetCursor(const WindowCursor& value)
 		{
-			if (!OnCursorChanging(value))
+			if (!OnCursorChanging.Execute(value))
 			{
 
 				return False;
@@ -1012,7 +1168,7 @@ namespace AL::OS::Windows
 				);
 			}
 
-			OnCursorChanged(
+			OnCursorChanged.Execute(
 				value
 			);
 
@@ -1033,7 +1189,7 @@ namespace AL::OS::Windows
 		// @throw AL::Exception
 		Bool SetPosition(WindowPosition::Type x, WindowPosition::Type y)
 		{
-			if (!OnPositionChanging(x, y))
+			if (!OnPositionChanging.Execute(x, y))
 			{
 
 				return False;
@@ -1066,7 +1222,7 @@ namespace AL::OS::Windows
 				windowPosition.X = x;
 				windowPosition.Y = y;
 
-				OnPositionChanged(
+				OnPositionChanged.Execute(
 					x,
 					y
 				);
@@ -1095,7 +1251,7 @@ namespace AL::OS::Windows
 				return False;
 			}
 
-			if (!OnResolutionChanging(width, height))
+			if (!OnResolutionChanging.Execute(width, height))
 			{
 
 				return False;
@@ -1132,7 +1288,7 @@ namespace AL::OS::Windows
 				windowResolution.Width = width;
 				windowResolution.Height = height;
 
-				OnResolutionChanged(
+				OnResolutionChanged.Execute(
 					width,
 					height
 				);
@@ -1271,11 +1427,13 @@ namespace AL::OS::Windows
 
 			try
 			{
-				OnOpen();
+				OnOpen.Execute();
 			}
 			catch (Exception&)
 			{
 				Destroy();
+
+				OnClose.Execute();
 
 				throw;
 			}
@@ -1466,7 +1624,7 @@ namespace AL::OS::Windows
 				);
 			}
 
-			OnUpdate(
+			OnUpdate.Execute(
 				delta
 			);
 
@@ -1486,7 +1644,16 @@ namespace AL::OS::Windows
 				"Window content already loaded"
 			);
 
-			OnLoadContent();
+			try
+			{
+				OnLoadContent.Execute();
+			}
+			catch (Exception&)
+			{
+				OnUnloadContent.Execute();
+
+				throw;
+			}
 
 			isContentLoaded = True;
 		}
@@ -1495,15 +1662,15 @@ namespace AL::OS::Windows
 		{
 			if (IsCreated() && IsContentLoaded())
 			{
-				OnUnloadContent();
+				OnUnloadContent.Execute();
 
 				isContentLoaded = False;
 			}
 		}
 
-	protected:
+	private: // Event Handlers
 		// @throw AL::Exception
-		virtual Void OnCreate()
+		Void EventHandler_OnCreate()
 		{
 			if (!::RegisterClassExA(&windowClass))
 			{
@@ -1570,7 +1737,7 @@ namespace AL::OS::Windows
 			}
 		}
 
-		virtual Void OnDestroy()
+		Void EventHandler_OnDestroy()
 		{
 			clipboard.Destroy();
 
@@ -1581,16 +1748,16 @@ namespace AL::OS::Windows
 		}
 
 		// @throw AL::Exception
-		virtual Void OnLoadContent()
+		Void EventHandler_OnLoadContent()
 		{
 		}
 
-		virtual Void OnUnloadContent()
+		Void EventHandler_OnUnloadContent()
 		{
 		}
 
 		// @throw AL::Exception
-		virtual Void OnOpen()
+		Void EventHandler_OnOpen()
 		{
 			::ShowWindow(
 				GetHandle(),
@@ -1660,112 +1827,108 @@ namespace AL::OS::Windows
 		}
 
 		// @return False to cancel
-		virtual Bool OnClosing()
+		Bool EventHandler_OnClosing()
 		{
 
 			return False;
 		}
 
-		virtual Void OnClose()
+		Void EventHandler_OnClose()
 		{
 		}
 
 		// @throw AL::Exception
-		virtual Void OnPaint(GDI::Device& device)
+		Void EventHandler_OnPaint(GDI::Device& device)
 		{
 		}
 
 		// @throw AL::Exception
-		virtual Void OnUpdate(TimeSpan delta)
+		Void EventHandler_OnUpdate(TimeSpan delta)
 		{
 		}
 
 		// @throw AL::Exception
-		virtual Void OnFileDrop(const String& path)
+		Void EventHandler_OnFileDrop(const String& path)
 		{
 		}
 
 		// @throw AL::Exception
-		virtual Void OnIconChanged(const WindowIcon& icon)
+		Void EventHandler_OnIconChanged(const WindowIcon& icon)
 		{
 		}
 
 		// @throw AL::Exception
 		// @return False to cancel
-		virtual Bool OnIconChanging(const WindowIcon& icon)
+		Bool EventHandler_OnIconChanging(const WindowIcon& icon)
 		{
 
 			return True;
 		}
 
 		// @throw AL::Exception
-		virtual Void OnTitleChanged(const String& title)
+		Void EventHandler_OnTitleChanged(const String& title)
 		{
 		}
 
 		// @throw AL::Exception
 		// @return False to cancel
-		virtual Bool OnTitleChanging(const String& title)
+		Bool EventHandler_OnTitleChanging(const String& title)
 		{
 
 			return True;
 		}
 
 		// @throw AL::Exception
-		virtual Void OnCursorChanged(const WindowCursor& cursor)
+		Void EventHandler_OnCursorChanged(const WindowCursor& cursor)
 		{
 		}
 
 		// @throw AL::Exception
 		// @return False to cancel
-		virtual Bool OnCursorChanging(const WindowCursor& cursor)
+		Bool EventHandler_OnCursorChanging(const WindowCursor& cursor)
 		{
 			
 			return True;
 		}
 
 		// @throw AL::Exception
-		virtual Void OnPositionChanged(WindowPosition::Type x, WindowPosition::Type y)
+		Void EventHandler_OnPositionChanged(WindowPosition::Type x, WindowPosition::Type y)
 		{
 		}
 
 		// @throw AL::Exception
 		// @return False to cancel
-		virtual Bool OnPositionChanging(WindowPosition::Type x, WindowPosition::Type y)
+		Bool EventHandler_OnPositionChanging(WindowPosition::Type x, WindowPosition::Type y)
 		{
 
 			return True;
 		}
 
 		// @throw AL::Exception
-		virtual Void OnResolutionChanged(WindowResolution::Type width, WindowResolution::Type height)
+		Void EventHandler_OnResolutionChanged(WindowResolution::Type width, WindowResolution::Type height)
 		{
 		}
 
 		// @throw AL::Exception
 		// @return False to cancel
-		virtual Bool OnResolutionChanging(WindowResolution::Type width, WindowResolution::Type height)
+		Bool EventHandler_OnResolutionChanging(WindowResolution::Type width, WindowResolution::Type height)
 		{
 
 			return True;
 		}
 
 		// @throw AL::Exception
-		virtual Bool OnMouseEvent(const Hardware::MouseEvent& event)
+		Void EventHandler_OnMouseEvent(WindowMouseEvent& event)
 		{
-
-			return False;
 		}
 
 		// @throw AL::Exception
-		virtual Bool OnKeyboardEvent(const Hardware::KeyboardEvent& event)
+		Void EventHandler_OnKeyboardEvent(WindowKeyboardEvent& event)
 		{
-
-			return False;
 		}
 
 		// @throw AL::Exception
-		virtual Void OnClipboardDataChanged(WindowClipboardDataFormats format)
+		Void EventHandler_OnClipboardDataChanged(WindowClipboardDataFormats format)
 		{
 		}
 
@@ -1782,11 +1945,13 @@ namespace AL::OS::Windows
 
 			try
 			{
-				OnCreate();
+				OnCreate.Execute();
 			}
 			catch (Exception&)
 			{
 				isCreating = False;
+
+				OnDestroy.Execute();
 
 				throw;
 			}
@@ -1819,10 +1984,47 @@ namespace AL::OS::Windows
 					UnloadContent();
 				}
 
-				OnDestroy();
+				OnDestroy.Execute();
 
 				isCreated = False;
 			}
+		}
+
+		Void RegisterEventHandlers()
+		{
+			#define AL_OS_WINDOWS_WINDOW_REGISTER_EVENT_HANDLER(__event__) \
+				__event__.Register<EventPriorities::Highest>( \
+					Window##__event__##EventHandler( \
+						&Window::EventHandler_##__event__, \
+						*this \
+					) \
+				)
+
+			AL_OS_WINDOWS_WINDOW_REGISTER_EVENT_HANDLER(OnCreate);
+			AL_OS_WINDOWS_WINDOW_REGISTER_EVENT_HANDLER(OnDestroy);
+			AL_OS_WINDOWS_WINDOW_REGISTER_EVENT_HANDLER(OnLoadContent);
+			AL_OS_WINDOWS_WINDOW_REGISTER_EVENT_HANDLER(OnUnloadContent);
+			AL_OS_WINDOWS_WINDOW_REGISTER_EVENT_HANDLER(OnOpen);
+			AL_OS_WINDOWS_WINDOW_REGISTER_EVENT_HANDLER(OnClosing);
+			AL_OS_WINDOWS_WINDOW_REGISTER_EVENT_HANDLER(OnClose);
+			AL_OS_WINDOWS_WINDOW_REGISTER_EVENT_HANDLER(OnPaint);
+			AL_OS_WINDOWS_WINDOW_REGISTER_EVENT_HANDLER(OnUpdate);
+			AL_OS_WINDOWS_WINDOW_REGISTER_EVENT_HANDLER(OnFileDrop);
+			AL_OS_WINDOWS_WINDOW_REGISTER_EVENT_HANDLER(OnIconChanged);
+			AL_OS_WINDOWS_WINDOW_REGISTER_EVENT_HANDLER(OnIconChanging);
+			AL_OS_WINDOWS_WINDOW_REGISTER_EVENT_HANDLER(OnTitleChanged);
+			AL_OS_WINDOWS_WINDOW_REGISTER_EVENT_HANDLER(OnTitleChanging);
+			AL_OS_WINDOWS_WINDOW_REGISTER_EVENT_HANDLER(OnCursorChanged);
+			AL_OS_WINDOWS_WINDOW_REGISTER_EVENT_HANDLER(OnCursorChanging);
+			AL_OS_WINDOWS_WINDOW_REGISTER_EVENT_HANDLER(OnPositionChanged);
+			AL_OS_WINDOWS_WINDOW_REGISTER_EVENT_HANDLER(OnPositionChanging);
+			AL_OS_WINDOWS_WINDOW_REGISTER_EVENT_HANDLER(OnResolutionChanged);
+			AL_OS_WINDOWS_WINDOW_REGISTER_EVENT_HANDLER(OnResolutionChanging);
+			AL_OS_WINDOWS_WINDOW_REGISTER_EVENT_HANDLER(OnMouseEvent);
+			AL_OS_WINDOWS_WINDOW_REGISTER_EVENT_HANDLER(OnKeyboardEvent);
+			AL_OS_WINDOWS_WINDOW_REGISTER_EVENT_HANDLER(OnClipboardDataChanged);
+
+			#undef AL_OS_WINDOWS_WINDOW_REGISTER_EVENT_HANDLER
 		}
 
 		// @throw AL::Exception
@@ -1890,8 +2092,8 @@ namespace AL::OS::Windows
 				{
 					auto points = MAKEPOINTS(_lParam);
 
-					lpWindow->lastMouseEvent.Position.X = points.x;
-					lpWindow->lastMouseEvent.Position.Y = points.y;
+					lpWindow->lastMouseEvent.Data.Position.X = points.x;
+					lpWindow->lastMouseEvent.Data.Position.Y = points.y;
 				};
 
 				switch (message)
@@ -1900,10 +2102,11 @@ namespace AL::OS::Windows
 					{
 						if (::isprint(static_cast<int>(wParam)))
 						{
-							lpWindow->lastKeyboardEvent.Char = static_cast<char>(wParam);
-							lpWindow->lastKeyboardEvent.Event = Hardware::KeyboardEvents::Char;
+							lpWindow->lastKeyboardEvent.Handled = False;
+							lpWindow->lastKeyboardEvent.Data.Char = static_cast<char>(wParam);
+							lpWindow->lastKeyboardEvent.Data.Type = Hardware::KeyboardEvents::Char;
 
-							lpWindow->OnKeyboardEvent(
+							lpWindow->OnKeyboardEvent.Execute(
 								lpWindow->lastKeyboardEvent
 							);
 						}
@@ -2129,16 +2332,18 @@ namespace AL::OS::Windows
 
 						Bool isKeyDown = (message == WM_KEYDOWN);
 
-						lpWindow->lastKeyboardEvent.Event = isKeyDown ? Hardware::KeyboardEvents::KeyDown : Hardware::KeyboardEvents::KeyUp;
-						
-						if (VirtualKeyToInputKey(lpWindow->lastKeyboardEvent.Key, wParam))
+						lpWindow->lastKeyboardEvent.Data.Type = isKeyDown ? Hardware::KeyboardEvents::KeyDown : Hardware::KeyboardEvents::KeyUp;
+
+						if (VirtualKeyToInputKey(lpWindow->lastKeyboardEvent.Data.Key, wParam))
 						{
+							lpWindow->lastKeyboardEvent.Handled = False;
+
 							lpWindow->keyboardState.SetPressed(
-								lpWindow->lastKeyboardEvent.Key,
+								lpWindow->lastKeyboardEvent.Data.Key,
 								isKeyDown
 							);
 
-							lpWindow->OnKeyboardEvent(
+							lpWindow->OnKeyboardEvent.Execute(
 								lpWindow->lastKeyboardEvent
 							);
 						}
@@ -2154,14 +2359,16 @@ namespace AL::OS::Windows
 									MAPVK_VSC_TO_VK_EX
 								);
 
-								if (VirtualKeyToInputKey(lpWindow->lastKeyboardEvent.Key, wParam))
+								if (VirtualKeyToInputKey(lpWindow->lastKeyboardEvent.Data.Key, wParam))
 								{
+									lpWindow->lastKeyboardEvent.Handled = False;
+
 									lpWindow->keyboardState.SetPressed(
-										lpWindow->lastKeyboardEvent.Key,
+										lpWindow->lastKeyboardEvent.Data.Key,
 										isKeyDown
 									);
 
-									lpWindow->OnKeyboardEvent(
+									lpWindow->OnKeyboardEvent.Execute(
 										lpWindow->lastKeyboardEvent
 									);
 								}
@@ -2177,9 +2384,10 @@ namespace AL::OS::Windows
 							lParam
 						);
 
-						lpWindow->lastMouseEvent.Type = Hardware::MouseEvents::Move;
+						lpWindow->lastMouseEvent.Handled = False;
+						lpWindow->lastMouseEvent.Data.Type = Hardware::MouseEvents::Move;
 
-						lpWindow->OnMouseEvent(
+						lpWindow->OnMouseEvent.Execute(
 							lpWindow->lastMouseEvent
 						);
 					}
@@ -2189,19 +2397,21 @@ namespace AL::OS::Windows
 					{
 						auto delta = GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
 
+						lpWindow->lastMouseEvent.Handled = False;
+
 						// scroll up
 						if (delta > 0)
 						{
-							lpWindow->lastMouseEvent.Type = Hardware::MouseEvents::ScrollUp;
+							lpWindow->lastMouseEvent.Data.Type = Hardware::MouseEvents::ScrollUp;
 						}
 
 						// scroll down
 						else if (delta < 0)
 						{
-							lpWindow->lastMouseEvent.Type = Hardware::MouseEvents::ScrollDown;
+							lpWindow->lastMouseEvent.Data.Type = Hardware::MouseEvents::ScrollDown;
 						}
 
-						lpWindow->OnMouseEvent(
+						lpWindow->OnMouseEvent.Execute(
 							lpWindow->lastMouseEvent
 						);
 					}
@@ -2220,10 +2430,11 @@ namespace AL::OS::Windows
 							True
 						);
 
-						lpWindow->lastMouseEvent.Type = Hardware::MouseEvents::ButtonDown;
-						lpWindow->lastMouseEvent.Button = Hardware::MouseButtons::Left;
+						lpWindow->lastMouseEvent.Handled = False;
+						lpWindow->lastMouseEvent.Data.Type = Hardware::MouseEvents::ButtonDown;
+						lpWindow->lastMouseEvent.Data.Button = Hardware::MouseButtons::Left;
 
-						lpWindow->OnMouseEvent(
+						lpWindow->OnMouseEvent.Execute(
 							lpWindow->lastMouseEvent
 						);
 					}
@@ -2240,10 +2451,11 @@ namespace AL::OS::Windows
 							False
 						);
 
-						lpWindow->lastMouseEvent.Type = Hardware::MouseEvents::ButtonUp;
-						lpWindow->lastMouseEvent.Button = Hardware::MouseButtons::Left;
+						lpWindow->lastMouseEvent.Handled = False;
+						lpWindow->lastMouseEvent.Data.Type = Hardware::MouseEvents::ButtonUp;
+						lpWindow->lastMouseEvent.Data.Button = Hardware::MouseButtons::Left;
 
-						lpWindow->OnMouseEvent(
+						lpWindow->OnMouseEvent.Execute(
 							lpWindow->lastMouseEvent
 						);
 					}
@@ -2262,10 +2474,11 @@ namespace AL::OS::Windows
 							True
 						);
 
-						lpWindow->lastMouseEvent.Type = Hardware::MouseEvents::ButtonDown;
-						lpWindow->lastMouseEvent.Button = Hardware::MouseButtons::Right;
+						lpWindow->lastMouseEvent.Handled = False;
+						lpWindow->lastMouseEvent.Data.Type = Hardware::MouseEvents::ButtonDown;
+						lpWindow->lastMouseEvent.Data.Button = Hardware::MouseButtons::Right;
 
-						lpWindow->OnMouseEvent(
+						lpWindow->OnMouseEvent.Execute(
 							lpWindow->lastMouseEvent
 						);
 					}
@@ -2282,10 +2495,11 @@ namespace AL::OS::Windows
 							False
 						);
 
-						lpWindow->lastMouseEvent.Type = Hardware::MouseEvents::ButtonUp;
-						lpWindow->lastMouseEvent.Button = Hardware::MouseButtons::Right;
+						lpWindow->lastMouseEvent.Handled = False;
+						lpWindow->lastMouseEvent.Data.Type = Hardware::MouseEvents::ButtonUp;
+						lpWindow->lastMouseEvent.Data.Button = Hardware::MouseButtons::Right;
 
-						lpWindow->OnMouseEvent(
+						lpWindow->OnMouseEvent.Execute(
 							lpWindow->lastMouseEvent
 						);
 					}
@@ -2304,10 +2518,11 @@ namespace AL::OS::Windows
 							True
 						);
 
-						lpWindow->lastMouseEvent.Type = Hardware::MouseEvents::ButtonDown;
-						lpWindow->lastMouseEvent.Button = Hardware::MouseButtons::Middle;
+						lpWindow->lastMouseEvent.Handled = False;
+						lpWindow->lastMouseEvent.Data.Type = Hardware::MouseEvents::ButtonDown;
+						lpWindow->lastMouseEvent.Data.Button = Hardware::MouseButtons::Middle;
 
-						lpWindow->OnMouseEvent(
+						lpWindow->OnMouseEvent.Execute(
 							lpWindow->lastMouseEvent
 						);
 					}
@@ -2324,10 +2539,11 @@ namespace AL::OS::Windows
 							False
 						);
 
-						lpWindow->lastMouseEvent.Type = Hardware::MouseEvents::ButtonUp;
-						lpWindow->lastMouseEvent.Button = Hardware::MouseButtons::Middle;
+						lpWindow->lastMouseEvent.Handled = False;
+						lpWindow->lastMouseEvent.Data.Type = Hardware::MouseEvents::ButtonUp;
+						lpWindow->lastMouseEvent.Data.Button = Hardware::MouseButtons::Middle;
 
-						lpWindow->OnMouseEvent(
+						lpWindow->OnMouseEvent.Execute(
 							lpWindow->lastMouseEvent
 						);
 					}
@@ -2350,10 +2566,11 @@ namespace AL::OS::Windows
 									True
 								);
 
-								lpWindow->lastMouseEvent.Type = Hardware::MouseEvents::ButtonDown;
-								lpWindow->lastMouseEvent.Button = Hardware::MouseButtons::X1;
+								lpWindow->lastMouseEvent.Handled = False;
+								lpWindow->lastMouseEvent.Data.Type = Hardware::MouseEvents::ButtonDown;
+								lpWindow->lastMouseEvent.Data.Button = Hardware::MouseButtons::X1;
 
-								lpWindow->OnMouseEvent(
+								lpWindow->OnMouseEvent.Execute(
 									lpWindow->lastMouseEvent
 								);
 							}
@@ -2366,10 +2583,11 @@ namespace AL::OS::Windows
 									True
 								);
 
-								lpWindow->lastMouseEvent.Type = Hardware::MouseEvents::ButtonDown;
-								lpWindow->lastMouseEvent.Button = Hardware::MouseButtons::X2;
+								lpWindow->lastMouseEvent.Handled = False;
+								lpWindow->lastMouseEvent.Data.Type = Hardware::MouseEvents::ButtonDown;
+								lpWindow->lastMouseEvent.Data.Button = Hardware::MouseButtons::X2;
 
-								lpWindow->OnMouseEvent(
+								lpWindow->OnMouseEvent.Execute(
 									lpWindow->lastMouseEvent
 								);
 							}
@@ -2393,10 +2611,11 @@ namespace AL::OS::Windows
 									False
 								);
 
-								lpWindow->lastMouseEvent.Type = Hardware::MouseEvents::ButtonUp;
-								lpWindow->lastMouseEvent.Button = Hardware::MouseButtons::X1;
+								lpWindow->lastMouseEvent.Handled = False;
+								lpWindow->lastMouseEvent.Data.Type = Hardware::MouseEvents::ButtonUp;
+								lpWindow->lastMouseEvent.Data.Button = Hardware::MouseButtons::X1;
 
-								lpWindow->OnMouseEvent(
+								lpWindow->OnMouseEvent.Execute(
 									lpWindow->lastMouseEvent
 								);
 							}
@@ -2409,10 +2628,11 @@ namespace AL::OS::Windows
 									False
 								);
 
-								lpWindow->lastMouseEvent.Type = Hardware::MouseEvents::ButtonUp;
-								lpWindow->lastMouseEvent.Button = Hardware::MouseButtons::X2;
+								lpWindow->lastMouseEvent.Handled = False;
+								lpWindow->lastMouseEvent.Data.Type = Hardware::MouseEvents::ButtonUp;
+								lpWindow->lastMouseEvent.Data.Button = Hardware::MouseButtons::X2;
 
-								lpWindow->OnMouseEvent(
+								lpWindow->OnMouseEvent.Execute(
 									lpWindow->lastMouseEvent
 								);
 							}
@@ -2427,7 +2647,7 @@ namespace AL::OS::Windows
 							hWND
 						);
 
-						lpWindow->OnPaint(
+						lpWindow->OnPaint.Execute(
 							device
 						);
 					}
@@ -2495,7 +2715,7 @@ namespace AL::OS::Windows
 						lpWindow->windowPosition.X = point.x;
 						lpWindow->windowPosition.Y = point.y;
 
-						lpWindow->OnPositionChanged(
+						lpWindow->OnPositionChanged.Execute(
 							point.x,
 							point.y
 						);
@@ -2528,7 +2748,7 @@ namespace AL::OS::Windows
 							HIWORD(lParam)
 						);
 
-						lpWindow->OnResolutionChanged(
+						lpWindow->OnResolutionChanged.Execute(
 							lpWindow->windowResolution.Width,
 							lpWindow->windowResolution.Height
 						);
@@ -2548,13 +2768,13 @@ namespace AL::OS::Windows
 							lpWindow->windowClass.hIcon   = hIcon;
 							lpWindow->windowClass.hIconSm = hIcon;
 
-							lpWindow->OnIconChanged(
+							lpWindow->OnIconChanged.Execute(
 								lpWindow->windowIcon
 							);
 						}
 						else if (--lpWindow->windowSetIconPendingCount == 0)
 						{
-							lpWindow->OnIconChanged(
+							lpWindow->OnIconChanged.Execute(
 								lpWindow->windowIcon
 							);
 						}
@@ -2582,7 +2802,7 @@ namespace AL::OS::Windows
 								reinterpret_cast<const String::Char*>(lParam)
 							);
 
-							if (!lpWindow->OnTitleChanging(title))
+							if (!lpWindow->OnTitleChanging.Execute(title))
 							{
 
 								return TRUE;
@@ -2593,7 +2813,7 @@ namespace AL::OS::Windows
 							);
 						}
 
-						lpWindow->OnTitleChanged(
+						lpWindow->OnTitleChanged.Execute(
 							lpWindow->GetTitle()
 						);
 					}
@@ -2604,7 +2824,7 @@ namespace AL::OS::Windows
 					{
 						lpWindow->isClosing = False;
 
-						lpWindow->OnClose();
+						lpWindow->OnClose.Execute();
 
 						::DestroyWindow(
 							lpWindow->GetHandle()

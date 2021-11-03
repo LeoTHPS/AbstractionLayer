@@ -109,7 +109,7 @@ namespace AL::Hardware
 
 	struct KeyboardEvent
 	{
-		KeyboardEvents Event;
+		KeyboardEvents Type;
 
 		union
 		{

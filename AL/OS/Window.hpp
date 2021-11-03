@@ -139,6 +139,45 @@ namespace AL::OS
 		}
 	};
 
+	struct WindowMouseEvent
+	{
+		Hardware::MouseEvent Data;
+		Bool                 Handled = False;
+	};
+
+	struct WindowKeyboardEvent
+	{
+		Hardware::KeyboardEvent Data;
+		Bool                    Handled = False;
+	};
+
+	// @throw AL::Exception
+	typedef EventHandler<Void()>                           WindowOnOpenEventHandler;
+
+	typedef EventHandler<Void()>                           WindowOnCloseEventHandler;
+
+	// @throw AL::Exception
+	typedef EventHandler<Void()>                           WindowOnCreateEventHandler;
+
+	typedef EventHandler<Void()>                           WindowOnDestroyEventHandler;
+
+	// @throw AL::Exception
+	typedef EventHandler<Void()>                           WindowOnLoadContentEventHandler;
+
+	typedef EventHandler<Void()>                           WindowOnUnloadContentEventHandler;
+
+	// @throw AL::Exception
+	typedef EventHandler<Void(WindowGraphics& graphics)>   WindowOnPaintEventHandler;
+
+	// @throw AL::Exception
+	typedef EventHandler<Void(TimeSpan delta)>             WindowOnUpdateEventHandler;
+
+	// @throw AL::Exception
+	typedef EventHandler<Void(WindowMouseEvent& event)>    WindowOnMouseEventEventHandler;
+
+	// @throw AL::Exception
+	typedef EventHandler<Void(WindowKeyboardEvent& event)> WindowOnKeyboardEventEventHandler;
+
 	class Window
 	{
 		class INativeWindow
@@ -242,65 +281,66 @@ namespace AL::OS
 		};
 #elif defined(AL_PLATFORM_WINDOWS)
 		class NativeWindow
-			: public INativeWindow,
-			public Windows::Window
+			: public INativeWindow
 		{
-			OS::Window* const lpWindow;
+			OS::Window* const   lpWindow;
+			OS::Windows::Window nativeWindow;
 
 		public:
 			NativeWindow(OS::Window& window, String&& name)
-				: Window(
-					Move(name)
-				),
-				lpWindow(
+				: lpWindow(
 					&window
+				),
+				nativeWindow(
+					Move(name)
 				)
 			{
+				RegisterEventHandlers();
 			}
 
 			virtual Bool Native_IsOpen() const override
 			{
-				return Window::IsOpen();
+				return nativeWindow.IsOpen();
 			}
 
 			virtual Bool Native_IsContentLoaded() const override
 			{
-				return Window::IsContentLoaded();
+				return nativeWindow.IsContentLoaded();
 			}
 
 			virtual ::HWND Native_GetHandle() const override
 			{
-				return Window::GetHandle();
+				return nativeWindow.GetHandle();
 			}
 
 			// @throw AL::Exception
 			virtual Void Native_Open() override
 			{
-				Window::Open();
+				nativeWindow.Open();
 			}
 
 			// @throw AL::Exception
 			virtual Void Native_Close() override
 			{
-				Window::Close();
+				nativeWindow.Close();
 			}
 
 			// @throw AL::Exception
 			virtual Void Native_LoadContent() override
 			{
-				Window::LoadContent();
+				nativeWindow.LoadContent();
 			}
 
 			virtual Void Native_UnloadContent() override
 			{
-				Window::UnloadContent();
+				nativeWindow.UnloadContent();
 			}
 
 			// @throw AL::Exception
 			// @return False on close
 			virtual Bool Native_Update(TimeSpan delta) override
 			{
-				if (!Window::Update(delta))
+				if (!nativeWindow.Update(delta))
 				{
 
 					return False;
@@ -309,84 +349,115 @@ namespace AL::OS
 				return True;
 			}
 
-		protected:
+		private: // Event Handlers
 			// @throw AL::Exception
-			virtual Void OnOpen() override
+			Void EventHandler_OnOpen()
 			{
-				Window::OnOpen();
-
-				lpWindow->OnOpen();
+				lpWindow->OnOpen.Execute();
 			}
 
-			virtual Void OnClose() override
+			Void EventHandler_OnClose()
 			{
-				lpWindow->OnClose();
-
-				Window::OnClose();
+				lpWindow->OnClose.Execute();
 			}
 
 			// @throw AL::Exception
-			virtual Void OnPaint(Windows::GDI::Device& device) override
+			Void EventHandler_OnCreate()
 			{
-				Window::OnPaint(
-					device
-				);
+				lpWindow->OnCreate.Execute();
+			}
 
+			Void EventHandler_OnDestroy()
+			{
+				lpWindow->OnDestroy.Execute();
+			}
+
+			// @throw AL::Exception
+			Void EventHandler_OnLoadContent()
+			{
+				lpWindow->OnLoadContent.Execute();
+			}
+
+			Void EventHandler_OnUnloadContent()
+			{
+				lpWindow->OnUnloadContent.Execute();
+			}
+
+			// @throw AL::Exception
+			Void EventHandler_OnPaint(Windows::GDI::Device& device)
+			{
 				WindowGraphics graphics(
 					Move(device)
 				);
 
-				lpWindow->OnPaint(
+				lpWindow->OnPaint.Execute(
 					graphics
 				);
 			}
 
 			// @throw AL::Exception
-			virtual Void OnUpdate(TimeSpan delta) override
+			Void EventHandler_OnUpdate(TimeSpan delta)
 			{
-				Window::OnUpdate(
-					delta
-				);
-
-				lpWindow->OnUpdate(
+				lpWindow->OnUpdate.Execute(
 					delta
 				);
 			}
 
 			// @throw AL::Exception
-			virtual Bool OnMouseEvent(const Hardware::MouseEvent& event) override
+			Void EventHandler_OnMouseEvent(Windows::WindowMouseEvent& event)
 			{
-				if (Window::OnMouseEvent(event))
+				WindowMouseEvent _event =
 				{
+					.Data    = event.Data,
+					.Handled = event.Handled
+				};
 
-					return True;
-				}
+				lpWindow->OnMouseEvent.Execute(
+					_event
+				);
 
-				if (lpWindow->OnMouseEvent(event))
-				{
-
-					return True;
-				}
-
-				return False;
+				event.Handled = _event.Handled;
 			}
 
 			// @throw AL::Exception
-			virtual Bool OnKeyboardEvent(const Hardware::KeyboardEvent& event) override
+			Void EventHandler_OnKeyboardEvent(Windows::WindowKeyboardEvent& event)
 			{
-				if (Window::OnKeyboardEvent(event))
+				WindowKeyboardEvent _event =
 				{
+					.Data    = event.Data,
+					.Handled = event.Handled
+				};
 
-					return True;
-				}
+				lpWindow->OnKeyboardEvent.Execute(
+					_event
+				);
 
-				if (lpWindow->OnKeyboardEvent(event))
-				{
+				event.Handled = _event.Handled;
+			}
 
-					return True;
-				}
+		private:
+			Void RegisterEventHandlers()
+			{
+				#define AL_OS_WINDOW_REGISTER_EVENT_HANDLER(__event__) \
+					nativeWindow.__event__.Register<EventPriorities::Highest>( \
+						Windows::Window##__event__##EventHandler( \
+							&NativeWindow::EventHandler_##__event__, \
+							*this \
+						) \
+					)
 
-				return False;
+				AL_OS_WINDOW_REGISTER_EVENT_HANDLER(OnOpen);
+				AL_OS_WINDOW_REGISTER_EVENT_HANDLER(OnClose);
+				AL_OS_WINDOW_REGISTER_EVENT_HANDLER(OnCreate);
+				AL_OS_WINDOW_REGISTER_EVENT_HANDLER(OnDestroy);
+				AL_OS_WINDOW_REGISTER_EVENT_HANDLER(OnLoadContent);
+				AL_OS_WINDOW_REGISTER_EVENT_HANDLER(OnUnloadContent);
+				AL_OS_WINDOW_REGISTER_EVENT_HANDLER(OnPaint);
+				AL_OS_WINDOW_REGISTER_EVENT_HANDLER(OnUpdate);
+				AL_OS_WINDOW_REGISTER_EVENT_HANDLER(OnMouseEvent);
+				AL_OS_WINDOW_REGISTER_EVENT_HANDLER(OnKeyboardEvent);
+
+				#undef AL_OS_WINDOW_REGISTER_EVENT_HANDLER
 			}
 		};
 #endif
@@ -397,6 +468,33 @@ namespace AL::OS
 		Window(const Window&) = delete;
 
 	public:
+		// @throw AL::Exception
+		Event<WindowOnOpenEventHandler>          OnOpen;
+
+		Event<WindowOnCloseEventHandler>         OnClose;
+
+		// @throw AL::Exception
+		Event<WindowOnCreateEventHandler>        OnCreate;
+
+		Event<WindowOnDestroyEventHandler>       OnDestroy;
+
+		// @throw AL::Exception
+		Event<WindowOnLoadContentEventHandler>   OnLoadContent;
+
+		Event<WindowOnUnloadContentEventHandler> OnUnloadContent;
+
+		// @throw AL::Exception
+		Event<WindowOnPaintEventHandler>         OnPaint;
+
+		// @throw AL::Exception
+		Event<WindowOnUpdateEventHandler>        OnUpdate;
+
+		// @throw AL::Exception
+		Event<WindowOnMouseEventEventHandler>    OnMouseEvent;
+
+		// @throw AL::Exception
+		Event<WindowOnKeyboardEventEventHandler> OnKeyboardEvent;
+
 		explicit Window(String&& name)
 			: lpNativeWindow(
 				new NativeWindow(
@@ -461,40 +559,6 @@ namespace AL::OS
 			}
 
 			return True;
-		}
-
-	protected:
-		// @throw AL::Exception
-		virtual Void OnOpen()
-		{
-		}
-
-		virtual Void OnClose()
-		{
-		}
-
-		// @throw AL::Exception
-		virtual Void OnPaint(WindowGraphics& graphics)
-		{
-		}
-
-		// @throw AL::Exception
-		virtual Void OnUpdate(TimeSpan delta)
-		{
-		}
-
-		// @throw AL::Exception
-		virtual Bool OnMouseEvent(const Hardware::MouseEvent& event)
-		{
-
-			return False;
-		}
-
-		// @throw AL::Exception
-		virtual Bool OnKeyboardEvent(const Hardware::KeyboardEvent& event)
-		{
-
-			return False;
 		}
 	};
 }
