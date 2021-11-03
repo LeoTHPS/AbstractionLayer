@@ -16,6 +16,9 @@ namespace AL::Drawing
 		Type X;
 
 		Vector()
+			: Vector(
+				Type()
+			)
 		{
 		}
 
@@ -76,6 +79,10 @@ namespace AL::Drawing
 		Type Y;
 
 		Vector()
+			: Vector(
+				Type(),
+				Type()
+			)
 		{
 		}
 
@@ -176,6 +183,11 @@ namespace AL::Drawing
 		Type Z;
 
 		Vector()
+			: Vector(
+				Type(),
+				Type(),
+				Type()
+			)
 		{
 		}
 
@@ -255,6 +267,12 @@ namespace AL::Drawing
 		Type R;
 
 		Vector()
+			: Vector(
+				Type(),
+				Type(),
+				Type(),
+				Type()
+			)
 		{
 		}
 

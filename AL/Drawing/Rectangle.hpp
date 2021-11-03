@@ -14,14 +14,18 @@ namespace AL::Drawing
 		Type Bottom;
 
 		Rectangle()
+			: Rectangle(
+				Type(),
+				Type()
+			)
 		{
 		}
 
 		Rectangle(Type width, Type height)
 			: Rectangle(
-				Type(0),
+				Type(),
 				width,
-				Type(0),
+				Type(),
 				height
 			)
 		{

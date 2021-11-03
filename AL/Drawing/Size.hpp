@@ -12,6 +12,10 @@ namespace AL::Drawing
 		Type Height;
 
 		Size()
+			: Size(
+				Type(),
+				Type()
+			)
 		{
 		}
 
