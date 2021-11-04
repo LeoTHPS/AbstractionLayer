@@ -16,64 +16,94 @@
 #if __has_include(<d3d11_4.h>)
 	#include <d3d11_4.h>
 
+	#define AL_DEPENDENCY_DIRECT3D
+	#define AL_DEPENDENCY_DIRECT3D_11
 	#define AL_DEPENDENCY_DIRECT3D_11_4
 
-	#define AL_DEPENDENCY_DIRECT3D_11_VERSION 11.4
+	#define AL_DEPENDENCY_DIRECT3D_VERSION 11.4
 #elif __has_include(<d3d11_3.h>)
 	#include <d3d11_3.h>
 
+	#define AL_DEPENDENCY_DIRECT3D
+	#define AL_DEPENDENCY_DIRECT3D_11
 	#define AL_DEPENDENCY_DIRECT3D_11_3
 
-	#define AL_DEPENDENCY_DIRECT3D_11_VERSION 11.3
+	#define AL_DEPENDENCY_DIRECT3D_VERSION 11.3
 #elif __has_include(<d3d11_2.h>)
 	#include <d3d11_2.h>
 
+	#define AL_DEPENDENCY_DIRECT3D
+	#define AL_DEPENDENCY_DIRECT3D_11
 	#define AL_DEPENDENCY_DIRECT3D_11_2
 
-	#define AL_DEPENDENCY_DIRECT3D_11_VERSION 11.2
+	#define AL_DEPENDENCY_DIRECT3D_VERSION 11.2
 #elif __has_include(<d3d11_1.h>)
 	#include <d3d11_1.h>
 
+	#define AL_DEPENDENCY_DIRECT3D
+	#define AL_DEPENDENCY_DIRECT3D_11
 	#define AL_DEPENDENCY_DIRECT3D_11_1
 
-	#define AL_DEPENDENCY_DIRECT3D_11_VERSION 11.1
+	#define AL_DEPENDENCY_DIRECT3D_VERSION 11.1
 #elif __has_include(<d3d11.h>)
 	#include <d3d11.h>
 
+	#define AL_DEPENDENCY_DIRECT3D
 	#define AL_DEPENDENCY_DIRECT3D_11
 
-	#define AL_DEPENDENCY_DIRECT3D_11_VERSION 11.0
+	#define AL_DEPENDENCY_DIRECT3D_VERSION 11.0
+#else
+	typedef void ID3D11Device;
+	typedef void ID3D11DeviceContext;
+
+	typedef void IDXGISwapChain;
+	typedef void ID3D11RenderTargetView;
 #endif
 
 #if defined(AL_COMPILER_MSVC)
-	#pragma comment(lib, "d3d11.lib")
-	#pragma comment(lib, "dxguid.lib")
+	#if defined(AL_DEPENDENCY_DIRECT3D_11)
+		#pragma comment(lib, "d3d11.lib")
+		#pragma comment(lib, "dxguid.lib")
+	#endif
 #endif
 
 namespace AL::OS::Windows::DirectX
 {
-	enum class AntiAliasing : uint32
+	enum class AntiAliasing : uint8
 	{
-		None     = 0,
-		Center   = D3D11_CENTER_MULTISAMPLE_PATTERN,
-		Standard = D3D11_STANDARD_MULTISAMPLE_PATTERN
+		None,
+
+		// D3D11_CENTER_MULTISAMPLE_PATTERN
+		Center,
+
+		// D3D11_STANDARD_MULTISAMPLE_PATTERN
+		Standard
 	};
 
 	// https://docs.microsoft.com/en-us/windows/desktop/direct3d11/overviews-direct3d-11-devices-downlevel-intro
-	enum class FeatureLevels : uint16
+	enum class FeatureLevels : uint8
 	{
-		DX9_1  = D3D_FEATURE_LEVEL_9_1,
-		DX9_2  = D3D_FEATURE_LEVEL_9_2,
-		DX9_3  = D3D_FEATURE_LEVEL_9_3,
+		// D3D_FEATURE_LEVEL_9_1
+		DX9_1,
+		// D3D_FEATURE_LEVEL_9_2
+		DX9_2,
+		// D3D_FEATURE_LEVEL_9_3
+		DX9_3,
 
-		DX10   = D3D_FEATURE_LEVEL_10_0,
-		DX10_1 = D3D_FEATURE_LEVEL_10_1,
+		// D3D_FEATURE_LEVEL_10_0
+		DX10,
+		// D3D_FEATURE_LEVEL_10_1
+		DX10_1,
 
-		DX11   = D3D_FEATURE_LEVEL_11_0,
-		DX11_1 = D3D_FEATURE_LEVEL_11_1,
+		// D3D_FEATURE_LEVEL_11_0
+		DX11,
+		// D3D_FEATURE_LEVEL_11_1
+		DX11_1,
 
-		DX12   = D3D_FEATURE_LEVEL_12_0,
-		DX12_1 = D3D_FEATURE_LEVEL_12_1
+		// D3D_FEATURE_LEVEL_12_0
+		DX12,
+		// D3D_FEATURE_LEVEL_12_1
+		DX12_1
 	};
 
 	template<typename T, typename TReleaser = ResourceReleaser<T>>
@@ -81,18 +111,17 @@ namespace AL::OS::Windows::DirectX
 
 	class Direct3D
 	{
-		typedef Direct3D11Resource<ID3D11Device> Device;
-		typedef Direct3D11Resource<ID3D11DeviceContext> DeviceContext;
+		typedef Direct3D11Resource<ID3D11Device>           Device;
+		typedef Direct3D11Resource<ID3D11DeviceContext>    DeviceContext;
 
+		typedef Direct3D11Resource<IDXGISwapChain>         SwapChain;
 		typedef Direct3D11Resource<ID3D11RenderTargetView> TargetView;
 
-		typedef Direct3D11Resource<IDXGISwapChain> SwapChain;
-
-		Device device;
-		SwapChain swapChain;
+		Device        device;
+		SwapChain     swapChain;
 		DeviceContext deviceContext;
 
-		TargetView targetView;
+		TargetView    targetView;
 
 		Direct3D(Direct3D&&) = delete;
 		Direct3D(const Direct3D&) = delete;
@@ -153,6 +182,7 @@ namespace AL::OS::Windows::DirectX
 				"Direct3D target already created"
 			);
 
+#if defined(AL_DEPENDENCY_DIRECT3D_11)
 			if (FAILED(GetSwapChain()->ResizeBuffers(0, static_cast<::UINT>(width), static_cast<::UINT>(height), ::DXGI_FORMAT_UNKNOWN, 0)))
 			{
 
@@ -160,6 +190,9 @@ namespace AL::OS::Windows::DirectX
 					"Error resizing swap chain buffer(s)"
 				);
 			}
+#else
+			throw NotImplementedException();
+#endif
 		}
 
 		// @throw AL::Exception
@@ -170,6 +203,7 @@ namespace AL::OS::Windows::DirectX
 				"Direct3D already created"
 			);
 
+#if defined(AL_DEPENDENCY_DIRECT3D_11)
 			BitMask<::UINT> flags;
 			flags.Add(::D3D11_CREATE_DEVICE_BGRA_SUPPORT);
 			flags.Set(::D3D11_CREATE_DEVICE_SINGLETHREADED, !multithreaded);
@@ -179,10 +213,49 @@ namespace AL::OS::Windows::DirectX
 			//flags.Add(D3D11_CREATE_DEVICE_DEBUGGABLE);
 #endif
 
-			::D3D_FEATURE_LEVEL featureLevels[1] =
+			::D3D_FEATURE_LEVEL _featureLevel;
+
+			switch (featureLevel)
 			{
-				static_cast<::D3D_FEATURE_LEVEL>(featureLevel)
-			};
+				case FeatureLevels::DX9_1:
+					_featureLevel = ::D3D_FEATURE_LEVEL_9_1;
+					break;
+
+				case FeatureLevels::DX9_2:
+					_featureLevel = ::D3D_FEATURE_LEVEL_9_2;
+					break;
+
+				case FeatureLevels::DX9_3:
+					_featureLevel = ::D3D_FEATURE_LEVEL_9_3;
+					break;
+
+				case FeatureLevels::DX10:
+					_featureLevel = ::D3D_FEATURE_LEVEL_10_0;
+					break;
+
+				case FeatureLevels::DX10_1:
+					_featureLevel = ::D3D_FEATURE_LEVEL_10_1;
+					break;
+
+				case FeatureLevels::DX11:
+					_featureLevel = ::D3D_FEATURE_LEVEL_11_0;
+					break;
+
+				case FeatureLevels::DX11_1:
+					_featureLevel = ::D3D_FEATURE_LEVEL_11_1;
+					break;
+
+				case FeatureLevels::DX12:
+					_featureLevel = ::D3D_FEATURE_LEVEL_12_0;
+					break;
+
+				case FeatureLevels::DX12_1:
+					_featureLevel = ::D3D_FEATURE_LEVEL_12_1;
+					break;
+
+				default:
+					throw NotImplementedException();
+			}
 
 			msaaLevel = Math::Clamp<uint32>(
 				msaaLevel,
@@ -190,45 +263,48 @@ namespace AL::OS::Windows::DirectX
 				D3D11_MAX_MULTISAMPLE_SAMPLE_COUNT
 			);
 
-			::DXGI_SWAP_CHAIN_DESC description;
-			ZeroMemory(&description, sizeof(::DXGI_SWAP_CHAIN_DESC));
-
-			description.BufferDesc.Width = 0;
-			description.BufferDesc.Height = 0;
-			description.BufferDesc.Format = ::DXGI_FORMAT_B8G8R8A8_UNORM;
-			description.BufferDesc.Scaling = ::DXGI_MODE_SCALING_UNSPECIFIED;
-			description.BufferDesc.ScanlineOrdering = ::DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-			description.BufferDesc.RefreshRate.Numerator = 0;
+			::DXGI_SWAP_CHAIN_DESC description = { 0 };
+			description.BufferDesc.Width                   = 0;
+			description.BufferDesc.Height                  = 0;
+			description.BufferDesc.Format                  = ::DXGI_FORMAT_B8G8R8A8_UNORM;
+			description.BufferDesc.Scaling                 = ::DXGI_MODE_SCALING_UNSPECIFIED;
+			description.BufferDesc.ScanlineOrdering        = ::DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+			description.BufferDesc.RefreshRate.Numerator   = 0;
 			description.BufferDesc.RefreshRate.Denominator = 1;
+			description.SampleDesc.Count                   = static_cast<::UINT>(
+				msaaLevel
+			);
 
-			description.SampleDesc.Count = static_cast<::UINT>(msaaLevel);
-			description.SampleDesc.Quality = static_cast<::UINT>(antiAliasing);
+			switch (antiAliasing)
+			{
+				case AntiAliasing::None:
+					description.SampleDesc.Quality = 0;
+					break;
 
-			//description.Flags = ::DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-			description.Windowed = TRUE;
-			description.BufferCount = 1;
-			description.SwapEffect = ::DXGI_SWAP_EFFECT_DISCARD;
+				case AntiAliasing::Center:
+					description.SampleDesc.Quality = ::D3D11_CENTER_MULTISAMPLE_PATTERN;
+					break;
+
+				case AntiAliasing::Standard:
+					description.SampleDesc.Quality = ::D3D11_STANDARD_MULTISAMPLE_PATTERN;
+					break;
+
+				default:
+					throw NotImplementedException();
+			}
+
+			//description.Flags        = ::DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+			description.Windowed     = TRUE;
+			description.BufferCount  = 1;
+			description.SwapEffect   = ::DXGI_SWAP_EFFECT_DISCARD;
 			description.OutputWindow = hWnd;
-			description.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+			description.BufferUsage  = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 
-			typename Device::Type* lpDevice;
-			typename SwapChain::Type* lpSwapChain;
+			typename Device::Type*        lpDevice;
+			typename SwapChain::Type*     lpSwapChain;
 			typename DeviceContext::Type* lpDeviceContext;
 
-			if (FAILED(D3D11CreateDeviceAndSwapChain(
-				nullptr, // default adapter
-				::D3D_DRIVER_TYPE_HARDWARE,
-				nullptr,
-				flags.Value,
-				&featureLevels[0],
-				sizeof(featureLevels) / sizeof(::D3D_FEATURE_LEVEL),
-				D3D11_SDK_VERSION,
-				&description,
-				&lpSwapChain,
-				&lpDevice,
-				nullptr,
-				&lpDeviceContext
-			)))
+			if (FAILED(::D3D11CreateDeviceAndSwapChain(nullptr /*default adapter*/, ::D3D_DRIVER_TYPE_HARDWARE, nullptr, flags.Value, &_featureLevel, 1, D3D11_SDK_VERSION, &description, &lpSwapChain, &lpDevice, nullptr, &lpDeviceContext)))
 			{
 
 				throw Exception(
@@ -299,9 +375,14 @@ namespace AL::OS::Windows::DirectX
 			lpDXGIAdapter->Release();
 			lpDXGIDevice->Release();
 
-			device = lpDevice;
-			swapChain = lpSwapChain;
+			device        = lpDevice;
+			swapChain     = lpSwapChain;
 			deviceContext = lpDeviceContext;
+#else
+			throw DependencyMissingException(
+				"Direct3D"
+			);
+#endif
 		}
 
 		Void Destroy()
@@ -329,6 +410,7 @@ namespace AL::OS::Windows::DirectX
 				"Direct3D target already created"
 			);
 
+#if defined(AL_DEPENDENCY_DIRECT3D_11)
 			::ID3D11Texture2D* lpTexture;
 
 			if (FAILED(GetSwapChain()->GetBuffer(0, IID_PPV_ARGS(&lpTexture))))
@@ -359,17 +441,22 @@ namespace AL::OS::Windows::DirectX
 			);
 
 			targetView = lpTargetView;
+#else
+			throw NotImplementedException();
+#endif
 		}
 
 		Void DestroyTarget()
 		{
 			if (IsTargetCreated())
 			{
+#if defined(AL_DEPENDENCY_DIRECT3D_11)
 				GetDeviceContext()->OMSetRenderTargets(
 					0,
 					nullptr,
 					nullptr
 				);
+#endif
 
 				targetView.Release();
 			}
@@ -387,6 +474,7 @@ namespace AL::OS::Windows::DirectX
 				"Direct3D target not created"
 			);
 
+#if defined(AL_DEPENDENCY_DIRECT3D_11)
 			::FLOAT rgba[4];
 			rgba[0] = color.R / 255.0f;
 			rgba[1] = color.G / 255.0f;
@@ -397,6 +485,7 @@ namespace AL::OS::Windows::DirectX
 				GetTargetView(),
 				rgba
 			);
+#endif
 		}
 
 		// @throw AL::Exception
@@ -412,6 +501,7 @@ namespace AL::OS::Windows::DirectX
 				"Direct3D target not created"
 			);
 
+#if defined(AL_DEPENDENCY_DIRECT3D_11)
 			auto hResult = GetSwapChain()->Present(
 				vsync ? 1 : 0,
 				0
@@ -424,6 +514,9 @@ namespace AL::OS::Windows::DirectX
 					"Error presenting swap chain"
 				);
 			}
+#else
+			throw NotImplementedException();
+#endif
 		}
 	};
 }
