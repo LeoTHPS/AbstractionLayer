@@ -476,6 +476,8 @@ namespace AL
 	template<typename F, size_t I>
 	using Get_Function_Arg_Type = Get_Type_Sequence<I, typename Get_Function_Traits<F>::Arguments>;
 
+	typedef uint32 TypeHash;
+
 	template<typename T>
 	struct Type
 	{
@@ -496,9 +498,9 @@ namespace AL
 		}();
 #endif
 
-		inline static const uint32 Hash = []()
+		inline static const TypeHash Hash = []()
 		{
-			uint32 hash = 0x811C9DC5;
+			TypeHash hash = 0x811C9DC5;
 
 			for (auto lpName = Name; *lpName != 0; ++lpName)
 			{
