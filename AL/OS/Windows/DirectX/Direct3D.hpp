@@ -210,7 +210,7 @@ namespace AL::OS::Windows::DirectX
 
 #if defined(AL_DEBUG)
 			flags.Add(::D3D11_CREATE_DEVICE_DEBUG);
-			//flags.Add(D3D11_CREATE_DEVICE_DEBUGGABLE);
+			//flags.Add(::D3D11_CREATE_DEVICE_DEBUGGABLE);
 #endif
 
 			::D3D_FEATURE_LEVEL _featureLevel;
@@ -293,18 +293,18 @@ namespace AL::OS::Windows::DirectX
 					throw NotImplementedException();
 			}
 
-			//description.Flags        = ::DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+			//description.Flags        |= ::DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 			description.Windowed     = TRUE;
-			description.BufferCount  = 1;
 			description.SwapEffect   = ::DXGI_SWAP_EFFECT_DISCARD;
-			description.OutputWindow = hWnd;
+			description.BufferCount  = 1;
 			description.BufferUsage  = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+			description.OutputWindow = hWnd;
 
 			typename Device::Type*        lpDevice;
 			typename SwapChain::Type*     lpSwapChain;
 			typename DeviceContext::Type* lpDeviceContext;
 
-			if (FAILED(::D3D11CreateDeviceAndSwapChain(nullptr /*default adapter*/, ::D3D_DRIVER_TYPE_HARDWARE, nullptr, flags.Value, &_featureLevel, 1, D3D11_SDK_VERSION, &description, &lpSwapChain, &lpDevice, nullptr, &lpDeviceContext)))
+			if (FAILED(::D3D11CreateDeviceAndSwapChain(nullptr, ::D3D_DRIVER_TYPE_HARDWARE, nullptr, flags.Value, &_featureLevel, 1, D3D11_SDK_VERSION, &description, &lpSwapChain, &lpDevice, nullptr, &lpDeviceContext)))
 			{
 
 				throw Exception(
