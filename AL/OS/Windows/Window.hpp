@@ -1614,8 +1614,6 @@ namespace AL::OS::Windows
 				{
 					isOpen = False;
 
-					Destroy();
-
 					return False;
 				}
 
@@ -1830,7 +1828,7 @@ namespace AL::OS::Windows
 		Bool EventHandler_OnClosing()
 		{
 
-			return False;
+			return True;
 		}
 
 		Void EventHandler_OnClose()
@@ -2819,18 +2817,22 @@ namespace AL::OS::Windows
 					}
 					break;
 
-					// TODO: handle like WM_SETTEXT
 					case WM_CLOSE:
 					{
 						lpWindow->isClosing = False;
 
-						lpWindow->OnClose.Execute();
+						if (lpWindow->OnClosing.Execute())
+						{
+							lpWindow->Destroy();
 
-						::DestroyWindow(
-							lpWindow->GetHandle()
-						);
+							lpWindow->OnClose.Execute();
+
+							::DestroyWindow(
+								lpWindow->GetHandle()
+							);
+						}
 					}
-					break;
+					return 0;
 
 					case WM_DESTROY:
 						PostQuitMessage(0);
