@@ -561,7 +561,7 @@ namespace AL::Hardware::Drivers
 					static_cast<size_t>(gainCount)
 				);
 
-				for (size_t i = 0; i < gainCount; ++i)
+				for (size_t i = 0; i < gains.GetCapacity(); ++i)
 				{
 					gains[i] = lpGains[i];
 				}
