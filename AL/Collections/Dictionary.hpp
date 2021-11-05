@@ -134,7 +134,7 @@ namespace AL::Collections
 						value
 					);
 					
-					break;
+					return;
 				}
 
 				if (it->Key > key)
@@ -148,9 +148,17 @@ namespace AL::Collections
 						}
 					);
 
-					break;
+					return;
 				}
 			}
+
+			container.PushBack(
+				KeyValuePair<Key, Value>
+				{
+					Move(key),
+					Move(value)
+				}
+			);
 		}
 		Void Add(const Key& key, Value&& value)
 		{
