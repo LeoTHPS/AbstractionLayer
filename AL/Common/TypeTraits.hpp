@@ -513,8 +513,11 @@ namespace AL
 		static constexpr size_t    Size = sizeof(T);
 	};
 
+	template<typename T, typename T_BASE>
+	struct _Integer;
+
 	template<typename T>
-	struct Integer;
+	using Integer = _Integer<T, typename Get_Enum_Or_Integer_Base<T>::Type>;
 
 	template<typename T>
 	struct Enum
@@ -528,194 +531,194 @@ namespace AL
 		typedef typename Get_Enum_Or_Integer_Base<T>::Type BaseType;
 	};
 
-	template<typename T>
+	template<typename T, typename T_BASE>
 	struct _Decimal;
-	template<>
-	struct _Decimal<Float>
+	template<typename T>
+	struct _Decimal<T, Float>
 	{
 		static constexpr Bool IsSigned   = Is_Signed<Float>::Value;
 		static constexpr Bool IsUnsigned = Is_Unsigned<Float>::Value;
 
-		static constexpr Float Minimum = FLT_MIN;
-		static constexpr Float Maximum = FLT_MAX;
+		static constexpr T Minimum = FLT_MIN;
+		static constexpr T Maximum = FLT_MAX;
 	};
-	template<>
-	struct _Decimal<Double>
+	template<typename T>
+	struct _Decimal<T, Double>
 	{
 		static constexpr Bool IsSigned   = Is_Signed<Double>::Value;
 		static constexpr Bool IsUnsigned = Is_Unsigned<Double>::Value;
 
-		static constexpr Double Minimum = DBL_MIN;
-		static constexpr Double Maximum = DBL_MAX;
+		static constexpr T Minimum = DBL_MIN;
+		static constexpr T Maximum = DBL_MAX;
 	};
 
 	template<typename T>
-	using Decimal = _Decimal<typename Get_Decimal_Base<T>::Type>;
+	using Decimal = _Decimal<T, typename Get_Decimal_Base<T>::Type>;
 
-	template<>
-	struct Integer<int8>
+	template<typename T>
+	struct _Integer<T, int8>
 	{
-		static constexpr Bool IsSigned   = True;
-		static constexpr Bool IsUnsigned = False;
+		static constexpr Bool IsSigned         = True;
+		static constexpr Bool IsUnsigned       = False;
 
-		static constexpr int8 Minimum = int8(-0x7F);
-		static constexpr int8 Maximum = int8(0x7F);
+		static constexpr T    Minimum          = T(-0x7F);
+		static constexpr T    Maximum          = T(0x7F);
 
-		static constexpr int8 SignedCastMask   = int8(0x7F);
-		static constexpr int8 UnsignedCastMask = int8(0xFF);
+		static constexpr T    SignedCastMask   = T(0x7F);
+		static constexpr T    UnsignedCastMask = T(0xFF);
 
-		int8 Value;
+		T                     Value;
 	};
-	template<>
-	struct Integer<uint8>
+	template<typename T>
+	struct _Integer<T, uint8>
 	{
-		static constexpr Bool IsSigned   = False;
-		static constexpr Bool IsUnsigned = True;
+		static constexpr Bool IsSigned         = False;
+		static constexpr Bool IsUnsigned       = True;
 
-		static constexpr uint8 Minimum = uint8(0x0);
-		static constexpr uint8 Maximum = uint8(0xFF);
+		static constexpr T    Minimum          = uint8(0x0);
+		static constexpr T    Maximum          = uint8(0xFF);
 
-		static constexpr uint8 SignedCastMask   = uint8(0x7F);
-		static constexpr uint8 UnsignedCastMask = uint8(0xFF);
+		static constexpr T    SignedCastMask   = T(0x7F);
+		static constexpr T    UnsignedCastMask = T(0xFF);
 
-		uint8 Value;
+		T                     Value;
 	};
-	template<>
-	struct Integer<int16>
+	template<typename T>
+	struct _Integer<T, int16>
 	{
-		static constexpr Bool IsSigned   = True;
-		static constexpr Bool IsUnsigned = False;
+		static constexpr Bool IsSigned         = True;
+		static constexpr Bool IsUnsigned       = False;
 
-		static constexpr int16 Minimum = int16(-0x7FFF);
-		static constexpr int16 Maximum = int16(0x7FFF);
+		static constexpr T    Minimum          = T(-0x7FFF);
+		static constexpr T    Maximum          = T(0x7FFF);
 
-		static constexpr int16 SignedCastMask   = int16(0x7FFF);
-		static constexpr int16 UnsignedCastMask = int16(0xFFFF);
+		static constexpr T    SignedCastMask   = T(0x7FFF);
+		static constexpr T    UnsignedCastMask = T(0xFFFF);
 
 		union
 		{
 			struct
 			{
-				Integer<int8> Low;
-				Integer<int8> High;
+				_Integer<uint8, uint8> Low;
+				_Integer<uint8, uint8> High;
 			};
 
-			int16 Value;
+			T Value;
 		};
 	};
-	template<>
-	struct Integer<uint16>
+	template<typename T>
+	struct _Integer<T, uint16>
 	{
-		static constexpr Bool IsSigned   = False;
-		static constexpr Bool IsUnsigned = True;
+		static constexpr Bool IsSigned         = False;
+		static constexpr Bool IsUnsigned       = True;
 
-		static constexpr uint16 Minimum = uint16(0x0);
-		static constexpr uint16 Maximum = uint16(0xFFFF);
+		static constexpr T    Minimum          = T(0x0);
+		static constexpr T    Maximum          = T(0xFFFF);
 
-		static constexpr uint16 SignedCastMask   = uint16(0x7FFF);
-		static constexpr uint16 UnsignedCastMask = uint16(0xFFFF);
+		static constexpr T    SignedCastMask   = T(0x7FFF);
+		static constexpr T    UnsignedCastMask = T(0xFFFF);
 
 		union
 		{
 			struct
 			{
-				Integer<uint8> Low;
-				Integer<uint8> High;
+				_Integer<uint8, uint8> Low;
+				_Integer<uint8, uint8> High;
 			};
 
-			uint16 Value;
+			T Value;
 		};
 	};
-	template<>
-	struct Integer<int32>
+	template<typename T>
+	struct _Integer<T, int32>
 	{
-		static constexpr Bool IsSigned   = True;
-		static constexpr Bool IsUnsigned = False;
+		static constexpr Bool IsSigned         = True;
+		static constexpr Bool IsUnsigned       = False;
 
-		static constexpr int32 Minimum = int32(-0x7FFFFFFF);
-		static constexpr int32 Maximum = int32(0x7FFFFFFF);
+		static constexpr T    Minimum          = T(-0x7FFFFFFF);
+		static constexpr T    Maximum          = T(0x7FFFFFFF);
 
-		static constexpr int32 SignedCastMask   = int32(0x7FFFFFFF);
-		static constexpr int32 UnsignedCastMask = int32(0xFFFFFFFF);
+		static constexpr T    SignedCastMask   = T(0x7FFFFFFF);
+		static constexpr T    UnsignedCastMask = T(0xFFFFFFFF);
 
 		union
 		{
 			struct
 			{
-				Integer<int16> Low;
-				Integer<int16> High;
+				_Integer<uint16, uint16> Low;
+				_Integer<uint16, uint16> High;
 			};
 
-			int32 Value;
+			T Value;
 		};
 	};
-	template<>
-	struct Integer<uint32>
+	template<typename T>
+	struct _Integer<T, uint32>
 	{
-		static constexpr Bool IsSigned   = False;
-		static constexpr Bool IsUnsigned = True;
+		static constexpr Bool IsSigned         = False;
+		static constexpr Bool IsUnsigned       = True;
 
-		static constexpr uint32 Minimum = uint32(0x0);
-		static constexpr uint32 Maximum = uint32(0xFFFFFFFF);
+		static constexpr T    Minimum          = T(0x0);
+		static constexpr T    Maximum          = T(0xFFFFFFFF);
 
-		static constexpr uint32 SignedCastMask   = uint32(0x7FFFFFFF);
-		static constexpr uint32 UnsignedCastMask = uint32(0xFFFFFFFF);
+		static constexpr T    SignedCastMask   = T(0x7FFFFFFF);
+		static constexpr T    UnsignedCastMask = T(0xFFFFFFFF);
 
 		union
 		{
 			struct
 			{
-				Integer<uint16> Low;
-				Integer<uint16> High;
+				_Integer<uint16, uint16> Low;
+				_Integer<uint16, uint16> High;
 			};
 
-			uint32 Value;
+			T Value;
 		};
 	};
-	template<>
-	struct Integer<int64>
+	template<typename T>
+	struct _Integer<T, int64>
 	{
-		static constexpr Bool IsSigned   = True;
-		static constexpr Bool IsUnsigned = False;
+		static constexpr Bool IsSigned         = True;
+		static constexpr Bool IsUnsigned       = False;
 
-		static constexpr int64 Minimum = int64(-0x7FFFFFFFFFFFFFFF);
-		static constexpr int64 Maximum = int64(0x7FFFFFFFFFFFFFFF);
+		static constexpr T    Minimum          = T(-0x7FFFFFFFFFFFFFFF);
+		static constexpr T    Maximum          = T(0x7FFFFFFFFFFFFFFF);
 
-		static constexpr int64 SignedCastMask   = int64(0x7FFFFFFFFFFFFFFF);
-		static constexpr int64 UnsignedCastMask = int64(0xFFFFFFFFFFFFFFFF);
+		static constexpr T    SignedCastMask   = T(0x7FFFFFFFFFFFFFFF);
+		static constexpr T    UnsignedCastMask = T(0xFFFFFFFFFFFFFFFF);
 
 		union
 		{
 			struct
 			{
-				Integer<int32> Low;
-				Integer<int32> High;
+				_Integer<uint32, uint32> Low;
+				_Integer<uint32, uint32> High;
 			};
 
-			int64 Value;
+			T Value;
 		};
 	};
-	template<>
-	struct Integer<uint64>
+	template<typename T>
+	struct _Integer<T, uint64>
 	{
-		static constexpr Bool IsSigned   = False;
-		static constexpr Bool IsUnsigned = True;
+		static constexpr Bool IsSigned         = False;
+		static constexpr Bool IsUnsigned       = True;
 
-		static constexpr uint64 Minimum = uint64(0x0);
-		static constexpr uint64 Maximum = uint64(0xFFFFFFFFFFFFFFFF);
+		static constexpr T    Minimum          = T(0x0);
+		static constexpr T    Maximum          = T(0xFFFFFFFFFFFFFFFF);
 
-		static constexpr uint64 SignedCastMask   = uint64(0x7FFFFFFFFFFFFFFF);
-		static constexpr uint64 UnsignedCastMask = uint64(0xFFFFFFFFFFFFFFFF);
+		static constexpr T    SignedCastMask   = T(0x7FFFFFFFFFFFFFFF);
+		static constexpr T    UnsignedCastMask = T(0xFFFFFFFFFFFFFFFF);
 
 		union
 		{
 			struct
 			{
-				Integer<uint32> Low;
-				Integer<uint32> High;
+				_Integer<uint32, uint32> Low;
+				_Integer<uint32, uint32> High;
 			};
 
-			uint64 Value;
+			T Value;
 		};
 	};
 
