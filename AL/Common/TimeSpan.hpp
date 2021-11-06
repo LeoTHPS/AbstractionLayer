@@ -8,6 +8,7 @@ namespace AL
 		uint64 value;
 
 	public:
+		static constexpr uint64 Zero     = 0;
 		static constexpr uint64 Infinite = 0x3E7FFFFFC18;
 
 		static TimeSpan FromMicroseconds(uint64 value)
