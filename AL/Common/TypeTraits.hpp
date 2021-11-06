@@ -599,7 +599,7 @@ namespace AL
 		{
 			struct
 			{
-				_Integer<uint8, uint8> Low;
+				_Integer<int8, int8>   Low;
 				_Integer<uint8, uint8> High;
 			};
 
@@ -645,7 +645,7 @@ namespace AL
 		{
 			struct
 			{
-				_Integer<uint16, uint16> Low;
+				_Integer<int16, int16>   Low;
 				_Integer<uint16, uint16> High;
 			};
 
@@ -691,7 +691,7 @@ namespace AL
 		{
 			struct
 			{
-				_Integer<uint32, uint32> Low;
+				_Integer<int32, int32>   Low;
 				_Integer<uint32, uint32> High;
 			};
 
