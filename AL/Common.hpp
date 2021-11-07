@@ -189,13 +189,15 @@
 
 #include "Common/Regex.hpp"
 
-#include "Common/Function.hpp"
-#include "Common/Event.hpp"
-
 #include "Common/DateTime.hpp"
 #include "Common/Time.hpp"
 #include "Common/TimeSpan.hpp"
 #include "Common/Timestamp.hpp"
+
+#include "Common/Function.hpp"
+
+#include "Common/Event.hpp"
+#include "Common/ScheduledEvent.hpp"
 
 #include "Common/BaseConverter.hpp"
 #include "Common/HexConverter.hpp"
