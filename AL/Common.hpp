@@ -120,7 +120,7 @@
 		#define AL_ASSERT(__condition__, __message__) _GLIBCXX_DEBUG_ASSERT((__condition__))
 	#endif
 #else
-	#define AL_ASSERT(__condition__, __message__)     ((void)(__condition__))
+	#define AL_ASSERT(__condition__, __message__)     ((void)0)
 #endif
 
 #if defined(AL_COMPILER_GNU)
