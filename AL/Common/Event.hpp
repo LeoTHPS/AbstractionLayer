@@ -78,10 +78,10 @@ namespace AL
 		}
 
 		template<typename F>
-		Void Register(F&& handler)
+		Void Register(F&& function)
 		{
 			Register<EventPriorities::Standard, F>(
-				Move(handler)
+				Move(function)
 			);
 		}
 		Void Register(Handler&& handler)
@@ -120,12 +120,12 @@ namespace AL
 		}
 
 		template<EventPriorities PRIORITY, typename F>
-		Void Register(F&& handler)
+		Void Register(F&& function)
 		{
 			_HandlerContext context =
 			{
 				.Type       = _HandlerTypes::Lambda,
-				.Handler    = _Handler(Move(handler)),
+				.Handler    = _Handler(Move(function)),
 				.LambdaHash = Type<F>::Hash
 			};
 
@@ -206,31 +206,31 @@ namespace AL
 		template<typename F>
 		Bool Unregister(const F& function)
 		{
-			if (!Unregister<EventPriorities::Highest, F>(function))
+			if (!Unregister<EventPriorities::Highest>(function))
 			{
 
 				return False;
 			}
 
-			if (!Unregister<EventPriorities::High, F>(function))
+			if (!Unregister<EventPriorities::High>(function))
 			{
 
 				return False;
 			}
 
-			if (!Unregister<EventPriorities::Standard, F>(function))
+			if (!Unregister<EventPriorities::Standard>(function))
 			{
 
 				return False;
 			}
 
-			if (!Unregister<EventPriorities::Low, F>(function))
+			if (!Unregister<EventPriorities::Low>(function))
 			{
 
 				return False;
 			}
 
-			if (!Unregister<EventPriorities::Lowest, F>(function))
+			if (!Unregister<EventPriorities::Lowest>(function))
 			{
 
 				return False;
@@ -309,31 +309,31 @@ namespace AL
 		template<typename C>
 		Bool Unregister(T(C::*lpFunction)(TArgs ...), C& instance)
 		{
-			if (!Unregister<EventPriorities::Highest, C>(lpFunction, instance))
+			if (!Unregister<EventPriorities::Highest>(lpFunction, instance))
 			{
 
 				return False;
 			}
 
-			if (!Unregister<EventPriorities::High, C>(lpFunction, instance))
+			if (!Unregister<EventPriorities::High>(lpFunction, instance))
 			{
 
 				return False;
 			}
 
-			if (!Unregister<EventPriorities::Standard, C>(lpFunction, instance))
+			if (!Unregister<EventPriorities::Standard>(lpFunction, instance))
 			{
 
 				return False;
 			}
 
-			if (!Unregister<EventPriorities::Low, C>(lpFunction, instance))
+			if (!Unregister<EventPriorities::Low>(lpFunction, instance))
 			{
 
 				return False;
 			}
 
-			if (!Unregister<EventPriorities::Lowest, C>(lpFunction, instance))
+			if (!Unregister<EventPriorities::Lowest>(lpFunction, instance))
 			{
 
 				return False;
@@ -344,31 +344,31 @@ namespace AL
 		template<typename C>
 		Bool Unregister(T(C::*lpFunction)(TArgs ...) const, C& instance)
 		{
-			if (!Unregister<EventPriorities::Highest, C>(lpFunction, instance))
+			if (!Unregister<EventPriorities::Highest>(lpFunction, instance))
 			{
 
 				return False;
 			}
 
-			if (!Unregister<EventPriorities::High, C>(lpFunction, instance))
+			if (!Unregister<EventPriorities::High>(lpFunction, instance))
 			{
 
 				return False;
 			}
 
-			if (!Unregister<EventPriorities::Standard, C>(lpFunction, instance))
+			if (!Unregister<EventPriorities::Standard>(lpFunction, instance))
 			{
 
 				return False;
 			}
 
-			if (!Unregister<EventPriorities::Low, C>(lpFunction, instance))
+			if (!Unregister<EventPriorities::Low>(lpFunction, instance))
 			{
 
 				return False;
 			}
 
-			if (!Unregister<EventPriorities::Lowest, C>(lpFunction, instance))
+			if (!Unregister<EventPriorities::Lowest>(lpFunction, instance))
 			{
 
 				return False;
