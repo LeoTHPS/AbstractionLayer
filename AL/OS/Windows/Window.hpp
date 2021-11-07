@@ -2823,9 +2823,9 @@ namespace AL::OS::Windows
 
 						if (lpWindow->OnClosing.Execute())
 						{
-							lpWindow->Destroy();
-
 							lpWindow->OnClose.Execute();
+
+							lpWindow->Destroy();
 
 							::DestroyWindow(
 								lpWindow->GetHandle()
