@@ -135,6 +135,17 @@ namespace AL
 			);
 		}
 
+		template<typename F>
+		Bool Unregister(const F& function)
+		{
+			if (!event.Unregister<F>(function))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
 		Bool Unregister(const Handler& handler)
 		{
 			if (!event.Unregister(handler))
@@ -178,6 +189,17 @@ namespace AL
 			return True;
 		}
 
+		template<EventPriorities PRIORITY, typename F>
+		Bool Unregister(const F& function)
+		{
+			if (!event.Unregister<PRIORITY, F>(function))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
 		template<EventPriorities PRIORITY>
 		Bool Unregister(const Handler& handler)
 		{

@@ -203,6 +203,41 @@ namespace AL
 			);
 		}
 
+		template<typename F>
+		Bool Unregister(const F& function)
+		{
+			if (!Unregister<EventPriorities::Highest, F>(function))
+			{
+
+				return False;
+			}
+
+			if (!Unregister<EventPriorities::High, F>(function))
+			{
+
+				return False;
+			}
+
+			if (!Unregister<EventPriorities::Standard, F>(function))
+			{
+
+				return False;
+			}
+
+			if (!Unregister<EventPriorities::Low, F>(function))
+			{
+
+				return False;
+			}
+
+			if (!Unregister<EventPriorities::Lowest, F>(function))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
 		Bool Unregister(const Handler& handler)
 		{
 			if (!Unregister<EventPriorities::Highest>(handler))
@@ -342,6 +377,28 @@ namespace AL
 			return True;
 		}
 
+		template<EventPriorities PRIORITY, typename F>
+		Bool Unregister(const F& function)
+		{
+			auto function_Hash = Type<F>::Hash;
+
+			return UnregisterIf([function_Hash](_HandlerContext& _context)
+			{
+				if (_context.Type != _HandlerTypes::Lambda)
+				{
+
+					return False;
+				}
+
+				if (_context.LambdaHash != function_Hash)
+				{
+
+					return False;
+				}
+
+				return True;
+			});
+		}
 		template<EventPriorities PRIORITY>
 		Bool Unregister(const Handler& handler)
 		{
