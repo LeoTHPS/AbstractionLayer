@@ -1189,12 +1189,6 @@ namespace AL::OS::Windows
 		// @throw AL::Exception
 		Bool SetPosition(WindowPosition::Type x, WindowPosition::Type y)
 		{
-			if (!OnPositionChanging.Execute(x, y))
-			{
-
-				return False;
-			}
-
 			isDefaultPosition = False;
 
 			if (IsCreated() || isCreating)
@@ -1219,6 +1213,12 @@ namespace AL::OS::Windows
 			}
 			else
 			{
+				if (!OnPositionChanging.Execute(x, y))
+				{
+
+					return False;
+				}
+
 				windowPosition.X = x;
 				windowPosition.Y = y;
 
@@ -1251,17 +1251,21 @@ namespace AL::OS::Windows
 				return False;
 			}
 
-			if (!OnResolutionChanging.Execute(width, height))
-			{
-
-				return False;
-			}
-
 			if (IsCreated() || isCreating)
 			{
-				::RECT currentRect;
+				::RECT clientRect;
 
-				if (!::GetWindowRect(GetHandle(), &currentRect))
+				if (!::GetClientRect(GetHandle(), &clientRect))
+				{
+
+					throw SystemException(
+						"GetClientRect"
+					);
+				}
+
+				::RECT windowRect;
+
+				if (!::GetWindowRect(GetHandle(), &windowRect))
 				{
 
 					throw SystemException(
@@ -1269,11 +1273,16 @@ namespace AL::OS::Windows
 					);
 				}
 
-				::RECT rect;
-				rect.left   = currentRect.left;
-				rect.right  = rect.left + static_cast<::LONG>(width);
-				rect.top    = currentRect.top;
-				rect.bottom = rect.top + static_cast<::LONG>(height);
+				auto windowRectPadding_X = (windowRect.right - windowRect.left) - (clientRect.right - clientRect.left);
+				auto windowRectPadding_Y = (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
+
+				::RECT rect =
+				{
+					.left   = windowRect.left,
+					.top    = windowRect.top,
+					.right  = windowRect.left + static_cast<::LONG>(width) + windowRectPadding_X,
+					.bottom = windowRect.top + static_cast<::LONG>(height) + windowRectPadding_Y
+				};
 
 				if (!::MoveWindow(GetHandle(), static_cast<int>(rect.left), static_cast<int>(rect.top), static_cast<int>(rect.right - rect.left), static_cast<int>(rect.bottom - rect.top), TRUE))
 				{
@@ -1285,6 +1294,12 @@ namespace AL::OS::Windows
 			}
 			else
 			{
+				if (!OnResolutionChanging.Execute(width, height))
+				{
+
+					return False;
+				}
+
 				windowResolution.Width = width;
 				windowResolution.Height = height;
 
@@ -2710,6 +2725,12 @@ namespace AL::OS::Windows
 							lParam
 						);
 
+						if (!lpWindow->OnPositionChanging.Execute(point.x, point.y))
+						{
+
+							return 0;
+						}
+
 						lpWindow->windowPosition.X = point.x;
 						lpWindow->windowPosition.Y = point.y;
 
@@ -2720,7 +2741,6 @@ namespace AL::OS::Windows
 					}
 					break;
 
-					// TODO: handle like WM_SETTEXT
 					case WM_SIZE:
 					{
 						switch (wParam)
@@ -2734,22 +2754,33 @@ namespace AL::OS::Windows
 								break;
 
 							case SIZE_RESTORED:
+							{
 								lpWindow->isMinimized = False;
 								lpWindow->isMaximized = False;
-								break;
+
+								auto width = static_cast<typename WindowResolution::Type>(
+									LOWORD(lParam)
+								);
+								auto height = static_cast<typename WindowResolution::Type>(
+									HIWORD(lParam)
+								);
+
+								if (!lpWindow->OnResolutionChanging.Execute(width, height))
+								{
+
+									return 0;
+								}
+
+								lpWindow->windowResolution.Width  = width;
+								lpWindow->windowResolution.Height = height;
+
+								lpWindow->OnResolutionChanged.Execute(
+									lpWindow->windowResolution.Width,
+									lpWindow->windowResolution.Height
+								);
+							}
+							break;
 						}
-
-						lpWindow->windowResolution.Width = static_cast<typename WindowResolution::Type>(
-							LOWORD(lParam)
-						);
-						lpWindow->windowResolution.Height = static_cast<typename WindowResolution::Type>(
-							HIWORD(lParam)
-						);
-
-						lpWindow->OnResolutionChanged.Execute(
-							lpWindow->windowResolution.Width,
-							lpWindow->windowResolution.Height
-						);
 					}
 					break;
 
