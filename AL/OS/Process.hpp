@@ -1376,7 +1376,7 @@ namespace AL::OS
 	}
 
 #if defined(AL_PLATFORM_WINDOWS)
-	AL_INLINE ::TEB* GetThreadEnvironmentBlock()
+	inline ::TEB* GetThreadEnvironmentBlock()
 	{
 		return reinterpret_cast<::PTEB>(
 #if defined(AL_X86)
@@ -1391,17 +1391,17 @@ namespace AL::OS
 		);
 	}
 
-	AL_INLINE ::PEB* GetProcessEnvironmentBlock()
+	inline ::PEB* GetProcessEnvironmentBlock()
 	{
 		return GetThreadEnvironmentBlock()->ProcessEnvironmentBlock;
 	}
 
-	AL_INLINE Bool IsDebuggerPresent()
+	inline Bool IsDebuggerPresent()
 	{
 		return GetProcessEnvironmentBlock()->BeingDebugged != 0;
 	}
 
-	AL_INLINE Void SetDebuggerPresent(Bool set = True)
+	inline Void SetDebuggerPresent(Bool set = True)
 	{
 		GetProcessEnvironmentBlock()->BeingDebugged = set ? 1 : 0;
 	}
