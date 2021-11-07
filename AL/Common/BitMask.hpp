@@ -37,6 +37,16 @@ namespace AL
 		Type Value;
 
 		BitMask()
+			: BitMask(
+				Type()
+			)
+		{
+		}
+
+		BitMask(Type value)
+			: Value(
+				value
+			)
 		{
 		}
 
@@ -50,13 +60,6 @@ namespace AL
 		BitMask(const BitMask& mask)
 			: Value(
 				mask.Value
-			)
-		{
-		}
-
-		BitMask(Type value)
-			: Value(
-				value
 			)
 		{
 		}
