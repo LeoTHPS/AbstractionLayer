@@ -51,7 +51,7 @@ namespace AL
 		template<typename F>
 		Void Register(F&& handler)
 		{
-			event.Register(
+			event.Register<F>(
 				Move(handler)
 			);
 		}
@@ -65,13 +65,35 @@ namespace AL
 		{
 			event.Register(
 				handler
+			);
+		}
+		Void Register(T(*lpFunction)(TArgs ...))
+		{
+			event.Register(
+				lpFunction
+			);
+		}
+		template<typename C>
+		Void Register(T(C::*lpFunction)(TArgs ...), C& instance)
+		{
+			event.Register<C>(
+				lpFunction,
+				instance
+			);
+		}
+		template<typename C>
+		Void Register(T(C::*lpFunction)(TArgs ...) const, C& instance)
+		{
+			event.Register<C>(
+				lpFunction,
+				instance
 			);
 		}
 
 		template<EventPriorities PRIORITY, typename F>
 		Void Register(F&& handler)
 		{
-			event.Register<PRIORITY>(
+			event.Register<PRIORITY, F>(
 				Move(handler)
 			);
 		}
@@ -89,19 +111,116 @@ namespace AL
 				handler
 			);
 		}
-
-		Void Unregister(const Handler& handler)
+		template<EventPriorities PRIORITY>
+		Void Register(T(*lpFunction)(TArgs ...))
 		{
-			event.Unregister(
-				handler
+			event.Register<PRIORITY>(
+				lpFunction
 			);
 		}
-		template<EventPriorities PRIORITY>
-		Void Unregister(const Handler& handler)
+		template<EventPriorities PRIORITY, typename C>
+		Void Register(T(C::*lpFunction)(TArgs ...), C& instance)
 		{
-			event.Unregister<PRIORITY>(
-				handler
+			event.Register<PRIORITY, C>(
+				lpFunction,
+				instance
 			);
+		}
+		template<EventPriorities PRIORITY, typename C>
+		Void Register(T(C::*lpFunction)(TArgs ...) const, C& instance)
+		{
+			event.Register<PRIORITY, C>(
+				lpFunction,
+				instance
+			);
+		}
+
+		Bool Unregister(const Handler& handler)
+		{
+			if (!event.Unregister(handler))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		Bool Unregister(T(*lpFunction)(TArgs ...))
+		{
+			if (!event.Unregister(lpFunction))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		template<typename C>
+		Bool Unregister(T(C::*lpFunction)(TArgs ...), C& instance)
+		{
+			if (!event.Unregister<C>(lpFunction, instance))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		template<typename C>
+		Bool Unregister(T(C::*lpFunction)(TArgs ...) const, C& instance)
+		{
+			if (!event.Unregister<C>(lpFunction, instance))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+
+		template<EventPriorities PRIORITY>
+		Bool Unregister(const Handler& handler)
+		{
+			if (!event.Unregister<PRIORITY>(handler))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		template<EventPriorities PRIORITY>
+		Bool Unregister(T(*lpFunction)(TArgs ...))
+		{
+			if (!event.Unregister<PRIORITY>(lpFunction))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		template<EventPriorities PRIORITY, typename C>
+		Bool Unregister(T(C::*lpFunction)(TArgs ...), C& instance)
+		{
+			if (!event.Unregister<PRIORITY, C>(lpFunction, instance))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		template<EventPriorities PRIORITY, typename C>
+		Bool Unregister(T(C::*lpFunction)(TArgs ...) const, C& instance)
+		{
+			if (!event.Unregister<PRIORITY, C>(lpFunction, instance))
+			{
+
+				return False;
+			}
+
+			return True;
 		}
 
 		Void Clear()

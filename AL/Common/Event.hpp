@@ -25,162 +25,36 @@ namespace AL
 	{
 		typedef EventHandler<T(TArgs ...)> _Handler;
 
-		class HandlerContext
+		enum class _HandlerTypes
 		{
-			_Handler*       lpAllocatedHandler;
-			const _Handler* lpHandler;
-
-		public:
-			HandlerContext()
-				: lpAllocatedHandler(
-					nullptr
-				),
-				lpHandler(
-					nullptr
-				)
-			{
-			}
-
-			template<typename F>
-			explicit HandlerContext(F&& handler)
-				: lpAllocatedHandler(
-					new _Handler(
-						Move(handler)
-					)
-				),
-				lpHandler(
-					lpAllocatedHandler
-				)
-			{
-			}
-			explicit HandlerContext(_Handler&& handler)
-				: lpAllocatedHandler(
-					new _Handler(
-						Move(handler)
-					)
-				),
-				lpHandler(
-					lpAllocatedHandler
-				)
-			{
-			}
-			explicit HandlerContext(const _Handler& handler)
-				: lpAllocatedHandler(
-					nullptr
-				),
-				lpHandler(
-					&handler
-				)
-			{
-			}
-
-			HandlerContext(HandlerContext&& handlerContext)
-				: lpAllocatedHandler(
-					handlerContext.lpAllocatedHandler
-				),
-				lpHandler(
-					handlerContext.lpHandler
-				)
-			{
-				handlerContext.lpAllocatedHandler = nullptr;
-				handlerContext.lpHandler          = nullptr;
-			}
-
-			HandlerContext(const HandlerContext& handlerContext)
-				: lpAllocatedHandler(
-					(handlerContext.lpAllocatedHandler != nullptr) ? new _Handler(*handlerContext.lpAllocatedHandler) : nullptr
-				),
-				lpHandler(
-					(handlerContext.lpAllocatedHandler != nullptr) ? lpAllocatedHandler : handlerContext.lpHandler
-				)
-			{
-			}
-
-			virtual ~HandlerContext()
-			{
-				if (lpAllocatedHandler != nullptr)
-				{
-					delete lpAllocatedHandler;
-				}
-			}
-
-			T Execute(TArgs ... args) const
-			{
-				return (*lpHandler)(
-					Forward<TArgs>(args) ...
-				);
-			}
-
-			Bool Compare(const _Handler& handler) const
-			{
-				if (lpHandler != &handler)
-				{
-
-					return False;
-				}
-
-				return True;
-			}
-
-			HandlerContext& operator = (HandlerContext&& handlerContext)
-			{
-				if (lpAllocatedHandler != nullptr)
-				{
-
-					delete lpAllocatedHandler;
-				}
-
-				lpAllocatedHandler = handlerContext.lpAllocatedHandler;
-				handlerContext.lpAllocatedHandler = nullptr;
-
-				lpHandler = handlerContext.lpHandler;
-				handlerContext.lpHandler = nullptr;
-
-				return *this;
-			}
-			HandlerContext& operator = (const HandlerContext& handlerContext)
-			{
-				if (lpAllocatedHandler != nullptr)
-				{
-
-					delete lpAllocatedHandler;
-				}
-
-				lpAllocatedHandler = (handlerContext.lpAllocatedHandler != nullptr) ? new _Handler(*handlerContext.lpAllocatedHandler) : nullptr;
-				lpHandler          = (handlerContext.lpAllocatedHandler != nullptr) ? lpAllocatedHandler : handlerContext.lpHandler;
-
-				return *this;
-			}
-
-			Bool operator == (const HandlerContext& handlerContext) const
-			{
-				if (lpHandler != handlerContext.lpHandler)
-				{
-
-					return False;
-				}
-
-				return True;
-			}
-			Bool operator != (const HandlerContext& handlerContext) const
-			{
-				if (operator==(handlerContext))
-				{
-
-					return False;
-				}
-
-				return True;
-			}
+			Lambda,
+			Handler,
+			HandlerPtr,
+			Function,
+			MemberFunction,
+			MemberFunctionConst
 		};
 
-		typedef Collections::LinkedList<HandlerContext> HandlerContextList;
+		struct _HandlerContext
+		{
+			_HandlerTypes       Type;
 
-		HandlerContextList handlers_Lowest;
-		HandlerContextList handlers_Low;
-		HandlerContextList handlers_Standard;
-		HandlerContextList handlers_High;
-		HandlerContextList handlers_Highest;
+			_Handler            Handler;                                 // Lambda/Handler/Function/MemberFunction/MemberFunctionConst
+			const _Handler*     lpHandler;                               // HandlerPtr
+			Void*               lpInstance;                              // MemberFunction/MemberFunctionConst
+			TypeHash            LambdaHash;                              // Lambda
+			T(*                 lpFunction)(TArgs ...);                  // Function
+			T(_HandlerContext::*lpMemberFunction)(TArgs ...);            // MemberFunction
+			T(_HandlerContext::*lpMemberFunctionConst)(TArgs ...) const; // MemberFunctionConst
+		};
+
+		typedef Collections::LinkedList<_HandlerContext> _HandlerContextLinkedList;
+
+		_HandlerContextLinkedList handlers_Lowest;
+		_HandlerContextLinkedList handlers_Low;
+		_HandlerContextLinkedList handlers_Standard;
+		_HandlerContextLinkedList handlers_High;
+		_HandlerContextLinkedList handlers_Highest;
 
 	public:
 		typedef _Handler Handler;
@@ -206,7 +80,7 @@ namespace AL
 		template<typename F>
 		Void Register(F&& handler)
 		{
-			Register<EventPriorities::Standard>(
+			Register<EventPriorities::Standard, F>(
 				Move(handler)
 			);
 		}
@@ -220,83 +94,358 @@ namespace AL
 		{
 			Register<EventPriorities::Standard>(
 				handler
+			);
+		}
+		Void Register(T(*lpFunction)(TArgs ...))
+		{
+			Register<EventPriorities::Standard>(
+				lpFunction
+			);
+		}
+		template<typename C>
+		Void Register(T(C::*lpFunction)(TArgs ...), C& instance)
+		{
+			Register<EventPriorities::Standard>(
+				lpFunction,
+				instance
+			);
+		}
+		template<typename C>
+		Void Register(T(C::*lpFunction)(TArgs ...) const, C& instance)
+		{
+			Register<EventPriorities::Standard>(
+				lpFunction,
+				instance
 			);
 		}
 
 		template<EventPriorities PRIORITY, typename F>
 		Void Register(F&& handler)
 		{
-			GetHandlers<PRIORITY>().EmplaceBack(
-				Move(handler)
+			_HandlerContext context =
+			{
+				.Type       = _HandlerTypes::Lambda,
+				.Handler    = _Handler(Move(handler)),
+				.LambdaHash = Type<F>::Hash
+			};
+
+			Register<PRIORITY>(
+				Move(context)
 			);
 		}
 		template<EventPriorities PRIORITY>
 		Void Register(Handler&& handler)
 		{
-			GetHandlers<PRIORITY>().EmplaceBack(
-				Move(handler)
+			_HandlerContext context =
+			{
+				.Type    = _HandlerTypes::Handler,
+				.Handler = Move(handler)
+			};
+
+			Register<PRIORITY>(
+				Move(context)
 			);
 		}
 		template<EventPriorities PRIORITY>
 		Void Register(const Handler& handler)
 		{
-			GetHandlers<PRIORITY>().EmplaceBack(
-				handler
+			_HandlerContext context =
+			{
+				.Type      = _HandlerTypes::HandlerPtr,
+				.lpHandler = &handler
+			};
+
+			Register<PRIORITY>(
+				Move(context)
+			);
+		}
+		template<EventPriorities PRIORITY>
+		Void Register(T(*lpFunction)(TArgs ...))
+		{
+			_HandlerContext context =
+			{
+				.Type       = _HandlerTypes::Function,
+				.lpFunction = lpFunction
+			};
+
+			Register<PRIORITY>(
+				Move(context)
+			);
+		}
+		template<EventPriorities PRIORITY, typename C>
+		Void Register(T(C::*lpFunction)(TArgs ...), C& instance)
+		{
+			_HandlerContext context =
+			{
+				.Type             = _HandlerTypes::MemberFunction,
+				.Handler          = _Handler(lpFunction, instance),
+				.lpInstance       = &instance,
+				.lpMemberFunction = reinterpret_cast<decltype(_HandlerContext::lpMemberFunction)>(lpFunction)
+			};
+
+			Register<PRIORITY>(
+				Move(context)
+			);
+		}
+		template<EventPriorities PRIORITY, typename C>
+		Void Register(T(C::*lpFunction)(TArgs ...) const, C& instance)
+		{
+			_HandlerContext context =
+			{
+				.Type                  = _HandlerTypes::MemberFunctionConst,
+				.Handler               = _Handler(lpFunction, instance),
+				.lpInstance            = &instance,
+				.lpMemberFunctionConst = reinterpret_cast<decltype(_HandlerContext::lpMemberFunctionConst)>(lpFunction)
+			};
+
+			Register<PRIORITY>(
+				Move(context)
 			);
 		}
 
 		Bool Unregister(const Handler& handler)
 		{
-			if (Unregister<EventPriorities::Lowest>(handler))
+			if (!Unregister<EventPriorities::Highest>(handler))
 			{
 
-				return True;
+				return False;
 			}
 
-			if (Unregister<EventPriorities::Low>(handler))
+			if (!Unregister<EventPriorities::High>(handler))
 			{
 
-				return True;
+				return False;
 			}
 
-			if (Unregister<EventPriorities::Standard>(handler))
+			if (!Unregister<EventPriorities::Standard>(handler))
 			{
 
-				return True;
+				return False;
 			}
 
-			if (Unregister<EventPriorities::High>(handler))
+			if (!Unregister<EventPriorities::Low>(handler))
 			{
 
-				return True;
+				return False;
 			}
 
-			if (Unregister<EventPriorities::Highest>(handler))
+			if (!Unregister<EventPriorities::Lowest>(handler))
 			{
 
-				return True;
+				return False;
 			}
 
-			return False;
+			return True;
 		}
+		Bool Unregister(T(*lpFunction)(TArgs ...))
+		{
+			if (!Unregister<EventPriorities::Highest>(lpFunction))
+			{
+
+				return False;
+			}
+
+			if (!Unregister<EventPriorities::High>(lpFunction))
+			{
+
+				return False;
+			}
+
+			if (!Unregister<EventPriorities::Standard>(lpFunction))
+			{
+
+				return False;
+			}
+
+			if (!Unregister<EventPriorities::Low>(lpFunction))
+			{
+
+				return False;
+			}
+
+			if (!Unregister<EventPriorities::Lowest>(lpFunction))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		template<typename C>
+		Bool Unregister(T(C::*lpFunction)(TArgs ...), C& instance)
+		{
+			if (!Unregister<EventPriorities::Highest, C>(lpFunction, instance))
+			{
+
+				return False;
+			}
+
+			if (!Unregister<EventPriorities::High, C>(lpFunction, instance))
+			{
+
+				return False;
+			}
+
+			if (!Unregister<EventPriorities::Standard, C>(lpFunction, instance))
+			{
+
+				return False;
+			}
+
+			if (!Unregister<EventPriorities::Low, C>(lpFunction, instance))
+			{
+
+				return False;
+			}
+
+			if (!Unregister<EventPriorities::Lowest, C>(lpFunction, instance))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		template<typename C>
+		Bool Unregister(T(C::*lpFunction)(TArgs ...) const, C& instance)
+		{
+			if (!Unregister<EventPriorities::Highest, C>(lpFunction, instance))
+			{
+
+				return False;
+			}
+
+			if (!Unregister<EventPriorities::High, C>(lpFunction, instance))
+			{
+
+				return False;
+			}
+
+			if (!Unregister<EventPriorities::Standard, C>(lpFunction, instance))
+			{
+
+				return False;
+			}
+
+			if (!Unregister<EventPriorities::Low, C>(lpFunction, instance))
+			{
+
+				return False;
+			}
+
+			if (!Unregister<EventPriorities::Lowest, C>(lpFunction, instance))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+
 		template<EventPriorities PRIORITY>
 		Bool Unregister(const Handler& handler)
 		{
-			auto& handlers = GetHandlers<PRIORITY>();
+			auto handler_Hash = handler.GetHash();
 
-			for (auto it = handlers.rbegin(); it != handlers.rend(); ++it)
+			return UnregisterIf<PRIORITY>([handler_Hash](_HandlerContext& _context)
 			{
-				if (it->Compare(handler))
+				switch (_context.Type)
 				{
-					handlers.Erase(
-						it
-					);
+					case _HandlerTypes::Handler:
+					{
+						if (_context.Handler.GetHash() != handler_Hash)
+						{
 
+							return False;
+						}
+					}
+					return True;
+
+					case _HandlerTypes::HandlerPtr:
+					{
+						if (_context.lpHandler->GetHash() != handler_Hash)
+						{
+
+							return False;
+						}
+					}
 					return True;
 				}
-			}
 
-			return False;
+				return False;
+			});
+		}
+		template<EventPriorities PRIORITY>
+		Bool Unregister(T(*lpFunction)(TArgs ...))
+		{
+			return UnregisterIf<PRIORITY>([lpFunction](_HandlerContext& _context)
+			{
+				if (_context.Type != _HandlerTypes::Function)
+				{
+
+					return False;
+				}
+
+				if (_context.lpFunction != lpFunction)
+				{
+
+					return False;
+				}
+
+				return False;
+			});
+		}
+		template<EventPriorities PRIORITY, typename C>
+		Bool Unregister(T(C::*lpFunction)(TArgs ...), C& instance)
+		{
+			return UnregisterIf<PRIORITY>([lpFunction = reinterpret_cast<decltype(_HandlerContext::lpMemberFunction)>(lpFunction), lpInstance = static_cast<Void*>(&instance)](_HandlerContext& _context)
+			{
+				if (_context.Type != _HandlerTypes::MemberFunction)
+				{
+
+					return False;
+				}
+
+				if (_context.lpMemberFunction != lpFunction)
+				{
+
+					return False;
+				}
+
+				if (_context.lpInstance != lpInstance)
+				{
+
+					return False;
+				}
+
+				return True;
+			});
+		}
+		template<EventPriorities PRIORITY, typename C>
+		Bool Unregister(T(C::*lpFunction)(TArgs ...) const, C& instance)
+		{
+			return UnregisterIf<PRIORITY>([lpFunction = reinterpret_cast<decltype(_HandlerContext::lpMemberFunctionConst)>(lpFunction), lpInstance = static_cast<Void*>(&instance)](_HandlerContext& _context)
+			{
+				if (_context.Type != _HandlerTypes::MemberFunctionConst)
+				{
+
+					return False;
+				}
+
+				if (_context.lpMemberFunctionConst != lpFunction)
+				{
+
+					return False;
+				}
+
+				if (_context.lpInstance != lpInstance)
+				{
+
+					return False;
+				}
+
+				return True;
+			});
 		}
 
 		Void Clear()
@@ -365,7 +514,8 @@ namespace AL
 			{
 				for (auto& handlerContext : GetHandlers<PRIORITY>())
 				{
-					handlerContext.Execute(
+					Execute(
+						handlerContext,
 						Forward<TArgs>(args) ...
 					);
 				}
@@ -374,7 +524,7 @@ namespace AL
 			{
 				for (auto& handlerContext : GetHandlers<PRIORITY>())
 				{
-					if (!handlerContext.Execute(Forward<TArgs>(args) ...))
+					if (!Execute(handlerContext, Forward<TArgs>(args) ...))
 					{
 
 						return False;
@@ -387,7 +537,7 @@ namespace AL
 
 	private:
 		template<EventPriorities PRIORITY>
-		HandlerContextList& GetHandlers()
+		_HandlerContextLinkedList& GetHandlers()
 		{
 			if      constexpr (PRIORITY == EventPriorities::Lowest)
 			{
@@ -411,7 +561,7 @@ namespace AL
 			}
 		}
 		template<EventPriorities PRIORITY>
-		const HandlerContextList& GetHandlers() const
+		const _HandlerContextLinkedList& GetHandlers() const
 		{
 			if      constexpr (PRIORITY == EventPriorities::Lowest)
 			{
@@ -433,6 +583,51 @@ namespace AL
 			{
 				return handlers_Highest;
 			}
+		}
+
+		template<EventPriorities PRIORITY>
+		Void Register(_HandlerContext&& context)
+		{
+			GetHandlers<PRIORITY>().PushBack(
+				Move(context)
+			);
+		}
+
+		template<EventPriorities PRIORITY, typename F>
+		Bool UnregisterIf(F&& function)
+		{
+			auto& handlers = GetHandlers<PRIORITY>();
+
+			for (auto it = handlers.rbegin(); it != handlers.rend(); ++it)
+			{
+				if (function(*it))
+				{
+					handlers.Erase(
+						it
+					);
+
+					return True;
+				}
+			}
+
+			return False;
+		}
+
+		T Execute(const _HandlerContext& context, TArgs ... args) const
+		{
+			switch (context.Type)
+			{
+				case _HandlerTypes::Function:
+					return context.lpFunction(Forward<TArgs>(args) ...);
+
+				case _HandlerTypes::HandlerPtr:
+					return (*context.lpHandler)(Forward<TArgs>(args) ...);
+
+				default:
+					return context.Handler(Forward<TArgs>(args) ...);
+			}
+
+			throw NotImplementedException();
 		}
 	};
 

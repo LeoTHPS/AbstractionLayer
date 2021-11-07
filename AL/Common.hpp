@@ -187,6 +187,13 @@
 #include "Common/String.hpp"
 #include "Common/StringBuilder.hpp"
 
+#include "Common/Exception.hpp"
+#include "Common/NotImplementedException.hpp"
+#include "Common/DependencyMissingException.hpp"
+#include "Common/CompilerNotSupportedException.hpp"
+#include "Common/PlatformNotSupportedException.hpp"
+#include "Common/OperationNotSupportedException.hpp"
+
 #include "Common/Regex.hpp"
 
 #include "Common/DateTime.hpp"
@@ -201,13 +208,6 @@
 
 #include "Common/BaseConverter.hpp"
 #include "Common/HexConverter.hpp"
-
-#include "Common/Exception.hpp"
-#include "Common/NotImplementedException.hpp"
-#include "Common/DependencyMissingException.hpp"
-#include "Common/CompilerNotSupportedException.hpp"
-#include "Common/PlatformNotSupportedException.hpp"
-#include "Common/OperationNotSupportedException.hpp"
 
 #if defined(AL_PLATFORM_LINUX)
 	#include <time.h> // timespec/timespec_get
