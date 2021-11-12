@@ -725,6 +725,10 @@ namespace AL::OS
 		// @return False if file not found
 		static Bool Load(ProcessLibrary& library, Process& process, const FileSystem::Path& path);
 
+		// @throw AL::Exception
+		// @return False if library not loaded
+		static Bool Open(ProcessLibrary& library, Process& process, const String& name);
+
 		ProcessLibrary()
 		{
 		}
@@ -1496,9 +1500,9 @@ inline AL::Bool AL::OS::ProcessLibrary::Load(ProcessLibrary& library, Process& p
 		String(path.GetString())
 	);
 #elif defined(AL_PLATFORM_WINDOWS)
-	::HMODULE handle;
+	::HMODULE hModule;
 
-	if ((handle = ::LoadLibraryA(path.GetString().GetCString())) == NULL)
+	if ((hModule = ::LoadLibraryA(path.GetString().GetCString())) == NULL)
 	{
 
 		throw SystemException(
@@ -1508,8 +1512,39 @@ inline AL::Bool AL::OS::ProcessLibrary::Load(ProcessLibrary& library, Process& p
 
 	library = ProcessLibrary(
 		process,
-		handle,
+		hModule,
 		String(path.GetString())
+	);
+#else
+	throw PlatformNotSupportedException();
+#endif
+
+	return True;
+}
+
+// @throw AL::Exception
+// @return False if library not loaded
+inline AL::Bool AL::OS::ProcessLibrary::Open(ProcessLibrary& library, Process& process, const String& name)
+{
+#if defined(AL_PLATFORM_LINUX)
+	// TODO: implement
+	throw NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
+	::HMODULE hModule;
+
+	if ((hModule = ::GetModuleHandleA(name.GetCString())) == NULL)
+	{
+		// TODO: detect library not loaded
+
+		throw SystemException(
+			"GetModuleHandleA"
+		);
+	}
+
+	library = ProcessLibrary(
+		process,
+		hModule,
+		String(name)
 	);
 #else
 	throw PlatformNotSupportedException();
