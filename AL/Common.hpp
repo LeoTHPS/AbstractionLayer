@@ -54,7 +54,9 @@
 		#define AL_FASTCALL __attribute__((fastcall))
 		#define AL_THISCALL __attribute__((thiscall))
 	#elif defined(AL_X86_64)
+		#define AL_CDECL
 		#define AL_STDCALL  __attribute__((stdcall))
+		#define AL_FASTCALL
 		#define AL_THISCALL __attribute__((thiscall))
 	#else
 		#define AL_CDECL
