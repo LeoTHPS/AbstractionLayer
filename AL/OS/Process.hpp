@@ -729,6 +729,9 @@ namespace AL::OS
 		// @return False if library not loaded
 		static Bool Open(ProcessLibrary& library, Process& process, const String& name);
 
+		// @throw AL::Exception
+		static Void OpenProcess(ProcessLibrary& library, Process& process);
+
 		ProcessLibrary()
 		{
 		}
@@ -1551,6 +1554,47 @@ inline AL::Bool AL::OS::ProcessLibrary::Open(ProcessLibrary& library, Process& p
 #endif
 
 	return True;
+}
+
+// @throw AL::Exception
+inline AL::Void AL::OS::ProcessLibrary::OpenProcess(ProcessLibrary& library, Process& process)
+{
+#if defined(AL_PLATFORM_LINUX)
+	// TODO: implement
+	throw NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
+	::HMODULE hModule;
+
+	if ((hModule = ::GetModuleHandleA(NULL)) == NULL)
+	{
+
+		throw SystemException(
+			"GetModuleHandleA"
+		);
+	}
+
+	char    path[AL_MAX_PATH] = { 0  };
+	::DWORD pathLength;
+
+	if ((pathLength = GetModuleFileNameA(hModule, &path[0], AL_MAX_PATH)) == 0)
+	{
+
+		throw SystemException(
+			"GetModuleFileName"
+		);
+	}
+
+	library = ProcessLibrary(
+		process,
+		hModule,
+		String(
+			path,
+			pathLength
+		)
+	);
+#else
+	throw PlatformNotSupportedException();
+#endif
 }
 
 // @throw AL::Exception
