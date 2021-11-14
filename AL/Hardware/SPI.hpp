@@ -29,9 +29,9 @@ namespace AL::Hardware
 
 	struct SPITransaction
 	{
-		Void*       lpRX;
-		const Void* lpTX;
-		size_t      BufferSize;
+		Void*       lpRX       = nullptr;
+		const Void* lpTX       = nullptr;
+		size_t      BufferSize = 0;
 	};
 
 	class SPIDevice
