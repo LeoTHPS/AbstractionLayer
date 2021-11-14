@@ -3,6 +3,8 @@
 
 #include "AL/OS/SystemException.hpp"
 
+#include "AL/Collections/Array.hpp"
+
 #if defined(AL_PLATFORM_LINUX)
 	#include <fcntl.h>
 	#include <unistd.h>
@@ -23,6 +25,13 @@ namespace AL::Hardware
 	enum class SPIModes : uint8
 	{
 		Zero, One, Two, Three
+	};
+
+	struct SPITransaction
+	{
+		Void*       lpRX;
+		const Void* lpTX;
+		size_t      BufferSize;
 	};
 
 	class SPIDevice
@@ -344,14 +353,75 @@ namespace AL::Hardware
 #if defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_SPIDEV)
 			::spi_ioc_transfer transfer = { 0 };
-			transfer.cs_change = IsCSChangeEnabled() ? 1 : 0;
-			transfer.len = static_cast<decltype(transfer.len)>(size);
-			transfer.speed_hz = static_cast<decltype(transfer.speed_hz)>(GetSpeed());
+			transfer.len           = static_cast<decltype(transfer.len)>(size);
+			transfer.rx_buf        = reinterpret_cast<decltype(::spi_ioc_transfer::rx_buf)>(lpRX);
+			transfer.tx_buf        = reinterpret_cast<decltype(::spi_ioc_transfer::tx_buf)>(lpTX);
+			transfer.speed_hz      = static_cast<decltype(transfer.speed_hz)>(GetSpeed());
+			transfer.cs_change     = IsCSChangeEnabled() ? 1 : 0;
 			transfer.bits_per_word = static_cast<decltype(transfer.bits_per_word)>(GetBitCount());
-			transfer.rx_buf = reinterpret_cast<decltype(::spi_ioc_transfer::rx_buf)>(lpRX);
-			transfer.tx_buf = reinterpret_cast<decltype(::spi_ioc_transfer::tx_buf)>(lpTX);
 
 			if (::ioctl(fd, SPI_IOC_MESSAGE(1), &transfer) == -1)
+			{
+
+				throw OS::SystemException(
+					"ioctl"
+				);
+			}
+	#else
+			throw NotImplementedException();
+	#endif
+#else
+			throw PlatformNotSupportedException();
+#endif
+		}
+
+		// @throw AL::Exception
+		template<size_t S>
+		Void Execute(const SPITransaction(&transactions)[S])
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"SPIDevice not open"
+			);
+
+			Execute(
+				&transactions[0],
+				S
+			);
+		}
+		// @throw AL::Exception
+		Void Execute(const SPITransaction* lpTransactions, size_t count)
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"SPIDevice not open"
+			);
+
+#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_SPIDEV)
+			Collections::Array<::spi_ioc_transfer> transfers(
+				count
+			);
+
+			auto lpTransfers = &transfers[0];
+
+			for (size_t i = 0; i < count; ++i, ++lpTransfers, ++lpTransactions)
+			{
+				memset(
+					lpTransfers,
+					0,
+					sizeof(::spi_ioc_transfer)
+				);
+
+				lpTransfers->len           = static_cast<decltype(::spi_ioc_transfer::len)>          (lpTransactions->BufferSize);
+				lpTransfers->rx_buf        = reinterpret_cast<decltype(::spi_ioc_transfer::rx_buf)>  (lpTransactions->lpRX);
+				lpTransfers->tx_buf        = reinterpret_cast<decltype(::spi_ioc_transfer::tx_buf)>  (lpTransactions->lpTX);
+				lpTransfers->speed_hz      = static_cast<decltype(::spi_ioc_transfer::speed_hz)>     (GetSpeed());
+				lpTransfers->cs_change     = IsCSChangeEnabled() ?                                   1 : 0;
+				lpTransfers->bits_per_word = static_cast<decltype(::spi_ioc_transfer::bits_per_word)>(GetBitCount());
+			}
+
+			if (::ioctl(fd, SPI_IOC_MESSAGE(count), &transfers[0]) == -1)
 			{
 
 				throw OS::SystemException(
