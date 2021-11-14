@@ -846,6 +846,8 @@ namespace AL::OS
 			return True;
 		}
 
+		Void Unload();
+
 		ProcessLibrary& operator = (ProcessLibrary&& processLibrary)
 		{
 			if (IsLoaded())
@@ -1595,6 +1597,31 @@ inline AL::Void AL::OS::ProcessLibrary::OpenProcess(ProcessLibrary& library, Pro
 #else
 	throw PlatformNotSupportedException();
 #endif
+}
+
+inline AL::Void AL::OS::ProcessLibrary::Unload()
+{
+	if (IsLoaded())
+	{
+#if defined(AL_PLATFORM_LINUX)
+		// TODO: implement
+		throw NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
+		if (GetProcess().IsCurrentProcess())
+		{
+			::FreeLibrary(
+				GetHandle()
+			);
+		}
+		else
+		{
+			// TODO: implement
+			throw NotImplementedException();
+		}
+#endif
+
+		isLoaded = False;
+	}
 }
 
 // @throw AL::Exception
