@@ -33,8 +33,6 @@ namespace AL::OS
 			Windows::Thread::StartAndDetach(
 				Move(function)
 			);
-#else
-			throw PlatformNotSupportedException();
 #endif
 		}
 		// @throw AL::Exception
@@ -48,8 +46,6 @@ namespace AL::OS
 			Windows::Thread::StartAndDetach(
 				lpFunction
 			);
-#else
-			throw PlatformNotSupportedException();
 #endif
 		}
 		// @throw AL::Exception
@@ -66,8 +62,6 @@ namespace AL::OS
 				lpFunction,
 				lpInstance
 			);
-#else
-			throw PlatformNotSupportedException();
 #endif
 		}
 		// @throw AL::Exception
@@ -84,8 +78,6 @@ namespace AL::OS
 				lpFunction,
 				lpInstance
 			);
-#else
-			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -103,8 +95,6 @@ namespace AL::OS
 			return thread.IsRunning();
 #elif defined(AL_PLATFORM_WINDOWS)
 			return thread.IsRunning();
-#else
-			return False;
 #endif
 		}
 
@@ -126,17 +116,9 @@ namespace AL::OS
 				"Thread already running"
 			);
 
-#if defined(AL_PLATFORM_LINUX)
 			thread.Start(
 				Move(function)
 			);
-#elif defined(AL_PLATFORM_WINDOWS)
-			thread.Start(
-				Move(function)
-			);
-#else
-			throw PlatformNotSupportedException();
-#endif
 		}
 		// @throw AL::Exception
 		Void Start(Void(*lpFunction)())
@@ -146,17 +128,9 @@ namespace AL::OS
 				"Thread already running"
 			);
 
-#if defined(AL_PLATFORM_LINUX)
 			thread.Start(
 				lpFunction
 			);
-#elif defined(AL_PLATFORM_WINDOWS)
-			thread.Start(
-				lpFunction
-			);
-#else
-			throw PlatformNotSupportedException();
-#endif
 		}
 		// @throw AL::Exception
 		template<typename C>
@@ -167,19 +141,10 @@ namespace AL::OS
 				"Thread already running"
 			);
 
-#if defined(AL_PLATFORM_LINUX)
 			thread.Start(
 				lpFunction,
 				lpInstance
 			);
-#elif defined(AL_PLATFORM_WINDOWS)
-			thread.Start(
-				lpFunction,
-				lpInstance
-			);
-#else
-			throw PlatformNotSupportedException();
-#endif
 		}
 		// @throw AL::Exception
 		template<typename C>
@@ -190,19 +155,10 @@ namespace AL::OS
 				"Thread already running"
 			);
 
-#if defined(AL_PLATFORM_LINUX)
 			thread.Start(
 				lpFunction,
 				lpInstance
 			);
-#elif defined(AL_PLATFORM_WINDOWS)
-			thread.Start(
-				lpFunction,
-				lpInstance
-			);
-#else
-			throw PlatformNotSupportedException();
-#endif
 		}
 
 		// @throw AL::Exception
@@ -213,13 +169,7 @@ namespace AL::OS
 				"Thread not running"
 			);
 
-#if defined(AL_PLATFORM_LINUX)
 			thread.Detatch();
-#elif defined(AL_PLATFORM_WINDOWS)
-			thread.Detatch();
-#else
-			throw PlatformNotSupportedException();
-#endif
 		}
 
 		// @throw AL::Exception
@@ -231,8 +181,6 @@ namespace AL::OS
 			thread.Terminate(
 				0
 			);
-#else
-			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -240,21 +188,11 @@ namespace AL::OS
 		// @return False if time elapsed and thread is still running
 		Bool Join(TimeSpan maxWaitTime = TimeSpan::Infinite)
 		{
-#if defined(AL_PLATFORM_LINUX)
 			if (!thread.Join(maxWaitTime))
 			{
 
 				return False;
 			}
-#elif defined(AL_PLATFORM_WINDOWS)
-			if (!thread.Join(maxWaitTime))
-			{
-
-				return False;
-			}
-#else
-			throw PlatformNotSupportedException();
-#endif
 
 			return True;
 		}
@@ -266,8 +204,6 @@ namespace AL::OS
 		return Linux::GetCurrentThreadId();
 #elif defined(AL_PLATFORM_WINDOWS)
 		return Windows::GetCurrentThreadId();
-#else
-		throw PlatformNotSupportedException();
 #endif
 	}
 }

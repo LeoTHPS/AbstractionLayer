@@ -339,8 +339,6 @@ namespace AL::Hardware
 					"SetCommTimeouts"
 				);
 			}
-#else
-			throw PlatformNotSupportedException();
 #endif
 
 			isOpen = True;
@@ -412,8 +410,6 @@ namespace AL::Hardware
 				}
 
 				totalBytesRead += bytesRead;
-#else
-				throw PlatformNotSupportedException();
 #endif
 			}
 		}
@@ -466,8 +462,6 @@ namespace AL::Hardware
 				}
 
 				totalBytesWritten += bytesWritten;
-#else
-				throw PlatformNotSupportedException();
 #endif
 			}
 		}

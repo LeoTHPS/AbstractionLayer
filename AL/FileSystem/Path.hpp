@@ -210,8 +210,6 @@ namespace AL::FileSystem
 
 				return False;
 			}
-#else
-			throw PlatformNotSupportedException();
 #endif
 
 			return True;
@@ -252,8 +250,6 @@ namespace AL::FileSystem
 
 				return False;
 			}
-#else
-			throw PlatformNotSupportedException();
 #endif
 
 			return True;
@@ -297,8 +293,6 @@ namespace AL::FileSystem
 			}
 
 			return False;
-#else
-			throw PlatformNotSupportedException();
 #endif
 		}
 

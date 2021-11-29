@@ -88,8 +88,6 @@ namespace AL::FileSystem
 			integer.High.Value = fileInfo.nFileSizeHigh;
 
 			return integer.Value;
-#else
-			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -166,8 +164,6 @@ namespace AL::FileSystem
 			::CloseHandle(
 				hFile
 			);
-#else
-			throw PlatformNotSupportedException();
 #endif
 			return True;
 		}
@@ -198,8 +194,6 @@ namespace AL::FileSystem
 					"DeleteFileA"
 				);
 			}
-#else
-			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -364,8 +358,6 @@ namespace AL::FileSystem
 					"MoveFileA"
 				);
 			}
-#else
-			throw PlatformNotSupportedException();
 #endif
 
 			return True;

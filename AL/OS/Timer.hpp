@@ -105,8 +105,6 @@ namespace AL::OS
 					(integer.QuadPart - start) / frequency
 				)
 			);
-#else
-			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -125,8 +123,6 @@ namespace AL::OS
 			start = static_cast<Double>(
 				integer.QuadPart
 			);
-#else
-			throw PlatformNotSupportedException();
 #endif
 		}
 

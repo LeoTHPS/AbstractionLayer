@@ -266,7 +266,7 @@ namespace AL::Hardware
 			throw NotImplementedException();
 	#endif
 #else
-			throw PlatformNotSupportedException();
+			throw NotImplementedException();
 #endif
 
 			this->value = value;
@@ -322,7 +322,7 @@ namespace AL::Hardware
 			throw NotImplementedException();
 	#endif
 #else
-			throw PlatformNotSupportedException();
+			throw NotImplementedException();
 #endif
 
 			this->value = value;
@@ -427,7 +427,7 @@ namespace AL::Hardware
 			throw NotImplementedException();
 	#endif
 #else
-			throw PlatformNotSupportedException();
+			throw NotImplementedException();
 #endif
 
 			if ((this->direction = direction) == GPIOPinDirections::Out)
@@ -563,7 +563,7 @@ namespace AL::Hardware
 			throw NotImplementedException();
 	#endif
 #else
-			throw PlatformNotSupportedException();
+			throw NotImplementedException();
 #endif
 
 			return True;

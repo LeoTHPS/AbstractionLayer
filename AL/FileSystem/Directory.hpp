@@ -104,8 +104,6 @@ namespace AL::FileSystem
 					"CreateDirectoryA"
 				);
 			}
-#else
-			throw PlatformNotSupportedException();
 #endif
 
 			return True;
@@ -291,8 +289,6 @@ namespace AL::FileSystem
 			::FindClose(
 				hFind
 			);
-#else
-			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -422,8 +418,6 @@ namespace AL::FileSystem
 			::FindClose(
 				hFind
 			);
-#else
-			throw PlatformNotSupportedException();
 #endif
 		}
 
@@ -553,8 +547,6 @@ namespace AL::FileSystem
 			::FindClose(
 				hFind
 			);
-#else
-			throw PlatformNotSupportedException();
 #endif
 		}
 

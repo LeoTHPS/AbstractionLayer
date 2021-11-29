@@ -23,8 +23,6 @@ namespace AL::OS
 		return static_cast<ErrorCode>(
 			::GetLastError()
 		);
-#else
-		throw PlatformNotSupportedException();
 #endif
 	}
 
@@ -69,8 +67,6 @@ namespace AL::OS
 		}
 
 		return string;
-#else
-		throw PlatformNotSupportedException();
 #endif
 	}
 

@@ -56,8 +56,6 @@ namespace AL::OS
 
 				return False;
 			}
-#else
-			throw PlatformNotSupportedException();
 #endif
 
 			return True;
@@ -110,8 +108,6 @@ namespace AL::OS
 
 				return False;
 			}
-#else
-			throw PlatformNotSupportedException();
 #endif
 
 			return True;
@@ -141,8 +137,6 @@ namespace AL::OS
 
 				return False;
 			}
-#else
-			throw PlatformNotSupportedException();
 #endif
 
 			return True;
@@ -172,8 +166,6 @@ namespace AL::OS
 				if (::read(STDIN_FILENO, &c, sizeof(String::Char)) == -1)
 #elif defined(AL_PLATFORM_WINDOWS)
 				if (::ReadConsoleA(hInput, &c, 1, &numberOfCharsRead, nullptr) == 0)
-#else
-				throw PlatformNotSupportedException();
 #endif
 				{
 
@@ -228,8 +220,6 @@ namespace AL::OS
 
 				return False;
 			}
-#else
-			throw PlatformNotSupportedException();
 #endif
 
 			return True;
@@ -277,8 +267,6 @@ namespace AL::OS
 
 				totalCharsWritten += numberOfCharsWritten;
 			}
-#else
-			throw PlatformNotSupportedException();
 #endif
 
 			return True;

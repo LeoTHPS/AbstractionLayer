@@ -100,8 +100,6 @@ namespace AL::Hardware::Drivers
 					path = "rtlsdr.so";
 #elif defined(AL_PLATFORM_WINDOWS)
 					path = "rtlsdr.dll";
-#else
-					throw PlatformNotSupportedException();
 #endif
 
 					OS::Process::OpenCurrent(

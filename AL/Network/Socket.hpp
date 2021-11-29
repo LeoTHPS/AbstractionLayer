@@ -54,11 +54,6 @@ namespace AL::Network
 
 	class Socket
 	{
-#if defined(AL_PLATFORM_LINUX)
-		static constexpr int SOCKET_ERROR   = -1;
-		static constexpr int INVALID_SOCKET = -1;
-#endif
-
 #if defined(AL_PLATFORM_WINDOWS)
 		template<typename F>
 		static Bool WSALoadExtension(const Socket& s, ::GUID guid, F* lpFunction)
@@ -180,9 +175,9 @@ namespace AL::Network
 		Bool isWinSockLoaded                = False;
 
 #if defined(AL_PLATFORM_LINUX)
-		int             socket              = INVALID_SOCKET;
+		int             socket;
 #elif defined(AL_PLATFORM_WINDOWS)
-		SOCKET          socket              = INVALID_SOCKET;
+		SOCKET          socket;
 #endif
 		SocketTypes     socketType;
 		SocketProtocols socketProtocol;
@@ -240,8 +235,6 @@ namespace AL::Network
 			socket.isConnected = False;
 			socket.isListening = False;
 			socket.isWinSockLoaded = False;
-
-			socket.socket = INVALID_SOCKET;
 		}
 
 		Socket(SocketTypes type, SocketProtocols protocol, AddressFamilies addressFamily)
@@ -344,16 +337,20 @@ namespace AL::Network
 				if (IsOpen())
 				{
 #if defined(AL_PLATFORM_LINUX)
-					int socketFlags = ::fcntl(
-						GetHandle(),
-						F_GETFL,
-						0
-					);
+					int flags;
 
-					if (::fcntl(GetHandle(), F_SETFL, (!set ? (socketFlags | O_NONBLOCK) : (socketFlags & ~O_NONBLOCK))) == SOCKET_ERROR)
+					if ((flags = ::fcntl(GetHandle(), F_GETFL, 0)) == -1)
 					{
 
-						throw SocketException(
+						throw OS::SystemException(
+							"fcntl"
+						);
+					}
+
+					if (::fcntl(GetHandle(), F_SETFL, (!set ? (flags | O_NONBLOCK) : (flags & ~O_NONBLOCK))) == -1)
+					{
+
+						throw OS::SystemException(
 							"fcntl"
 						);
 					}
@@ -383,7 +380,7 @@ namespace AL::Network
 			);
 
 #if defined(AL_PLATFORM_LINUX)
-			if ((socket = ::socket(static_cast<int>(GetAddressFamily()), static_cast<int>(GetType()), static_cast<int>(GetProtocol()))) == INVALID_SOCKET)
+			if ((socket = ::socket(static_cast<int>(GetAddressFamily()), static_cast<int>(GetType()), static_cast<int>(GetProtocol()))) == -1)
 			{
 
 				throw SocketException(
@@ -442,8 +439,6 @@ namespace AL::Network
 				isBlocking = False;
 				isConnected = False;
 				isListening = False;
-
-				socket = INVALID_SOCKET;
 			}
 		}
 
@@ -455,6 +450,15 @@ namespace AL::Network
 				"Socket not open"
 			);
 
+#if defined(AL_PLATFORM_LINUX)
+			if (::shutdown(GetHandle(), static_cast<int>(type)) == -1)
+			{
+
+				throw SocketException(
+					"shutdown"
+				);
+			}
+#elif defined(AL_PLATFORM_WINDOWS)
 			if (::shutdown(GetHandle(), static_cast<int>(type)) == SOCKET_ERROR)
 			{
 
@@ -462,6 +466,7 @@ namespace AL::Network
 					"shutdown"
 				);
 			}
+#endif
 		}
 
 		// @throw AL::Exception
@@ -503,6 +508,15 @@ namespace AL::Network
 				{
 					int v6_only = 0;
 
+#if defined(AL_PLATFORM_LINUX)
+					if (::setsockopt(GetHandle(), IPPROTO_IPV6, IPV6_V6ONLY, reinterpret_cast<const char*>(&v6_only), sizeof(v6_only)) == -1)
+					{
+
+						throw SocketException(
+							"setsockopt"
+						);
+					}
+#elif defined(AL_PLATFORM_WINDOWS)
 					if (::setsockopt(GetHandle(), IPPROTO_IPV6, IPV6_V6ONLY, reinterpret_cast<const char*>(&v6_only), sizeof(v6_only)) == SOCKET_ERROR)
 					{
 
@@ -510,6 +524,7 @@ namespace AL::Network
 							"setsockopt"
 						);
 					}
+#endif
 
 					address.v6.sin6_family = AF_INET6;
 					address.v6.sin6_addr = ep.Host.GetAddress6();
@@ -525,6 +540,15 @@ namespace AL::Network
 					throw NotImplementedException();
 			}
 
+#if defined(AL_PLATFORM_LINUX)
+			if (::bind(GetHandle(), reinterpret_cast<const ::sockaddr*>(&address), addressSize) == -1)
+			{
+
+				throw SocketException(
+					"bind"
+				);
+			}
+#elif defined(AL_PLATFORM_WINDOWS)
 			if (::bind(GetHandle(), reinterpret_cast<const ::sockaddr*>(&address), addressSize) == SOCKET_ERROR)
 			{
 
@@ -532,6 +556,7 @@ namespace AL::Network
 					"bind"
 				);
 			}
+#endif
 
 			isBound = True;
 			localEndPoint = ep;
@@ -555,6 +580,15 @@ namespace AL::Network
 				"Socket already listening"
 			);
 
+#if defined(AL_PLATFORM_LINUX)
+			if (::listen(GetHandle(), static_cast<int32>(backlog & Integer<uint32>::SignedCastMask)) == -1)
+			{
+
+				throw SocketException(
+					"listen"
+				);
+			}
+#elif defined(AL_PLATFORM_WINDOWS)
 			if (::listen(GetHandle(), static_cast<int32>(backlog & Integer<uint32>::SignedCastMask)) == SOCKET_ERROR)
 			{
 
@@ -562,6 +596,7 @@ namespace AL::Network
 					"listen"
 				);
 			}
+#endif
 
 			isListening = True;
 		}
@@ -587,7 +622,7 @@ namespace AL::Network
 			);
 
 #if defined(AL_PLATFORM_LINUX)
-			if ((_socket.socket = ::accept(GetHandle(), nullptr, nullptr)) == INVALID_SOCKET)
+			if ((_socket.socket = ::accept(GetHandle(), nullptr, nullptr)) == -1)
 			{
 				auto errorCode = OS::GetLastError();
 
@@ -772,7 +807,7 @@ namespace AL::Network
 			}
 
 #if defined(AL_PLATFORM_LINUX)
-			if (::connect(GetHandle(), reinterpret_cast<const ::sockaddr*>(&address), addressSize) == SOCKET_ERROR)
+			if (::connect(GetHandle(), reinterpret_cast<const ::sockaddr*>(&address), addressSize) == -1)
 			{
 				auto errorCode = OS::GetLastError();
 
@@ -892,7 +927,7 @@ namespace AL::Network
 			ssize_t bytesReceived;
 
 #if defined(AL_PLATFORM_LINUX)
-			if ((bytesReceived = ::recv(GetHandle(), lpBuffer, size, 0)) == SOCKET_ERROR)
+			if ((bytesReceived = ::recv(GetHandle(), lpBuffer, size, 0)) == -1)
 			{
 				auto errorCode = OS::GetLastError();
 
@@ -1085,7 +1120,7 @@ namespace AL::Network
 			ssize_t bytesSent;
 
 #if defined(AL_PLATFORM_LINUX)
-			if ((bytesSent = ::send(GetHandle(), lpBuffer, size, 0)) == SOCKET_ERROR)
+			if ((bytesSent = ::send(GetHandle(), lpBuffer, size, 0)) == -1)
 			{
 				auto errorCode = OS::GetLastError();
 
@@ -1282,7 +1317,6 @@ namespace AL::Network
 			socket.isWinSockLoaded = False;
 
 			this->socket = socket.socket;
-			socket.socket = INVALID_SOCKET;
 
 			socketType = socket.socketType;
 			socketProtocol = socket.socketProtocol;
@@ -1334,6 +1368,15 @@ namespace AL::Network
 					sockaddr_in address;
 					socklen_t   addressSize = sizeof(sockaddr_in);
 
+#if defined(AL_PLATFORM_LINUX)
+					if (::getsockname(socket, reinterpret_cast<sockaddr*>(&address), &addressSize) == -1)
+					{
+
+						throw SocketException(
+							"getsockname"
+						);
+					}
+#elif defined(AL_PLATFORM_WINDOWS)
 					if (::getsockname(socket, reinterpret_cast<sockaddr*>(&address), &addressSize) == SOCKET_ERROR)
 					{
 
@@ -1341,6 +1384,7 @@ namespace AL::Network
 							"getsockname"
 						);
 					}
+#endif
 
 					ep.Host = Move(
 						address.sin_addr
@@ -1357,6 +1401,15 @@ namespace AL::Network
 					sockaddr_in6 address;
 					socklen_t    addressSize = sizeof(sockaddr_in6);
 
+#if defined(AL_PLATFORM_LINUX)
+					if (::getsockname(socket, reinterpret_cast<sockaddr*>(&address), &addressSize) == -1)
+					{
+
+						throw SocketException(
+							"getsockname"
+						);
+					}
+#elif defined(AL_PLATFORM_WINDOWS)
 					if (::getsockname(socket, reinterpret_cast<sockaddr*>(&address), &addressSize) == SOCKET_ERROR)
 					{
 
@@ -1364,6 +1417,7 @@ namespace AL::Network
 							"getsockname"
 						);
 					}
+#endif
 
 					ep.Host = Move(
 						address.sin6_addr
@@ -1390,6 +1444,15 @@ namespace AL::Network
 					sockaddr_in address;
 					socklen_t   addressSize = sizeof(sockaddr_in);
 
+#if defined(AL_PLATFORM_LINUX)
+					if (::getpeername(socket, reinterpret_cast<sockaddr*>(&address), &addressSize) == -1)
+					{
+
+						throw SocketException(
+							"getpeername"
+						);
+					}
+#elif defined(AL_PLATFORM_WINDOWS)
 					if (::getpeername(socket, reinterpret_cast<sockaddr*>(&address), &addressSize) == SOCKET_ERROR)
 					{
 
@@ -1397,6 +1460,7 @@ namespace AL::Network
 							"getpeername"
 						);
 					}
+#endif
 
 					ep.Host = Move(
 						address.sin_addr
@@ -1413,6 +1477,15 @@ namespace AL::Network
 					sockaddr_in6 address;
 					socklen_t    addressSize = sizeof(sockaddr_in6);
 
+#if defined(AL_PLATFORM_LINUX)
+					if (::getpeername(socket, reinterpret_cast<sockaddr*>(&address), &addressSize) == -1)
+					{
+
+						throw SocketException(
+							"getpeername"
+						);
+					}
+#elif defined(AL_PLATFORM_WINDOWS)
 					if (::getpeername(socket, reinterpret_cast<sockaddr*>(&address), &addressSize) == SOCKET_ERROR)
 					{
 
@@ -1420,6 +1493,7 @@ namespace AL::Network
 							"getpeername"
 						);
 					}
+#endif
 
 					ep.Host = Move(
 						address.sin6_addr

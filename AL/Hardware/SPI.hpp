@@ -371,7 +371,7 @@ namespace AL::Hardware
 			throw NotImplementedException();
 	#endif
 #else
-			throw PlatformNotSupportedException();
+			throw NotImplementedException();
 #endif
 		}
 
@@ -432,7 +432,7 @@ namespace AL::Hardware
 			throw NotImplementedException();
 	#endif
 #else
-			throw PlatformNotSupportedException();
+			throw NotImplementedException();
 #endif
 		}
 

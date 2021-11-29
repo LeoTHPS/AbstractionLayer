@@ -3,7 +3,9 @@
 
 #include "Mutex.hpp"
 
-#include <cstdio>
+#if defined(AL_PLATFORM_LINUX)
+	#include <cstdio>
+#endif
 
 namespace AL::OS
 {
@@ -45,8 +47,6 @@ namespace AL::OS
 			::OutputDebugStringA(
 				message.GetCString()
 			);
-	#else
-			throw PlatformNotSupportedException();
 	#endif
 #endif
 		}
@@ -73,8 +73,6 @@ namespace AL::OS
 			::OutputDebugStringW(
 				message.GetCString()
 			);
-	#else
-			throw PlatformNotSupportedException();
 	#endif
 #endif
 		}
@@ -132,8 +130,6 @@ namespace AL::OS
 			::OutputDebugStringA(
 				message.GetCString()
 			);
-	#else
-			throw PlatformNotSupportedException();
 	#endif
 #endif
 		}
@@ -160,8 +156,6 @@ namespace AL::OS
 			::OutputDebugStringW(
 				message.GetCString()
 			);
-	#else
-			throw PlatformNotSupportedException();
 	#endif
 #endif
 		}
