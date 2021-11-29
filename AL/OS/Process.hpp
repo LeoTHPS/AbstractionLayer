@@ -963,7 +963,7 @@ namespace AL::OS
 			::HANDLE hProcess;
 			Bool     isCurrentProcess;
 
-			if (isCurrentProcess = ((id == ::GetCurrentProcessId()) != 0))
+			if ((isCurrentProcess = ((id == ::GetCurrentProcessId()) != 0)))
 			{
 
 				hProcess = ::GetCurrentProcess();
