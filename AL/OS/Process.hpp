@@ -963,7 +963,7 @@ namespace AL::OS
 			::HANDLE hProcess;
 			Bool     isCurrentProcess;
 
-			if ((isCurrentProcess = (id == ::GetCurrentProcessId())) != 0)
+			if (isCurrentProcess = ((id == ::GetCurrentProcessId()) != 0))
 			{
 
 				hProcess = ::GetCurrentProcess();
@@ -1489,37 +1489,53 @@ inline AL::Bool AL::OS::ProcessLibrary::Load(ProcessLibrary& library, Process& p
 	}
 
 #if defined(AL_PLATFORM_LINUX)
-	void* handle;
-
-	if ((handle = ::dlopen(path.GetString().GetCString(), RTLD_NOW | RTLD_GLOBAL)) == NULL)
+	if (process.IsCurrentProcess())
 	{
+		void* handle;
 
-		throw Linux::DLException(
-			"dlopen"
+		if ((handle = ::dlopen(path.GetString().GetCString(), RTLD_NOW | RTLD_GLOBAL)) == NULL)
+		{
+
+			throw Linux::DLException(
+				"dlopen"
+			);
+		}
+
+		library = ProcessLibrary(
+			process,
+			handle,
+			String(path.GetString())
 		);
 	}
-
-	library = ProcessLibrary(
-		process,
-		handle,
-		String(path.GetString())
-	);
+	else
+	{
+		// TODO: implement
+		throw NotImplementedException();
+	}
 #elif defined(AL_PLATFORM_WINDOWS)
-	::HMODULE hModule;
-
-	if ((hModule = ::LoadLibraryA(path.GetString().GetCString())) == NULL)
+	if (process.IsCurrentProcess())
 	{
+		::HMODULE hModule;
 
-		throw SystemException(
-			"LoadLibraryA"
+		if ((hModule = ::LoadLibraryA(path.GetString().GetCString())) == NULL)
+		{
+
+			throw SystemException(
+				"LoadLibraryA"
+			);
+		}
+
+		library = ProcessLibrary(
+			process,
+			hModule,
+			String(path.GetString())
 		);
 	}
-
-	library = ProcessLibrary(
-		process,
-		hModule,
-		String(path.GetString())
-	);
+	else
+	{
+		// TODO: implement
+		throw NotImplementedException();
+	}
 #else
 	throw PlatformNotSupportedException();
 #endif
@@ -1535,22 +1551,37 @@ inline AL::Bool AL::OS::ProcessLibrary::Open(ProcessLibrary& library, Process& p
 	// TODO: implement
 	throw NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
-	::HMODULE hModule;
-
-	if ((hModule = ::GetModuleHandleA(name.GetCString())) == NULL)
+	if (process.IsCurrentProcess())
 	{
-		// TODO: detect library not loaded
+		::HMODULE hModule;
 
-		throw SystemException(
-			"GetModuleHandleA"
+		if ((hModule = ::GetModuleHandleA(name.GetCString())) == NULL)
+		{
+			auto errorCode = GetLastError();
+
+			if (errorCode == ERROR_MOD_NOT_FOUND)
+			{
+
+				return False;
+			}
+
+			throw SystemException(
+				"GetModuleHandleA",
+				errorCode
+			);
+		}
+
+		library = ProcessLibrary(
+			process,
+			hModule,
+			String(name)
 		);
 	}
-
-	library = ProcessLibrary(
-		process,
-		hModule,
-		String(name)
-	);
+	else
+	{
+		// TODO: implement
+		throw NotImplementedException();
+	}
 #else
 	throw PlatformNotSupportedException();
 #endif
@@ -1565,35 +1596,43 @@ inline AL::Void AL::OS::ProcessLibrary::OpenProcess(ProcessLibrary& library, Pro
 	// TODO: implement
 	throw NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
-	::HMODULE hModule;
-
-	if ((hModule = ::GetModuleHandleA(NULL)) == NULL)
+	if (process.IsCurrentProcess())
 	{
+		::HMODULE hModule;
 
-		throw SystemException(
-			"GetModuleHandleA"
+		if ((hModule = ::GetModuleHandleA(NULL)) == NULL)
+		{
+
+			throw SystemException(
+				"GetModuleHandleA"
+			);
+		}
+
+		char    path[AL_MAX_PATH] = { 0  };
+		::DWORD pathLength;
+
+		if ((pathLength = GetModuleFileNameA(hModule, &path[0], AL_MAX_PATH)) == 0)
+		{
+
+			throw SystemException(
+				"GetModuleFileName"
+			);
+		}
+
+		library = ProcessLibrary(
+			process,
+			hModule,
+			String(
+				path,
+				pathLength
+			)
 		);
 	}
-
-	char    path[AL_MAX_PATH] = { 0  };
-	::DWORD pathLength;
-
-	if ((pathLength = GetModuleFileNameA(hModule, &path[0], AL_MAX_PATH)) == 0)
+	else
 	{
-
-		throw SystemException(
-			"GetModuleFileName"
-		);
+		// TODO: implement
+		throw NotImplementedException();
 	}
-
-	library = ProcessLibrary(
-		process,
-		hModule,
-		String(
-			path,
-			pathLength
-		)
-	);
 #else
 	throw PlatformNotSupportedException();
 #endif
