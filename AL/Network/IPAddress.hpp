@@ -27,26 +27,6 @@ namespace AL::Network
 		{
 			in_addr  v4;
 			in6_addr v6;
-
-			Address()
-			{
-			}
-
-			explicit Address(in_addr&& address)
-				: v4(
-					Move(
-						address
-					)
-				)
-			{
-			}
-
-			explicit Address(in6_addr&& address)
-				: v6(
-					Move(address)
-				)
-			{
-			}
 		};
 
 		Bool            isWinSockLoaded = False;
@@ -231,7 +211,9 @@ namespace AL::Network
 #endif
 			),
 			address(
-				Move(address)
+				{
+					.v4 = Move(address)
+				}
 			),
 			addressFamily(
 				AddressFamilies::IPv4
@@ -254,7 +236,9 @@ namespace AL::Network
 #endif
 			),
 			address(
-				Move(address)
+				{
+					.v6 = Move(address)
+				}
 			),
 			addressFamily(
 				AddressFamilies::IPv6
