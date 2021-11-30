@@ -417,10 +417,11 @@ namespace AL::OS
 			}
 
 			// @throw AL::Exception
-			virtual Void OnIconChanged(const Windows::WindowIcon& icon) override
+			virtual Void OnIconChanged(const Windows::WindowIcon& icon, Windows::WindowIconTypes type) override
 			{
 				Windows::Window::OnIconChanged(
-					icon
+					icon,
+					type
 				);
 
 
@@ -428,9 +429,9 @@ namespace AL::OS
 
 			// @throw AL::Exception
 			// @return False to cancel
-			virtual Bool OnIconChanging(const Windows::WindowIcon& icon) override
+			virtual Bool OnIconChanging(const Windows::WindowIcon& icon, Windows::WindowIconTypes type) override
 			{
-				if (!Windows::Window::OnIconChanging(icon))
+				if (!Windows::Window::OnIconChanging(icon, type))
 				{
 
 					return False;

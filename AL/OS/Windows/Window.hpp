@@ -36,6 +36,12 @@ namespace AL::OS::Windows
 		UserDefined
 	};
 
+	enum class WindowIconTypes
+	{
+		Big,
+		Small
+	};
+
 	class WindowIcon
 	{
 		WindowIcons icon;
@@ -70,11 +76,6 @@ namespace AL::OS::Windows
 		auto GetHandle() const
 		{
 			return handle;
-		}
-
-		operator WindowIcons() const
-		{
-			return icon;
 		}
 
 	private:
@@ -672,14 +673,17 @@ namespace AL::OS::Windows
 		::HWND                  hWindow;
 		::WNDCLASSEXA           windowClass;
 
-		WindowIcon              windowIcon;
+		struct
+		{
+			WindowIcon Big;
+			WindowIcon Small;
+		}                       windowIcon;
 		String                  windowName;
 		String                  windowTitle;
 		WindowCursor            windowCursor;
 		WindowPosition          windowPosition;
 		WindowResolution        windowResolution;
 		WindowColor             windowBackgroundColor;
-		size_t                  windowSetIconPendingCount = 0;
 
 		Clipboard               clipboard;
 
@@ -706,7 +710,10 @@ namespace AL::OS::Windows
 				{ 0 }
 			),
 			windowIcon(
-				WindowIcons::Default
+				{
+					.Big   = WindowIcons::Default,
+					.Small = WindowIcons::Default
+				}
 			),
 			windowName(
 				Move(name)
@@ -730,8 +737,8 @@ namespace AL::OS::Windows
 		{
 			windowClass.cbSize = sizeof(::WNDCLASSEXA);
 			windowClass.style = CS_HREDRAW | CS_VREDRAW;
-			windowClass.hIcon = windowIcon.GetHandle();
-			windowClass.hIconSm = windowIcon.GetHandle();
+			windowClass.hIcon = windowIcon.Big.GetHandle();
+			windowClass.hIconSm = windowIcon.Small.GetHandle();
 			windowClass.hCursor = windowCursor.GetHandle();
 			windowClass.hInstance = hInstance;
 			windowClass.lpfnWndProc = &Window::NativeWindowProc;
@@ -822,9 +829,14 @@ namespace AL::OS::Windows
 			return windowTitle;
 		}
 
-		auto GetIcon() const
+		auto GetIconBig() const
 		{
-			return windowIcon;
+			return windowIcon.Big;
+		}
+
+		auto GetIconSmall() const
+		{
+			return windowIcon.Small;
 		}
 
 		auto GetCursor() const
@@ -886,53 +898,52 @@ namespace AL::OS::Windows
 		}
 
 		// @throw AL::Exception
-		Bool SetIcon(const WindowIcon& value)
+		Bool SetIcon(WindowIcon&& value, WindowIconTypes type)
 		{
-			if (!OnIconChanging(value))
-			{
-
-				return False;
-			}
+			*((type == WindowIconTypes::Big) ? &windowIcon.Big : &windowIcon.Small) = Move(
+				value
+			);
 
 			if (IsCreated() || isCreating)
 			{
 				PostNativeMessage(
 					WM_SETICON,
-					ICON_BIG,
-					reinterpret_cast<LPARAM>(
-						value.GetHandle()
+					(type == WindowIconTypes::Big) ? ICON_BIG : ICON_SMALL,
+					reinterpret_cast<::LPARAM>(
+						(type == WindowIconTypes::Big) ? GetIconBig().GetHandle() : GetIconSmall().GetHandle()
 					)
 				);
-
-				++windowSetIconPendingCount;
-
-				try
-				{
-					PostNativeMessage(
-						WM_SETICON,
-						ICON_SMALL,
-						reinterpret_cast<LPARAM>(
-							value.GetHandle()
-						)
-					);
-				}
-				catch (Exception&)
-				{
-					--windowSetIconPendingCount;
-
-					throw;
-				}
-				
-				++windowSetIconPendingCount;
 			}
 			else
 			{
-				windowClass.hIcon = value.GetHandle();
+				if (!OnIconChanging(value, type))
+				{
+
+					return False;
+				}
+
+				windowClass.hIcon   = value.GetHandle();
 				windowClass.hIconSm = value.GetHandle();
 
 				OnIconChanged(
-					value
+					value,
+					type
 				);
+			}
+
+			return True;
+		}
+		// @throw AL::Exception
+		Bool SetIcon(const WindowIcon& value, WindowIconTypes type)
+		{
+			WindowIcon icon(
+				value
+			);
+
+			if (!SetIcon(Move(icon), type))
+			{
+
+				return False;
 			}
 
 			return True;
@@ -993,28 +1004,51 @@ namespace AL::OS::Windows
 		}
 
 		// @throw AL::Exception
+		Bool SetCursor(WindowCursor&& value)
+		{
+			windowCursor = Move(
+				value
+			);
+
+			if (IsCreated() || isCreating)
+			{
+				auto hPreviousCursor = windowClass.hCursor;
+
+				if (::SetCursor(GetCursor().GetHandle()) != hPreviousCursor)
+				{
+
+					return False;
+				}
+			}
+			else
+			{
+				if (!OnCursorChanging(value))
+				{
+
+					return False;
+				}
+
+				windowClass.hCursor = GetCursor().GetHandle();
+
+				OnCursorChanged(
+					GetCursor()
+				);
+			}
+
+			return True;
+		}
+		// @throw AL::Exception
 		Bool SetCursor(const WindowCursor& value)
 		{
-			if (!OnCursorChanging(value))
+			WindowCursor cursor(
+				value
+			);
+
+			if (!SetCursor(Move(cursor)))
 			{
 
 				return False;
 			}
-
-			windowClass.hCursor = value.GetHandle();
-			windowCursor = value;
-
-			if (IsCreated() || isCreating)
-			{
-
-				::SetCursor(
-					windowClass.hCursor
-				);
-			}
-
-			OnCursorChanged(
-				value
-			);
 
 			return True;
 		}
@@ -1613,7 +1647,13 @@ namespace AL::OS::Windows
 			try
 			{
 				SetIcon(
-					windowClass.hIcon
+					windowClass.hIcon,
+					WindowIconTypes::Big
+				);
+
+				SetIcon(
+					windowClass.hIconSm,
+					WindowIconTypes::Small
 				);
 
 				SetCursor(
@@ -1699,13 +1739,13 @@ namespace AL::OS::Windows
 		}
 
 		// @throw AL::Exception
-		virtual Void OnIconChanged(const WindowIcon& icon)
+		virtual Void OnIconChanged(const WindowIcon& icon, WindowIconTypes type)
 		{
 		}
 
 		// @throw AL::Exception
 		// @return False to cancel
-		virtual Bool OnIconChanging(const WindowIcon& icon)
+		virtual Bool OnIconChanging(const WindowIcon& icon, WindowIconTypes type)
 		{
 
 			return True;
@@ -1879,10 +1919,12 @@ namespace AL::OS::Windows
 
 			if (message == WM_CREATE)
 			{
+				auto lpCreate = reinterpret_cast<::CREATESTRUCTA*>(
+					lParam
+				);
+
 				auto lpWindow = reinterpret_cast<Window*>(
-					reinterpret_cast<CREATESTRUCT*>(
-						lParam
-					)->lpCreateParams
+					lpCreate->lpCreateParams
 				);
 
 				::SetWindowLongPtrA(
@@ -2502,7 +2544,6 @@ namespace AL::OS::Windows
 					}
 					return 1;
 
-					// TODO: handle like WM_SETTEXT
 					case WM_MOVE:
 					{
 						auto point = MAKEPOINTS(
@@ -2568,40 +2609,35 @@ namespace AL::OS::Windows
 					}
 					break;
 
-					// TODO: handle like WM_SETTEXT
 					case WM_SETICON:
 					{
-						if (lpWindow->windowSetIconPendingCount == 0)
+						auto hIcon = reinterpret_cast<::HICON>(
+							lParam
+						);
+
+						WindowIcon icon(
+							hIcon
+						);
+
+						WindowIconTypes iconType(
+							(wParam == ICON_BIG) ? WindowIconTypes::Big : WindowIconTypes::Small
+						);
+
+						if (!lpWindow->OnIconChanging(icon, iconType))
 						{
-							auto hIcon = reinterpret_cast<::HICON>(
-								lParam
-							);
 
-							lpWindow->windowIcon          = hIcon;
-							lpWindow->windowClass.hIcon   = hIcon;
-							lpWindow->windowClass.hIconSm = hIcon;
-
-							lpWindow->OnIconChanged(
-								lpWindow->windowIcon
-							);
+							return 0;
 						}
-						else if (--lpWindow->windowSetIconPendingCount == 0)
-						{
-							lpWindow->OnIconChanged(
-								lpWindow->windowIcon
-							);
-						}
-					}
-					break;
 
-					// TODO: handle like WM_SETTEXT
-					case WM_SETCURSOR:
-					{
-						::SetCursor(
-							lpWindow->windowClass.hCursor
+						*((wParam == ICON_BIG) ? &lpWindow->windowIcon.Big    : &lpWindow->windowIcon.Small)    = hIcon;
+						*((wParam == ICON_BIG) ? &lpWindow->windowClass.hIcon : &lpWindow->windowClass.hIconSm) = hIcon;
+
+						lpWindow->OnIconChanged(
+							icon,
+							iconType
 						);
 					}
-					return TRUE;
+					break;
 
 					case WM_SETTEXT:
 					{
