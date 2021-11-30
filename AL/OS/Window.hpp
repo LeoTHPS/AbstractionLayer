@@ -141,6 +141,8 @@ namespace AL::OS
 
 			virtual Bool Native_IsContentLoaded() const = 0;
 
+			virtual const String& Native_GetTitle() const = 0;
+
 #if defined(AL_PLATFORM_LINUX)
 			virtual Void* Native_GetHandle() const = 0;
 #elif defined(AL_PLATFORM_WINDOWS)
@@ -161,6 +163,9 @@ namespace AL::OS
 			// @throw AL::Exception
 			// @return False on close
 			virtual Bool Native_Update(TimeSpan delta) = 0;
+
+			// @throw AL::Exception
+			virtual Bool Native_SetTitle(String&& value) = 0;
 		};
 
 #if defined(AL_PLATFORM_LINUX)
@@ -183,6 +188,11 @@ namespace AL::OS
 			}
 
 			virtual Bool Native_IsContentLoaded() const override
+			{
+				throw NotImplementedException();
+			}
+
+			virtual const String& Native_GetTitle() const override
 			{
 				throw NotImplementedException();
 			}
@@ -221,6 +231,12 @@ namespace AL::OS
 			{
 				throw NotImplementedException();
 			}
+
+			// @throw AL::Exception
+			virtual Bool Native_SetTitle(String&& value) override
+			{
+				throw NotImplementedException();
+			}
 		};
 #elif defined(AL_PLATFORM_WINDOWS)
 		class NativeWindow
@@ -248,6 +264,11 @@ namespace AL::OS
 			virtual Bool Native_IsContentLoaded() const override
 			{
 				return Windows::Window::IsContentLoaded();
+			}
+
+			virtual const String& Native_GetTitle() const override
+			{
+				return Window::GetTitle();
 			}
 
 			virtual ::HWND Native_GetHandle() const override
@@ -283,6 +304,18 @@ namespace AL::OS
 			virtual Bool Native_Update(TimeSpan delta) override
 			{
 				if (!Windows::Window::Update(delta))
+				{
+
+					return False;
+				}
+
+				return True;
+			}
+
+			// @throw AL::Exception
+			virtual Bool Native_SetTitle(String&& value) override
+			{
+				if (!Window::SetTitle(Move(value)))
 				{
 
 					return False;
@@ -636,6 +669,33 @@ namespace AL::OS
 		Bool Update(TimeSpan delta)
 		{
 			if (!lpNativeWindow->Native_Update(delta))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+
+		// @throw AL::Exception
+		Bool SetTitle(String&& value)
+		{
+			if (!lpNativeWindow->Native_SetTitle(Move(value)))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		// @throw AL::Exception
+		Bool SetTitle(const String& value)
+		{
+			String text(
+				value
+			);
+
+			if (!SetTitle(Move(text)))
 			{
 
 				return False;
