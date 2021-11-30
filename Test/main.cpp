@@ -19,13 +19,6 @@
 
 #include "FileSystem/File.hpp"
 
-#include "Game/Engine/Window.hpp"
-
-#include "Game/FileSystem/DataFile.hpp"
-#include "Game/FileSystem/ConfigFile.hpp"
-
-#include "Game/Network/ClientServer.hpp"
-
 #include "Hardware/Drivers/RTL_SDR.hpp"
 
 #include "HTML/Document.hpp"
@@ -38,6 +31,8 @@
 #include "OS/Window.hpp"
 
 #define AL_TEST_EXECUTE(__function__, ...) \
+	++testCount; \
+	\
 	AL::OS::Console::WriteLine( \
 		"Executing " #__function__ \
 	); \
@@ -62,6 +57,8 @@
 	} \
 	catch (const AL::Exception& exception) \
 	{ \
+		++testFailCount; \
+		\
 		AL::OS::Console::WriteLine( \
 			exception.GetMessage() \
 		); \
@@ -137,13 +134,13 @@ AL::OS::Console::WriteLine(
 	);
 
 	AL::OS::Console::WriteLine(
-		"CPU Count: %llu",
-		AL::OS::System::GetProcessorCount()
+		"CPU Count: %s",
+		AL::ToString(AL::OS::System::GetProcessorCount()).GetCString()
 	);
 
 	AL::OS::Console::WriteLine(
-		"Page Size: %llu",
-		AL::OS::System::GetPageSize()
+		"Page Size: %s",
+		AL::ToString(AL::OS::System::GetPageSize()).GetCString()
 	);
 
 #if defined(AL_PLATFORM_LINUX)
@@ -203,7 +200,7 @@ void main_display_process_information()
 #endif
 }
 
-void main_execute_tests()
+void main_execute_tests(AL::uint32& testCount, AL::uint32& testFailCount)
 {
 	AL_TEST_EXECUTE(AL_Collections_Array);
 	AL_TEST_EXECUTE(AL_Collections_ArrayList);
@@ -217,13 +214,6 @@ void main_execute_tests()
 	AL_TEST_EXECUTE(AL_Function);
 
 	AL_TEST_EXECUTE(AL_FileSystem_File);
-
-	AL_TEST_EXECUTE(AL_Game_Engine_Window);
-
-	AL_TEST_EXECUTE(AL_Game_FileSystem_DataFile);
-	AL_TEST_EXECUTE(AL_Game_FileSystem_ConfigFile);
-
-	AL_TEST_EXECUTE(AL_Game_Network_ClientServer);
 
 	AL_TEST_EXECUTE(AL_Hardware_Drivers_RTL_SDR);
 
@@ -251,11 +241,18 @@ int main(int argc, char* argv[])
 	AL::OS::Console::WriteLine();
 
 	AL::OS::Timer timer;
+	AL::uint32    testCount     = 0;
+	AL::uint32    testFailCount = 0;
 
-	main_execute_tests();
+	main_execute_tests(
+		testCount,
+		testFailCount
+	);
 
 	AL::OS::Console::WriteLine(
-		"All tests completed in %llums",
+		"%lu/%lu tests completed in %llums",
+		testCount - testFailCount,
+		testCount,
 		timer.GetElapsed().ToMilliseconds()
 	);
 
