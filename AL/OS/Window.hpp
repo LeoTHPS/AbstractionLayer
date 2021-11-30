@@ -636,6 +636,11 @@ namespace AL::OS
 			return lpNativeWindow->Native_IsContentLoaded();
 		}
 
+		auto& GetTitle() const
+		{
+			return lpNativeWindow->Native_GetTitle();
+		}
+
 		auto GetHandle() const
 		{
 			return lpNativeWindow->Native_GetHandle();
