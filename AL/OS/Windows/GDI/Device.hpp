@@ -90,11 +90,19 @@ namespace AL::OS::Windows::GDI
 		template<typename T>
 		Void DrawString(const String& string, T x, T y)
 		{
-			::RECT rect;
-			rect.left   = static_cast<::LONG>(x);
-			rect.right  = static_cast<::LONG>(x);
-			rect.top    = static_cast<::LONG>(y);
-			rect.bottom = static_cast<::LONG>(y);
+			if (string.GetLength() == 0)
+			{
+
+				return;
+			}
+
+			::RECT rect =
+			{
+				.left   = BitConverter::Cast<::LONG>(x),
+				.top    = BitConverter::Cast<::LONG>(y),
+				.right  = paintStruct.rcPaint.right,
+				.bottom = paintStruct.rcPaint.bottom
+			};
 
 			if (::DrawTextA(GetHandle(), string.GetCString(), string.GetLength(), &rect, DT_LEFT | DT_NOCLIP) == 0)
 			{
@@ -108,11 +116,19 @@ namespace AL::OS::Windows::GDI
 		template<typename T>
 		Void DrawString(const String& string, const Drawing::Rectangle<T>& rectangle)
 		{
-			::RECT rect;
-			rect.left   = static_cast<::LONG>(rectangle.Left);
-			rect.right  = static_cast<::LONG>(rectangle.Right);
-			rect.top    = static_cast<::LONG>(rectangle.Top);
-			rect.bottom = static_cast<::LONG>(rectangle.Bottom);
+			if (string.GetLength() == 0)
+			{
+
+				return;
+			}
+
+			::RECT rect =
+			{
+				.left   = BitConverter::Cast<::LONG>(rectangle.Left),
+				.top    = BitConverter::Cast<::LONG>(rectangle.Top),
+				.right  = BitConverter::Cast<::LONG>(rectangle.Right),
+				.bottom = BitConverter::Cast<::LONG>(rectangle.Bottom)
+			};
 
 			if (::DrawTextA(GetHandle(), string.GetCString(), string.GetLength(), &rect, DT_LEFT) == 0)
 			{
@@ -127,11 +143,13 @@ namespace AL::OS::Windows::GDI
 		template<typename T>
 		Void FillRectangle(const Drawing::Rectangle<T>& rectangle, const SolidColorBrush& brush)
 		{
-			::RECT rect;
-			rect.left   = static_cast<::LONG>(rectangle.Left);
-			rect.right  = static_cast<::LONG>(rectangle.Right);
-			rect.top    = static_cast<::LONG>(rectangle.Top);
-			rect.bottom = static_cast<::LONG>(rectangle.Bottom);
+			::RECT rect =
+			{
+				.left   = BitConverter::Cast<::LONG>(rectangle.Left),
+				.top    = BitConverter::Cast<::LONG>(rectangle.Top),
+				.right  = BitConverter::Cast<::LONG>(rectangle.Right),
+				.bottom = BitConverter::Cast<::LONG>(rectangle.Bottom)
+			};
 
 			if (::FillRect(GetHandle(), &rect, brush.GetHandle()) == 0)
 			{
