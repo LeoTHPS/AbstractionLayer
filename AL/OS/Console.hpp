@@ -113,14 +113,14 @@ namespace AL::OS
 			return True;
 		}
 
-		static Bool Read(String::Char& c)
+		static Bool Read(String::Char& value)
 		{
 			MutexGuard lock(
 				mutex
 			);
 
 #if defined(AL_PLATFORM_LINUX)
-			if (::read(STDIN_FILENO, &c, sizeof(String::Char)) == -1)
+			if (::read(STDIN_FILENO, &value, sizeof(String::Char)) == -1)
 			{
 
 				return False;
@@ -132,7 +132,7 @@ namespace AL::OS
 
 			::DWORD numberOfCharsRead = 0;
 
-			if (::ReadConsoleA(hInput, &c, 1, &numberOfCharsRead, nullptr) == 0)
+			if (::ReadConsoleA(hInput, &value, 1, &numberOfCharsRead, nullptr) == 0)
 			{
 
 				return False;
@@ -142,9 +142,9 @@ namespace AL::OS
 			return True;
 		}
 
-		static Bool ReadLine(String& line)
+		static Bool ReadLine(String& value)
 		{
-			line.Clear();
+			value.Clear();
 
 #if defined(AL_PLATFORM_WINDOWS)
 			auto hInput = ::GetStdHandle(
@@ -175,7 +175,7 @@ namespace AL::OS
 				if (c != '\n')
 				{
 
-					line.Append(
+					value.Append(
 						c
 					);
 				}
@@ -186,101 +186,23 @@ namespace AL::OS
 
 		static Bool Write(String::Char value)
 		{
-			MutexGuard lock(
-				mutex
-			);
-
-#if defined(AL_PLATFORM_LINUX)
-			if (::write(STDOUT_FILENO, &value, sizeof(String::Char)) == -1)
-			{
-
-				return False;
-			}
-
-			if (::write(STDOUT_FILENO, &String::END, sizeof(String::Char)) == -1)
-			{
-
-				return False;
-			}
-#elif defined(AL_PLATFORM_WINDOWS)
-			::DWORD numberOfCharsWritten = 0;
-
-			auto hOutput = ::GetStdHandle(
-				STD_OUTPUT_HANDLE
-			);
-
-			if (::WriteConsoleA(hOutput, &value, sizeof(String::Char), &numberOfCharsWritten, nullptr) == 0)
-			{
-
-				return False;
-			}
-
-			if (::WriteConsoleA(hOutput, &String::END, sizeof(String::Char), &numberOfCharsWritten, nullptr) == 0)
-			{
-
-				return False;
-			}
-#endif
-
-			return True;
-		}
-		static Bool Write(const String& value)
-		{
-			if (!Write(value.GetCString()))
-			{
-
-				return False;
-			}
-
-			return True;
-		}
-		static Bool Write(const String::Char* value)
-		{
-			auto valueLength = String::GetLength(
+			auto string = String::Format(
+				"%c",
 				value
 			);
 
-			MutexGuard lock(
-				mutex
-			);
-
-#if defined(AL_PLATFORM_LINUX)
-			if (::write(STDOUT_FILENO, value, valueLength + sizeof(String::Char)) == -1)
+			if (!Write(string))
 			{
 
 				return False;
 			}
-#elif defined(AL_PLATFORM_WINDOWS)
-			auto hOutput = ::GetStdHandle(
-				STD_OUTPUT_HANDLE
-			);
-
-			for (size_t totalCharsWritten = 0; totalCharsWritten < valueLength; )
-			{
-				::DWORD numberOfCharsWritten = 0;
-
-				if (!::WriteConsoleA(hOutput, &value[totalCharsWritten], static_cast<::DWORD>(valueLength - totalCharsWritten), &numberOfCharsWritten, nullptr))
-				{
-
-					return False;
-				}
-
-				totalCharsWritten += numberOfCharsWritten;
-			}
-#endif
 
 			return True;
 		}
-
 		template<typename ... TArgs>
 		static Bool Write(const String& format, TArgs ... args)
 		{
-			auto value = String::Format(
-				format,
-				Forward<TArgs>(args) ...
-			);
-
-			if (!Write(value))
+			if (!Write(format.GetCString(), Forward<TArgs>(args) ...))
 			{
 
 				return False;
@@ -291,15 +213,42 @@ namespace AL::OS
 		template<typename ... TArgs>
 		static Bool Write(const String::Char* format, TArgs ... args)
 		{
-			auto value = String::Format(
+			auto string = String::Format(
 				format,
 				Forward<TArgs>(args) ...
 			);
 
-			if (!Write(value.GetCString()))
-			{
+#if defined(AL_PLATFORM_LINUX)
+			::ssize_t numberOfCharsWritten;
+#elif defined(AL_PLATFORM_WINDOWS)
+			auto hOutput = ::GetStdHandle(
+				STD_OUTPUT_HANDLE
+			);
 
-				return False;
+			::DWORD numberOfCharsWritten;
+#endif
+
+			MutexGuard lock(
+				mutex
+			);
+
+			for (size_t totalCharsWritten = 0; totalCharsWritten < string.GetLength(); )
+			{
+#if defined(AL_PLATFORM_LINUX)
+				if ((numberOfCharsWritten = ::write(STDOUT_FILENO, &string[totalCharsWritten], string.GetLength() - totalCharsWritten)) == -1)
+				{
+
+					return False;
+				}
+#elif defined(AL_PLATFORM_WINDOWS)
+				if (!::WriteConsoleA(hOutput, &string[totalCharsWritten], static_cast<::DWORD>(string.GetLength() - totalCharsWritten), &numberOfCharsWritten, nullptr))
+				{
+
+					return False;
+				}
+#endif
+
+				totalCharsWritten += numberOfCharsWritten;
 			}
 
 			return True;
@@ -315,46 +264,15 @@ namespace AL::OS
 
 			return True;
 		}
-		static Bool WriteLine(const String::Char* value)
-		{
-			auto message = String::Format(
-				"%s\n",
-				value
-			);
-
-			if (!Write(message))
-			{
-
-				return False;
-			}
-
-			return True;
-		}
-		static Bool WriteLine(const String& value)
-		{
-			auto message = String::Format(
-				"%s\n",
-				value.GetCString()
-			);
-
-			if (!Write(message))
-			{
-
-				return False;
-			}
-
-			return True;
-		}
-
 		template<typename ... TArgs>
 		static Bool WriteLine(const String& format, TArgs ... args)
 		{
-			auto value = String::Format(
+			auto string = String::Format(
 				format,
 				Forward<TArgs>(args) ...
 			);
 
-			if (!WriteLine(value))
+			if (!Write("%s\n", string.GetCString()))
 			{
 
 				return False;
@@ -365,12 +283,12 @@ namespace AL::OS
 		template<typename ... TArgs>
 		static Bool WriteLine(const String::Char* format, TArgs ... args)
 		{
-			auto value = String::Format(
+			auto string = String::Format(
 				format,
 				Forward<TArgs>(args) ...
 			);
 
-			if (!WriteLine(value))
+			if (!Write("%s\n", string.GetCString()))
 			{
 
 				return False;
