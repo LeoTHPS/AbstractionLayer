@@ -7,8 +7,6 @@
 
 #include "AL/OS/SystemException.hpp"
 
-#undef GetMessage
-
 namespace AL::OS::Windows
 {
 	enum class DialogIcons : uint32
