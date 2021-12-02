@@ -21,6 +21,9 @@
 
 #include <shellapi.h>
 
+#undef PostMessage
+#undef SetWindowLongPtr
+
 namespace AL::OS::Windows
 {
 	enum class WindowIcons
@@ -194,6 +197,14 @@ namespace AL::OS::Windows
 
 			return nullptr;
 		}
+	};
+
+	struct WindowMessage
+	{
+		::HWND   hWND;
+		::UINT   Type;
+		::WPARAM wParam;
+		::LPARAM lParam;
 	};
 
 	typedef Drawing::Color        WindowColor;
@@ -637,7 +648,7 @@ namespace AL::OS::Windows
 
 			// @throw AL::Exception
 			// @return True if handled
-			Bool HandleNativeMessage(::LRESULT& result, ::UINT message, ::WPARAM wParam, ::LPARAM lParam)
+			Bool HandleMessage(::LRESULT& result, ::UINT message, ::WPARAM wParam, ::LPARAM lParam)
 			{
 				if (message == WM_CLIPBOARDUPDATE)
 				{
@@ -741,7 +752,7 @@ namespace AL::OS::Windows
 			windowClass.hIconSm = windowIcon.Small.GetHandle();
 			windowClass.hCursor = windowCursor.GetHandle();
 			windowClass.hInstance = hInstance;
-			windowClass.lpfnWndProc = &Window::NativeWindowProc;
+			windowClass.lpfnWndProc = &Window::WindowProc;
 			windowClass.lpszClassName = windowName.GetCString();
 		}
 
@@ -906,7 +917,7 @@ namespace AL::OS::Windows
 
 			if (IsCreated() || isCreating)
 			{
-				PostNativeMessage(
+				PostMessage(
 					WM_SETICON,
 					(type == WindowIconTypes::Big) ? ICON_BIG : ICON_SMALL,
 					reinterpret_cast<::LPARAM>(
@@ -1251,7 +1262,7 @@ namespace AL::OS::Windows
 		{
 			if (IsCreated() || isCreating)
 			{
-				SetNativeWindowLongPtr(
+				SetWindowLongPtr(
 					GetHandle(),
 					GWL_STYLE,
 					WS_THICKFRAME,
@@ -1267,7 +1278,7 @@ namespace AL::OS::Windows
 		{
 			if (IsCreated() || isCreating)
 			{
-				SetNativeWindowLongPtr(
+				SetWindowLongPtr(
 					GetHandle(),
 					GWL_STYLE,
 					WS_MINIMIZEBOX,
@@ -1283,7 +1294,7 @@ namespace AL::OS::Windows
 		{
 			if (IsCreated() || isCreating)
 			{
-				SetNativeWindowLongPtr(
+				SetWindowLongPtr(
 					GetHandle(),
 					GWL_STYLE,
 					WS_MAXIMIZEBOX,
@@ -1341,7 +1352,7 @@ namespace AL::OS::Windows
 
 				try
 				{
-					PostNativeMessage(
+					PostMessage(
 						WM_CLOSE,
 						0,
 						0
@@ -1462,14 +1473,14 @@ namespace AL::OS::Windows
 		}
 
 		// @throw AL::Exception
-		Void PostNativeMessage(::UINT message, ::WPARAM wParam, ::LPARAM lParam)
+		Void PostMessage(::UINT type, ::WPARAM wParam, ::LPARAM lParam)
 		{
 			AL_ASSERT(
 				IsCreated(),
 				"Window not created"
 			);
 
-			if (!::PostMessageA(GetHandle(), message, wParam, lParam))
+			if (!::PostMessageA(GetHandle(), type, wParam, lParam))
 			{
 
 				throw SystemException(
@@ -1824,6 +1835,774 @@ namespace AL::OS::Windows
 		{
 		}
 
+		// @throw AL::Exception
+		virtual ::LRESULT OnMessage(::HWND hWND, ::UINT message, ::WPARAM wParam, ::LPARAM lParam)
+		{
+			{
+				::LRESULT result;
+
+				if (clipboard.HandleMessage(result, message, wParam, lParam))
+				{
+
+					return result;
+				}
+			}
+
+			auto UpdateMousePosition = [this](::LPARAM _lParam)
+			{
+				auto points = MAKEPOINTS(
+					_lParam
+				);
+
+				lastMouseEvent.Position.X = points.x;
+				lastMouseEvent.Position.Y = points.y;
+			};
+
+			switch (message)
+			{
+				case WM_CHAR:
+				{
+					if (::isprint(static_cast<int>(wParam)))
+					{
+						lastKeyboardEvent.Char = static_cast<char>(wParam);
+						lastKeyboardEvent.Type = Hardware::KeyboardEvents::Char;
+
+						OnKeyboardEvent(
+							lastKeyboardEvent
+						);
+					}
+				}
+				break;
+
+				case WM_KEYUP:
+				case WM_KEYDOWN:
+				{
+					auto VirtualKeyToInputKey = [](Hardware::Keys& _key, WPARAM _wParam)->Bool
+					{
+						switch (_wParam)
+						{
+							case 0x41:
+								_key = Hardware::Keys::A;
+								return True;
+							case 0x42:
+								_key = Hardware::Keys::B;
+								return True;
+							case 0x43:
+								_key = Hardware::Keys::C;
+								return True;
+							case 0x44:
+								_key = Hardware::Keys::D;
+								return True;
+							case 0x45:
+								_key = Hardware::Keys::E;
+								return True;
+							case 0x46:
+								_key = Hardware::Keys::F;
+								return True;
+							case 0x47:
+								_key = Hardware::Keys::G;
+								return True;
+							case 0x48:
+								_key = Hardware::Keys::H;
+								return True;
+							case 0x49:
+								_key = Hardware::Keys::I;
+								return True;
+							case 0x4A:
+								_key = Hardware::Keys::J;
+								return True;
+							case 0x4B:
+								_key = Hardware::Keys::K;
+								return True;
+							case 0x4C:
+								_key = Hardware::Keys::L;
+								return True;
+							case 0x4D:
+								_key = Hardware::Keys::M;
+								return True;
+							case 0x4E:
+								_key = Hardware::Keys::N;
+								return True;
+							case 0x4F:
+								_key = Hardware::Keys::O;
+								return True;
+							case 0x50:
+								_key = Hardware::Keys::P;
+								return True;
+							case 0x51:
+								_key = Hardware::Keys::Q;
+								return True;
+							case 0x52:
+								_key = Hardware::Keys::R;
+								return True;
+							case 0x53:
+								_key = Hardware::Keys::S;
+								return True;
+							case 0x54:
+								_key = Hardware::Keys::T;
+								return True;
+							case 0x55:
+								_key = Hardware::Keys::U;
+								return True;
+							case 0x56:
+								_key = Hardware::Keys::V;
+								return True;
+							case 0x57:
+								_key = Hardware::Keys::W;
+								return True;
+							case 0x58:
+								_key = Hardware::Keys::X;
+								return True;
+							case 0x59:
+								_key = Hardware::Keys::Y;
+								return True;
+							case 0x5A:
+								_key = Hardware::Keys::Z;
+								return True;
+
+							case 0x30:
+								_key = Hardware::Keys::Num0;
+								return True;
+							case 0x31:
+								_key = Hardware::Keys::Num1;
+								return True;
+							case 0x32:
+								_key = Hardware::Keys::Num2;
+								return True;
+							case 0x33:
+								_key = Hardware::Keys::Num3;
+								return True;
+							case 0x34:
+								_key = Hardware::Keys::Num4;
+								return True;
+							case 0x35:
+								_key = Hardware::Keys::Num5;
+								return True;
+							case 0x36:
+								_key = Hardware::Keys::Num6;
+								return True;
+							case 0x37:
+								_key = Hardware::Keys::Num7;
+								return True;
+							case 0x38:
+								_key = Hardware::Keys::Num8;
+								return True;
+							case 0x39:
+								_key = Hardware::Keys::Num9;
+								return True;
+
+							case VK_NUMPAD0:
+								_key = Hardware::Keys::NumPad0;
+								return True;
+							case VK_NUMPAD1:
+								_key = Hardware::Keys::NumPad1;
+								return True;
+							case VK_NUMPAD2:
+								_key = Hardware::Keys::NumPad2;
+								return True;
+							case VK_NUMPAD3:
+								_key = Hardware::Keys::NumPad3;
+								return True;
+							case VK_NUMPAD4:
+								_key = Hardware::Keys::NumPad4;
+								return True;
+							case VK_NUMPAD5:
+								_key = Hardware::Keys::NumPad5;
+								return True;
+							case VK_NUMPAD6:
+								_key = Hardware::Keys::NumPad6;
+								return True;
+							case VK_NUMPAD7:
+								_key = Hardware::Keys::NumPad7;
+								return True;
+							case VK_NUMPAD8:
+								_key = Hardware::Keys::NumPad8;
+								return True;
+							case VK_NUMPAD9:
+								_key = Hardware::Keys::NumPad9;
+								return True;
+								
+							case VK_OEM_3:
+								_key = Hardware::Keys::Tilde;
+								return True;
+							case VK_MENU:
+								_key = Hardware::Keys::Alt;
+								return True;
+							case VK_LMENU:
+								_key = Hardware::Keys::LAlt;
+								return True;
+							case VK_RMENU:
+								_key = Hardware::Keys::RAlt;
+								return True;
+							case VK_CLEAR:
+								_key = Hardware::Keys::Clear;
+								return True;
+							case VK_DELETE:
+								_key = Hardware::Keys::Delete;
+								return True;
+							case VK_RETURN:
+								_key = Hardware::Keys::Enter;
+								return True;
+							case VK_ESCAPE:
+								_key = Hardware::Keys::Escape;
+								return True;
+							case VK_BACK:
+								_key = Hardware::Keys::Backspace;
+								return True;
+							case VK_CONTROL:
+								_key = Hardware::Keys::Control;
+								return True;
+							case VK_LCONTROL:
+								_key = Hardware::Keys::LControl;
+								return True;
+							case VK_RCONTROL:
+								_key = Hardware::Keys::RControl;
+								return True;
+							case VK_SHIFT:
+								_key = Hardware::Keys::Shift;
+								return True;
+							case VK_LSHIFT:
+								_key = Hardware::Keys::LShift;
+								return True;
+							case VK_RSHIFT:
+								_key = Hardware::Keys::RShift;
+								return True;
+							case VK_SPACE:
+								_key = Hardware::Keys::Spacebar;
+								return True;
+							case VK_TAB:
+								_key = Hardware::Keys::Tab;
+								return True;
+
+							case VK_UP:
+								_key = Hardware::Keys::Up;
+								return True;
+							case VK_DOWN:
+								_key = Hardware::Keys::Down;
+								return True;
+							case VK_LEFT:
+								_key = Hardware::Keys::Left;
+								return True;
+							case VK_RIGHT:
+								_key = Hardware::Keys::Right;
+								return True;
+						}
+
+						return False;
+					};
+
+					Bool isKeyDown = (message == WM_KEYDOWN);
+
+					lastKeyboardEvent.Type = isKeyDown ? Hardware::KeyboardEvents::KeyDown : Hardware::KeyboardEvents::KeyUp;
+
+					if (VirtualKeyToInputKey(lastKeyboardEvent.Key, wParam))
+					{
+						keyboardState.SetPressed(
+						lastKeyboardEvent.Key,
+							isKeyDown
+						);
+
+						OnKeyboardEvent(
+							lastKeyboardEvent
+						);
+					}
+
+					switch (wParam)
+					{
+						case VK_MENU:
+						case VK_SHIFT:
+						case VK_CONTROL:
+						{
+							wParam = MapVirtualKey(
+								static_cast<UINT>((lParam & 0x00FF0000) >> 16),
+								MAPVK_VSC_TO_VK_EX
+							);
+
+							if (VirtualKeyToInputKey(lastKeyboardEvent.Key, wParam))
+							{
+								keyboardState.SetPressed(
+									lastKeyboardEvent.Key,
+									isKeyDown
+								);
+
+								OnKeyboardEvent(
+									lastKeyboardEvent
+								);
+							}
+						}
+						break;
+					}
+				}
+				break;
+
+				case WM_MOUSEMOVE:
+				{
+					UpdateMousePosition(
+						lParam
+					);
+
+					lastMouseEvent.Type = Hardware::MouseEvents::Move;
+
+					OnMouseEvent(
+						lastMouseEvent
+					);
+				}
+				break;
+
+				case WM_MOUSEWHEEL:
+				{
+					auto delta = GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
+
+					// scroll up
+					if (delta > 0)
+					{
+						lastMouseEvent.Type = Hardware::MouseEvents::ScrollUp;
+					}
+
+					// scroll down
+					else if (delta < 0)
+					{
+						lastMouseEvent.Type = Hardware::MouseEvents::ScrollDown;
+					}
+
+					OnMouseEvent(
+						lastMouseEvent
+					);
+				}
+				break;
+
+				// left
+
+				case WM_LBUTTONDOWN:
+				{
+					UpdateMousePosition(
+						lParam
+					);
+
+					mouseState.SetPressed(
+						Hardware::MouseButtons::Left,
+						True
+					);
+
+					lastMouseEvent.Type = Hardware::MouseEvents::ButtonDown;
+					lastMouseEvent.Button = Hardware::MouseButtons::Left;
+
+					OnMouseEvent(
+						lastMouseEvent
+					);
+				}
+				break;
+
+				case WM_LBUTTONUP:
+				{
+					UpdateMousePosition(
+						lParam
+					);
+
+					mouseState.SetPressed(
+						Hardware::MouseButtons::Left,
+						False
+					);
+
+					lastMouseEvent.Type = Hardware::MouseEvents::ButtonUp;
+					lastMouseEvent.Button = Hardware::MouseButtons::Left;
+
+					OnMouseEvent(
+						lastMouseEvent
+					);
+				}
+				break;
+
+				// right
+
+				case WM_RBUTTONDOWN:
+				{
+					UpdateMousePosition(
+						lParam
+					);
+
+					mouseState.SetPressed(
+						Hardware::MouseButtons::Right,
+						True
+					);
+
+					lastMouseEvent.Type = Hardware::MouseEvents::ButtonDown;
+					lastMouseEvent.Button = Hardware::MouseButtons::Right;
+
+					OnMouseEvent(
+						lastMouseEvent
+					);
+				}
+				break;
+
+				case WM_RBUTTONUP:
+				{
+					UpdateMousePosition(
+						lParam
+					);
+
+					mouseState.SetPressed(
+						Hardware::MouseButtons::Right,
+						False
+					);
+
+					lastMouseEvent.Type = Hardware::MouseEvents::ButtonUp;
+					lastMouseEvent.Button = Hardware::MouseButtons::Right;
+
+					OnMouseEvent(
+						lastMouseEvent
+					);
+				}
+				break;
+
+				// middle
+
+				case WM_MBUTTONDOWN:
+				{
+					UpdateMousePosition(
+						lParam
+					);
+
+					mouseState.SetPressed(
+						Hardware::MouseButtons::Middle,
+						True
+					);
+
+					lastMouseEvent.Type = Hardware::MouseEvents::ButtonDown;
+					lastMouseEvent.Button = Hardware::MouseButtons::Middle;
+
+					OnMouseEvent(
+						lastMouseEvent
+					);
+				}
+				break;
+
+				case WM_MBUTTONUP:
+				{
+					UpdateMousePosition(
+						lParam
+					);
+
+					mouseState.SetPressed(
+						Hardware::MouseButtons::Middle,
+						False
+					);
+
+					lastMouseEvent.Type = Hardware::MouseEvents::ButtonUp;
+					lastMouseEvent.Button = Hardware::MouseButtons::Middle;
+
+					OnMouseEvent(
+						lastMouseEvent
+					);
+				}
+				break;
+
+				// x1/x2
+
+				case WM_XBUTTONDOWN:
+				{
+					UpdateMousePosition(
+						lParam
+					);
+
+					switch (GET_XBUTTON_WPARAM(wParam))
+					{
+						case XBUTTON1:
+						{
+							mouseState.SetPressed(
+								Hardware::MouseButtons::X1,
+								True
+							);
+
+							lastMouseEvent.Type = Hardware::MouseEvents::ButtonDown;
+							lastMouseEvent.Button = Hardware::MouseButtons::X1;
+
+							OnMouseEvent(
+								lastMouseEvent
+							);
+						}
+						break;
+
+						case XBUTTON2:
+						{
+							mouseState.SetPressed(
+								Hardware::MouseButtons::X2,
+								True
+							);
+
+							lastMouseEvent.Type = Hardware::MouseEvents::ButtonDown;
+							lastMouseEvent.Button = Hardware::MouseButtons::X2;
+
+							OnMouseEvent(
+								lastMouseEvent
+							);
+						}
+						break;
+					}
+				}
+				break;
+
+				case WM_XBUTTONUP:
+				{
+					UpdateMousePosition(
+						lParam
+					);
+
+					switch (GET_XBUTTON_WPARAM(wParam))
+					{
+						case XBUTTON1:
+						{
+							mouseState.SetPressed(
+								Hardware::MouseButtons::X1,
+								False
+							);
+
+							lastMouseEvent.Type = Hardware::MouseEvents::ButtonUp;
+							lastMouseEvent.Button = Hardware::MouseButtons::X1;
+
+							OnMouseEvent(
+								lastMouseEvent
+							);
+						}
+						break;
+
+						case XBUTTON2:
+						{
+							mouseState.SetPressed(
+								Hardware::MouseButtons::X2,
+								False
+							);
+
+							lastMouseEvent.Type = Hardware::MouseEvents::ButtonUp;
+							lastMouseEvent.Button = Hardware::MouseButtons::X2;
+
+							OnMouseEvent(
+								lastMouseEvent
+							);
+						}
+						break;
+					}
+				}
+				break;
+
+				case WM_PAINT:
+				{
+					auto device = GDI::Device::BeginPaint(
+						hWND
+					);
+
+					OnPaint(
+						device
+					);
+				}
+				return 0;
+
+				case WM_ERASEBKGND:
+				{
+					auto hDC = reinterpret_cast<::HDC>(
+						wParam
+					);
+
+					if (::SetMapMode(hDC, MM_ANISOTROPIC) == 0)
+					{
+
+						throw GDI::GDIException(
+							"SetMapMode"
+						);
+					}
+
+					auto& resolution = GetResolution();
+
+					if (::SetWindowExtEx(hDC, static_cast<int>(resolution.Width), static_cast<int>(resolution.Height), nullptr) == 0)
+					{
+
+						throw GDI::GDIException(
+							"SetWindowExtEx"
+						);
+					}
+
+					if (::SetViewportExtEx(hDC, static_cast<int>(resolution.Width), static_cast<int>(resolution.Height), nullptr) == 0)
+					{
+
+						throw GDI::GDIException(
+							"SetViewportExtEx"
+						);
+					}
+
+					::RECT rect;
+
+					if (::GetClientRect(GetHandle(), &rect) == 0)
+					{
+
+						throw SystemException(
+							"GetClientRect"
+						);
+					}
+
+					if (!::FillRect(hDC, &rect, windowClass.hbrBackground))
+					{
+
+						throw GDI::GDIException(
+							"FillRect"
+						);
+					}
+				}
+				return 1;
+
+				case WM_MOVE:
+				{
+					auto point = MAKEPOINTS(
+						lParam
+					);
+
+					if (!OnPositionChanging(point.x, point.y))
+					{
+
+						return 0;
+					}
+
+					windowPosition.X = point.x;
+					windowPosition.Y = point.y;
+
+					OnPositionChanged(
+						point.x,
+						point.y
+					);
+				}
+				break;
+
+				case WM_SIZE:
+				{
+					switch (wParam)
+					{
+						case SIZE_MINIMIZED:
+							isMinimized = True;
+							break;
+
+						case SIZE_MAXIMIZED:
+							isMaximized = True;
+							break;
+
+						case SIZE_RESTORED:
+						{
+							isMinimized = False;
+							isMaximized = False;
+
+							auto width = static_cast<typename WindowResolution::Type>(
+								LOWORD(lParam)
+							);
+							auto height = static_cast<typename WindowResolution::Type>(
+								HIWORD(lParam)
+							);
+
+							if (!OnResolutionChanging(width, height))
+							{
+
+								return 0;
+							}
+
+							windowResolution.Width  = width;
+							windowResolution.Height = height;
+
+							OnResolutionChanged(
+								windowResolution.Width,
+								windowResolution.Height
+							);
+						}
+						break;
+					}
+				}
+				break;
+
+				case WM_SETICON:
+				{
+					auto hIcon = reinterpret_cast<::HICON>(
+						lParam
+					);
+
+					WindowIcon icon(
+						hIcon
+					);
+
+					WindowIconTypes iconType(
+						(wParam == ICON_BIG) ? WindowIconTypes::Big : WindowIconTypes::Small
+					);
+
+					if (!OnIconChanging(icon, iconType))
+					{
+
+						return 0;
+					}
+
+					*((wParam == ICON_BIG) ? &windowIcon.Big    : &windowIcon.Small)    = hIcon;
+					*((wParam == ICON_BIG) ? &windowClass.hIcon : &windowClass.hIconSm) = hIcon;
+
+					OnIconChanged(
+						icon,
+						iconType
+					);
+				}
+				break;
+
+				case WM_SETTEXT:
+				{
+					auto lpTitle = reinterpret_cast<const String::Char*>(
+						lParam
+					);
+
+					if (lpTitle != windowTitle.GetCString())
+					{
+						String title(
+							reinterpret_cast<const String::Char*>(lParam)
+						);
+
+						if (!OnTitleChanging(title))
+						{
+
+							return TRUE;
+						}
+
+						windowTitle = Move(
+							title
+						);
+					}
+
+					OnTitleChanged(
+						GetTitle()
+					);
+				}
+				break;
+
+				case WM_CLOSE:
+				{
+					isClosing = False;
+
+					if (OnClosing())
+					{
+						OnClose();
+
+						Destroy();
+
+						::DestroyWindow(
+							GetHandle()
+						);
+					}
+				}
+				return 0;
+
+				case WM_DESTROY:
+					PostQuitMessage(0);
+					break;
+			}
+
+			return ::DefWindowProcA(
+				hWND,
+				message,
+				wParam,
+				lParam
+			);
+		}
+
 	private:
 		// @throw AL::Exception
 		Void Create()
@@ -1883,7 +2662,7 @@ namespace AL::OS::Windows
 		}
 
 		// @throw AL::Exception
-		static Void SetNativeWindowLongPtr(::HWND hWND, int index, ::LONG_PTR value, Bool set = True)
+		static Void SetWindowLongPtr(::HWND hWND, int index, ::LONG_PTR value, Bool set = True)
 		{
 			BitMask<::LONG_PTR> mask;
 
@@ -1909,7 +2688,7 @@ namespace AL::OS::Windows
 			}
 		}
 
-		static ::LRESULT CALLBACK NativeWindowProc(::HWND hWND, ::UINT message, ::WPARAM wParam, ::LPARAM lParam)
+		static ::LRESULT CALLBACK WindowProc(::HWND hWND, ::UINT message, ::WPARAM wParam, ::LPARAM lParam)
 		{
 #if defined(AL_X86)
 			static constexpr int USER_DATA_INDEX = GWL_USERDATA;
@@ -1934,764 +2713,19 @@ namespace AL::OS::Windows
 						lpWindow
 					)
 				);
+
+				return lpWindow->OnMessage(
+					hWND,
+					message,
+					wParam,
+					lParam
+				);
 			}
 			else if (auto lpWindow = reinterpret_cast<Window*>(::GetWindowLongPtrA(hWND, USER_DATA_INDEX)))
 			{
-				::LRESULT result;
 
-				if (lpWindow->clipboard.HandleNativeMessage(result, message, wParam, lParam))
-				{
-
-					return result;
-				}
-
-				auto UpdateMousePosition = [lpWindow](::LPARAM _lParam)
-				{
-					auto points = MAKEPOINTS(_lParam);
-
-					lpWindow->lastMouseEvent.Position.X = points.x;
-					lpWindow->lastMouseEvent.Position.Y = points.y;
-				};
-
-				switch (message)
-				{
-					case WM_CHAR:
-					{
-						if (::isprint(static_cast<int>(wParam)))
-						{
-							lpWindow->lastKeyboardEvent.Char = static_cast<char>(wParam);
-							lpWindow->lastKeyboardEvent.Type = Hardware::KeyboardEvents::Char;
-
-							lpWindow->OnKeyboardEvent(
-								lpWindow->lastKeyboardEvent
-							);
-						}
-					}
-					break;
-
-					case WM_KEYUP:
-					case WM_KEYDOWN:
-					{
-						auto VirtualKeyToInputKey = [](Hardware::Keys& _key, WPARAM _wParam)->Bool
-						{
-							switch (_wParam)
-							{
-								case 0x41:
-									_key = Hardware::Keys::A;
-									return True;
-								case 0x42:
-									_key = Hardware::Keys::B;
-									return True;
-								case 0x43:
-									_key = Hardware::Keys::C;
-									return True;
-								case 0x44:
-									_key = Hardware::Keys::D;
-									return True;
-								case 0x45:
-									_key = Hardware::Keys::E;
-									return True;
-								case 0x46:
-									_key = Hardware::Keys::F;
-									return True;
-								case 0x47:
-									_key = Hardware::Keys::G;
-									return True;
-								case 0x48:
-									_key = Hardware::Keys::H;
-									return True;
-								case 0x49:
-									_key = Hardware::Keys::I;
-									return True;
-								case 0x4A:
-									_key = Hardware::Keys::J;
-									return True;
-								case 0x4B:
-									_key = Hardware::Keys::K;
-									return True;
-								case 0x4C:
-									_key = Hardware::Keys::L;
-									return True;
-								case 0x4D:
-									_key = Hardware::Keys::M;
-									return True;
-								case 0x4E:
-									_key = Hardware::Keys::N;
-									return True;
-								case 0x4F:
-									_key = Hardware::Keys::O;
-									return True;
-								case 0x50:
-									_key = Hardware::Keys::P;
-									return True;
-								case 0x51:
-									_key = Hardware::Keys::Q;
-									return True;
-								case 0x52:
-									_key = Hardware::Keys::R;
-									return True;
-								case 0x53:
-									_key = Hardware::Keys::S;
-									return True;
-								case 0x54:
-									_key = Hardware::Keys::T;
-									return True;
-								case 0x55:
-									_key = Hardware::Keys::U;
-									return True;
-								case 0x56:
-									_key = Hardware::Keys::V;
-									return True;
-								case 0x57:
-									_key = Hardware::Keys::W;
-									return True;
-								case 0x58:
-									_key = Hardware::Keys::X;
-									return True;
-								case 0x59:
-									_key = Hardware::Keys::Y;
-									return True;
-								case 0x5A:
-									_key = Hardware::Keys::Z;
-									return True;
-
-								case 0x30:
-									_key = Hardware::Keys::Num0;
-									return True;
-								case 0x31:
-									_key = Hardware::Keys::Num1;
-									return True;
-								case 0x32:
-									_key = Hardware::Keys::Num2;
-									return True;
-								case 0x33:
-									_key = Hardware::Keys::Num3;
-									return True;
-								case 0x34:
-									_key = Hardware::Keys::Num4;
-									return True;
-								case 0x35:
-									_key = Hardware::Keys::Num5;
-									return True;
-								case 0x36:
-									_key = Hardware::Keys::Num6;
-									return True;
-								case 0x37:
-									_key = Hardware::Keys::Num7;
-									return True;
-								case 0x38:
-									_key = Hardware::Keys::Num8;
-									return True;
-								case 0x39:
-									_key = Hardware::Keys::Num9;
-									return True;
-
-								case VK_NUMPAD0:
-									_key = Hardware::Keys::NumPad0;
-									return True;
-								case VK_NUMPAD1:
-									_key = Hardware::Keys::NumPad1;
-									return True;
-								case VK_NUMPAD2:
-									_key = Hardware::Keys::NumPad2;
-									return True;
-								case VK_NUMPAD3:
-									_key = Hardware::Keys::NumPad3;
-									return True;
-								case VK_NUMPAD4:
-									_key = Hardware::Keys::NumPad4;
-									return True;
-								case VK_NUMPAD5:
-									_key = Hardware::Keys::NumPad5;
-									return True;
-								case VK_NUMPAD6:
-									_key = Hardware::Keys::NumPad6;
-									return True;
-								case VK_NUMPAD7:
-									_key = Hardware::Keys::NumPad7;
-									return True;
-								case VK_NUMPAD8:
-									_key = Hardware::Keys::NumPad8;
-									return True;
-								case VK_NUMPAD9:
-									_key = Hardware::Keys::NumPad9;
-									return True;
-									
-								case VK_OEM_3:
-									_key = Hardware::Keys::Tilde;
-									return True;
-								case VK_MENU:
-									_key = Hardware::Keys::Alt;
-									return True;
-								case VK_LMENU:
-									_key = Hardware::Keys::LAlt;
-									return True;
-								case VK_RMENU:
-									_key = Hardware::Keys::RAlt;
-									return True;
-								case VK_CLEAR:
-									_key = Hardware::Keys::Clear;
-									return True;
-								case VK_DELETE:
-									_key = Hardware::Keys::Delete;
-									return True;
-								case VK_RETURN:
-									_key = Hardware::Keys::Enter;
-									return True;
-								case VK_ESCAPE:
-									_key = Hardware::Keys::Escape;
-									return True;
-								case VK_BACK:
-									_key = Hardware::Keys::Backspace;
-									return True;
-								case VK_CONTROL:
-									_key = Hardware::Keys::Control;
-									return True;
-								case VK_LCONTROL:
-									_key = Hardware::Keys::LControl;
-									return True;
-								case VK_RCONTROL:
-									_key = Hardware::Keys::RControl;
-									return True;
-								case VK_SHIFT:
-									_key = Hardware::Keys::Shift;
-									return True;
-								case VK_LSHIFT:
-									_key = Hardware::Keys::LShift;
-									return True;
-								case VK_RSHIFT:
-									_key = Hardware::Keys::RShift;
-									return True;
-								case VK_SPACE:
-									_key = Hardware::Keys::Spacebar;
-									return True;
-								case VK_TAB:
-									_key = Hardware::Keys::Tab;
-									return True;
-
-								case VK_UP:
-									_key = Hardware::Keys::Up;
-									return True;
-								case VK_DOWN:
-									_key = Hardware::Keys::Down;
-									return True;
-								case VK_LEFT:
-									_key = Hardware::Keys::Left;
-									return True;
-								case VK_RIGHT:
-									_key = Hardware::Keys::Right;
-									return True;
-							}
-
-							return False;
-						};
-
-						Bool isKeyDown = (message == WM_KEYDOWN);
-
-						lpWindow->lastKeyboardEvent.Type = isKeyDown ? Hardware::KeyboardEvents::KeyDown : Hardware::KeyboardEvents::KeyUp;
-
-						if (VirtualKeyToInputKey(lpWindow->lastKeyboardEvent.Key, wParam))
-						{
-							lpWindow->keyboardState.SetPressed(
-								lpWindow->lastKeyboardEvent.Key,
-								isKeyDown
-							);
-
-							lpWindow->OnKeyboardEvent(
-								lpWindow->lastKeyboardEvent
-							);
-						}
-
-						switch (wParam)
-						{
-							case VK_MENU:
-							case VK_SHIFT:
-							case VK_CONTROL:
-							{
-								wParam = MapVirtualKey(
-									static_cast<UINT>((lParam & 0x00FF0000) >> 16),
-									MAPVK_VSC_TO_VK_EX
-								);
-
-								if (VirtualKeyToInputKey(lpWindow->lastKeyboardEvent.Key, wParam))
-								{
-									lpWindow->keyboardState.SetPressed(
-										lpWindow->lastKeyboardEvent.Key,
-										isKeyDown
-									);
-
-									lpWindow->OnKeyboardEvent(
-										lpWindow->lastKeyboardEvent
-									);
-								}
-							}
-							break;
-						}
-					}
-					break;
-
-					case WM_MOUSEMOVE:
-					{
-						UpdateMousePosition(
-							lParam
-						);
-
-						lpWindow->lastMouseEvent.Type = Hardware::MouseEvents::Move;
-
-						lpWindow->OnMouseEvent(
-							lpWindow->lastMouseEvent
-						);
-					}
-					break;
-
-					case WM_MOUSEWHEEL:
-					{
-						auto delta = GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
-
-						// scroll up
-						if (delta > 0)
-						{
-							lpWindow->lastMouseEvent.Type = Hardware::MouseEvents::ScrollUp;
-						}
-
-						// scroll down
-						else if (delta < 0)
-						{
-							lpWindow->lastMouseEvent.Type = Hardware::MouseEvents::ScrollDown;
-						}
-
-						lpWindow->OnMouseEvent(
-							lpWindow->lastMouseEvent
-						);
-					}
-					break;
-
-					// left
-
-					case WM_LBUTTONDOWN:
-					{
-						UpdateMousePosition(
-							lParam
-						);
-
-						lpWindow->mouseState.SetPressed(
-							Hardware::MouseButtons::Left,
-							True
-						);
-
-						lpWindow->lastMouseEvent.Type = Hardware::MouseEvents::ButtonDown;
-						lpWindow->lastMouseEvent.Button = Hardware::MouseButtons::Left;
-
-						lpWindow->OnMouseEvent(
-							lpWindow->lastMouseEvent
-						);
-					}
-					break;
-
-					case WM_LBUTTONUP:
-					{
-						UpdateMousePosition(
-							lParam
-						);
-
-						lpWindow->mouseState.SetPressed(
-							Hardware::MouseButtons::Left,
-							False
-						);
-
-						lpWindow->lastMouseEvent.Type = Hardware::MouseEvents::ButtonUp;
-						lpWindow->lastMouseEvent.Button = Hardware::MouseButtons::Left;
-
-						lpWindow->OnMouseEvent(
-							lpWindow->lastMouseEvent
-						);
-					}
-					break;
-
-					// right
-
-					case WM_RBUTTONDOWN:
-					{
-						UpdateMousePosition(
-							lParam
-						);
-
-						lpWindow->mouseState.SetPressed(
-							Hardware::MouseButtons::Right,
-							True
-						);
-
-						lpWindow->lastMouseEvent.Type = Hardware::MouseEvents::ButtonDown;
-						lpWindow->lastMouseEvent.Button = Hardware::MouseButtons::Right;
-
-						lpWindow->OnMouseEvent(
-							lpWindow->lastMouseEvent
-						);
-					}
-					break;
-
-					case WM_RBUTTONUP:
-					{
-						UpdateMousePosition(
-							lParam
-						);
-
-						lpWindow->mouseState.SetPressed(
-							Hardware::MouseButtons::Right,
-							False
-						);
-
-						lpWindow->lastMouseEvent.Type = Hardware::MouseEvents::ButtonUp;
-						lpWindow->lastMouseEvent.Button = Hardware::MouseButtons::Right;
-
-						lpWindow->OnMouseEvent(
-							lpWindow->lastMouseEvent
-						);
-					}
-					break;
-
-					// middle
-
-					case WM_MBUTTONDOWN:
-					{
-						UpdateMousePosition(
-							lParam
-						);
-
-						lpWindow->mouseState.SetPressed(
-							Hardware::MouseButtons::Middle,
-							True
-						);
-
-						lpWindow->lastMouseEvent.Type = Hardware::MouseEvents::ButtonDown;
-						lpWindow->lastMouseEvent.Button = Hardware::MouseButtons::Middle;
-
-						lpWindow->OnMouseEvent(
-							lpWindow->lastMouseEvent
-						);
-					}
-					break;
-
-					case WM_MBUTTONUP:
-					{
-						UpdateMousePosition(
-							lParam
-						);
-
-						lpWindow->mouseState.SetPressed(
-							Hardware::MouseButtons::Middle,
-							False
-						);
-
-						lpWindow->lastMouseEvent.Type = Hardware::MouseEvents::ButtonUp;
-						lpWindow->lastMouseEvent.Button = Hardware::MouseButtons::Middle;
-
-						lpWindow->OnMouseEvent(
-							lpWindow->lastMouseEvent
-						);
-					}
-					break;
-
-					// x1/x2
-
-					case WM_XBUTTONDOWN:
-					{
-						UpdateMousePosition(
-							lParam
-						);
-
-						switch (GET_XBUTTON_WPARAM(wParam))
-						{
-							case XBUTTON1:
-							{
-								lpWindow->mouseState.SetPressed(
-									Hardware::MouseButtons::X1,
-									True
-								);
-
-								lpWindow->lastMouseEvent.Type = Hardware::MouseEvents::ButtonDown;
-								lpWindow->lastMouseEvent.Button = Hardware::MouseButtons::X1;
-
-								lpWindow->OnMouseEvent(
-									lpWindow->lastMouseEvent
-								);
-							}
-							break;
-
-							case XBUTTON2:
-							{
-								lpWindow->mouseState.SetPressed(
-									Hardware::MouseButtons::X2,
-									True
-								);
-
-								lpWindow->lastMouseEvent.Type = Hardware::MouseEvents::ButtonDown;
-								lpWindow->lastMouseEvent.Button = Hardware::MouseButtons::X2;
-
-								lpWindow->OnMouseEvent(
-									lpWindow->lastMouseEvent
-								);
-							}
-							break;
-						}
-					}
-					break;
-
-					case WM_XBUTTONUP:
-					{
-						UpdateMousePosition(
-							lParam
-						);
-
-						switch (GET_XBUTTON_WPARAM(wParam))
-						{
-							case XBUTTON1:
-							{
-								lpWindow->mouseState.SetPressed(
-									Hardware::MouseButtons::X1,
-									False
-								);
-
-								lpWindow->lastMouseEvent.Type = Hardware::MouseEvents::ButtonUp;
-								lpWindow->lastMouseEvent.Button = Hardware::MouseButtons::X1;
-
-								lpWindow->OnMouseEvent(
-									lpWindow->lastMouseEvent
-								);
-							}
-							break;
-
-							case XBUTTON2:
-							{
-								lpWindow->mouseState.SetPressed(
-									Hardware::MouseButtons::X2,
-									False
-								);
-
-								lpWindow->lastMouseEvent.Type = Hardware::MouseEvents::ButtonUp;
-								lpWindow->lastMouseEvent.Button = Hardware::MouseButtons::X2;
-
-								lpWindow->OnMouseEvent(
-									lpWindow->lastMouseEvent
-								);
-							}
-							break;
-						}
-					}
-					break;
-
-					case WM_PAINT:
-					{
-						auto device = GDI::Device::BeginPaint(
-							hWND
-						);
-
-						lpWindow->OnPaint(
-							device
-						);
-					}
-					return 0;
-
-					case WM_ERASEBKGND:
-					{
-						auto hDC = reinterpret_cast<::HDC>(
-							wParam
-						);
-
-						if (::SetMapMode(hDC, MM_ANISOTROPIC) == 0)
-						{
-
-							throw GDI::GDIException(
-								"SetMapMode"
-							);
-						}
-
-						auto& resolution = lpWindow->GetResolution();
-
-						if (::SetWindowExtEx(hDC, static_cast<int>(resolution.Width), static_cast<int>(resolution.Height), nullptr) == 0)
-						{
-
-							throw GDI::GDIException(
-								"SetWindowExtEx"
-							);
-						}
-
-						if (::SetViewportExtEx(hDC, static_cast<int>(resolution.Width), static_cast<int>(resolution.Height), nullptr) == 0)
-						{
-
-							throw GDI::GDIException(
-								"SetViewportExtEx"
-							);
-						}
-
-						::RECT rect;
-
-						if (::GetClientRect(lpWindow->GetHandle(), &rect) == 0)
-						{
-
-							throw SystemException(
-								"GetClientRect"
-							);
-						}
-
-						if (!::FillRect(hDC, &rect, lpWindow->windowClass.hbrBackground))
-						{
-
-							throw GDI::GDIException(
-								"FillRect"
-							);
-						}
-					}
-					return 1;
-
-					case WM_MOVE:
-					{
-						auto point = MAKEPOINTS(
-							lParam
-						);
-
-						if (!lpWindow->OnPositionChanging(point.x, point.y))
-						{
-
-							return 0;
-						}
-
-						lpWindow->windowPosition.X = point.x;
-						lpWindow->windowPosition.Y = point.y;
-
-						lpWindow->OnPositionChanged(
-							point.x,
-							point.y
-						);
-					}
-					break;
-
-					case WM_SIZE:
-					{
-						switch (wParam)
-						{
-							case SIZE_MINIMIZED:
-								lpWindow->isMinimized = True;
-								break;
-
-							case SIZE_MAXIMIZED:
-								lpWindow->isMaximized = True;
-								break;
-
-							case SIZE_RESTORED:
-							{
-								lpWindow->isMinimized = False;
-								lpWindow->isMaximized = False;
-
-								auto width = static_cast<typename WindowResolution::Type>(
-									LOWORD(lParam)
-								);
-								auto height = static_cast<typename WindowResolution::Type>(
-									HIWORD(lParam)
-								);
-
-								if (!lpWindow->OnResolutionChanging(width, height))
-								{
-
-									return 0;
-								}
-
-								lpWindow->windowResolution.Width  = width;
-								lpWindow->windowResolution.Height = height;
-
-								lpWindow->OnResolutionChanged(
-									lpWindow->windowResolution.Width,
-									lpWindow->windowResolution.Height
-								);
-							}
-							break;
-						}
-					}
-					break;
-
-					case WM_SETICON:
-					{
-						auto hIcon = reinterpret_cast<::HICON>(
-							lParam
-						);
-
-						WindowIcon icon(
-							hIcon
-						);
-
-						WindowIconTypes iconType(
-							(wParam == ICON_BIG) ? WindowIconTypes::Big : WindowIconTypes::Small
-						);
-
-						if (!lpWindow->OnIconChanging(icon, iconType))
-						{
-
-							return 0;
-						}
-
-						*((wParam == ICON_BIG) ? &lpWindow->windowIcon.Big    : &lpWindow->windowIcon.Small)    = hIcon;
-						*((wParam == ICON_BIG) ? &lpWindow->windowClass.hIcon : &lpWindow->windowClass.hIconSm) = hIcon;
-
-						lpWindow->OnIconChanged(
-							icon,
-							iconType
-						);
-					}
-					break;
-
-					case WM_SETTEXT:
-					{
-						auto lpTitle = reinterpret_cast<const String::Char*>(
-							lParam
-						);
-
-						if (lpTitle != lpWindow->windowTitle.GetCString())
-						{
-							String title(
-								reinterpret_cast<const String::Char*>(lParam)
-							);
-
-							if (!lpWindow->OnTitleChanging(title))
-							{
-
-								return TRUE;
-							}
-
-							lpWindow->windowTitle = Move(
-								title
-							);
-						}
-
-						lpWindow->OnTitleChanged(
-							lpWindow->GetTitle()
-						);
-					}
-					break;
-
-					case WM_CLOSE:
-					{
-						lpWindow->isClosing = False;
-
-						if (lpWindow->OnClosing())
-						{
-							lpWindow->OnClose();
-
-							lpWindow->Destroy();
-
-							::DestroyWindow(
-								lpWindow->GetHandle()
-							);
-						}
-					}
-					return 0;
-
-					case WM_DESTROY:
-						PostQuitMessage(0);
-						break;
-				}
-
-				return ::DefWindowProcA(
-					lpWindow->GetHandle(),
+				return lpWindow->OnMessage(
+					hWND,
 					message,
 					wParam,
 					lParam
