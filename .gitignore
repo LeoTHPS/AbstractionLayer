@@ -4,3 +4,4 @@
 # Build results
 *.o
 /Test/Test
+/Test/Test.exe
