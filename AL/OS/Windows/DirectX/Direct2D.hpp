@@ -1425,14 +1425,9 @@ namespace AL::OS::Windows::DirectX
 				"Direct2D target not created"
 			);
 
-			auto fileName = WString::Format(
-				L"%S",
-				file.GetString().GetCString()
-			);
-
 			::IWICBitmapDecoder* lpWICDecoder;
 
-			if (FAILED(GetWICFactory()->CreateDecoderFromFilename(fileName.GetCString(), nullptr, GENERIC_READ, ::WICDecodeMetadataCacheOnLoad, &lpWICDecoder)))
+			if (FAILED(GetWICFactory()->CreateDecoderFromFilename(file.GetString().ToWString().GetCString(), nullptr, GENERIC_READ, ::WICDecodeMetadataCacheOnLoad, &lpWICDecoder)))
 			{
 
 				throw Exception(
@@ -1551,14 +1546,9 @@ namespace AL::OS::Windows::DirectX
 				"Direct2D target not created"
 			);
 
-			auto fontFamily = WString::Format(
-				L"%S",
-				fontName.GetCString()
-			);
-
 			typename TextFormat::Type* lpFormat;
 
-			if (FAILED(GetDWFactory()->CreateTextFormat(fontFamily.GetCString(), nullptr, static_cast<::DWRITE_FONT_WEIGHT>(fontWeight), static_cast<::DWRITE_FONT_STYLE>(fontStyle), static_cast<::DWRITE_FONT_STRETCH>(fontStretch), fontSize, L"", &lpFormat)))
+			if (FAILED(GetDWFactory()->CreateTextFormat(fontName.ToWString().GetCString(), nullptr, static_cast<::DWRITE_FONT_WEIGHT>(fontWeight), static_cast<::DWRITE_FONT_STYLE>(fontStyle), static_cast<::DWRITE_FONT_STRETCH>(fontStretch), fontSize, L"", &lpFormat)))
 			{
 
 				throw Exception(
@@ -1572,15 +1562,10 @@ namespace AL::OS::Windows::DirectX
 		// @throw AL::Exception
 		Void CreateTextLayout(TextLayout& textLayout, const TextFormat& textFormat, const String& text, Float width, Float height)
 		{
-			auto wtext = WString::Format(
-				L"%S",
-				text.GetCString()
-			);
-
 			CreateTextLayout(
 				textLayout,
 				textFormat,
-				wtext,
+				text.ToWString(),
 				width,
 				height
 			);
@@ -1837,7 +1822,7 @@ namespace AL::OS::Windows::DirectX
 			GetTarget()->PopAxisAlignedClip();
 		}
 
-		Void DrawBitmap(const Drawing::Vector2F& position, const Bitmap& bitmap, Float opacity = 1.0f) const
+		Void DrawBitmap(const Drawing::Vector2F& position, const Bitmap& bitmap, Float opacity = 1.0f)
 		{
 			AL_ASSERT(
 				IsCreated(),
@@ -1859,7 +1844,7 @@ namespace AL::OS::Windows::DirectX
 				opacity
 			);
 		}
-		Void DrawBitmap(const Drawing::Vector2F& position, const Bitmap& bitmap, Float width, Float height, Float opacity = 1.0f) const
+		Void DrawBitmap(const Drawing::Vector2F& position, const Bitmap& bitmap, Float width, Float height, Float opacity = 1.0f)
 		{
 			DrawBitmap(
 				position,
@@ -1871,7 +1856,7 @@ namespace AL::OS::Windows::DirectX
 				opacity
 			);
 		}
-		Void DrawBitmap(const Drawing::Vector2F& position, const Bitmap& bitmap, Float width, Float height, Float sourceX, Float sourceY, Float opacity = 1.0f) const
+		Void DrawBitmap(const Drawing::Vector2F& position, const Bitmap& bitmap, Float width, Float height, Float sourceX, Float sourceY, Float opacity = 1.0f)
 		{
 			AL_ASSERT(
 				IsCreated(),
@@ -1909,20 +1894,17 @@ namespace AL::OS::Windows::DirectX
 		}
 
 		template<typename T>
-		Void DrawString(const Drawing::Vector2F& position, const T& brush, const TextFormat& textFormat, const String& text) const
+		Void DrawString(const Drawing::Vector2F& position, const T& brush, const TextFormat& textFormat, const String& text)
 		{
 			DrawString(
 				position,
 				brush,
 				textFormat,
-				WString::Format(
-					L"%S",
-					text.GetCString()
-				)
+				text.ToWString()
 			);
 		}
 		template<typename T>
-		Void DrawString(const Drawing::Vector2F& position, const T& brush, const TextFormat& textFormat, const WString& text) const
+		Void DrawString(const Drawing::Vector2F& position, const T& brush, const TextFormat& textFormat, const WString& text)
 		{
 			AL_ASSERT(
 				IsCreated(),
@@ -1949,7 +1931,7 @@ namespace AL::OS::Windows::DirectX
 		}
 
 		template<typename T>
-		Void DrawTextLayout(const Drawing::Vector2F& position, const T& brush, const TextLayout& textLayout) const
+		Void DrawTextLayout(const Drawing::Vector2F& position, const T& brush, const TextLayout& textLayout)
 		{
 			AL_ASSERT(
 				IsCreated(),
@@ -1973,7 +1955,7 @@ namespace AL::OS::Windows::DirectX
 		}
 
 		template<typename T>
-		Void DrawLine(const Drawing::Vector2F& start, const Drawing::Vector2F& end, const T& brush, Float thickness = 1.0f) const
+		Void DrawLine(const Drawing::Vector2F& start, const Drawing::Vector2F& end, const T& brush, Float thickness = 1.0f)
 		{
 			AL_ASSERT(
 				IsCreated(),
@@ -2000,7 +1982,7 @@ namespace AL::OS::Windows::DirectX
 		}
 
 		template<typename T>
-		Void DrawEllipse(const Drawing::Vector2F& position, const T& brush, Float radiusX, Float radiusY, Float strokeWidth = 1.0f) const
+		Void DrawEllipse(const Drawing::Vector2F& position, const T& brush, Float radiusX, Float radiusY, Float strokeWidth = 1.0f)
 		{
 			AL_ASSERT(
 				IsCreated(),
@@ -2027,7 +2009,7 @@ namespace AL::OS::Windows::DirectX
 		}
 
 		template<typename T>
-		Void DrawCircle(const Drawing::Vector2F& position, const T& brush, Float radius, Float strokeWidth = 1.0f) const
+		Void DrawCircle(const Drawing::Vector2F& position, const T& brush, Float radius, Float strokeWidth = 1.0f)
 		{
 			DrawEllipse(
 				position,
@@ -2039,7 +2021,7 @@ namespace AL::OS::Windows::DirectX
 		}
 
 		template<typename T>
-		Void DrawRectangle(const Drawing::Vector2F& position, const T& brush, Float width, Float height, Float strokeWidth = 1.0f) const
+		Void DrawRectangle(const Drawing::Vector2F& position, const T& brush, Float width, Float height, Float strokeWidth = 1.0f)
 		{
 			AL_ASSERT(
 				IsCreated(),
@@ -2064,7 +2046,7 @@ namespace AL::OS::Windows::DirectX
 		}
 
 		template<typename T>
-		Void DrawRoundedRectangle(const Drawing::Vector2F& position, const T& brush, Float width, Float height, Float radius, Float strokeWidth = 1.0f) const
+		Void DrawRoundedRectangle(const Drawing::Vector2F& position, const T& brush, Float width, Float height, Float radius, Float strokeWidth = 1.0f)
 		{
 			AL_ASSERT(
 				IsCreated(),
@@ -2093,7 +2075,7 @@ namespace AL::OS::Windows::DirectX
 		}
 
 		template<typename T>
-		Void FillEllipse(const Drawing::Vector2F& position, const T& brush, Float radiusX, Float radiusY) const
+		Void FillEllipse(const Drawing::Vector2F& position, const T& brush, Float radiusX, Float radiusY)
 		{
 			AL_ASSERT(
 				IsCreated(),
@@ -2119,7 +2101,7 @@ namespace AL::OS::Windows::DirectX
 		}
 
 		template<typename T>
-		Void FillCircle(const Drawing::Vector2F& position, const T& brush, Float radius) const
+		Void FillCircle(const Drawing::Vector2F& position, const T& brush, Float radius)
 		{
 			FillEllipse(
 				position,
@@ -2130,7 +2112,7 @@ namespace AL::OS::Windows::DirectX
 		}
 
 		template<typename T>
-		Void FillRectangle(const Drawing::Vector2F& position, const T& brush, Float width, Float height) const
+		Void FillRectangle(const Drawing::Vector2F& position, const T& brush, Float width, Float height)
 		{
 			AL_ASSERT(
 				IsCreated(),
@@ -2154,7 +2136,7 @@ namespace AL::OS::Windows::DirectX
 		}
 
 		template<typename T>
-		Void FillRoundedRectangle(const Drawing::Vector2F& position, const T& brush, Float width, Float height, Float radius) const
+		Void FillRoundedRectangle(const Drawing::Vector2F& position, const T& brush, Float width, Float height, Float radius)
 		{
 			AL_ASSERT(
 				IsCreated(),
