@@ -7,6 +7,7 @@
 #include "AL/Algorithms/FNV.hpp"
 
 #include <cstdio> // snprintf/swprintf
+#include <cstdlib> // wcstombs/mbstowcs
 
 namespace AL::Collections
 {
@@ -75,6 +76,10 @@ namespace AL::Collections
 	class _String
 		: public __String_Types<T_CHAR>::Collection
 	{
+		// Required for ToString/ToWString
+		template<typename _T_CHAR>
+		friend class _String;
+
 		typedef __String_Types<T_CHAR>     Types;
 		typedef __String_Utility<T_CHAR>   Utility;
 		typedef __String_Constants<T_CHAR> Constants;
@@ -202,7 +207,9 @@ namespace AL::Collections
 				count
 			);
 
-			container[count] = END;
+			container.PushBack(
+				END
+			);
 		}
 
 		virtual ~_String()
@@ -255,6 +262,54 @@ namespace AL::Collections
 			}
 
 			return string;
+		}
+
+		auto ToString() const
+		{
+			if constexpr (Is_Type<Char, char>::Value)
+			{
+
+				return *this;
+			}
+			else
+			{
+				_String<char> string(
+					__String_Constants<char>::END,
+					GetLength()
+				);
+
+				::std::wcstombs(
+					&string[0],
+					GetCString(),
+					string.GetSize()
+				);
+
+				return string;
+			}
+		}
+
+		auto ToWString() const
+		{
+			if constexpr (Is_Type<Char, wchar_t>::Value)
+			{
+
+				return *this;
+			}
+			else
+			{
+				_String<wchar_t> string(
+					__String_Constants<wchar_t>::END,
+					GetLength()
+				);
+
+				::std::mbstowcs(
+					&string[0],
+					GetCString(),
+					string.GetSize()
+				);
+
+				return string;
+			}
 		}
 
 		Void Swap(_String& string)
