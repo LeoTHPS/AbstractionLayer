@@ -210,11 +210,9 @@ namespace AL::Network
 				WinSock::TryLoad()
 #endif
 			),
-			address(
-				{
-					.v4 = Move(address)
-				}
-			),
+			address{
+				.v4 = Move(address)
+			},
 			addressFamily(
 				AddressFamilies::IPv4
 			)
@@ -235,11 +233,9 @@ namespace AL::Network
 				WinSock::TryLoad()
 #endif
 			),
-			address(
-				{
-					.v6 = Move(address)
-				}
-			),
+			address{
+				.v6 = Move(address)
+			},
 			addressFamily(
 				AddressFamilies::IPv6
 			)
