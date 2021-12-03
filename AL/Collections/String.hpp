@@ -226,6 +226,22 @@ namespace AL::Collections
 			return container.GetCapacity();
 		}
 
+		auto GetHash() const
+		{
+			uint32 hash = 0x811C9DC5;
+
+			for (auto c : *this)
+			{
+				hash ^= static_cast<uint32>(
+					c
+				);
+
+				hash *= 0x1000193;
+			}
+
+			return hash;
+		}
+
 		size_t GetLength() const
 		{
 			return GetSize() - 1;
@@ -1813,7 +1829,7 @@ namespace AL::Collections
 
 		Bool operator > (const _String& string) const
 		{
-			if (this <= &string)
+			if (GetHash() <= string.GetHash())
 			{
 
 				return False;
@@ -1823,7 +1839,7 @@ namespace AL::Collections
 		}
 		Bool operator < (const _String& string) const
 		{
-			if (this >= &string)
+			if (GetHash() >= string.GetHash())
 			{
 
 				return False;
