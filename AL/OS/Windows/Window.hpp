@@ -76,6 +76,11 @@ namespace AL::OS::Windows
 		{
 		}
 
+		auto GetType() const
+		{
+			return icon;
+		}
+
 		auto GetHandle() const
 		{
 			return handle;
@@ -718,15 +723,13 @@ namespace AL::OS::Windows
 		}
 
 		Window(String&& name, ::HINSTANCE hInstance)
-			: windowClass(
-				{ 0 }
-			),
-			windowIcon(
-				{
-					.Big   = WindowIcons::Default,
-					.Small = WindowIcons::Default
-				}
-			),
+			: windowClass{
+				0
+			},
+			windowIcon{
+				.Big   = WindowIcons::Default,
+				.Small = WindowIcons::Default
+			},
 			windowName(
 				Move(name)
 			),
@@ -2391,11 +2394,12 @@ namespace AL::OS::Windows
 
 				case WM_PAINT:
 				{
+					auto device = GDI::Device::BeginPaint(
+						hWND
+					);
+
 					if (IsPaintEnabled())
 					{
-						auto device = GDI::Device::BeginPaint(
-							hWND
-						);
 
 						OnPaint(
 							device
@@ -2406,55 +2410,52 @@ namespace AL::OS::Windows
 
 				case WM_ERASEBKGND:
 				{
-					if (IsPaintEnabled())
+					auto hDC = reinterpret_cast<::HDC>(
+						wParam
+					);
+
+					if (::SetMapMode(hDC, MM_ANISOTROPIC) == 0)
 					{
-						auto hDC = reinterpret_cast<::HDC>(
-							wParam
+
+						throw GDI::GDIException(
+							"SetMapMode"
 						);
+					}
 
-						if (::SetMapMode(hDC, MM_ANISOTROPIC) == 0)
-						{
+					auto& resolution = GetResolution();
 
-							throw GDI::GDIException(
-								"SetMapMode"
-							);
-						}
+					if (::SetWindowExtEx(hDC, static_cast<int>(resolution.Width), static_cast<int>(resolution.Height), nullptr) == 0)
+					{
 
-						auto& resolution = GetResolution();
+						throw GDI::GDIException(
+							"SetWindowExtEx"
+						);
+					}
 
-						if (::SetWindowExtEx(hDC, static_cast<int>(resolution.Width), static_cast<int>(resolution.Height), nullptr) == 0)
-						{
+					if (::SetViewportExtEx(hDC, static_cast<int>(resolution.Width), static_cast<int>(resolution.Height), nullptr) == 0)
+					{
 
-							throw GDI::GDIException(
-								"SetWindowExtEx"
-							);
-						}
+						throw GDI::GDIException(
+							"SetViewportExtEx"
+						);
+					}
 
-						if (::SetViewportExtEx(hDC, static_cast<int>(resolution.Width), static_cast<int>(resolution.Height), nullptr) == 0)
-						{
+					::RECT rect;
 
-							throw GDI::GDIException(
-								"SetViewportExtEx"
-							);
-						}
+					if (::GetClientRect(GetHandle(), &rect) == 0)
+					{
 
-						::RECT rect;
+						throw SystemException(
+							"GetClientRect"
+						);
+					}
 
-						if (::GetClientRect(GetHandle(), &rect) == 0)
-						{
+					if (!::FillRect(hDC, &rect, windowClass.hbrBackground))
+					{
 
-							throw SystemException(
-								"GetClientRect"
-							);
-						}
-
-						if (!::FillRect(hDC, &rect, windowClass.hbrBackground))
-						{
-
-							throw GDI::GDIException(
-								"FillRect"
-							);
-						}
+						throw GDI::GDIException(
+							"FillRect"
+						);
 					}
 				}
 				return 1;
