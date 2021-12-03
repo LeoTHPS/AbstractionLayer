@@ -121,6 +121,12 @@ namespace AL::OS
 		}
 	};
 
+	typedef Drawing::Color  WindowColor;
+	typedef Drawing::Colors WindowColors;
+
+	typedef Drawing::Vector2I32 WindowPosition;
+	typedef Drawing::SizeU32    WindowResolution;
+
 	class Window
 	{
 		class INativeWindow
@@ -139,6 +145,8 @@ namespace AL::OS
 
 			virtual Bool Native_IsOpen() const = 0;
 
+			virtual Bool Native_IsPaintEnabled() const = 0;
+
 			virtual Bool Native_IsContentLoaded() const = 0;
 
 			virtual const String& Native_GetTitle() const = 0;
@@ -148,6 +156,12 @@ namespace AL::OS
 #elif defined(AL_PLATFORM_WINDOWS)
 			virtual ::HWND Native_GetHandle() const = 0;
 #endif
+
+			virtual const WindowPosition& Native_GetPosition() const = 0;
+
+			virtual const WindowResolution& Native_GetResolution() const = 0;
+
+			virtual WindowColor Native_GetBackgroundColor() const = 0;
 
 			// @throw AL::Exception
 			virtual Void Native_Open() = 0;
@@ -166,6 +180,11 @@ namespace AL::OS
 
 			// @throw AL::Exception
 			virtual Bool Native_SetTitle(String&& value) = 0;
+
+			// @throw AL::Exception
+			virtual Void Native_SetBackgroundColor(WindowColor value) = 0;
+
+			virtual Void Native_EnablePaint(Bool set) = 0;
 		};
 
 #if defined(AL_PLATFORM_LINUX)
@@ -187,6 +206,11 @@ namespace AL::OS
 				throw NotImplementedException();
 			}
 
+			virtual Bool Native_IsPaintEnabled() const override
+			{
+				throw NotImplementedException();
+			}
+
 			virtual Bool Native_IsContentLoaded() const override
 			{
 				throw NotImplementedException();
@@ -198,6 +222,21 @@ namespace AL::OS
 			}
 
 			virtual Void* Native_GetHandle() const override
+			{
+				throw NotImplementedException();
+			}
+
+			virtual const WindowPosition& Native_GetPosition() const override
+			{
+				throw NotImplementedException();
+			}
+
+			virtual const WindowResolution& Native_GetResolution() const override
+			{
+				throw NotImplementedException();
+			}
+
+			virtual WindowColor Native_GetBackgroundColor() const override
 			{
 				throw NotImplementedException();
 			}
@@ -237,6 +276,17 @@ namespace AL::OS
 			{
 				throw NotImplementedException();
 			}
+
+			// @throw AL::Exception
+			virtual Void Native_SetBackgroundColor(WindowColor value) override
+			{
+				throw NotImplementedException();
+			}
+
+			virtual Void Native_EnablePaint(Bool set) override
+			{
+				throw NotImplementedException();
+			}
 		};
 #elif defined(AL_PLATFORM_WINDOWS)
 		class NativeWindow
@@ -261,6 +311,11 @@ namespace AL::OS
 				return Windows::Window::IsOpen();
 			}
 
+			virtual Bool Native_IsPaintEnabled() const override
+			{
+				return Windows::Window::IsPaintEnabled();
+			}
+
 			virtual Bool Native_IsContentLoaded() const override
 			{
 				return Windows::Window::IsContentLoaded();
@@ -274,6 +329,22 @@ namespace AL::OS
 			virtual ::HWND Native_GetHandle() const override
 			{
 				return Windows::Window::GetHandle();
+			}
+
+			virtual const WindowPosition& Native_GetPosition() const override
+			{
+				return Windows::Window::GetPosition();
+			}
+
+			virtual const WindowResolution& Native_GetResolution() const override
+			{
+				return Windows::Window::GetResolution();
+			}
+
+			// @throw AL::Exception
+			virtual WindowColor Native_GetBackgroundColor() const override
+			{
+				return Windows::Window::GetBackgroundColor();
 			}
 
 			// @throw AL::Exception
@@ -322,6 +393,21 @@ namespace AL::OS
 				}
 
 				return True;
+			}
+
+			// @throw AL::Exception
+			virtual Void Native_SetBackgroundColor(WindowColor value) override
+			{
+				Windows::Window::SetBackgroundColor(
+					value
+				);
+			}
+
+			virtual Void Native_EnablePaint(Bool set) override
+			{
+				Windows::Window::EnablePaint(
+					set
+				);
 			}
 
 		protected:
@@ -631,6 +717,11 @@ namespace AL::OS
 			return lpNativeWindow->Native_IsOpen();
 		}
 
+		Bool IsPaintEnabled() const
+		{
+			return lpNativeWindow->Native_IsPaintEnabled();
+		}
+
 		Bool IsContentLoaded() const
 		{
 			return lpNativeWindow->Native_IsContentLoaded();
@@ -644,6 +735,21 @@ namespace AL::OS
 		auto GetHandle() const
 		{
 			return lpNativeWindow->Native_GetHandle();
+		}
+
+		auto& GetPosition() const
+		{
+			return lpNativeWindow->Native_GetPosition();
+		}
+
+		auto& GetResolution() const
+		{
+			return lpNativeWindow->Native_GetResolution();
+		}
+
+		auto GetBackgroundColor() const
+		{
+			return lpNativeWindow->Native_GetBackgroundColor();
 		}
 
 		// @throw AL::Exception
@@ -707,6 +813,21 @@ namespace AL::OS
 			}
 
 			return True;
+		}
+
+		// @throw AL::Exception
+		Void SetBackgroundColor(WindowColor value)
+		{
+			lpNativeWindow->Native_SetBackgroundColor(
+				value
+			);
+		}
+
+		Void EnablePaint(Bool set = True)
+		{
+			lpNativeWindow->Native_EnablePaint(
+				set
+			);
 		}
 
 	protected: // Events
