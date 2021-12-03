@@ -141,6 +141,24 @@ namespace AL::Collections
 				typename Make_Index_Sequence<sizeof ...(TYPES)>::Type{}
 			);
 		}
+		template<typename T, typename C>
+		auto Invoke(T(C::*lpFunction)(TYPES ...), C& instance) const
+		{
+			return Invoke(
+				lpFunction,
+				instance,
+				typename Make_Index_Sequence<sizeof ...(TYPES)>::Type{}
+			);
+		}
+		template<typename T, typename C>
+		auto Invoke(T(C::*lpFunction)(TYPES ...) const, const C& instance) const
+		{
+			return Invoke(
+				lpFunction,
+				instance,
+				typename Make_Index_Sequence<sizeof ...(TYPES)>::Type{}
+			);
+		}
 
 		Tuple& operator = (Tuple&& tuple)
 		{
@@ -162,6 +180,20 @@ namespace AL::Collections
 		auto Invoke(const F& function, Index_Sequence<I ...>) const
 		{
 			return function(
+				Get<I>() ...
+			);
+		}
+		template<typename T, typename C, size_t ... I>
+		auto Invoke(T(C::*lpFunction)(TYPES ...), C& instance, Index_Sequence<I ...>) const
+		{
+			return (instance.*lpFunction)(
+				Get<I>() ...
+			);
+		}
+		template<typename T, typename C, size_t ... I>
+		auto Invoke(T(C::*lpFunction)(TYPES ...) const, const C& instance, Index_Sequence<I ...>) const
+		{
+			return (instance.*lpFunction)(
 				Get<I>() ...
 			);
 		}
@@ -201,6 +233,16 @@ namespace AL::Collections
 		auto Invoke(const F& function) const
 		{
 			return function();
+		}
+		template<typename T, typename C>
+		auto Invoke(T(C::*lpFunction)(), C& instance) const
+		{
+			return (instance.*lpFunction)();
+		}
+		template<typename T, typename C>
+		auto Invoke(T(C::*lpFunction)() const, const C& instance) const
+		{
+			return (instance.*lpFunction)();
 		}
 
 		Tuple& operator = (Tuple&& tuple)
