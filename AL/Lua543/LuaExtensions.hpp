@@ -58,7 +58,7 @@
 		static constexpr Bool IsAlias   = True; \
 		static constexpr Bool IsDefined = True; \
 		\
-		static constexpr __type__ Get(::lua_State* lua, size_t index) \
+		static __type__ Get(::lua_State* lua, size_t index) \
 		{ \
 			return __cast__<__type__>( \
 				Type_Functions<__alias__>::Get( \
@@ -67,14 +67,14 @@
 				) \
 			); \
 		}; \
-		static constexpr Void Push(::lua_State* lua, __type__ value) \
+		static Void Push(::lua_State* lua, __type__ value) \
 		{ \
 			Type_Functions<__alias__>::Push( \
 				lua, \
 				__cast__<__alias__>(value) \
 			); \
 		}; \
-		static constexpr __type__ Pop(::lua_State* lua, size_t count) \
+		static __type__ Pop(::lua_State* lua, size_t count) \
 		{ \
 			return __cast__<__type__>( \
 				Type_Functions<__alias__>::Pop( \
