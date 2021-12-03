@@ -313,7 +313,8 @@ namespace AL
 				for (auto it2 = it1->Value.begin(); it2 != it1->Value.end(); )
 				{
 					it2->Invoke(
-						Execute
+						&ScheduledEvent::Execute,
+						*this
 					);
 
 					it1->Value.Erase(
