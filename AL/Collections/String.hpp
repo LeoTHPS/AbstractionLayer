@@ -1756,6 +1756,27 @@ namespace AL::Collections
 			return container.crend();
 		}
 
+		Bool operator > (const _String& string) const
+		{
+			if (this <= &string)
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		Bool operator < (const _String& string) const
+		{
+			if (this >= &string)
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+
 		Char& operator [] (size_t index)
 		{
 			AL_ASSERT(
