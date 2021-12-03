@@ -19,5 +19,6 @@
 
 namespace AL::OpenGL
 {
+	// TODO: implement
 	class Context;
 }
