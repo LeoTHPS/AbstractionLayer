@@ -1,6 +1,6 @@
 ### Abstraction Layer
 
-A header-only C++20 library targetting Linux and Windows for generic tasks.
+A header-only C++20 library targeting Linux and Windows for generic tasks.
 
 <hr />
 
