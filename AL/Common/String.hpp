@@ -687,6 +687,11 @@ AL_DEFINE_TO_STRING(
 			}
 		};
 
+		// Debug
+		{
+			string_AppendIfSet("Debug", Platforms::Debug);
+		}
+
 		// Linux/Windows
 		{
 			string_AppendIfSet("Linux",   Platforms::Linux);
@@ -736,6 +741,11 @@ AL_DEFINE_TO_WSTRING(
 				wstring_IsAppended = True;
 			}
 		};
+
+		// Debug
+		{
+			wstring_AppendIfSet(L"Debug", Platforms::Debug);
+		}
 
 		// Linux/Windows
 		{
