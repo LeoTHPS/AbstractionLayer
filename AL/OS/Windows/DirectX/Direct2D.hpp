@@ -1822,6 +1822,215 @@ namespace AL::OS::Windows::DirectX
 			GetTarget()->PopAxisAlignedClip();
 		}
 
+		template<typename T>
+		Void FillCircle(const Drawing::Vector2F& position, const T& brush, Float radius)
+		{
+			FillEllipse(
+				position,
+				brush,
+				radius,
+				radius
+			);
+		}
+
+		template<typename T>
+		Void FillEllipse(const Drawing::Vector2F& position, const T& brush, Float radiusX, Float radiusY)
+		{
+			AL_ASSERT(
+				IsCreated(),
+				"Direct2D not created"
+			);
+
+			AL_ASSERT(
+				IsTargetCreated(),
+				"Direct2D target not created"
+			);
+
+			GetTarget()->FillEllipse(
+				::D2D1::Ellipse(
+					::D2D1::Point2F(
+						position.X,
+						position.Y
+					),
+					radiusX,
+					radiusY
+				),
+				brush
+			);
+		}
+
+		template<typename T>
+		Void FillRectangle(const Drawing::Vector2F& position, const T& brush, Float width, Float height)
+		{
+			AL_ASSERT(
+				IsCreated(),
+				"Direct2D not created"
+			);
+
+			AL_ASSERT(
+				IsTargetCreated(),
+				"Direct2D target not created"
+			);
+
+			GetTarget()->FillRectangle(
+				::D2D1::RectF(
+					position.X,
+					position.Y,
+					position.X + width,
+					position.Y + height
+				),
+				brush
+			);
+		}
+
+		template<typename T>
+		Void FillRoundedRectangle(const Drawing::Vector2F& position, const T& brush, Float width, Float height, Float radius)
+		{
+			AL_ASSERT(
+				IsCreated(),
+				"Direct2D not created"
+			);
+
+			AL_ASSERT(
+				IsTargetCreated(),
+				"Direct2D target not created"
+			);
+
+			GetTarget()->FillRoundedRectangle(
+				::D2D1::RoundedRect(
+					::D2D1::RectF(
+						position.X,
+						position.Y,
+						position.X + width,
+						position.Y + height
+					),
+					radius,
+					radius
+				),
+				brush
+			);
+		}
+
+		template<typename T>
+		Void DrawLine(const Drawing::Vector2F& start, const Drawing::Vector2F& end, const T& brush, Float thickness = 1.0f)
+		{
+			AL_ASSERT(
+				IsCreated(),
+				"Direct2D not created"
+			);
+
+			AL_ASSERT(
+				IsTargetCreated(),
+				"Direct2D target not created"
+			);
+
+			GetTarget()->DrawLine(
+				::D2D1::Point2F(
+					start.X,
+					start.Y
+				),
+				::D2D1::Point2F(
+					end.X,
+					end.Y
+				),
+				brush,
+				thickness
+			);
+		}
+
+		template<typename T>
+		Void DrawCircle(const Drawing::Vector2F& position, const T& brush, Float radius, Float strokeWidth = 1.0f)
+		{
+			DrawEllipse(
+				position,
+				brush,
+				radius,
+				radius,
+				strokeWidth
+			);
+		}
+
+		template<typename T>
+		Void DrawEllipse(const Drawing::Vector2F& position, const T& brush, Float radiusX, Float radiusY, Float strokeWidth = 1.0f)
+		{
+			AL_ASSERT(
+				IsCreated(),
+				"Direct2D not created"
+			);
+
+			AL_ASSERT(
+				IsTargetCreated(),
+				"Direct2D target not created"
+			);
+
+			GetTarget()->DrawEllipse(
+				::D2D1::Ellipse(
+					::D2D1::Point2F(
+						position.X,
+						position.Y
+					),
+					radiusX,
+					radiusY
+				),
+				brush,
+				strokeWidth
+			);
+		}
+
+		template<typename T>
+		Void DrawRectangle(const Drawing::Vector2F& position, const T& brush, Float width, Float height, Float strokeWidth = 1.0f)
+		{
+			AL_ASSERT(
+				IsCreated(),
+				"Direct2D not created"
+			);
+
+			AL_ASSERT(
+				IsTargetCreated(),
+				"Direct2D target not created"
+			);
+
+			GetTarget()->DrawRectangle(
+				::D2D1::RectF(
+					position.X,
+					position.Y,
+					position.X + width,
+					position.Y + height
+				),
+				brush,
+				strokeWidth
+			);
+		}
+
+		template<typename T>
+		Void DrawRoundedRectangle(const Drawing::Vector2F& position, const T& brush, Float width, Float height, Float radius, Float strokeWidth = 1.0f)
+		{
+			AL_ASSERT(
+				IsCreated(),
+				"Direct2D not created"
+			);
+
+			AL_ASSERT(
+				IsTargetCreated(),
+				"Direct2D target not created"
+			);
+
+			GetTarget()->DrawRoundedRectangle(
+				::D2D1::RoundedRect(
+					::D2D1::RectF(
+						position.X,
+						position.Y,
+						position.X + width,
+						position.Y + height
+					),
+					radius,
+					radius
+				),
+				brush,
+				strokeWidth
+			);
+		}
+
 		Void DrawBitmap(const Drawing::Vector2F& position, const Bitmap& bitmap, Float opacity = 1.0f)
 		{
 			AL_ASSERT(
@@ -1951,215 +2160,6 @@ namespace AL::OS::Windows::DirectX
 				textLayout,
 				brush,
 				textLayout.GetClipping() ? ::D2D1_DRAW_TEXT_OPTIONS_CLIP : ::D2D1_DRAW_TEXT_OPTIONS_NONE
-			);
-		}
-
-		template<typename T>
-		Void DrawLine(const Drawing::Vector2F& start, const Drawing::Vector2F& end, const T& brush, Float thickness = 1.0f)
-		{
-			AL_ASSERT(
-				IsCreated(),
-				"Direct2D not created"
-			);
-
-			AL_ASSERT(
-				IsTargetCreated(),
-				"Direct2D target not created"
-			);
-
-			GetTarget()->DrawLine(
-				::D2D1::Point2F(
-					start.X,
-					start.Y
-				),
-				::D2D1::Point2F(
-					end.X,
-					end.Y
-				),
-				brush,
-				thickness
-			);
-		}
-
-		template<typename T>
-		Void DrawCircle(const Drawing::Vector2F& position, const T& brush, Float radius, Float strokeWidth = 1.0f)
-		{
-			DrawEllipse(
-				position,
-				brush,
-				radius,
-				radius,
-				strokeWidth
-			);
-		}
-
-		template<typename T>
-		Void DrawEllipse(const Drawing::Vector2F& position, const T& brush, Float radiusX, Float radiusY, Float strokeWidth = 1.0f)
-		{
-			AL_ASSERT(
-				IsCreated(),
-				"Direct2D not created"
-			);
-
-			AL_ASSERT(
-				IsTargetCreated(),
-				"Direct2D target not created"
-			);
-
-			GetTarget()->DrawEllipse(
-				::D2D1::Ellipse(
-					::D2D1::Point2F(
-						position.X,
-						position.Y
-					),
-					radiusX,
-					radiusY
-				),
-				brush,
-				strokeWidth
-			);
-		}
-
-		template<typename T>
-		Void DrawRectangle(const Drawing::Vector2F& position, const T& brush, Float width, Float height, Float strokeWidth = 1.0f)
-		{
-			AL_ASSERT(
-				IsCreated(),
-				"Direct2D not created"
-			);
-
-			AL_ASSERT(
-				IsTargetCreated(),
-				"Direct2D target not created"
-			);
-
-			GetTarget()->DrawRectangle(
-				::D2D1::RectF(
-					position.X,
-					position.Y,
-					position.X + width,
-					position.Y + height
-				),
-				brush,
-				strokeWidth
-			);
-		}
-
-		template<typename T>
-		Void DrawRoundedRectangle(const Drawing::Vector2F& position, const T& brush, Float width, Float height, Float radius, Float strokeWidth = 1.0f)
-		{
-			AL_ASSERT(
-				IsCreated(),
-				"Direct2D not created"
-			);
-
-			AL_ASSERT(
-				IsTargetCreated(),
-				"Direct2D target not created"
-			);
-
-			GetTarget()->DrawRoundedRectangle(
-				::D2D1::RoundedRect(
-					::D2D1::RectF(
-						position.X,
-						position.Y,
-						position.X + width,
-						position.Y + height
-					),
-					radius,
-					radius
-				),
-				brush,
-				strokeWidth
-			);
-		}
-
-		template<typename T>
-		Void FillCircle(const Drawing::Vector2F& position, const T& brush, Float radius)
-		{
-			FillEllipse(
-				position,
-				brush,
-				radius,
-				radius
-			);
-		}
-
-		template<typename T>
-		Void FillEllipse(const Drawing::Vector2F& position, const T& brush, Float radiusX, Float radiusY)
-		{
-			AL_ASSERT(
-				IsCreated(),
-				"Direct2D not created"
-			);
-
-			AL_ASSERT(
-				IsTargetCreated(),
-				"Direct2D target not created"
-			);
-
-			GetTarget()->FillEllipse(
-				::D2D1::Ellipse(
-					::D2D1::Point2F(
-						position.X,
-						position.Y
-					),
-					radiusX,
-					radiusY
-				),
-				brush
-			);
-		}
-
-		template<typename T>
-		Void FillRectangle(const Drawing::Vector2F& position, const T& brush, Float width, Float height)
-		{
-			AL_ASSERT(
-				IsCreated(),
-				"Direct2D not created"
-			);
-
-			AL_ASSERT(
-				IsTargetCreated(),
-				"Direct2D target not created"
-			);
-
-			GetTarget()->FillRectangle(
-				::D2D1::RectF(
-					position.X,
-					position.Y,
-					position.X + width,
-					position.Y + height
-				),
-				brush
-			);
-		}
-
-		template<typename T>
-		Void FillRoundedRectangle(const Drawing::Vector2F& position, const T& brush, Float width, Float height, Float radius)
-		{
-			AL_ASSERT(
-				IsCreated(),
-				"Direct2D not created"
-			);
-
-			AL_ASSERT(
-				IsTargetCreated(),
-				"Direct2D target not created"
-			);
-
-			GetTarget()->FillRoundedRectangle(
-				::D2D1::RoundedRect(
-					::D2D1::RectF(
-						position.X,
-						position.Y,
-						position.X + width,
-						position.Y + height
-					),
-					radius,
-					radius
-				),
-				brush
 			);
 		}
 
