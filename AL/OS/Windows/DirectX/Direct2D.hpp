@@ -1413,7 +1413,7 @@ namespace AL::OS::Windows::DirectX
 		}
 
 		// @throw AL::Exception
-		Void CreateBitmap(Bitmap& bitmap, const FileSystem::Path& file, Bool color = True)
+		Void CreateBitmap(Bitmap& bitmap, const FileSystem::Path& path, Bool color = True)
 		{
 			AL_ASSERT(
 				IsCreated(),
@@ -1427,7 +1427,7 @@ namespace AL::OS::Windows::DirectX
 
 			::IWICBitmapDecoder* lpWICDecoder;
 
-			if (FAILED(GetWICFactory()->CreateDecoderFromFilename(file.GetString().ToWString().GetCString(), nullptr, GENERIC_READ, ::WICDecodeMetadataCacheOnLoad, &lpWICDecoder)))
+			if (FAILED(GetWICFactory()->CreateDecoderFromFilename(path.GetString().ToWString().GetCString(), nullptr, GENERIC_READ, ::WICDecodeMetadataCacheOnLoad, &lpWICDecoder)))
 			{
 
 				throw Exception(
