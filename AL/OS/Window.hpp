@@ -637,7 +637,10 @@ namespace AL::OS
 					height
 				);
 
-
+				lpWindow->OnResolutionChanged(
+					width,
+					height
+				);
 			}
 
 			// @throw AL::Exception
@@ -663,6 +666,12 @@ namespace AL::OS
 					return True;
 				}
 
+				if (lpWindow->OnMouseEvent(event))
+				{
+
+					return True;
+				}
+
 				return False;
 			}
 
@@ -671,6 +680,12 @@ namespace AL::OS
 			virtual Bool OnKeyboardEvent(const Hardware::KeyboardEvent& event) override
 			{
 				if (Windows::Window::OnKeyboardEvent(event))
+				{
+
+					return True;
+				}
+
+				if (lpWindow->OnKeyboardEvent(event))
 				{
 
 					return True;
@@ -882,6 +897,11 @@ namespace AL::OS
 		{
 
 			return False;
+		}
+
+		// @throw AL::Exception
+		virtual Void OnResolutionChanged(WindowResolution::Type width, WindowResolution::Type height)
+		{
 		}
 	};
 }
