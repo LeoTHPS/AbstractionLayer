@@ -29,6 +29,15 @@ namespace AL::Drawing
 		{
 		}
 
+		template<typename T_NEW_TYPE>
+		auto Cast() const
+		{
+			return Size<T_NEW_TYPE>(
+				BitConverter::Cast<T_NEW_TYPE>(Width),
+				BitConverter::Cast<T_NEW_TYPE>(Height)
+			);
+		}
+
 		Bool operator == (const Size& size) const
 		{
 			if (Width != size.Width)
