@@ -1982,6 +1982,18 @@ namespace AL::OS::Windows::DirectX
 		}
 
 		template<typename T>
+		Void DrawCircle(const Drawing::Vector2F& position, const T& brush, Float radius, Float strokeWidth = 1.0f)
+		{
+			DrawEllipse(
+				position,
+				brush,
+				radius,
+				radius,
+				strokeWidth
+			);
+		}
+
+		template<typename T>
 		Void DrawEllipse(const Drawing::Vector2F& position, const T& brush, Float radiusX, Float radiusY, Float strokeWidth = 1.0f)
 		{
 			AL_ASSERT(
@@ -2004,18 +2016,6 @@ namespace AL::OS::Windows::DirectX
 					radiusY
 				),
 				brush,
-				strokeWidth
-			);
-		}
-
-		template<typename T>
-		Void DrawCircle(const Drawing::Vector2F& position, const T& brush, Float radius, Float strokeWidth = 1.0f)
-		{
-			DrawEllipse(
-				position,
-				brush,
-				radius,
-				radius,
 				strokeWidth
 			);
 		}
@@ -2075,6 +2075,17 @@ namespace AL::OS::Windows::DirectX
 		}
 
 		template<typename T>
+		Void FillCircle(const Drawing::Vector2F& position, const T& brush, Float radius)
+		{
+			FillEllipse(
+				position,
+				brush,
+				radius,
+				radius
+			);
+		}
+
+		template<typename T>
 		Void FillEllipse(const Drawing::Vector2F& position, const T& brush, Float radiusX, Float radiusY)
 		{
 			AL_ASSERT(
@@ -2097,17 +2108,6 @@ namespace AL::OS::Windows::DirectX
 					radiusY
 				),
 				brush
-			);
-		}
-
-		template<typename T>
-		Void FillCircle(const Drawing::Vector2F& position, const T& brush, Float radius)
-		{
-			FillEllipse(
-				position,
-				brush,
-				radius,
-				radius
 			);
 		}
 
