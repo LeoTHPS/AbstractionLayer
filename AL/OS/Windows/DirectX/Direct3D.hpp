@@ -263,7 +263,7 @@ namespace AL::OS::Windows::DirectX
 				D3D11_MAX_MULTISAMPLE_SAMPLE_COUNT
 			);
 
-			::DXGI_SWAP_CHAIN_DESC description = { 0 };
+			::DXGI_SWAP_CHAIN_DESC description = { };
 			description.BufferDesc.Width                   = 0;
 			description.BufferDesc.Height                  = 0;
 			description.BufferDesc.Format                  = ::DXGI_FORMAT_B8G8R8A8_UNORM;
