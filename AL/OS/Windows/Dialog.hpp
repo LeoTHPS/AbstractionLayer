@@ -325,7 +325,7 @@ namespace AL::OS::Windows
 			
 			flags.Set(MB_TOPMOST, IsTopMost());
 
-			::MSGBOXPARAMSA params = { 0 };
+			::MSGBOXPARAMSA params = { };
 			params.cbSize = sizeof(::MSGBOXPARAMSA);
 			params.hwndOwner = hWND;
 			params.dwStyle = flags.Value;

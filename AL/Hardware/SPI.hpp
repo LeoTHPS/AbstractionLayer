@@ -352,7 +352,7 @@ namespace AL::Hardware
 
 #if defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_SPIDEV)
-			::spi_ioc_transfer transfer = { 0 };
+			::spi_ioc_transfer transfer = { };
 			transfer.len           = static_cast<decltype(transfer.len)>(size);
 			transfer.rx_buf        = reinterpret_cast<decltype(::spi_ioc_transfer::rx_buf)>(lpRX);
 			transfer.tx_buf        = reinterpret_cast<decltype(::spi_ioc_transfer::tx_buf)>(lpTX);

@@ -181,7 +181,7 @@ namespace AL::Hardware
 
 			Bool deviceDescriptorFound = False;
 
-			::libusb_device_descriptor deviceDescriptor = { 0 };
+			::libusb_device_descriptor deviceDescriptor = { };
 
 			try
 			{
@@ -260,7 +260,7 @@ namespace AL::Hardware
 				);
 			}
 
-			::libusb_device_descriptor deviceDescriptor = { 0 };
+			::libusb_device_descriptor deviceDescriptor = { };
 
 			try
 			{

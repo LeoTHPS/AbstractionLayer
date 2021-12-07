@@ -274,7 +274,7 @@ namespace AL::Hardware
 				);
 			}
 
-			::DCB dcb = { 0 };
+			::DCB dcb = { };
 			dcb.DCBlength = sizeof(::DCB);
 
 			if (!::GetCommState(hFile, &dcb))
@@ -322,7 +322,7 @@ namespace AL::Hardware
 				);
 			}
 
-			::COMMTIMEOUTS timeouts              = { 0 };
+			::COMMTIMEOUTS timeouts              = { };
 			timeouts.ReadIntervalTimeout         = MAXWORD;
 			timeouts.ReadTotalTimeoutConstant    = 0;
 			timeouts.ReadTotalTimeoutMultiplier  = 0;
