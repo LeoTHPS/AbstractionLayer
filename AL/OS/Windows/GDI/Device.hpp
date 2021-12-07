@@ -10,6 +10,12 @@
 
 #include "AL/Drawing/Rectangle.hpp"
 
+#include <wingdi.h>
+
+#if defined(AL_COMPILER_MSVC)
+	#pragma comment(lib, "Gdi32.lib")
+#endif
+
 namespace AL::OS::Windows::GDI
 {
 	class Device
