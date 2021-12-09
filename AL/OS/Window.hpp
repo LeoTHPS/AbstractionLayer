@@ -371,12 +371,13 @@ namespace AL::OS
 			{
 				switch (Windows::Window::GetCursor())
 				{
-					case Windows::WindowCursors::None:  return WindowCursors::None;
-					case Windows::WindowCursors::Arrow: return WindowCursors::Arrow;
-					case Windows::WindowCursors::Beam:  return WindowCursors::Beam;
-					case Windows::WindowCursors::Wait:  return WindowCursors::Wait;
-					case Windows::WindowCursors::Hand:  return WindowCursors::Hand;
-					case Windows::WindowCursors::Help:  return WindowCursors::Help;
+					case Windows::WindowCursors::None:        return WindowCursors::None;
+					case Windows::WindowCursors::Arrow:       return WindowCursors::Arrow;
+					case Windows::WindowCursors::Beam:        return WindowCursors::Beam;
+					case Windows::WindowCursors::Wait:        return WindowCursors::Wait;
+					case Windows::WindowCursors::Hand:        return WindowCursors::Hand;
+					case Windows::WindowCursors::Help:        return WindowCursors::Help;
+					case Windows::WindowCursors::UserDefined: break;
 				}
 
 				throw NotImplementedException();
