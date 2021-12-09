@@ -184,6 +184,9 @@ namespace AL::OS
 			// @throw AL::Exception
 			virtual Void Native_SetBackgroundColor(WindowColor value) = 0;
 
+			// @throw AL::Exception
+			virtual Bool Native_SetResolution(WindowResolution::Type width, WindowResolution::Type height) = 0;
+
 			virtual Void Native_EnablePaint(Bool set) = 0;
 		};
 
@@ -279,6 +282,12 @@ namespace AL::OS
 
 			// @throw AL::Exception
 			virtual Void Native_SetBackgroundColor(WindowColor value) override
+			{
+				throw NotImplementedException();
+			}
+
+			// @throw AL::Exception
+			virtual Bool Native_SetResolution(WindowResolution::Type width, WindowResolution::Type height) override
 			{
 				throw NotImplementedException();
 			}
@@ -402,6 +411,18 @@ namespace AL::OS
 				Windows::Window::SetBackgroundColor(
 					value
 				);
+			}
+
+			// @throw AL::Exception
+			virtual Bool Native_SetResolution(WindowResolution::Type width, WindowResolution::Type height) override
+			{
+				if (!Windows::Window::SetResolution(width, height))
+				{
+
+					return False;
+				}
+
+				return True;
 			}
 
 			virtual Void Native_EnablePaint(Bool set) override
@@ -824,6 +845,29 @@ namespace AL::OS
 			);
 
 			if (!SetTitle(Move(text)))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+
+		// @throw AL::Exception
+		Bool SetResolution(const WindowResolution& value)
+		{
+			if (!SetResolution(value.Width, value.Height))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		// @throw AL::Exception
+		Bool SetResolution(WindowResolution::Type width, WindowResolution::Type height)
+		{
+			if (!lpNativeWindow->Native_SetResolution(width, height))
 			{
 
 				return False;
