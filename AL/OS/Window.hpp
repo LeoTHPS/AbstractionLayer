@@ -121,8 +121,18 @@ namespace AL::OS
 		}
 	};
 
-	typedef Drawing::Color  WindowColor;
-	typedef Drawing::Colors WindowColors;
+	enum class WindowCursors
+	{
+		None,
+		Arrow,
+		Beam,
+		Wait,
+		Hand,
+		Help
+	};
+
+	typedef Drawing::Color      WindowColor;
+	typedef Drawing::Colors     WindowColors;
 
 	typedef Drawing::Vector2I32 WindowPosition;
 	typedef Drawing::SizeU32    WindowResolution;
@@ -157,6 +167,8 @@ namespace AL::OS
 			virtual ::HWND Native_GetHandle() const = 0;
 #endif
 
+			virtual WindowCursors Native_GetCursor() const = 0;
+
 			virtual const WindowPosition& Native_GetPosition() const = 0;
 
 			virtual const WindowResolution& Native_GetResolution() const = 0;
@@ -180,6 +192,9 @@ namespace AL::OS
 
 			// @throw AL::Exception
 			virtual Bool Native_SetTitle(String&& value) = 0;
+
+			// @throw AL::Exception
+			virtual Bool Native_SetCursor(WindowCursors value) = 0;
 
 			// @throw AL::Exception
 			virtual Void Native_SetBackgroundColor(WindowColor value) = 0;
@@ -225,6 +240,11 @@ namespace AL::OS
 			}
 
 			virtual Void* Native_GetHandle() const override
+			{
+				throw NotImplementedException();
+			}
+
+			virtual WindowCursors Native_GetCursor() const override
 			{
 				throw NotImplementedException();
 			}
@@ -276,6 +296,12 @@ namespace AL::OS
 
 			// @throw AL::Exception
 			virtual Bool Native_SetTitle(String&& value) override
+			{
+				throw NotImplementedException();
+			}
+
+			// @throw AL::Exception
+			virtual Bool Native_SetCursor(WindowCursors value) override
 			{
 				throw NotImplementedException();
 			}
@@ -341,6 +367,21 @@ namespace AL::OS
 				return Windows::Window::GetHandle();
 			}
 
+			virtual WindowCursors Native_GetCursor() const override
+			{
+				switch (Windows::Window::GetCursor())
+				{
+					case Windows::WindowCursors::None:  return WindowCursors::None;
+					case Windows::WindowCursors::Arrow: return WindowCursors::Arrow;
+					case Windows::WindowCursors::Beam:  return WindowCursors::Beam;
+					case Windows::WindowCursors::Wait:  return WindowCursors::Wait;
+					case Windows::WindowCursors::Hand:  return WindowCursors::Hand;
+					case Windows::WindowCursors::Help:  return WindowCursors::Help;
+				}
+
+				throw NotImplementedException();
+			}
+
 			virtual const WindowPosition& Native_GetPosition() const override
 			{
 				return Windows::Window::GetPosition();
@@ -397,6 +438,35 @@ namespace AL::OS
 			virtual Bool Native_SetTitle(String&& value) override
 			{
 				if (!Window::SetTitle(Move(value)))
+				{
+
+					return False;
+				}
+
+				return True;
+			}
+
+			// @throw AL::Exception
+			virtual Bool Native_SetCursor(WindowCursors value) override
+			{
+				Windows::WindowCursor cursor(
+					[value]()
+					{
+						switch (value)
+						{
+							case WindowCursors::None:  return Windows::WindowCursors::None;
+							case WindowCursors::Arrow: return Windows::WindowCursors::Arrow;
+							case WindowCursors::Beam:  return Windows::WindowCursors::Beam;
+							case WindowCursors::Wait:  return Windows::WindowCursors::Wait;
+							case WindowCursors::Hand:  return Windows::WindowCursors::Hand;
+							case WindowCursors::Help:  return Windows::WindowCursors::Help;
+						}
+
+						throw NotImplementedException();
+					}()
+				);
+
+				if (!Windows::Window::SetCursor(Move(cursor)))
 				{
 
 					return False;
@@ -775,6 +845,11 @@ namespace AL::OS
 			return lpNativeWindow->Native_GetHandle();
 		}
 
+		auto GetCursor() const
+		{
+			return lpNativeWindow->Native_GetCursor();
+		}
+
 		auto& GetPosition() const
 		{
 			return lpNativeWindow->Native_GetPosition();
@@ -845,6 +920,18 @@ namespace AL::OS
 			);
 
 			if (!SetTitle(Move(text)))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+
+		// @throw AL::Exception
+		Bool SetCursor(WindowCursors value)
+		{
+			if (!lpNativeWindow->Native_SetCursor(value))
 			{
 
 				return False;
