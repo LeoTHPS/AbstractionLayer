@@ -194,7 +194,7 @@ namespace AL::OS
 			OS::Window* const lpWindow;
 
 		public:
-			NativeWindow(OS::Window& window, String&& name)
+			NativeWindow(OS::Window& window, String&& name, String&& title)
 				: lpWindow(
 					&window
 				)
@@ -296,9 +296,10 @@ namespace AL::OS
 			OS::Window* const lpWindow;
 
 		public:
-			NativeWindow(OS::Window& window, String&& name)
+			NativeWindow(OS::Window& window, String&& name, String&& title)
 				: Windows::Window(
-					Move(name)
+					Move(name),
+					Move(title)
 				),
 				lpWindow(
 					&window
@@ -712,11 +713,12 @@ namespace AL::OS
 		Window(const Window&) = delete;
 
 	public:
-		explicit Window(String&& name)
+		Window(String&& name, String&& title)
 			: lpNativeWindow(
 				new NativeWindow(
 					*this,
-					Move(name)
+					Move(name),
+					Move(title)
 				)
 			)
 		{

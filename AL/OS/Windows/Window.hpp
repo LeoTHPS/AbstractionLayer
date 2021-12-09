@@ -714,15 +714,15 @@ namespace AL::OS::Windows
 		Window(const Window&) = delete;
 
 	public:
-		explicit Window(String&& name)
+		Window(String&& name, String&& title)
 			: Window(
 				Move(name),
+				Move(title),
 				::GetModuleHandleA(nullptr)
 			)
 		{
 		}
-
-		Window(String&& name, ::HINSTANCE hInstance)
+		Window(String&& name, String&& title, ::HINSTANCE hInstance)
 			: windowClass{
 				0
 			},
@@ -734,7 +734,7 @@ namespace AL::OS::Windows
 				Move(name)
 			),
 			windowTitle(
-				windowName
+				Move(title)
 			),
 			windowCursor(
 				WindowCursors::Arrow
@@ -750,13 +750,13 @@ namespace AL::OS::Windows
 				*this
 			)
 		{
-			windowClass.cbSize = sizeof(::WNDCLASSEXA);
-			windowClass.style = CS_HREDRAW | CS_VREDRAW;
-			windowClass.hIcon = windowIcon.Big.GetHandle();
-			windowClass.hIconSm = windowIcon.Small.GetHandle();
-			windowClass.hCursor = windowCursor.GetHandle();
-			windowClass.hInstance = hInstance;
-			windowClass.lpfnWndProc = &Window::WindowProc;
+			windowClass.cbSize        = sizeof(::WNDCLASSEXA);
+			windowClass.style         = CS_HREDRAW | CS_VREDRAW;
+			windowClass.hIcon         = windowIcon.Big.GetHandle();
+			windowClass.hIconSm       = windowIcon.Small.GetHandle();
+			windowClass.hCursor       = windowCursor.GetHandle();
+			windowClass.hInstance     = hInstance;
+			windowClass.lpfnWndProc   = &Window::WindowProc;
 			windowClass.lpszClassName = windowName.GetCString();
 		}
 

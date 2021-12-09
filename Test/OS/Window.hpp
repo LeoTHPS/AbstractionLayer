@@ -11,7 +11,8 @@ static void AL_OS_Window()
 	using namespace AL::OS;
 
 	Window window(
-		"MainWindow"
+		"MainWindow",
+		"AL::OS::Window"
 	);
 
 	window.Open();
