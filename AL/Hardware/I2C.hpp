@@ -249,15 +249,19 @@ namespace AL::Hardware
 
 #if defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
-			::i2c_msg i2c_buffer;
-			i2c_buffer.flags = I2C_M_RD;
-			i2c_buffer.addr = static_cast<__u16>(address);
-			i2c_buffer.buf = reinterpret_cast<__u8*>(lpBuffer);
-			i2c_buffer.len = static_cast<__u16>(size);
+			::i2c_msg i2c_message =
+			{
+				.addr  = static_cast<__u16>(address),
+				.flags = I2C_M_RD,
+				.len   = static_cast<__u16>(size),
+				.buf   = reinterpret_cast<__u8*>(lpBuffer)
+			};
 
-			::i2c_rdwr_ioctl_data i2c_data;
-			i2c_data.msgs = &i2c_buffer;
-			i2c_data.nmsgs = 1;
+			::i2c_rdwr_ioctl_data i2c_data =
+			{
+				.msgs  = &i2c_message,
+				.nmsgs = 1
+			};
 
 			if (::ioctl(fd, I2C_RDWR, &i2c_data) < 0)
 			{
@@ -299,15 +303,19 @@ namespace AL::Hardware
 
 #if defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
-			::i2c_msg i2c_buffer;
-			i2c_buffer.flags = 0;
-			i2c_buffer.addr = static_cast<__u16>(address);
-			i2c_buffer.buf = reinterpret_cast<__u8*>(const_cast<Void*>(lpBuffer));
-			i2c_buffer.len = static_cast<__u16>(size);
+			::i2c_msg i2c_message =
+			{
+				.addr  = static_cast<__u16>(address),
+				.flags = 0,
+				.len   = static_cast<__u16>(size),
+				.buf   = reinterpret_cast<__u8*>(const_cast<Void*>(lpBuffer))
+			};
 
-			::i2c_rdwr_ioctl_data i2c_data;
-			i2c_data.msgs = &i2c_buffer;
-			i2c_data.nmsgs = 1;
+			::i2c_rdwr_ioctl_data i2c_data =
+			{
+				.msgs  = &i2c_message,
+				.nmsgs = 1
+			};
 
 			if (::ioctl(fd, I2C_RDWR, &i2c_data) < 0)
 			{
@@ -351,27 +359,29 @@ namespace AL::Hardware
 
 #if defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
-			::i2c_msg i2c_buffers[2];
-				
-			// TX
+			::i2c_msg i2c_messages[2] =
 			{
-				i2c_buffers[0].flags = 0;
-				i2c_buffers[0].addr = static_cast<__u16>(address);
-				i2c_buffers[0].buf = reinterpret_cast<__u8*>(const_cast<Void*>(lpTX));
-				i2c_buffers[0].len = static_cast<__u16>(txSize);
-			}
+				// TX
+				{
+					.addr  = static_cast<__u16>(address),
+					.flags = 0,
+					.len   = static_cast<__u16>(txSize),
+					.buf   = reinterpret_cast<__u8*>(const_cast<Void*>(lpTX))
+				},
+				// RX
+				{
+					.addr  = static_cast<__u16>(address),
+					.flags = I2C_M_RD | I2C_M_NOSTART,
+					.len   = static_cast<__u16>(rxSize),
+					.buf   = reinterpret_cast<__u8*>(lpRX)
+				}
+			};
 
-			// RX
+			::i2c_rdwr_ioctl_data i2c_data =
 			{
-				i2c_buffers[1].flags = I2C_M_RD | I2C_M_NOSTART;
-				i2c_buffers[1].addr = static_cast<__u16>(address);
-				i2c_buffers[1].buf = reinterpret_cast<__u8*>(lpRX);
-				i2c_buffers[1].len = static_cast<__u16>(rxSize);
-			}
-
-			::i2c_rdwr_ioctl_data i2c_data;
-			i2c_data.msgs = i2c_buffers;
-			i2c_data.nmsgs = 2;
+				.msgs  = &i2c_messages[0],
+				.nmsgs = 2
+			};
 
 			if (::ioctl(fd, I2C_RDWR, &i2c_data) < 0)
 			{
@@ -412,11 +422,11 @@ namespace AL::Hardware
 
 #if defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
-			Collections::Array<::i2c_msg> i2c_buffers(
+			Collections::Array<::i2c_msg> i2c_messages(
 				count
 			);
 
-			auto lpI2C_buffer = &i2c_buffers[0];
+			auto lpI2C_buffer = &i2c_messages[0];
 			auto lpTransaction = lpTransactions;
 
 			for (size_t i = 0; i < count; ++i, ++lpI2C_buffer, ++lpTransaction)
@@ -470,9 +480,11 @@ namespace AL::Hardware
 				);
 			}
 
-			::i2c_rdwr_ioctl_data i2c_data;
-			i2c_data.msgs = &i2c_buffers[0];
-			i2c_data.nmsgs = static_cast<__u32>(count);
+			::i2c_rdwr_ioctl_data i2c_data =
+			{
+				.msgs  = &i2c_messages[0],
+				.nmsgs = static_cast<__u32>(count)
+			};
 
 			if (::ioctl(fd, I2C_RDWR, &i2c_data) < 0)
 			{
