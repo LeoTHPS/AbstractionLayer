@@ -1,6 +1,8 @@
 #pragma once
 #include "AL/Common.hpp"
 
+#include "AL/FileSystem/Path.hpp"
+
 #include "AL/OS/SystemException.hpp"
 
 #if defined(AL_PLATFORM_LINUX)
@@ -97,7 +99,7 @@ namespace AL::Hardware
 		::HANDLE                 hFile;
 #endif
 
-		String                   path;
+		FileSystem::Path         path;
 		BitMask<UARTDeviceFlags> flags;
 		UARTDeviceSpeeds         speed;
 
@@ -130,7 +132,7 @@ namespace AL::Hardware
 			device.isOpen = False;
 		}
 
-		UARTDevice(String&& path, UARTDeviceSpeeds speed, UARTDeviceFlags flags)
+		UARTDevice(FileSystem::Path&& path, UARTDeviceSpeeds speed, UARTDeviceFlags flags)
 			: path(
 				Move(path)
 			),
@@ -142,9 +144,9 @@ namespace AL::Hardware
 			)
 		{
 		}
-		UARTDevice(const String& path, UARTDeviceSpeeds speed, UARTDeviceFlags flags)
+		UARTDevice(const FileSystem::Path& path, UARTDeviceSpeeds speed, UARTDeviceFlags flags)
 			: UARTDevice(
-				String(path),
+				FileSystem::Path(path),
 				speed,
 				flags
 			)
@@ -189,7 +191,7 @@ namespace AL::Hardware
 			);
 
 #if defined(AL_PLATFORM_LINUX)
-			if ((fd = ::open(GetPath().GetCString(), O_RDWR | O_NOCTTY | O_NDELAY)) == -1)
+			if ((fd = ::open(GetPath().GetString().GetCString(), O_RDWR | O_NOCTTY | O_NDELAY)) == -1)
 			{
 
 				throw OS::SystemException(
@@ -266,7 +268,7 @@ namespace AL::Hardware
 				&status
 			);
 #elif defined(AL_PLATFORM_WINDOWS)
-			if ((hFile = ::CreateFileA(GetPath().GetCString(), GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)) == INVALID_HANDLE_VALUE)
+			if ((hFile = ::CreateFileA(GetPath().GetString().GetCString(), GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)) == INVALID_HANDLE_VALUE)
 			{
 
 				throw OS::SystemException(

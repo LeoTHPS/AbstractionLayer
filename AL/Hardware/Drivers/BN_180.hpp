@@ -15,9 +15,18 @@ namespace AL::Hardware::Drivers
 		UARTDevice device;
 
 	public:
-		BN_180(BN_180&& bn180);
+		BN_180(BN_180&& bn180)
+			: isOpen(
+				bn180.isOpen
+			),
+			device(
+				Move(bn180.device)
+			)
+		{
+			bn180.isOpen = False;
+		}
 
-		explicit BN_180(String&& path)
+		explicit BN_180(FileSystem::Path&& path)
 			: device(
 				Move(path),
 				UARTDeviceSpeeds::Baud_9600,
@@ -25,9 +34,9 @@ namespace AL::Hardware::Drivers
 			)
 		{
 		}
-		explicit BN_180(const String& path)
+		explicit BN_180(const FileSystem::Path& path)
 			: BN_180(
-				String(path)
+				FileSystem::Path(path)
 			)
 		{
 		}

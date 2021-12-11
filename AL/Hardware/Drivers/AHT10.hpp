@@ -71,7 +71,7 @@ namespace AL::Hardware::Drivers
 		{
 		}
 
-		AHT10(String&& path, I2CAddress address = DEVICE_ADDRESS)
+		AHT10(FileSystem::Path&& path, I2CAddress address = DEVICE_ADDRESS)
 			: isBusAllocated(
 				True
 			),
@@ -86,9 +86,9 @@ namespace AL::Hardware::Drivers
 			)
 		{
 		}
-		AHT10(const String& path, I2CAddress address = DEVICE_ADDRESS)
+		AHT10(const FileSystem::Path& path, I2CAddress address = DEVICE_ADDRESS)
 			: AHT10(
-				String(path),
+				FileSystem::Path(path),
 				address
 			)
 		{

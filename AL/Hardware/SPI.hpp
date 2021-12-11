@@ -1,9 +1,11 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#include "AL/OS/SystemException.hpp"
+#include "AL/FileSystem/Path.hpp"
 
 #include "AL/Collections/Array.hpp"
+
+#include "AL/OS/SystemException.hpp"
 
 #if defined(AL_PLATFORM_LINUX)
 	#include <fcntl.h>
@@ -45,10 +47,10 @@ namespace AL::Hardware
 	#endif
 #endif
 
-		String   path;
-		SPIModes mode;
-		SPISpeed speed;
-		size_t   bitCount;
+		FileSystem::Path path;
+		SPIModes         mode;
+		SPISpeed         speed;
+		size_t           bitCount;
 
 	public:
 		SPIDevice(SPIDevice&& device)
@@ -81,7 +83,7 @@ namespace AL::Hardware
 			device.isOpen = false;
 		}
 
-		SPIDevice(String&& path, SPIModes mode, SPISpeed speed, size_t bitCount)
+		SPIDevice(FileSystem::Path&& path, SPIModes mode, SPISpeed speed, size_t bitCount)
 			: path(
 				Move(path)
 			),
@@ -96,9 +98,9 @@ namespace AL::Hardware
 			)
 		{
 		}
-		SPIDevice(const String& path, SPIModes mode, SPISpeed speed, size_t bitCount)
+		SPIDevice(const FileSystem::Path& path, SPIModes mode, SPISpeed speed, size_t bitCount)
 			: SPIDevice(
-				String(path),
+				FileSystem::Path(path),
 				mode,
 				speed,
 				bitCount
@@ -155,7 +157,7 @@ namespace AL::Hardware
 
 #if defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_SPIDEV)
-			if ((fd = ::open(GetPath().GetCString(), O_RDWR)) == -1)
+			if ((fd = ::open(GetPath().GetString().GetCString(), O_RDWR)) == -1)
 			{
 
 				throw OS::SystemException(

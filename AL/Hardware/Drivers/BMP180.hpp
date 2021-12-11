@@ -123,7 +123,7 @@ namespace AL::Hardware::Drivers
 			);
 		}
 
-		BMP180(String&& path, I2CAddress address = DEVICE_ADDRESS)
+		BMP180(FileSystem::Path&& path, I2CAddress address = DEVICE_ADDRESS)
 			: isBusAllocated(
 				True
 			),
@@ -141,9 +141,9 @@ namespace AL::Hardware::Drivers
 				1013.25
 			);
 		}
-		BMP180(const String& path, I2CAddress address = DEVICE_ADDRESS)
+		BMP180(const FileSystem::Path& path, I2CAddress address = DEVICE_ADDRESS)
 			: BMP180(
-				String(path),
+				FileSystem::Path(path),
 				address
 			)
 		{

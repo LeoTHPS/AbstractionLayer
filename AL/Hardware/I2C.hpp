@@ -1,6 +1,8 @@
 #pragma once
 #include "AL/Common.hpp"
 
+#include "AL/FileSystem/Path.hpp"
+
 #include "AL/Collections/Array.hpp"
 
 #include "AL/OS/SystemException.hpp"
@@ -122,7 +124,7 @@ namespace AL::Hardware
 	#endif
 #endif
 
-		String path;
+		FileSystem::Path path;
 
 		I2CBus(const I2CBus&) = delete;
 
@@ -145,15 +147,15 @@ namespace AL::Hardware
 			bus.isOpen = False;
 		}
 
-		explicit I2CBus(String&& path)
+		explicit I2CBus(FileSystem::Path&& path)
 			: path(
 				Move(path)
 			)
 		{
 		}
-		explicit I2CBus(const String& path)
+		explicit I2CBus(const FileSystem::Path& path)
 			: I2CBus(
-				String(path)
+				FileSystem::Path(path)
 			)
 		{
 		}
@@ -187,7 +189,7 @@ namespace AL::Hardware
 
 #if defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
-			if ((fd = ::open(GetPath().GetCString(), O_RDWR)) == -1)
+			if ((fd = ::open(GetPath().GetString().GetCString(), O_RDWR)) == -1)
 			{
 
 				throw OS::SystemException(

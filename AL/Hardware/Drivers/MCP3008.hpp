@@ -34,7 +34,7 @@ namespace AL::Hardware::Drivers
 			mcp3008.isOpen = False;
 		}
 
-		MCP3008(String&& path, SPISpeed speed = DEFAULT_SPEED)
+		MCP3008(FileSystem::Path&& path, SPISpeed speed = DEFAULT_SPEED)
 			: device(
 				Move(path),
 				SPIModes::Zero,
@@ -43,9 +43,9 @@ namespace AL::Hardware::Drivers
 			)
 		{
 		}
-		MCP3008(const String& path, SPISpeed speed = DEFAULT_SPEED)
+		MCP3008(const FileSystem::Path& path, SPISpeed speed = DEFAULT_SPEED)
 			: MCP3008(
-				String(path),
+				FileSystem::Path(path),
 				speed
 			)
 		{
