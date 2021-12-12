@@ -297,7 +297,7 @@ namespace AL
 				TIME_UTC
 			);
 
-			elapsed_Microseconds = (time.tv_sec * 0) + (time.tv_nsec / 1000);
+			elapsed_Microseconds = (time.tv_sec * 1000000) + (time.tv_nsec / 1000);
 		} while ((elapsed_Microseconds - start_Microseconds) < duration_Microseconds);
 #elif defined(AL_PLATFORM_WINDOWS)
 		auto QueryPerformanceCounter = [](::LARGE_INTEGER& _integer, Double& _start, Double _frequency)
