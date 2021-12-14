@@ -52,6 +52,7 @@ AL::Hardware
 
 AL::Hardware::Drivers
 * [AL/Hardware/Drivers/AHT10.hpp](AL/Hardware/Drivers/AHT10.hpp)
+* [AL/Hardware/Drivers/AT24C256.hpp](AL/Hardware/Drivers/AT24C256.hpp)
 * [AL/Hardware/Drivers/BMP180.hpp](AL/Hardware/Drivers/BMP180.hpp)
 * [AL/Hardware/Drivers/BN_180.hpp](AL/Hardware/Drivers/BN_180.hpp)
 * [AL/Hardware/Drivers/MCP3008.hpp](AL/Hardware/Drivers/MCP3008.hpp)

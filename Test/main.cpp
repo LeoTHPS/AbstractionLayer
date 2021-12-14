@@ -19,6 +19,7 @@
 
 #include "FileSystem/File.hpp"
 
+#include "Hardware/Drivers/AT24C256.hpp"
 #include "Hardware/Drivers/RTL_SDR.hpp"
 
 #include "HTML/Document.hpp"
@@ -109,7 +110,7 @@ void main_display_build_information()
 
 void main_display_system_information()
 {
-AL::OS::Console::WriteLine(
+	AL::OS::Console::WriteLine(
 		"OS: %s",
 #if defined(AL_PLATFORM_LINUX)
 		"Linux"
@@ -215,6 +216,7 @@ void main_execute_tests(AL::uint32& testCount, AL::uint32& testFailCount)
 
 	AL_TEST_EXECUTE(AL_FileSystem_File);
 
+	AL_TEST_EXECUTE(AL_Hardware_Drivers_AT24C256);
 	AL_TEST_EXECUTE(AL_Hardware_Drivers_RTL_SDR);
 
 	AL_TEST_EXECUTE(AL_HTML_Document);
@@ -255,6 +257,10 @@ int main(int argc, char* argv[])
 		testCount,
 		timer.GetElapsed().ToMilliseconds()
 	);
+
+	// AL::OS::Console::WriteLine();
+	// AL::OS::Console::Write("Press any key to exit");
+	// AL::String::Char c; AL::OS::Console::Read(c);
 
 	return 0;
 }

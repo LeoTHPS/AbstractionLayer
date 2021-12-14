@@ -11,10 +11,6 @@ CXXFLAGS     += -Wall -Wfatal-errors -g -std=c++2a -I. -I"$(AL_INCLUDE)"
 #CXXFLAGS     += -Wno-unused-function -Wno-unused-variable -Wno-unused-lambda-capture -Wno-unused-private-field
 #CXXFLAGS     += -Wno-format-security
 
-# Dependencies
-## Linux:   libpthread-stubs0-dev libusb-1.0-0-dev libi2c-dev libgpiod-dev/wiringpi liblua5.4-dev
-## Windows: 
-
 ifdef COMPILER
 	ifeq ($(COMPILER), GNU)
 		CXX = g++
