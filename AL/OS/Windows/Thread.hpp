@@ -10,6 +10,8 @@
 
 namespace AL::OS::Windows
 {
+	typedef uint32 ThreadId;
+
 	class Thread
 	{
 		class INativeThread
@@ -413,7 +415,7 @@ namespace AL::OS::Windows
 		}
 	};
 
-	inline uint32 GetCurrentThreadId()
+	inline ThreadId GetCurrentThreadId()
 	{
 		return static_cast<uint32>(
 			::GetCurrentThreadId()

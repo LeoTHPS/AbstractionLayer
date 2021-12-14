@@ -9,6 +9,12 @@
 
 namespace AL::OS
 {
+#if defined(AL_PLATFORM_LINUX)
+	typedef Linux::ThreadId ThreadId;
+#elif defined(AL_PLATFORM_WINDOWS)
+	typedef Windows::ThreadId ThreadId;
+#endif
+
 	class Thread
 	{
 #if defined(AL_PLATFORM_LINUX)
@@ -198,7 +204,7 @@ namespace AL::OS
 		}
 	};
 
-	inline uint32 GetCurrentThreadId()
+	inline ThreadId GetCurrentThreadId()
 	{
 #if defined(AL_PLATFORM_LINUX)
 		return Linux::GetCurrentThreadId();

@@ -23,6 +23,8 @@
 
 namespace AL::OS::Linux
 {
+	typedef uint32 ThreadId;
+
 	class Thread
 	{
 		class INativeThread
@@ -464,7 +466,7 @@ namespace AL::OS::Linux
 		}
 	};
 
-	inline uint32 GetCurrentThreadId()
+	inline ThreadId GetCurrentThreadId()
 	{
 #if defined(AL_DEPENDENCY_PTHREAD)
 		return static_cast<uint32>(
