@@ -12,19 +12,20 @@ namespace AL::Hardware::Drivers
 	class AT24C256
 		: public IDriver<Void, Void, Void>
 	{
-		Bool      isOpen = False;
-		Bool      isBusAllocated = False;
+		Bool                            isOpen = False;
+		Bool                            isBusAllocated = False;
 
-		I2CBus*   lpBus;
-		I2CDevice device;
+		I2CBus*                         lpBus;
+		I2CDevice                       device;
+		Collections::Array<uint8[0x42]> ioBuffer; // sizeof(Address) + PAGE_SIZE
 
 	public:
-		static constexpr uint16  PAGE_SIZE       = 0x40;
+		typedef uint16 Address;
 
-		inline static I2CAddress DEVICE_ADDRESS  = 0x50;
+		static constexpr size_t  PAGE_SIZE      = 0x40;
+		static constexpr size_t  PAGE_COUNT     = 0x200;
 
-		static constexpr uint16  ADDRESS_MINIMUM = 0x0000;
-		static constexpr uint16  ADDRESS_MAXIMUM = 0x8000;
+		inline static I2CAddress DEVICE_ADDRESS = 0x50;
 
 		AT24C256(AT24C256&& at24c256)
 			: isOpen(
@@ -144,61 +145,54 @@ namespace AL::Hardware::Drivers
 		}
 
 		// @throw AL::Exception
-		Void Clear()
+		Bool Clear()
 		{
 			AL_ASSERT(
 				IsOpen(),
 				"AT24C256 not open"
 			);
 
-			Clear(
-				ADDRESS_MINIMUM,
-				ADDRESS_MAXIMUM - ADDRESS_MINIMUM
-			);
-		}
-		// @throw AL::Exception
-		Void Clear(uint16 address, size_t count)
-		{
-			for (size_t totalBytesCleared = 0; totalBytesCleared < count; )
-			{
-				auto numberOfBytesCleared = ClearPage(
-					address,
-					count - totalBytesCleared
-				);
-
-				Spin(
-					TimeSpan::FromMilliseconds(10)
-				);
-
-				address           += numberOfBytesCleared;
-				totalBytesCleared += numberOfBytesCleared;
-			}
-		}
-
-		// @throw AL::Exception
-		template<typename T>
-		Bool Read(uint16 address, T& value)
-		{
-			AL_ASSERT(
-				IsOpen(),
-				"AT24C256 not open"
-			);
-
-			if (GetNumberOfBytesRemainingAtAddress(address) < sizeof(T))
+			if (!Clear(0x0000, PAGE_COUNT * PAGE_SIZE))
 			{
 
 				return False;
 			}
 
-			for (size_t totalBytesRead = 0; totalBytesRead < sizeof(T); )
+			return True;
+		}
+		// @throw AL::Exception
+		Bool Clear(Address address, size_t count)
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"AT24C256 not open"
+			);
+
+			if ((address + count) > (PAGE_COUNT * PAGE_SIZE))
 			{
-				auto numberOfBytesRead = ReadPage(
-					address + totalBytesRead,
-					&reinterpret_cast<uint8*>(&value)[totalBytesRead],
-					sizeof(T) - totalBytesRead
+
+				return False;
+			}
+
+			memset(
+				&ioBuffer[2],
+				0,
+				PAGE_SIZE
+			);
+
+			for (size_t i = 0; i < count; i += PAGE_SIZE, address += PAGE_SIZE)
+			{
+				ioBuffer[0] = static_cast<uint8>(address >> 8);
+				ioBuffer[1] = static_cast<uint8>(address & 0x00FF);
+
+				device.Write(
+					&ioBuffer[0],
+					sizeof(Address) + ((count - i) > PAGE_SIZE) ? PAGE_SIZE : (count - i)
 				);
 
-				totalBytesRead += numberOfBytesRead;
+				Spin( // TODO: replace with polling
+					TimeSpan::FromMilliseconds(10)
+				);
 			}
 
 			return True;
@@ -206,32 +200,114 @@ namespace AL::Hardware::Drivers
 
 		// @throw AL::Exception
 		template<typename T>
-		Bool Write(uint16 address, const T& value)
+		Bool Read(Address address, T& value)
 		{
 			AL_ASSERT(
 				IsOpen(),
 				"AT24C256 not open"
 			);
 
-			if (GetNumberOfBytesRemainingAtAddress(address) < sizeof(T))
+			if (!Read(address, &value, sizeof(T)))
 			{
 
 				return False;
 			}
 
-			for (size_t totalBytesWritten = 0; totalBytesWritten < sizeof(T); )
+			return True;
+		}
+		// @throw AL::Exception
+		Bool Read(Address address, Void* lpBuffer, size_t size)
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"AT24C256 not open"
+			);
+
+			if ((address + size) > (PAGE_COUNT * PAGE_SIZE))
 			{
-				auto numberOfBytesWritten = WritePage(
-					address + totalBytesWritten,
-					&reinterpret_cast<const uint8*>(&value)[totalBytesWritten],
-					sizeof(T) - totalBytesWritten
+
+				return False;
+			}
+
+			auto lpByteBuffer = reinterpret_cast<uint8*>(
+				lpBuffer
+			);
+
+			for (size_t i = 0; i < size; i += PAGE_SIZE, address += PAGE_SIZE, lpByteBuffer += PAGE_SIZE)
+			{
+				// Address
+				{
+					uint8 buffer[] =
+					{
+						static_cast<uint8>(address >> 8),
+						static_cast<uint8>(address & 0x00FF)
+					};
+
+					device.Write(
+						buffer
+					);
+				}
+
+				device.Read(
+					lpByteBuffer,
+					((size - i) > PAGE_SIZE) ? PAGE_SIZE : (size - i)
+				);
+			}
+
+			return True;
+		}
+
+		// @throw AL::Exception
+		template<typename T>
+		Bool Write(Address address, const T& value)
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"AT24C256 not open"
+			);
+
+			if (!Write(address, &value, sizeof(T)))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		// @throw AL::Exception
+		Bool Write(Address address, const Void* lpBuffer, size_t size)
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"AT24C256 not open"
+			);
+
+			if ((address + size) > (PAGE_COUNT * PAGE_SIZE))
+			{
+
+				return False;
+			}
+
+			auto lpByteBuffer = reinterpret_cast<const uint8*>(
+				lpBuffer
+			);
+
+			for (size_t i = 0; i < size; i += PAGE_SIZE, address += PAGE_SIZE, lpByteBuffer += PAGE_SIZE)
+			{
+				auto byteBufferChunkSize = ((size - i) > PAGE_SIZE) ? PAGE_SIZE : (size - i);
+
+				ioBuffer[0] = static_cast<uint8>(address >> 8);
+				ioBuffer[1] = static_cast<uint8>(address & 0x00FF);
+				memcpy(&ioBuffer[2], lpByteBuffer, byteBufferChunkSize);
+
+				device.Write(
+					&ioBuffer[0],
+					sizeof(Address) + byteBufferChunkSize
 				);
 
-				Spin(
+				Spin( // TODO: replace with polling
 					TimeSpan::FromMilliseconds(10)
 				);
-
-				totalBytesWritten += numberOfBytesWritten;
 			}
 
 			return True;
@@ -275,101 +351,6 @@ namespace AL::Hardware::Drivers
 			}
 
 			return True;
-		}
-
-	private:
-		// @throw AL::Exception
-		// @return number of bytes cleared
-		size_t ClearPage(uint16 address, size_t count)
-		{
-			if (count > PAGE_SIZE)
-			{
-
-				count = PAGE_SIZE;
-			}
-
-			Collections::Array<uint8> buffer(
-				2 + count
-			);
-
-			memset(&buffer[2], 0, PAGE_SIZE);
-			buffer[0] = static_cast<uint8>(address >> 8);
-			buffer[1] = static_cast<uint8>(address & 0x00FF);
-
-			device.Write(
-				&buffer[0],
-				buffer.GetCapacity()
-			);
-
-			return count;
-		}
-
-		// @throw AL::Exception
-		// @return number of bytes read
-		size_t ReadPage(uint16 address, uint8* lpValues, size_t count)
-		{
-			if (count > PAGE_SIZE)
-			{
-
-				count = PAGE_SIZE;
-			}
-
-			// Address
-			{
-				uint8 buffer[] =
-				{
-					static_cast<uint8>(address >> 8),
-					static_cast<uint8>(address & 0x00FF)
-				};
-
-				device.Write(
-					buffer
-				);
-			}
-
-			device.Read(
-				lpValues,
-				count
-			);
-
-			return count;
-		}
-
-		// @throw AL::Exception
-		// @return number of bytes written
-		size_t WritePage(uint16 address, const uint8* lpValues, size_t count)
-		{
-			if (count > PAGE_SIZE)
-			{
-
-				count = PAGE_SIZE;
-			}
-
-			Collections::Array<uint8> buffer(
-				sizeof(uint16) + count
-			);
-
-			memcpy(&buffer[2], lpValues, count);
-			buffer[0] = static_cast<uint8>(address >> 8);
-			buffer[1] = static_cast<uint8>(address & 0x00FF);
-
-			device.Write(
-				&buffer[0],
-				buffer.GetCapacity()
-			);
-
-			return count;
-		}
-
-		static size_t GetNumberOfBytesRemainingAtAddress(uint16 address)
-		{
-			if (address >= ADDRESS_MAXIMUM)
-			{
-
-				return 0;
-			}
-
-			return ADDRESS_MAXIMUM - address;
 		}
 	};
 }
