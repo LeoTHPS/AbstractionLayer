@@ -8,6 +8,7 @@
 
 #include <AL/Hardware/Drivers/AT24C256.hpp>
 
+// @throw AL::Exception
 static void AL_Hardware_Drivers_AT24C256()
 {
 	using namespace AL;

@@ -5,6 +5,7 @@
 
 #include <AL/Hardware/Drivers/RTL_SDR.hpp>
 
+// @throw AL::Exception
 static void AL_Hardware_Drivers_RTL_SDR()
 {
 	using namespace AL;

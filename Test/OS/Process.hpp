@@ -4,6 +4,7 @@
 #include <AL/OS/Console.hpp>
 #include <AL/OS/Process.hpp>
 
+// @throw AL::Exception
 static void AL_OS_Process()
 {
 	using namespace AL;

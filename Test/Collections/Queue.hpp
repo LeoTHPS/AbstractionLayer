@@ -5,6 +5,7 @@
 
 #include <AL/Collections/Queue.hpp>
 
+// @throw AL::Exception
 static void AL_Collections_Queue()
 {
 	using namespace AL;

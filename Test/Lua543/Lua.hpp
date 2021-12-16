@@ -29,6 +29,7 @@ static void AL_Lua543_do_the_thing()
 	);
 }
 
+// @throw AL::Exception
 static void AL_Lua543()
 {
 	using namespace AL;

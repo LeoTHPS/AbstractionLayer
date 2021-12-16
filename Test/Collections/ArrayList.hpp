@@ -5,6 +5,7 @@
 
 #include <AL/Collections/ArrayList.hpp>
 
+// @throw AL::Exception
 static void AL_Collections_ArrayList()
 {
 	using namespace AL;

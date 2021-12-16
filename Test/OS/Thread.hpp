@@ -4,6 +4,7 @@
 #include <AL/OS/Thread.hpp>
 #include <AL/OS/Console.hpp>
 
+// @throw AL::Exception
 static void AL_OS_Thread()
 {
 	using namespace AL;

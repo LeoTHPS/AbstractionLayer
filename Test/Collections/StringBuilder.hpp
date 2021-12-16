@@ -7,6 +7,7 @@
 
 #include <AL/Collections/StringBuilder.hpp>
 
+// @throw AL::Exception
 static void AL_Collections_StringBuilder()
 {
 	using namespace AL;

@@ -5,6 +5,7 @@
 
 #include <AL/Collections/Array.hpp>
 
+// @throw AL::Exception
 static void AL_Collections_Array()
 {
 	using namespace AL;

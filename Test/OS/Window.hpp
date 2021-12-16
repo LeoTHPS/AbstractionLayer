@@ -5,6 +5,7 @@
 #include <AL/OS/Window.hpp>
 #include <AL/OS/Console.hpp>
 
+// @throw AL::Exception
 static void AL_OS_Window()
 {
 	using namespace AL;

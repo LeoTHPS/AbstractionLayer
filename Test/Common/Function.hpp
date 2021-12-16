@@ -3,6 +3,7 @@
 
 #include <AL/OS/Console.hpp>
 
+// @throw AL::Exception
 static void AL_Function()
 {
 	using namespace AL;

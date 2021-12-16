@@ -5,6 +5,7 @@
 
 #include <AL/FileSystem/File.hpp>
 
+// @throw AL::Exception
 static void AL_FileSystem_File()
 {
 	using namespace AL;

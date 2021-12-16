@@ -5,6 +5,7 @@
 
 #include <AL/HTML/Document.hpp>
 
+// @throw AL::Exception
 static void AL_HTML_Document()
 {
 	using namespace AL;
