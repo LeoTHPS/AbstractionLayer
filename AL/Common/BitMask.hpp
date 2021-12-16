@@ -100,17 +100,6 @@ namespace AL
 			);
 		}
 
-		Bool operator [] (Type value) const
-		{
-			if (!IsSet(value))
-			{
-
-				return False;
-			}
-
-			return True;
-		}
-
 		BitMask& operator = (Type value)
 		{
 			Value = value;
