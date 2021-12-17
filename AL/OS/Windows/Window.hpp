@@ -47,27 +47,75 @@ namespace AL::OS::Windows
 
 	class WindowIcon
 	{
-		WindowIcons icon;
-		::HICON     handle;
+		WindowIcons type;
+		::HICON     hIcon;
+		::HINSTANCE hInstance;
 
 	public:
-		WindowIcon(::HICON value)
-			: icon(
-				WindowIcons::UserDefined
+		typedef ::HICON     Handle;
+		typedef ::HINSTANCE HInstance;
+
+		// @throw AL::Exception
+		static WindowIcon Load(uint32 id)
+		{
+			::HICON hIcon;
+
+			if ((hIcon = ::LoadIconA(NULL, MAKEINTRESOURCEA(id))) == NULL)
+			{
+
+				throw SystemException(
+					"LoadIconA"
+				);
+			}
+
+			return WindowIcon(
+				NULL,
+				hIcon
+			);
+		}
+		// @throw AL::Exception
+		static WindowIcon Load(HInstance hInstance, uint32 id)
+		{
+			::HICON hIcon;
+
+			if ((hIcon = ::LoadIconA(hInstance, MAKEINTRESOURCEA(id))) == NULL)
+			{
+
+				throw SystemException(
+					"LoadIconA"
+				);
+			}
+
+			return WindowIcon(
+				hInstance,
+				hIcon
+			);
+		}
+
+		WindowIcon(WindowIcons icon)
+			: type(
+				icon
 			),
-			handle(
-				value
+			hIcon(
+				LoadNativeIcon(
+					icon
+				)
+			),
+			hInstance(
+				NULL
 			)
 		{
 		}
-		WindowIcon(WindowIcons value)
-			: icon(
-				value
+
+		WindowIcon(HInstance hInstance, Handle handle)
+			: type(
+				WindowIcons::UserDefined
 			),
-			handle(
-				LoadNativeIcon(
-					value
-				)
+			hIcon(
+				handle
+			),
+			hInstance(
+				hInstance
 			)
 		{
 		}
@@ -78,16 +126,21 @@ namespace AL::OS::Windows
 
 		auto GetType() const
 		{
-			return icon;
+			return type;
 		}
 
 		auto GetHandle() const
 		{
-			return handle;
+			return hIcon;
+		}
+
+		auto GetInstance() const
+		{
+			return hInstance;
 		}
 
 	private:
-		static ::HICON LoadNativeIcon(WindowIcons icon)
+		static Handle LoadNativeIcon(WindowIcons icon)
 		{
 			switch (icon)
 			{
@@ -134,27 +187,75 @@ namespace AL::OS::Windows
 
 	class WindowCursor
 	{
-		WindowCursors cursor;
-		::HCURSOR     handle;
+		WindowCursors type;
+		::HCURSOR     hCursor;
+		::HINSTANCE   hInstance;
 
 	public:
-		WindowCursor(::HCURSOR value)
-			: cursor(
-				WindowCursors::UserDefined
+		typedef ::HCURSOR   Handle;
+		typedef ::HINSTANCE HInstance;
+
+		// @throw AL::Exception
+		static WindowCursor Load(uint32 id)
+		{
+			::HCURSOR hIcon;
+
+			if ((hIcon = ::LoadCursorA(NULL, MAKEINTRESOURCEA(id))) == NULL)
+			{
+
+				throw SystemException(
+					"LoadCursorA"
+				);
+			}
+
+			return WindowCursor(
+				NULL,
+				hIcon
+			);
+		}
+		// @throw AL::Exception
+		static WindowCursor Load(HInstance hInstance, uint32 id)
+		{
+			::HCURSOR hIcon;
+
+			if ((hIcon = ::LoadCursorA(hInstance, MAKEINTRESOURCEA(id))) == NULL)
+			{
+
+				throw SystemException(
+					"LoadCursorA"
+				);
+			}
+
+			return WindowCursor(
+				hInstance,
+				hIcon
+			);
+		}
+
+		WindowCursor(WindowCursors cursor)
+			: type(
+				cursor
 			),
-			handle(
-				value
+			hCursor(
+				LoadNativeCursor(
+					cursor
+				)
+			),
+			hInstance(
+				NULL
 			)
 		{
 		}
-		WindowCursor(WindowCursors value)
-			: cursor(
+
+		WindowCursor(HInstance hInstance, Handle value)
+			: type(
+				WindowCursors::UserDefined
+			),
+			hCursor(
 				value
 			),
-			handle(
-				LoadNativeCursor(
-					value
-				)
+			hInstance(
+				hInstance
 			)
 		{
 		}
@@ -163,18 +264,23 @@ namespace AL::OS::Windows
 		{
 		}
 
-		auto GetHandle() const
+		auto GetType() const
 		{
-			return handle;
+			return type;
 		}
 
-		operator WindowCursors() const
+		auto GetHandle() const
 		{
-			return cursor;
+			return hCursor;
+		}
+
+		auto GetInstance() const
+		{
+			return hInstance;
 		}
 
 	private:
-		static ::HCURSOR LoadNativeCursor(WindowCursors cursor)
+		static Handle LoadNativeCursor(WindowCursors cursor)
 		{
 			switch (cursor)
 			{
@@ -723,13 +829,20 @@ namespace AL::OS::Windows
 		{
 		}
 		Window(String&& name, String&& title, ::HINSTANCE hInstance)
-			: windowClass{
-				0
-			},
-			windowIcon{
-				.Big   = WindowIcons::Default,
-				.Small = WindowIcons::Default
-			},
+			: windowClass(
+				{
+					.cbSize = sizeof(::WNDCLASSEXA),
+					.style         = CS_HREDRAW | CS_VREDRAW,
+					.lpfnWndProc   = &Window::WindowProc,
+					.hInstance     = hInstance
+				}
+			),
+			windowIcon(
+				{
+					.Big   = WindowIcons::Default,
+					.Small = WindowIcons::Default
+				}
+			),
 			windowName(
 				Move(name)
 			),
@@ -750,13 +863,9 @@ namespace AL::OS::Windows
 				*this
 			)
 		{
-			windowClass.cbSize        = sizeof(::WNDCLASSEXA);
-			windowClass.style         = CS_HREDRAW | CS_VREDRAW;
 			windowClass.hIcon         = windowIcon.Big.GetHandle();
 			windowClass.hIconSm       = windowIcon.Small.GetHandle();
 			windowClass.hCursor       = windowCursor.GetHandle();
-			windowClass.hInstance     = hInstance;
-			windowClass.lpfnWndProc   = &Window::WindowProc;
 			windowClass.lpszClassName = windowName.GetCString();
 		}
 
@@ -849,17 +958,17 @@ namespace AL::OS::Windows
 			return windowTitle;
 		}
 
-		auto GetIconBig() const
+		auto& GetIconBig() const
 		{
 			return windowIcon.Big;
 		}
 
-		auto GetIconSmall() const
+		auto& GetIconSmall() const
 		{
 			return windowIcon.Small;
 		}
 
-		auto GetCursor() const
+		auto& GetCursor() const
 		{
 			return windowCursor;
 		}
@@ -920,17 +1029,13 @@ namespace AL::OS::Windows
 		// @throw AL::Exception
 		Bool SetIcon(WindowIcon&& value, WindowIconTypes type)
 		{
-			*((type == WindowIconTypes::Big) ? &windowIcon.Big : &windowIcon.Small) = Move(
-				value
-			);
-
 			if (IsCreated() || isCreating)
 			{
 				PostMessage(
 					WM_SETICON,
 					(type == WindowIconTypes::Big) ? ICON_BIG : ICON_SMALL,
 					reinterpret_cast<::LPARAM>(
-						(type == WindowIconTypes::Big) ? GetIconBig().GetHandle() : GetIconSmall().GetHandle()
+						value.GetHandle()
 					)
 				);
 			}
@@ -942,13 +1047,20 @@ namespace AL::OS::Windows
 					return False;
 				}
 
-				windowClass.hIcon   = value.GetHandle();
-				windowClass.hIconSm = value.GetHandle();
+				switch (type)
+				{
+					case WindowIconTypes::Big:
+						windowIcon.Big = Move(value);
+						windowClass.hIcon = GetIconBig().GetHandle();
+						OnIconChanged(GetIconBig(), WindowIconTypes::Big);
+						break;
 
-				OnIconChanged(
-					value,
-					type
-				);
+					case WindowIconTypes::Small:
+						windowIcon.Small = Move(value);
+						windowClass.hIconSm = GetIconSmall().GetHandle();
+						OnIconChanged(GetIconSmall(), WindowIconTypes::Small);
+						break;
+				}
 			}
 
 			return True;
@@ -1026,34 +1138,27 @@ namespace AL::OS::Windows
 		// @throw AL::Exception
 		Bool SetCursor(WindowCursor&& value)
 		{
-			windowCursor = Move(
-				value
-			);
+			if (!OnCursorChanging(value))
+			{
+
+				return False;
+			}
 
 			if (IsCreated() || isCreating)
 			{
 				auto hPreviousCursor = windowClass.hCursor;
 
-				if (::SetCursor(GetCursor().GetHandle()) != hPreviousCursor)
+				if (::SetCursor(value.GetHandle()) != hPreviousCursor)
 				{
-
-					return False;
 				}
 			}
-			else
-			{
-				if (!OnCursorChanging(value))
-				{
 
-					return False;
-				}
+			windowCursor        = Move(value);
+			windowClass.hCursor = GetCursor().GetHandle();
 
-				windowClass.hCursor = GetCursor().GetHandle();
-
-				OnCursorChanged(
-					GetCursor()
-				);
-			}
+			OnCursorChanged(
+				GetCursor()
+			);
 
 			return True;
 		}
@@ -1664,24 +1769,6 @@ namespace AL::OS::Windows
 
 			try
 			{
-				SetIcon(
-					windowClass.hIcon,
-					WindowIconTypes::Big
-				);
-
-				SetIcon(
-					windowClass.hIconSm,
-					WindowIconTypes::Small
-				);
-
-				SetCursor(
-					GetCursor()
-				);
-
-				SetTitle(
-					GetTitle()
-				);
-
 				SetResolution(
 					GetResolution().Width,
 					GetResolution().Height
@@ -2532,6 +2619,7 @@ namespace AL::OS::Windows
 					);
 
 					WindowIcon icon(
+						windowClass.hInstance,
 						hIcon
 					);
 
@@ -2545,7 +2633,7 @@ namespace AL::OS::Windows
 						return 0;
 					}
 
-					*((wParam == ICON_BIG) ? &windowIcon.Big    : &windowIcon.Small)    = hIcon;
+					*((wParam == ICON_BIG) ? &windowIcon.Big    : &windowIcon.Small)    = icon;
 					*((wParam == ICON_BIG) ? &windowClass.hIcon : &windowClass.hIconSm) = hIcon;
 
 					OnIconChanged(
