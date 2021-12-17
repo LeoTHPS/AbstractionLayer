@@ -92,7 +92,7 @@ namespace AL
 
 			if (::std::regex_search(buffer.GetCString(), matches, regex))
 			{
-				match.SetSize(
+				match.SetCapacity(
 					matches.size()
 				);
 
