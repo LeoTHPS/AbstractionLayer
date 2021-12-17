@@ -718,7 +718,7 @@ namespace AL::Collections
 		Array& operator = (const Array& array)
 		{
 			Assign(
-				array.lpValues,
+				array.lpValues + 1,
 				array.capacity
 			);
 
