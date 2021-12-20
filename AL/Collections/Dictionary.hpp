@@ -133,7 +133,7 @@ namespace AL::Collections
 					it->Value = Move(
 						value
 					);
-					
+
 					return;
 				}
 
@@ -276,6 +276,8 @@ namespace AL::Collections
 
 				if (it->Key > key)
 				{
+					// TODO: debug
+
 					it = container.Insert(
 						it,
 						KeyValuePair<Key, Value>
@@ -289,62 +291,25 @@ namespace AL::Collections
 				}
 			}
 
-			if (it == end())
+			if (it == container.end())
 			{
-				container.PushBack(
+				it = container.Insert(
+					container.end(),
 					KeyValuePair<Key, Value>
 					{
 						Move(key),
 						Value()
 					}
 				);
-
-				it = --container.end();
 			}
 
 			return it->Value;
 		}
 		Value&       operator [] (const Key& key)
 		{
-			Iterator it;
-
-			for (it = container.begin(); it != container.end(); ++it)
-			{
-				if (it->Key == key)
-				{
-
-					break;
-				}
-
-				if (it->Key > key)
-				{
-					it = container.Insert(
-						it,
-						KeyValuePair<Key, Value>
-						{
-							key,
-							Value()
-						}
-					);
-
-					break;
-				}
-			}
-
-			if (it == end())
-			{
-				container.PushBack(
-					KeyValuePair<Key, Value>
-					{
-						key,
-						Value()
-					}
-				);
-
-				it = --container.end();
-			}
-
-			return it->Value;
+			return operator[](
+				Key(key)
+			);
 		}
 		const Value& operator [] (const Key& key) const
 		{
