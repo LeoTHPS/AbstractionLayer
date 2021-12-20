@@ -26,6 +26,8 @@
 
 #include "Lua543/Lua.hpp"
 
+#include "Network/HTTP/Request.hpp"
+
 #include "OS/Process.hpp"
 #include "OS/Thread.hpp"
 #include "OS/ThreadPool.hpp"
@@ -201,6 +203,7 @@ void main_display_process_information()
 #endif
 }
 
+// @throw AL::Exception
 void main_execute_tests(AL::uint32& testCount, AL::uint32& testFailCount)
 {
 	AL_TEST_EXECUTE(AL_Collections_Array);
@@ -222,6 +225,8 @@ void main_execute_tests(AL::uint32& testCount, AL::uint32& testFailCount)
 	AL_TEST_EXECUTE(AL_HTML_Document);
 
 	AL_TEST_EXECUTE(AL_Lua543);
+
+	AL_TEST_EXECUTE(AL_Network_HTTP_Request);
 
 	AL_TEST_EXECUTE(AL_OS_Process);
 	AL_TEST_EXECUTE(AL_OS_Thread);

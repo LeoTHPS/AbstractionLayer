@@ -72,6 +72,9 @@ AL::Network
 * [AL/Network/IPEndPoint.hpp](AL/Network/IPEndPoint.hpp)
 * [AL/Network/Socket.hpp](AL/Network/Socket.hpp)
 
+AL::Network::HTTP
+* [AL/Network/HTTP/Request.hpp](AL/Network/HTTP/Request.hpp) (Partially implemented)
+
 AL::OpenGL
 * [AL/OpenGL/Context.hpp](AL/OpenGL/Context.hpp) (Not implemented)
 
