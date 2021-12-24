@@ -850,7 +850,7 @@ namespace AL::Collections
 		}
 		Array(const Array& array)
 			: Array(
-				array.values,
+				array,
 				typename Make_Index_Sequence<S>::Type {}
 			)
 		{
