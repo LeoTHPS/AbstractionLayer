@@ -402,7 +402,9 @@ namespace AL::Collections
 				lpNode = lpNext;
 			}
 
-			size = 0;
+			size               = 0;
+			lpLast->lpPrevious = lpFirst;
+			lpFirst->lpNext    = lpLast;
 		}
 
 		Void PopBack()
