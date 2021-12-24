@@ -7,10 +7,10 @@ namespace AL::Algorithms
 {
 	class Isaac
 	{
-		uint32 mm[256];
-		uint32 aa = 0;
-		uint32 bb = 0;
-		uint32 cc = 0;
+		Collections::Array<uint32[256]> mm;
+		uint32                          aa = 0;
+		uint32                          bb = 0;
+		uint32                          cc = 0;
 
 	public:
 		typedef Collections::Array<uint32[256]> Seed;
@@ -22,13 +22,46 @@ namespace AL::Algorithms
 		{
 		}
 
+		Isaac(Isaac&& isaac)
+			: mm(
+				Move(isaac.mm)
+			),
+			aa(
+				isaac.aa
+			),
+			bb(
+				isaac.bb
+			),
+			cc(
+				isaac.cc
+			)
+		{
+		}
+		Isaac(const Isaac& isaac)
+			: mm(
+				isaac.mm
+			),
+			aa(
+				isaac.aa
+			),
+			bb(
+				isaac.bb
+			),
+			cc(
+				isaac.cc
+			)
+		{
+		}
+
 		explicit Isaac(uint32 seed)
 			: Isaac(
 				[](uint32 _seed)
 				{
 					Seed __seed;
 
-					srand(_seed);
+					::srand(
+						_seed
+					);
 
 					for (size_t i = 0; i < __seed.GetSize(); i++)
 					{
@@ -168,6 +201,28 @@ namespace AL::Algorithms
 			}
 
 			return min + (Next() % (max - min + 1));
+		}
+
+		Isaac& operator = (Isaac&& isaac)
+		{
+			mm = Move(
+				isaac.mm
+			);
+
+			aa = isaac.aa;
+			bb = isaac.bb;
+			cc = isaac.cc;
+
+			return *this;
+		}
+		Isaac& operator = (const Isaac& isaac)
+		{
+			mm = isaac.mm;
+			aa = isaac.aa;
+			bb = isaac.bb;
+			cc = isaac.cc;
+
+			return *this;
 		}
 	};
 
