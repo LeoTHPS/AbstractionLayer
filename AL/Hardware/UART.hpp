@@ -468,6 +468,71 @@ namespace AL::Hardware
 			}
 		}
 
+		// @throw AL::Exception
+		// @return number of bytes read
+		template<typename T, size_t S = sizeof(T)>
+		size_t TryRead(T& value)
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"UARTDevice not open"
+			);
+
+			auto numberOfBytesRead = TryRead(
+				&value,
+				S
+			);
+
+			return numberOfBytesRead;
+		}
+		// @throw AL::Exception
+		// @return number of bytes read
+		size_t TryRead(Void* lpBuffer, size_t size)
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"UARTDevice not open"
+			);
+
+#if defined(AL_PLATFORM_LINUX)
+			if (size > Integer<::size_t>::Maximum)
+			{
+
+				size = Integer<::size_t>::Maximum;
+			}
+
+			::ssize_t bytesRead;
+
+			if ((bytesRead = ::read(fd, lpBuffer, size)) == -1)
+			{
+
+				throw OS::SystemException(
+					"read"
+				);
+			}
+#elif defined(AL_PLATFORM_WINDOWS)
+			if (size > Integer<::DWORD>::Maximum)
+			{
+
+				size = Integer<::DWORD>::Maximum;
+			}
+
+			::DWORD bytesRead;
+
+			if (!::ReadFile(hFile, lpBuffer, static_cast<::DWORD>(size), &bytesRead, nullptr))
+			{
+
+				throw OS::SystemException(
+					"ReadFile"
+				);
+			}
+#endif
+
+			return static_cast<size_t>(
+				bytesRead
+			);
+		}
+
 		UARTDevice& operator = (UARTDevice&& device)
 		{
 			Close();

@@ -137,6 +137,59 @@ namespace AL::Hardware::Drivers
 			}
 		}
 
+		// @throw AL::Exception
+		virtual Bool TryRead(ReadData& data)
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"BN_180 not open"
+			);
+
+			ReadData::Char c;
+
+			if (data.GetSize())
+			{
+				data.SetCapacity(
+					0
+				);
+			}
+
+			Bool nmeaStarted = False;
+
+			for (size_t i = 0; device.IsOpen(); )
+			{
+				while (!device.TryRead(c))
+				{
+					if (i == 0)
+					{
+
+						return False;
+					}
+				}
+
+				if (!nmeaStarted && (c == '$'))
+				{
+
+					nmeaStarted = True;
+				}
+
+				if (nmeaStarted)
+				{
+					data.Append(
+						c
+					);
+
+					if (i && (data[i - 1] == '\r') && (data[i] == '\n'))
+					{
+
+						break;
+					}
+
+					++i;
+				}
+			}
+		}
+
 		BN_180& operator = (BN_180&& bn180)
 		{
 			Close();
