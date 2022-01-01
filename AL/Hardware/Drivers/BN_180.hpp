@@ -188,6 +188,8 @@ namespace AL::Hardware::Drivers
 					++i;
 				}
 			}
+
+			return True;
 		}
 
 		BN_180& operator = (BN_180&& bn180)
