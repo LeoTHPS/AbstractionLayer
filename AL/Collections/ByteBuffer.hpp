@@ -536,7 +536,35 @@ namespace AL::Collections
 				length
 			);
 
-			if (!Read(&buffer[0], length))
+			if (!Read(&buffer[0], length * sizeof(String::Char)))
+			{
+				PopLastRead();
+
+				return False;
+			}
+
+			value.Assign(
+				&buffer[0],
+				length
+			);
+
+			return True;
+		}
+		Bool ReadWString(WString& value)
+		{
+			uint32 length;
+
+			if (!ReadUInt32(length))
+			{
+
+				return False;
+			}
+
+			Array<WString::Char> buffer(
+				length
+			);
+
+			if (!Read(&buffer[0], length * sizeof(WString::Char)))
 			{
 				PopLastRead();
 
@@ -909,6 +937,33 @@ namespace AL::Collections
 			}
 
 			if (!Write(value.GetCString(), length))
+			{
+				PopLastWrite();
+
+				return False;
+			}
+
+			return True;
+		}
+		Bool WriteWString(const WString& value)
+		{
+			auto length = value.GetLength();
+
+			if constexpr (!Is_Type<size_t, uint32>::Value)
+			{
+				if (length > Integer<uint32>::Maximum)
+				{
+					length = Integer<uint32>::Maximum;
+				}
+			}
+
+			if (!WriteUInt32(static_cast<uint32>(length)))
+			{
+
+				return False;
+			}
+
+			if (!Write(value.GetCString(), length * sizeof(WString::Char)))
 			{
 				PopLastWrite();
 
