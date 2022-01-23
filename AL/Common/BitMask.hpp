@@ -34,6 +34,11 @@ namespace AL
 			return set ? Add(mask, flag) : Remove(mask, flag);;
 		}
 
+		static constexpr Type Clear()
+		{
+			return Integer<Type>::Zero;
+		}
+
 		Type Value;
 
 		BitMask()
@@ -66,7 +71,7 @@ namespace AL
 
 		Bool IsSet(Type flag) const
 		{
-			if (!IsSet(Value, flag))
+			if (!BitMask<Type>::IsSet(Value, flag))
 			{
 
 				return False;
@@ -77,7 +82,7 @@ namespace AL
 
 		Void Add(Type flag)
 		{
-			Value = Add(
+			Value = BitMask<Type>::Add(
 				Value,
 				flag
 			);
@@ -85,7 +90,7 @@ namespace AL
 
 		Void Remove(Type flag)
 		{
-			Value = Remove(
+			Value = BitMask<Type>::Remove(
 				Value,
 				flag
 			);
@@ -93,11 +98,16 @@ namespace AL
 
 		Void Set(Type flag, Bool set = True)
 		{
-			Value = Set(
+			Value = BitMask<Type>::Set(
 				Value,
 				flag,
 				set
 			);
+		}
+
+		Void Clear()
+		{
+			Value = BitMask<Type>::Clear();
 		}
 
 		BitMask& operator = (Type value)
