@@ -34,7 +34,7 @@ namespace AL
 			return set ? Add(mask, flag) : Remove(mask, flag);;
 		}
 
-		static constexpr Type Clear()
+		static constexpr Type Clear(Type mask)
 		{
 			return Integer<Type>::Zero;
 		}
@@ -107,7 +107,9 @@ namespace AL
 
 		Void Clear()
 		{
-			Value = BitMask<Type>::Clear();
+			Value = BitMask<Type>::Clear(
+				Value
+			);
 		}
 
 		BitMask& operator = (Type value)
