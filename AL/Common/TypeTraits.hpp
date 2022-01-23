@@ -565,7 +565,7 @@ namespace AL
 		static constexpr Bool IsSigned         = True;
 		static constexpr Bool IsUnsigned       = False;
 
-		static constexpr T    Zero             = T(0);
+		static constexpr T    Zero             = T(0x00);
 
 		static constexpr T    Minimum          = T(-0x7F);
 		static constexpr T    Maximum          = T(0x7F);
@@ -581,7 +581,7 @@ namespace AL
 		static constexpr Bool IsSigned         = False;
 		static constexpr Bool IsUnsigned       = True;
 
-		static constexpr T    Zero             = T(0);
+		static constexpr T    Zero             = T(0x00);
 
 		static constexpr T    Minimum          = uint8(0x0);
 		static constexpr T    Maximum          = uint8(0xFF);
@@ -597,7 +597,7 @@ namespace AL
 		static constexpr Bool IsSigned         = True;
 		static constexpr Bool IsUnsigned       = False;
 
-		static constexpr T    Zero             = T(0);
+		static constexpr T    Zero             = T(0x0000);
 
 		static constexpr T    Minimum          = T(-0x7FFF);
 		static constexpr T    Maximum          = T(0x7FFF);
@@ -622,7 +622,7 @@ namespace AL
 		static constexpr Bool IsSigned         = False;
 		static constexpr Bool IsUnsigned       = True;
 
-		static constexpr T    Zero             = T(0);
+		static constexpr T    Zero             = T(0x0000);
 
 		static constexpr T    Minimum          = T(0x0);
 		static constexpr T    Maximum          = T(0xFFFF);
@@ -647,7 +647,7 @@ namespace AL
 		static constexpr Bool IsSigned         = True;
 		static constexpr Bool IsUnsigned       = False;
 
-		static constexpr T    Zero             = T(0);
+		static constexpr T    Zero             = T(0x00000000);
 
 		static constexpr T    Minimum          = T(-0x7FFFFFFF);
 		static constexpr T    Maximum          = T(0x7FFFFFFF);
@@ -672,7 +672,7 @@ namespace AL
 		static constexpr Bool IsSigned         = False;
 		static constexpr Bool IsUnsigned       = True;
 
-		static constexpr T    Zero             = T(0);
+		static constexpr T    Zero             = T(0x00000000);
 
 		static constexpr T    Minimum          = T(0x0);
 		static constexpr T    Maximum          = T(0xFFFFFFFF);
@@ -697,7 +697,7 @@ namespace AL
 		static constexpr Bool IsSigned         = True;
 		static constexpr Bool IsUnsigned       = False;
 
-		static constexpr T    Zero             = T(0);
+		static constexpr T    Zero             = T(0x0000000000000000);
 
 		static constexpr T    Minimum          = T(-0x7FFFFFFFFFFFFFFF);
 		static constexpr T    Maximum          = T(0x7FFFFFFFFFFFFFFF);
@@ -722,7 +722,7 @@ namespace AL
 		static constexpr Bool IsSigned         = False;
 		static constexpr Bool IsUnsigned       = True;
 
-		static constexpr T    Zero             = T(0);
+		static constexpr T    Zero             = T(0x0000000000000000);
 
 		static constexpr T    Minimum          = T(0x0);
 		static constexpr T    Maximum          = T(0xFFFFFFFFFFFFFFFF);
