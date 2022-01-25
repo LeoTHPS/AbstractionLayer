@@ -1,6 +1,8 @@
 #pragma once
 #include "AL/Common.hpp"
 
+// NOTE: Changes made to AL::Platforms should be updated in AL/Common/String.hpp
+
 namespace AL
 {
 	enum class Platforms : uint16
