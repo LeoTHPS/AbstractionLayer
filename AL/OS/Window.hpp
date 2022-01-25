@@ -191,26 +191,36 @@ namespace AL::OS
 		WindowIcon(WindowIcons icon)
 			: type(
 				icon
-			),
+			)
+#if defined(AL_PLATFORM_LINUX)
+
+#elif defined(AL_PLATFORM_WINDOWS)
+			,
 			hIcon(
 				Handle()
 			),
 			hInstance(
 				HInstance()
 			)
+#endif
 		{
 		}
 
 		WindowIcon(HInstance hInstance, Handle handle)
 			: type(
 				WindowIcons::UserDefined
-			),
+			)
+#if defined(AL_PLATFORM_LINUX)
+
+#elif defined(AL_PLATFORM_WINDOWS)
+			,
 			hIcon(
 				handle
 			),
 			hInstance(
 				hInstance
 			)
+#endif
 		{
 		}
 
@@ -311,26 +321,36 @@ namespace AL::OS
 		WindowCursor(WindowCursors cursor)
 			: type(
 				cursor
-			),
+			)
+#if defined(AL_PLATFORM_LINUX)
+
+#elif defined(AL_PLATFORM_WINDOWS)
+			,
 			hCursor(
 				Handle()
 			),
 			hInstance(
 				HInstance()
 			)
+#endif
 		{
 		}
 
 		WindowCursor(HInstance hInstance, Handle handle)
 			: type(
 				WindowCursors::UserDefined
-			),
+			)
+#if defined(AL_PLATFORM_LINUX)
+
+#elif defined(AL_PLATFORM_WINDOWS)
+			,
 			hCursor(
 				handle
 			),
 			hInstance(
 				hInstance
 			)
+#endif
 		{
 		}
 
