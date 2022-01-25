@@ -357,20 +357,16 @@ namespace AL::Collections
 
 		Void SetCapacity(size_t value)
 		{
-			if (value < GetLength())
+			auto length = GetLength();
+
+			container.SetCapacity(
+				value + 1
+			);
+
+			if (value < length)
 			{
-				container.SetCapacity(
-					value + 1
-				);
 
 				container[value] = END;
-			}
-			else
-			{
-
-				container.SetCapacity(
-					value + 1
-				);
 			}
 		}
 
