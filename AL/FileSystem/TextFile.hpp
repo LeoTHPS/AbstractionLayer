@@ -18,8 +18,8 @@ namespace AL::FileSystem
 		TextFileLineEndings lineEnding = TextFileLineEndings::Auto;
 
 	public:
-		static constexpr char LF[]   = "\n";
-		static constexpr char CRLF[] = "\r\n";
+		static constexpr String::Char LF[]   = "\n";
+		static constexpr String::Char CRLF[] = "\r\n";
 
 		using File::File;
 
