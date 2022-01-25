@@ -355,23 +355,6 @@ namespace AL::Collections
 			container[GetLength()] = END;
 		}
 
-		Void SetLength(size_t value)
-		{
-			auto length = GetLength();
-
-			if (value > length)
-			{
-
-				value = length;
-			}
-
-			container.SetSize(
-				value + 1
-			);
-
-			container[value] = END;
-		}
-
 		Void SetCapacity(size_t value)
 		{
 			auto length = GetLength();
