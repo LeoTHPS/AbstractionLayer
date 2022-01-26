@@ -1567,7 +1567,7 @@ namespace AL::Collections
 		}
 		Collections::Array<_String> Split(const Char* delimiter, size_t length, Bool ignoreCase = False) const
 		{
-			// TODO: get comma count and remove extra contained
+			// TODO: get comma count and remove extra container
 			Collections::ArrayList<_String> chunks;
 
 			auto _length = GetLength();
