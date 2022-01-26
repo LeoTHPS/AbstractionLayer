@@ -47,6 +47,16 @@ namespace AL
 
 			return string;
 		}
+		else if constexpr (Is_Type<T, String>::Value)
+		{
+
+			return value;
+		}
+		else if constexpr (Is_Type<T, WString>::Value)
+		{
+
+			return value.ToString();
+		}
 	}
 	template<typename T>
 	inline WString ToWString(T value)
@@ -70,6 +80,16 @@ namespace AL
 			);
 
 			return wstring;
+		}
+		else if constexpr (Is_Type<T, String>::Value)
+		{
+
+			return value.ToWString();
+		}
+		else if constexpr (Is_Type<T, WString>::Value)
+		{
+
+			return value;
 		}
 	}
 
@@ -100,6 +120,16 @@ namespace AL
 				value
 			);
 		}
+		else if constexpr (Is_Type<T, String>::Value)
+		{
+
+			return string;
+		}
+		else if constexpr (Is_Type<T, WString>::Value)
+		{
+
+			return string.ToWString();
+		}
 	}
 	template<typename T>
 	inline T FromWString(const WString& wstring)
@@ -127,6 +157,16 @@ namespace AL
 			return static_cast<T>(
 				value
 			);
+		}
+		else if constexpr (Is_Type<T, String>::Value)
+		{
+
+			return wstring.ToString();
+		}
+		else if constexpr (Is_Type<T, WString>::Value)
+		{
+
+			return wstring;
 		}
 	}
 }
