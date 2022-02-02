@@ -3,6 +3,7 @@
 
 #include "Array.hpp"
 #include "ArrayList.hpp"
+#include "LinkedList.hpp"
 
 #include "AL/Algorithms/FNV.hpp"
 
@@ -604,7 +605,7 @@ namespace AL::Collections
 		{
 			for (size_t i = index; i < GetLength(); ++i)
 			{
-				if (!CompareAt(lpBuffer, length, i, ignoreCase))
+				if (!CompareSub(lpBuffer, length, i, ignoreCase))
 				{
 
 					continue;
@@ -656,7 +657,7 @@ namespace AL::Collections
 			{
 				for (size_t i = 0, j = GetLength() - length; i <= (GetLength() - length); ++i, --j)
 				{
-					if (!CompareAt(lpBuffer, length, j, ignoreCase))
+					if (!CompareSub(lpBuffer, length, j, ignoreCase))
 					{
 
 						continue;
@@ -802,7 +803,7 @@ namespace AL::Collections
 		{
 			for (size_t i = index; i < GetLength(); ++i)
 			{
-				if (!CompareAt(lpBuffer, length, i, ignoreCase))
+				if (!CompareSub(lpBuffer, length, i, ignoreCase))
 				{
 
 					continue;
@@ -857,7 +858,7 @@ namespace AL::Collections
 		{
 			for (size_t i = index; i < GetLength(); ++i)
 			{
-				if (!CompareAt(lpBuffer, length, i, ignoreCase))
+				if (!CompareSub(lpBuffer, length, i, ignoreCase))
 				{
 
 					continue;
@@ -911,7 +912,7 @@ namespace AL::Collections
 			{
 				for (size_t i = 0, j = GetLength() - length; i <= (GetLength() - length); ++i, --j)
 				{
-					if (!CompareAt(lpBuffer, length, j, ignoreCase))
+					if (!CompareSub(lpBuffer, length, j, ignoreCase))
 					{
 
 						continue;
@@ -966,7 +967,7 @@ namespace AL::Collections
 			{
 				for (size_t i = 0, j = GetLength() - length; i <= (GetLength() - length); ++i, --j)
 				{
-					if (!CompareAt(lpBuffer, length, j, ignoreCase))
+					if (!CompareSub(lpBuffer, length, j, ignoreCase))
 					{
 
 						continue;
@@ -1078,7 +1079,7 @@ namespace AL::Collections
 		}
 		Bool StartsWith(const Char* lpBuffer, size_t length, Bool ignoreCase = False) const
 		{
-			if (!CompareAt(lpBuffer, length, 0, ignoreCase))
+			if (!CompareSub(lpBuffer, length, 0, ignoreCase))
 			{
 
 				return False;
@@ -1125,7 +1126,7 @@ namespace AL::Collections
 		{
 			if (length <= GetLength())
 			{
-				if (CompareAt(lpBuffer, length, GetLength() - length, ignoreCase))
+				if (CompareSub(lpBuffer, length, GetLength() - length, ignoreCase))
 				{
 
 					return True;
@@ -1215,6 +1216,73 @@ namespace AL::Collections
 			return True;
 		}
 		Bool CompareAt(const Char* lpBuffer, size_t length, size_t index, Bool ignoreCase = False) const
+		{
+			if ((index + length) != GetLength())
+			{
+
+				return False;
+			}
+
+			auto lpContainer = &container[index];
+
+			if (!ignoreCase)
+			{
+				if (!memcmp(lpContainer, lpBuffer, length * sizeof(Char)))
+				{
+
+					return False;
+				}
+			}
+			else
+			{
+				for (size_t i = 0; i < length; ++i, ++lpBuffer, ++lpContainer)
+				{
+					if (Utility::ToLower(*lpContainer) != Utility::ToLower(*lpBuffer))
+					{
+
+						return False;
+					}
+				}
+			}
+
+			return True;
+		}
+
+		Bool CompareSub(Char c, size_t index, Bool ignoreCase = False) const
+		{
+			if (!CompareSub(&c, 1, index, ignoreCase))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		Bool CompareSub(const _String& string, size_t index, Bool ignoreCase = False) const
+		{
+			if (!CompareSub(string.GetCString(), string.GetLength(), index, ignoreCase))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		Bool CompareSub(const Char* lpBuffer, size_t index, Bool ignoreCase = False) const
+		{
+			auto stringLength = GetLength(
+				lpBuffer
+			);
+
+			if (!CompareSub(lpBuffer, stringLength, index, ignoreCase))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		Bool CompareSub(const Char* lpBuffer, size_t length, size_t index, Bool ignoreCase = False) const
 		{
 			if ((index + length) > GetLength())
 			{
@@ -1531,7 +1599,7 @@ namespace AL::Collections
 			);
 		}
 
-		Collections::Array<_String> Split(Char delimiter, Bool ignoreCase = False) const
+		Array<_String> Split(Char delimiter, Bool ignoreCase = False) const
 		{
 			auto strings = Split(
 				&delimiter,
@@ -1541,7 +1609,7 @@ namespace AL::Collections
 
 			return strings;
 		}
-		Collections::Array<_String> Split(const _String& delimiter, Bool ignoreCase = False) const
+		Array<_String> Split(const _String& delimiter, Bool ignoreCase = False) const
 		{
 			auto strings = Split(
 				delimiter.GetCString(),
@@ -1551,7 +1619,7 @@ namespace AL::Collections
 
 			return strings;
 		}
-		Collections::Array<_String> Split(const Char* delimiter, Bool ignoreCase = False) const
+		Array<_String> Split(const Char* delimiter, Bool ignoreCase = False) const
 		{
 			auto delimiterLength = GetLength(
 				delimiter
@@ -1565,49 +1633,50 @@ namespace AL::Collections
 
 			return strings;
 		}
-		Collections::Array<_String> Split(const Char* delimiter, size_t length, Bool ignoreCase = False) const
+		Array<_String> Split(const Char* delimiter, size_t length, Bool ignoreCase = False) const
 		{
-			// TODO: get comma count and remove extra container
-			Collections::ArrayList<_String> chunks;
+			LinkedList<_String> chunks;
 
-			auto _length = GetLength();
-
-			for (size_t i = 0; i < _length; )
+			for (size_t i = 0, j = 0; (i + length) < GetLength(); )
 			{
-				auto end = IndexOfAt(
-					delimiter,
-					length,
-					i,
-					ignoreCase
-				);
-
-				if (end == NPOS)
+				if ((i = IndexOfAt(delimiter, length, i, ignoreCase)) == NPOS)
 				{
+					auto chunk = SubString(
+						j
+					);
 
-					end = _length;
+					chunks.PushBack(
+						Move(chunk)
+					);
+
+					break;
 				}
 
 				auto chunk = SubString(
-					i,
-					end - (_length - i)
+					j,
+					i - j
 				);
 
 				chunks.PushBack(
 					Move(chunk)
 				);
 
-				i += chunk.GetLength();
+				j = ++i;
 			}
 
-			Collections::Array<_String> _chunks(
+			Array<_String> _chunks(
 				chunks.GetSize()
 			);
 
-			for (auto it1 = chunks.begin(), it2 = _chunks.begin(); it1 != chunks.end(); ++it1, ++it2)
 			{
-				*it2 = Move(
-					*it1
-				);
+				size_t i = 0;
+
+				for (auto& chunk : chunks)
+				{
+					_chunks[i++].Assign(
+						Move(chunk)
+					);
+				}
 			}
 
 			return _chunks;
