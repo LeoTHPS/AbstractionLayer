@@ -1,34 +1,30 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#include "ElementAttribute.hpp"
-
 #include "AL/Collections/LinkedList.hpp"
 
-namespace AL::HTML::DOM
+namespace AL::Serialization
 {
-	class Element;
-
-	// @return False to ignore
-	typedef Function<Bool(Element& element)> ElementRemoveChildCallback;
-
-	// @return False to ignore
-	typedef Function<Bool(ElementAttribute& attribute)> ElementRemoveAttributeCallback;
-
-	class Element
+	struct HTMLElementAttribute
 	{
-		String                                    type;
-		String                                    innerHTML;
+		String Name;
+		String Value;
+	};
 
-		Collections::LinkedList<Element*>         children;
-		Collections::LinkedList<ElementAttribute> attributes;
+	class HTMLElement
+	{
+		String                                        type;
+		String                                        innerHTML;
+
+		Collections::LinkedList<HTMLElement*>         children;
+		Collections::LinkedList<HTMLElementAttribute> attributes;
 
 	public:
-		Element()
+		HTMLElement()
 		{
 		}
 
-		Element(Element&& element)
+		HTMLElement(HTMLElement&& element)
 			: type(
 				Move(element.type)
 			),
@@ -44,7 +40,7 @@ namespace AL::HTML::DOM
 		{
 		}
 
-		Element(const Element& element)
+		HTMLElement(const HTMLElement& element)
 			: type(
 				element.type
 			),
@@ -58,21 +54,21 @@ namespace AL::HTML::DOM
 			for (auto lpElement : element.children)
 			{
 				children.PushBack(
-					new Element(
+					new HTMLElement(
 						*lpElement
 					)
 				);
 			}
 		}
 
-		explicit Element(String&& type)
+		explicit HTMLElement(String&& type)
 			: type(
 				Move(type)
 			)
 		{
 		}
 
-		virtual ~Element()
+		virtual ~HTMLElement()
 		{
 			for (auto lpElement : children)
 			{
@@ -109,7 +105,7 @@ namespace AL::HTML::DOM
 
 		auto& AddChild(String&& type)
 		{
-			auto lpElement = new Element(
+			auto lpElement = new HTMLElement(
 				Move(type)
 			);
 
@@ -132,7 +128,7 @@ namespace AL::HTML::DOM
 			return element;
 		}
 		template<size_t S>
-		auto& AddChild(String&& type, ElementAttribute(&&attributes)[S])
+		auto& AddChild(String&& type, HTMLElementAttribute(&&attributes)[S])
 		{
 			auto& element = AddChild(
 				Move(type)
@@ -146,7 +142,7 @@ namespace AL::HTML::DOM
 			return element;
 		}
 		template<size_t S>
-		auto& AddChild(String&& type, ElementAttribute(&&attributes)[S], String&& innerHTML)
+		auto& AddChild(String&& type, HTMLElementAttribute(&&attributes)[S], String&& innerHTML)
 		{
 			auto& element = AddChild(
 				Move(type),
@@ -175,7 +171,7 @@ namespace AL::HTML::DOM
 			}
 
 			attributes.PushBack(
-				DOM::ElementAttribute
+				HTMLElementAttribute
 				{
 					.Name  = Move(name),
 					.Value = Move(value)
@@ -185,40 +181,20 @@ namespace AL::HTML::DOM
 			return *(--attributes.end());
 		}
 
-		Void RemoveChild(const String& type)
+		Void RemoveChild(const HTMLElement& element)
 		{
-			for (auto it = children.begin(); it != children.end(); )
+			for (auto it = children.begin(); it != children.end(); ++it)
 			{
-				if ((*it)->GetType().Compare(type, True))
+				if (*it == &element)
 				{
 					delete *it;
 
 					children.Erase(
-						it++
+						it
 					);
 
-					continue;
+					break;
 				}
-
-				++it;
-			}
-		}
-		Void RemoveChild(const ElementRemoveChildCallback& callback)
-		{
-			for (auto it = children.begin(); it != children.end(); )
-			{
-				if (callback(**it))
-				{
-					delete *it;
-
-					children.Erase(
-						it++
-					);
-
-					continue;
-				}
-
-				++it;
 			}
 		}
 
@@ -234,22 +210,6 @@ namespace AL::HTML::DOM
 
 					break;
 				}
-			}
-		}
-		Void RemoveAttribute(const ElementRemoveAttributeCallback& callback)
-		{
-			for (auto it = attributes.begin(); it != attributes.end(); )
-			{
-				if (callback(*it))
-				{
-					attributes.Erase(
-						it++
-					);
-
-					continue;
-				}
-
-				++it;
 			}
 		}
 
@@ -298,7 +258,7 @@ namespace AL::HTML::DOM
 			return sb.ToString();
 		}
 
-		Element& operator = (Element&& element)
+		HTMLElement& operator = (HTMLElement&& element)
 		{
 			type = Move(
 				element.type
@@ -327,7 +287,7 @@ namespace AL::HTML::DOM
 
 			return *this;
 		}
-		Element& operator = (const Element& element)
+		HTMLElement& operator = (const HTMLElement& element)
 		{
 			type      = element.type;
 			innerHTML = element.innerHTML;
@@ -344,7 +304,7 @@ namespace AL::HTML::DOM
 			for (auto lpElement : element.children)
 			{
 				children.PushBack(
-					new Element(
+					new HTMLElement(
 						*lpElement
 					)
 				);
@@ -355,7 +315,7 @@ namespace AL::HTML::DOM
 			return *this;
 		}
 
-		Bool operator == (const Element& element) const
+		Bool operator == (const HTMLElement& element) const
 		{
 			if (GetType() != element.GetType())
 			{
@@ -407,7 +367,7 @@ namespace AL::HTML::DOM
 
 			return True;
 		}
-		Bool operator != (const Element& element) const
+		Bool operator != (const HTMLElement& element) const
 		{
 			if (operator==(element))
 			{
@@ -420,7 +380,7 @@ namespace AL::HTML::DOM
 
 	private:
 		template<size_t I, size_t S>
-		constexpr Bool AddAttributes(ElementAttribute(&&attributes)[S])
+		constexpr Bool AddAttributes(HTMLElementAttribute(&&attributes)[S])
 		{
 			AddAttribute(
 				Move(attributes[I].Name),
@@ -430,9 +390,56 @@ namespace AL::HTML::DOM
 			return True;
 		}
 		template<size_t S, size_t ... INDEXES>
-		constexpr Void AddAttributes(ElementAttribute(&&attributes)[S], Index_Sequence<INDEXES ...>)
+		constexpr Void AddAttributes(HTMLElementAttribute(&&attributes)[S], Index_Sequence<INDEXES ...>)
 		{
 			(AddAttributes<INDEXES>(Move(attributes)) && ...);
+		}
+	};
+
+	class HTMLDocument
+	{
+		HTMLElement html;
+
+	public:
+		HTMLDocument()
+			: html(
+				"html"
+			)
+		{
+		}
+
+		HTMLDocument(HTMLDocument&& document)
+			: html(
+				Move(document.html)
+			)
+		{
+		}
+
+		HTMLDocument(const HTMLDocument& document)
+			: html(
+				document.html
+			)
+		{
+		}
+
+		virtual ~HTMLDocument()
+		{
+		}
+
+		auto& GetHTML()
+		{
+			return html;
+		}
+		auto& GetHTML() const
+		{
+			return html;
+		}
+
+		String ToString() const
+		{
+			auto html = GetHTML().ToString();
+
+			return html;
 		}
 	};
 }

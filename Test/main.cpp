@@ -24,8 +24,6 @@
 #include "Hardware/Drivers/AT24C256.hpp"
 #include "Hardware/Drivers/RTL_SDR.hpp"
 
-#include "HTML/Document.hpp"
-
 #include "Network/HTTP/Request.hpp"
 
 #include "OS/Process.hpp"
@@ -34,6 +32,7 @@
 #include "OS/Window.hpp"
 
 #include "Serialization/CSV.hpp"
+#include "Serialization/HTML.hpp"
 #include "Serialization/NMEA.hpp"
 
 #define AL_TEST_EXECUTE(__function__, ...) \
@@ -227,8 +226,6 @@ void main_execute_tests(AL::uint32& testCount, AL::uint32& testFailCount)
 	AL_TEST_EXECUTE(AL_Hardware_Drivers_AT24C256);
 	AL_TEST_EXECUTE(AL_Hardware_Drivers_RTL_SDR);
 
-	AL_TEST_EXECUTE(AL_HTML_Document);
-
 	AL_TEST_EXECUTE(AL_Network_HTTP_Request);
 
 	AL_TEST_EXECUTE(AL_OS_Process);
@@ -237,6 +234,7 @@ void main_execute_tests(AL::uint32& testCount, AL::uint32& testFailCount)
 	AL_TEST_EXECUTE(AL_OS_Window);
 
 	AL_TEST_EXECUTE(AL_Serialization_CSV);
+	AL_TEST_EXECUTE(AL_Serialization_HTML);
 	AL_TEST_EXECUTE(AL_Serialization_NMEA);
 }
 

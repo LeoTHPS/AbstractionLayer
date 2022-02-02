@@ -3,15 +3,15 @@
 
 #include <AL/OS/Console.hpp>
 
-#include <AL/HTML/Document.hpp>
+#include <AL/Serialization/HTML.hpp>
 
 // @throw AL::Exception
-static void AL_HTML_Document()
+static void AL_Serialization_HTML()
 {
 	using namespace AL;
-	using namespace AL::HTML;
+	using namespace AL::Serialization;
 
-	Document document;
+	HTMLDocument document;
 
 	auto& html           = document.GetHTML();
 
@@ -28,8 +28,8 @@ static void AL_HTML_Document()
 	auto& body           = html.AddChild("body");
 	auto& body_Content   = body.AddChild("div",
 		{
-			DOM::ElementAttribute { .Name = "name",  .Value = "content" },
-			DOM::ElementAttribute { .Name = "style", .Value = "color: #00FF00;" }
+			HTMLElementAttribute { .Name = "name",  .Value = "content" },
+			HTMLElementAttribute { .Name = "style", .Value = "color: #00FF00;" }
 		},
 		"Hello World!"
 	);
