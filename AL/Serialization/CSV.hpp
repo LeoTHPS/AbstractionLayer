@@ -1,0 +1,315 @@
+#pragma once
+#include "AL/Common.hpp"
+
+#include "Text.hpp"
+
+#include "AL/Collections/Array.hpp"
+#include "AL/Collections/Tuple.hpp"
+#include "AL/Collections/LinkedList.hpp"
+
+namespace AL::Serialization
+{
+	template<typename ... T_VALUES>
+	class CSV
+	{
+		template<size_t _I>
+		using Get_Value_Type = Get_Type_Sequence<_I, T_VALUES ...>;
+
+		typedef Collections::Tuple<T_VALUES ...> T_CONTAINER;
+
+		Collections::Array<T_CONTAINER> container;
+
+	public:
+		// @throw AL::Exception
+		static Void FromString(CSV& csv, const String& value, size_t lineSkip = 0)
+		{
+			auto _value = WString::Format(
+				L"%S",
+				value.GetCString()
+			);
+
+			FromString(
+				csv,
+				_value,
+				lineSkip
+			);
+		}
+		// @throw AL::Exception
+		static Void FromString(CSV& csv, const WString& value, size_t lineSkip = 0)
+		{
+			Collections::LinkedList<WString> lines;
+
+			{
+				WString line;
+				Text    text(value);
+
+				for (size_t i = 0; i < lineSkip; ++i)
+				{
+					if (!text.ReadLine(line))
+					{
+
+						break;
+					}
+				}
+
+				while (text.ReadLine(line))
+				{
+					lines.PushBack(
+						Move(line)
+					);
+				}
+			}
+
+			Collections::Array<T_CONTAINER> container(
+				lines.GetSize()
+			);
+
+			{
+				size_t i = 0;
+
+				for (auto& line : lines)
+				{
+					auto lineChunks = line.Split(
+						L','
+					);
+
+					if (lineChunks.GetSize() != sizeof ...(T_VALUES))
+					{
+
+						throw Exception(
+							"Invalid chunk count at line %s",
+							ToString(lineSkip + i).GetCString()
+						);
+					}
+
+					container[i++] = FromString_LineChunksToContainer(
+						lineChunks
+					);
+				}
+			}
+
+			csv.container = Move(
+				container
+			);
+		}
+
+		CSV()
+		{
+		}
+
+		CSV(CSV&& csv)
+			: container(
+				Move(csv.container)
+			)
+		{
+		}
+		CSV(const CSV& csv)
+			: container(
+				csv.container
+			)
+		{
+		}
+
+		virtual ~CSV()
+		{
+		}
+
+		auto GetLineCount() const
+		{
+			return container.GetSize();
+		}
+
+		template<size_t I>
+		const typename Get_Value_Type<I>::Type& Get(size_t line) const
+		{
+			return container[line].template Get<I>();
+		}
+
+		template<size_t I>
+		Void Set(size_t line, typename Get_Value_Type<I>::Type&& value)
+		{
+			container[line].template Set<I>(
+				Move(value)
+			);
+		}
+		template<size_t I>
+		Void Set(size_t line, const typename Get_Value_Type<I>::Type& value)
+		{
+			container[line].template Set<I>(
+				value
+			);
+		}
+
+		// @return newly created line index
+		size_t Add(const T_VALUES& ... values)
+		{
+			auto size = container.GetSize();
+
+			container.SetSize(
+				size + 1
+			);
+
+			container[size] = Collections::Tuple<T_VALUES ...>(
+				values ...
+			);
+
+			return size;
+		}
+
+		String  ToString() const
+		{
+			auto value = String::Format(
+				"%S",
+				ToWString().GetCString()
+			);
+
+			return value;
+		}
+		WString ToWString() const
+		{
+			Text text;
+
+			for (auto& subContainer : container)
+			{
+				auto line = ToWString_ContainerToLine(
+					subContainer
+				);
+
+				text.WriteLine(
+					line
+				);
+			}
+
+			return text.ToWString();
+		}
+
+		CSV& operator = (CSV&& csv)
+		{
+			container = Move(
+				csv.container
+			);
+
+			return *this;
+		}
+		CSV& operator = (const CSV& csv)
+		{
+			container = csv.container;
+
+			return *this;
+		}
+
+		Bool operator == (const CSV& csv) const
+		{
+			if (container != csv.container)
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		Bool operator != (const CSV& csv) const
+		{
+			if (operator==(csv))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+
+	private:
+		template<size_t I>
+		static constexpr Void    ToWString_ContainerToLine(WString& value, const T_CONTAINER& container)
+		{
+			if constexpr (I > 0)
+			{
+
+				value.Append(
+					L','
+				);
+			}
+
+			if constexpr (Is_Type<String, typename Get_Value_Type<I>::Type>::Value)
+			{
+				value.Append(
+					container.template Get<I>().ToWString()
+				);
+			}
+			else if constexpr (Is_Type<WString, typename Get_Value_Type<I>::Type>::Value)
+			{
+				value.Append(
+					container.template Get<I>()
+				);
+			}
+			else
+			{
+				value.Append(
+					AL::ToWString(
+						container.template Get<I>()
+					)
+				);
+			}
+		}
+		template<size_t ... INDEXES>
+		static constexpr Void    ToWString_ContainerToLine(WString& value, const T_CONTAINER& container, Index_Sequence<INDEXES ...>)
+		{
+			(ToWString_ContainerToLine<INDEXES>(value, container), ...);
+		}
+		static constexpr WString ToWString_ContainerToLine(const T_CONTAINER& container)
+		{
+			WString value;
+
+			ToWString_ContainerToLine(
+				value,
+				container,
+				typename Make_Index_Sequence<sizeof ...(T_VALUES)>::Type {}
+			);
+
+			return value;
+		}
+
+		template<size_t I>
+		static constexpr Void        FromString_LineChunksToContainer(T_CONTAINER& value, const Collections::Array<WString>& chunks)
+		{
+			if constexpr (Is_Type<String, typename Get_Value_Type<I>::Type>::Value)
+			{
+				value.template Set<I>(
+					chunks[I].ToString()
+				);
+			}
+			else if constexpr (Is_Type<WString, typename Get_Value_Type<I>::Type>::Value)
+			{
+				value.template Set<I>(
+					chunks[I]
+				);
+			}
+			else
+			{
+				value.template Set<I>(
+					AL::FromWString<typename Get_Value_Type<I>::Type>(
+						chunks[I]
+					)
+				);
+			}
+		}
+		template<size_t ... INDEXES>
+		static constexpr Void        FromString_LineChunksToContainer(T_CONTAINER& value, const Collections::Array<WString>& chunks, Index_Sequence<INDEXES ...>)
+		{
+			(FromString_LineChunksToContainer<INDEXES>(value, chunks), ...);
+		}
+		static constexpr T_CONTAINER FromString_LineChunksToContainer(const Collections::Array<WString>& chunks)
+		{
+			T_CONTAINER value;
+
+			FromString_LineChunksToContainer(
+				value,
+				chunks,
+				typename Make_Index_Sequence<sizeof ...(T_VALUES)>::Type {}
+			);
+
+			return value;
+		}
+	};
+}
