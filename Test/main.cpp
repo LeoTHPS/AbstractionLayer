@@ -6,6 +6,8 @@
 #include <AL/OS/Thread.hpp>
 #include <AL/OS/Process.hpp>
 
+#include "API/Lua543/Lua.hpp"
+
 #include "Collections/Array.hpp"
 #include "Collections/ArrayList.hpp"
 #include "Collections/Dictionary.hpp"
@@ -24,14 +26,15 @@
 
 #include "HTML/Document.hpp"
 
-#include "Lua543/Lua.hpp"
-
 #include "Network/HTTP/Request.hpp"
 
 #include "OS/Process.hpp"
 #include "OS/Thread.hpp"
 #include "OS/ThreadPool.hpp"
 #include "OS/Window.hpp"
+
+#include "Serialization/CSV.hpp"
+#include "Serialization/NMEA.hpp"
 
 #define AL_TEST_EXECUTE(__function__, ...) \
 	++testCount; \
@@ -206,6 +209,8 @@ void main_display_process_information()
 // @throw AL::Exception
 void main_execute_tests(AL::uint32& testCount, AL::uint32& testFailCount)
 {
+	AL_TEST_EXECUTE(AL_API_Lua543);
+
 	AL_TEST_EXECUTE(AL_Collections_Array);
 	AL_TEST_EXECUTE(AL_Collections_ArrayList);
 	AL_TEST_EXECUTE(AL_Collections_Dictionary);
@@ -224,14 +229,15 @@ void main_execute_tests(AL::uint32& testCount, AL::uint32& testFailCount)
 
 	AL_TEST_EXECUTE(AL_HTML_Document);
 
-	AL_TEST_EXECUTE(AL_Lua543);
-
 	AL_TEST_EXECUTE(AL_Network_HTTP_Request);
 
 	AL_TEST_EXECUTE(AL_OS_Process);
 	AL_TEST_EXECUTE(AL_OS_Thread);
 	AL_TEST_EXECUTE(AL_OS_ThreadPool);
 	AL_TEST_EXECUTE(AL_OS_Window);
+
+	AL_TEST_EXECUTE(AL_Serialization_CSV);
+	AL_TEST_EXECUTE(AL_Serialization_NMEA);
 }
 
 int main(int argc, char* argv[])
