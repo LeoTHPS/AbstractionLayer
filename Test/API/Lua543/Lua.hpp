@@ -3,14 +3,14 @@
 
 #include <AL/OS/Console.hpp>
 
-#include <AL/Lua543/Lua.hpp>
+#include <AL/API/Lua543/Lua.hpp>
 
-static AL::Lua543::State AL_Lua543_State;
+static AL::API::Lua543::State AL_Lua543_State;
 
-static void AL_Lua543_do_the_thing()
+static void AL_API_Lua543_do_the_thing()
 {
 	using namespace AL;
-	using namespace AL::Lua543;
+	using namespace AL::API::Lua543;
 
 	auto the_thing = AL_Lua543_State.GetGlobal<uint32>(
 		"the_thing"
@@ -30,16 +30,16 @@ static void AL_Lua543_do_the_thing()
 }
 
 // @throw AL::Exception
-static void AL_Lua543()
+static void AL_API_Lua543()
 {
 	using namespace AL;
-	using namespace AL::Lua543;
+	using namespace AL::API::Lua543;
 
 	AL_Lua543_State.Create();
 
 	try
 	{
-		AL_Lua543_State.SetGlobalFunction<AL_Lua543_do_the_thing>(
+		AL_Lua543_State.SetGlobalFunction<AL_API_Lua543_do_the_thing>(
 			"do_the_thing"
 		);
 
