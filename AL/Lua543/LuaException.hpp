@@ -9,7 +9,7 @@
 	struct lua_State;
 #endif
 
-namespace AL::API::Lua543
+namespace AL::Lua543
 {
 	class LuaException
 		: public Exception

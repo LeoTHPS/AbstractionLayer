@@ -8,7 +8,7 @@
 
 #include "AL/FileSystem/Path.hpp"
 
-namespace AL::API::Lua543
+namespace AL::Lua543
 {
 	class State;
 
@@ -789,7 +789,7 @@ namespace AL::API::Lua543
 	};
 }
 
-inline ::lua_State* AL::API::Lua543::Stack::GetHandle() const
+inline ::lua_State* AL::Lua543::Stack::GetHandle() const
 {
 	return lpState->GetHandle();
 }
