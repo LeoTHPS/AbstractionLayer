@@ -6,8 +6,6 @@
 #include <AL/OS/Thread.hpp>
 #include <AL/OS/Process.hpp>
 
-#include "API/Lua543/Lua.hpp"
-
 #include "Collections/Array.hpp"
 #include "Collections/ArrayList.hpp"
 #include "Collections/Dictionary.hpp"
@@ -23,6 +21,8 @@
 
 #include "Hardware/Drivers/AT24C256.hpp"
 #include "Hardware/Drivers/RTL_SDR.hpp"
+
+#include "Lua543/Lua.hpp"
 
 #include "Network/HTTP/Request.hpp"
 
@@ -208,8 +208,6 @@ void main_display_process_information()
 // @throw AL::Exception
 void main_execute_tests(AL::uint32& testCount, AL::uint32& testFailCount)
 {
-	AL_TEST_EXECUTE(AL_API_Lua543);
-
 	AL_TEST_EXECUTE(AL_Collections_Array);
 	AL_TEST_EXECUTE(AL_Collections_ArrayList);
 	AL_TEST_EXECUTE(AL_Collections_Dictionary);
@@ -225,6 +223,8 @@ void main_execute_tests(AL::uint32& testCount, AL::uint32& testFailCount)
 
 	AL_TEST_EXECUTE(AL_Hardware_Drivers_AT24C256);
 	AL_TEST_EXECUTE(AL_Hardware_Drivers_RTL_SDR);
+
+	AL_TEST_EXECUTE(AL_Lua543);
 
 	AL_TEST_EXECUTE(AL_Network_HTTP_Request);
 
@@ -267,9 +267,9 @@ int main(int argc, char* argv[])
 		timer.GetElapsed().ToMilliseconds()
 	);
 
-	// AL::OS::Console::WriteLine();
-	// AL::OS::Console::Write("Press any key to exit");
-	// AL::String::Char c; AL::OS::Console::Read(c);
+	AL::OS::Console::WriteLine();
+	AL::OS::Console::Write("Press any key to exit");
+	AL::String::Char c; AL::OS::Console::Read(c);
 
 	return 0;
 }
