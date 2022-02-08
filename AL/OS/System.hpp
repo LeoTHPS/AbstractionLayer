@@ -26,7 +26,10 @@ namespace AL::OS
 	public:
 		static int8 GetTimezone()
 		{
-#if defined(AL_PLATFORM_PICO) || defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			// TODO: implement
+			throw NotImplementedException();
+#elif defined(AL_PLATFORM_LINUX)
 			auto time = ::time(
 				NULL
 			);
@@ -61,7 +64,10 @@ namespace AL::OS
 		{
 			DateTime dateTime;
 
-#if defined(AL_PLATFORM_PICO) || defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			// TODO: implement
+			throw NotImplementedException();
+#elif defined(AL_PLATFORM_LINUX)
 			auto time = ::time(
 				NULL
 			);
@@ -132,7 +138,10 @@ namespace AL::OS
 
 		static Timestamp GetTimestamp()
 		{
-#if defined(AL_PLATFORM_PICO) || defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			// TODO: implement
+			throw NotImplementedException();
+#elif defined(AL_PLATFORM_LINUX)
 			return Timestamp::FromSeconds(
 				static_cast<uint64>(::time(NULL))
 			);

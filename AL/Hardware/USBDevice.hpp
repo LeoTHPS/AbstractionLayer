@@ -1,7 +1,9 @@
 #pragma once
 #include <AL/Common.hpp>
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+	#error Platform not supported
+#elif defined(AL_PLATFORM_LINUX)
 	#if __has_include(<libusb-1.0/libusb.h>)
 		#define AL_DEPENDENCY_LIBUSB
 

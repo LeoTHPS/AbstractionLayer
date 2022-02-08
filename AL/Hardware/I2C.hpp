@@ -1,13 +1,17 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#include "AL/FileSystem/Path.hpp"
-
 #include "AL/Collections/Array.hpp"
 
 #include "AL/OS/SystemException.hpp"
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+	#include "GPIO.hpp"
+
+	#include <hardware/i2c.h>
+#elif defined(AL_PLATFORM_LINUX)
+	#include "AL/FileSystem/Path.hpp"
+
 	#include <fcntl.h>
 	#include <unistd.h>
 	#include <termios.h>
@@ -94,6 +98,10 @@ namespace AL::Hardware
 		}
 	};
 
+#if defined(AL_PLATFORM_PICO)
+	typedef ::uint I2CBaudRate;
+#endif
+
 	enum class I2CTransactionFlags : uint16
 	{
 		Read      = 0x1,
@@ -116,15 +124,22 @@ namespace AL::Hardware
 
 	class I2CBus
 	{
-		Bool   isOpen = False;
+		Bool          isOpen = False;
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+		::i2c_inst_t* i2c;
+		GPIOPin       scl;
+		GPIOPin       sda;
+		I2CBaudRate   baud;
+#elif defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
-		int    fd;
+		int           fd;
 	#endif
 #endif
 
+#if !defined(AL_PLATFORM_PICO)
 		FileSystem::Path path;
+#endif
 
 		I2CBus(const I2CBus&) = delete;
 
@@ -133,20 +148,58 @@ namespace AL::Hardware
 			: isOpen(
 				bus.isOpen
 			),
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			i2c(
+				bus.i2c
+			),
+			scl(
+				bus.scl
+			),
+			sda(
+				bus.sda
+			),
+			baud(
+				bus.baud
+			)
+#elif defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
+			,
 			fd(
 				bus.fd
-			),
+			)
 	#endif
 #endif
+#if !defined(AL_PLATFORM_PICO)
+			,
 			path(
 				Move(path)
 			)
+#endif
 		{
 			bus.isOpen = False;
+
+#if defined(AL_PLATFORM_PICO)
+			bus.i2c = nullptr;
+#endif
 		}
 
+#if defined(AL_PLATFORM_PICO)
+		I2CBus(::i2c_inst_t* i2c, GPIOPin scl, GPIOPin sda, I2CBaudRate baud)
+			: i2c(
+				i2c
+			),
+			scl(
+				scl
+			),
+			sda(
+				sda
+			),
+			baud(
+				baud
+			)
+		{
+		}
+#else
 		explicit I2CBus(FileSystem::Path&& path)
 			: path(
 				Move(path)
@@ -159,6 +212,7 @@ namespace AL::Hardware
 			)
 		{
 		}
+#endif
 
 		virtual ~I2CBus()
 		{
@@ -174,10 +228,32 @@ namespace AL::Hardware
 			return isOpen;
 		}
 
+#if defined(AL_PLATFORM_PICO)
+		auto GetSCL() const
+		{
+			return scl;
+		}
+
+		auto GetSDA() const
+		{
+			return sda;
+		}
+
+		auto GetBaud() const
+		{
+			return baud;
+		}
+
+		auto GetHandle() const
+		{
+			return i2c;
+		}
+#elif defined(AL_PLATFORM_LINUX)
 		auto& GetPath() const
 		{
 			return path;
 		}
+#endif
 
 		// @throw AL::Exception
 		Void Open()
@@ -187,7 +263,30 @@ namespace AL::Hardware
 				"I2CBus already open"
 			);
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			::i2c_init(
+				GetHandle(),
+				GetBaud()
+			);
+
+			::gpio_set_function(
+				GetSDA(),
+				::GPIO_FUNC_I2C
+			);
+
+			::gpio_set_function(
+				GetSCL(),
+				::GPIO_FUNC_I2C
+			);
+
+			::gpio_pull_up(
+				GetSDA()
+			);
+
+			::gpio_pull_up(
+				GetSCL()
+			);
+#elif defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
 			if ((fd = ::open(GetPath().GetString().GetCString(), O_RDWR)) == -1)
 			{
@@ -212,7 +311,11 @@ namespace AL::Hardware
 		{
 			if (IsOpen())
 			{
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+				::i2c_deinit(
+					GetHandle()
+				);
+#elif defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
 				::close(
 					fd
@@ -247,7 +350,15 @@ namespace AL::Hardware
 				"I2CBus not open"
 			);
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			if (::i2c_read_blocking(GetHandle(), address, reinterpret_cast<::uint8_t*>(lpBuffer), size, false) == PICO_ERROR_GENERIC)
+			{
+
+				throw OS::SystemException(
+					"i2c_read_blocking"
+				);
+			}
+#elif defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
 			::i2c_msg i2c_message =
 			{
@@ -301,7 +412,15 @@ namespace AL::Hardware
 				"I2CBus not open"
 			);
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			if (::i2c_write_blocking(GetHandle(), address, reinterpret_cast<const ::uint8_t*>(lpBuffer), size, false) == PICO_ERROR_GENERIC)
+			{
+
+				throw OS::SystemException(
+					"i2c_write_blocking"
+				);
+			}
+#elif defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
 			::i2c_msg i2c_message =
 			{
@@ -357,7 +476,23 @@ namespace AL::Hardware
 				"I2CBus not open"
 			);
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			if (::i2c_write_blocking(GetHandle(), address, reinterpret_cast<const ::uint8_t*>(lpTX), txSize, true) == PICO_ERROR_GENERIC)
+			{
+
+				throw OS::SystemException(
+					"i2c_write_blocking"
+				);
+			}
+
+			if (::i2c_read_blocking(GetHandle(), address, reinterpret_cast<::uint8_t*>(lpRX), rxSize, false) == PICO_ERROR_GENERIC)
+			{
+
+				throw OS::SystemException(
+					"i2c_write_blocking"
+				);
+			}
+#elif defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
 			::i2c_msg i2c_messages[2] =
 			{
@@ -420,7 +555,61 @@ namespace AL::Hardware
 				"I2CBus not open"
 			);
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			for (size_t i = 0; i < count; ++i, ++lpTransactions)
+			{
+				if (lpTransactions->Flags.IsSet(I2CTransactionFlags::Stop))
+				{
+					// TODO: add support
+					throw NotImplementedException();
+				}
+
+				if (lpTransactions->Flags.IsSet(I2CTransactionFlags::TenBit))
+				{
+					// TODO: add support
+					throw NotImplementedException();
+				}
+
+				if (lpTransactions->Flags.IsSet(I2CTransactionFlags::NoStart))
+				{
+					// TODO: add support
+					throw NotImplementedException();
+				}
+
+				if (lpTransactions->Flags.IsSet(I2CTransactionFlags::NoReadACK))
+				{
+					// TODO: add support
+					throw NotImplementedException();
+				}
+
+				if (lpTransactions->Flags.IsSet(I2CTransactionFlags::IgnoreNAK))
+				{
+					// TODO: add support
+					throw NotImplementedException();
+				}
+
+				if (lpTransactions->Flags.IsSet(I2CTransactionFlags::Read))
+				{
+					if (::i2c_read_blocking(GetHandle(), lpTransactions->Address, reinterpret_cast<::uint8_t*>(lpTransactions->lpBuffer), lpTransactions->BufferSize, false) == PICO_ERROR_GENERIC)
+					{
+
+						throw OS::SystemException(
+							"i2c_read_blocking"
+						);
+					}
+				}
+				else
+				{
+					if (::i2c_write_blocking(GetHandle(), lpTransactions->Address, reinterpret_cast<const ::uint8_t*>(lpTransactions->lpBuffer), lpTransactions->BufferSize, false) == PICO_ERROR_GENERIC)
+					{
+
+						throw OS::SystemException(
+							"i2c_write_blocking"
+						);
+					}
+				}
+			}
+#elif defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
 			Collections::Array<::i2c_msg> i2c_messages(
 				count
@@ -508,26 +697,54 @@ namespace AL::Hardware
 			isOpen = bus.isOpen;
 			bus.isOpen = False;
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			i2c = bus.i2c;
+			bus.i2c = nullptr;
+
+			scl = bus.scl;
+			sda = bus.sda;
+#elif defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
 			fd = bus.fd;
 	#endif
 #endif
 
+#if !defined(AL_PLATFORM_PICO)
 			path = Move(
 				bus.path
 			);
+#endif
 
 			return *this;
 		}
 
 		Bool operator == (const I2CBus& bus) const
 		{
+#if defined(AL_PLATFORM_PICO)
+			if (GetSCL() != bus.GetSCL())
+			{
+
+				return False;
+			}
+
+			if (GetSDA() != bus.GetSDA())
+			{
+
+				return False;
+			}
+
+			if (GetHandle() != bus.GetHandle())
+			{
+
+				return False;
+			}
+#elif defined(AL_PLATFORM_LINUX)
 			if (GetPath() != bus.GetPath())
 			{
 
 				return False;
 			}
+#endif
 
 			return True;
 		}

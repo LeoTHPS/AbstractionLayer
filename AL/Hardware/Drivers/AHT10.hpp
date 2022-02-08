@@ -71,6 +71,26 @@ namespace AL::Hardware::Drivers
 		{
 		}
 
+#if defined(AL_PLATFORM_PICO)
+		AHT10(::i2c_inst_t* i2c, GPIOPin scl, GPIOPin sda, I2CBaudRate baud, I2CAddress address = DEVICE_ADDRESS)
+			: isBusAllocated(
+				True
+			),
+			lpBus(
+				new I2CBus(
+					i2c,
+					scl,
+					sda,
+					baud
+				)
+			),
+			device(
+				*lpBus,
+				address
+			)
+		{
+		}
+#else
 		AHT10(FileSystem::Path&& path, I2CAddress address = DEVICE_ADDRESS)
 			: isBusAllocated(
 				True
@@ -93,6 +113,7 @@ namespace AL::Hardware::Drivers
 			)
 		{
 		}
+#endif
 
 		virtual ~AHT10()
 		{

@@ -1,10 +1,13 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#include "AL/OS/Debug.hpp"
 #include "AL/OS/SystemException.hpp"
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+	#include <hardware/gpio.h>
+#elif defined(AL_PLATFORM_LINUX)
+	#include "AL/OS/Debug.hpp"
+
 	#if __has_include(<wiringPi.h>)
 		#define AL_DEPENDENCY_WIRINGPI
 
@@ -24,7 +27,9 @@
 
 namespace AL::Hardware
 {
+#if !defined(AL_PLATFORM_PICO)
 	typedef uint8 GPIOBus;
+#endif
 
 	// BCM format
 	typedef uint8 GPIOPin;
@@ -50,9 +55,11 @@ namespace AL::Hardware
 	{
 		Bool              isOpen = False;
 
+#if !defined(AL_PLATFORM_PICO)
 		GPIOBus           bus;
+#endif
 		GPIOPin           pin;
-		GPIOPinValue      value = 0;
+		GPIOPinValue      value     = 0;
 		GPIOPinDirections direction = GPIOPinDirections::Out;
 
 #if defined(AL_PLATFORM_LINUX)
@@ -71,9 +78,11 @@ namespace AL::Hardware
 			: isOpen(
 				gpio.isOpen
 			),
+#if !defined(AL_PLATFORM_PICO)
 			bus(
 				gpio.bus
 			),
+#endif
 			pin(
 				gpio.pin
 			),
@@ -102,6 +111,14 @@ namespace AL::Hardware
 			gpio.isOpen = False;
 		}
 
+#if defined(AL_PLATFORM_PICO)
+		GPIO(GPIOPin pin)
+			: pin(
+				pin
+			)
+		{
+		}
+#else
 		GPIO(GPIOBus bus, GPIOPin pin)
 			: bus(
 				bus
@@ -111,6 +128,7 @@ namespace AL::Hardware
 			)
 		{
 		}
+#endif
 
 		virtual ~GPIO()
 		{
@@ -126,10 +144,12 @@ namespace AL::Hardware
 			return isOpen;
 		}
 
+#if !defined(AL_PLATFORM_PICO)
 		auto GetBus() const
 		{
 			return bus;
 		}
+#endif
 
 		auto GetPin() const
 		{
@@ -149,7 +169,22 @@ namespace AL::Hardware
 				"GPIO already open"
 			);
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			::gpio_init(
+				GetPin()
+			);
+
+			switch (GetDirection())
+			{
+				case GPIOPinDirections::In:
+					SetDirection(GPIOPinDirections::In);
+					break;
+
+				case GPIOPinDirections::Out:
+					SetDirection(GPIOPinDirections::Out, value);
+					break;
+			}
+#elif defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_GPIOD)
 			if ((lpChip = ::gpiod_chip_open_by_number(static_cast<unsigned int>(GetBus()))) == nullptr)
 			{
@@ -189,12 +224,11 @@ namespace AL::Hardware
 			switch (GetDirection())
 			{
 				case GPIOPinDirections::In:
-					::pinMode(static_cast<int>(GetPin()), INPUT);
+					SetDirection(GPIOPinDirections::In, 0);
 					break;
 
 				case GPIOPinDirections::Out:
-					::pinMode(static_cast<int>(GetPin()), OUTPUT);
-					::digitalWrite(static_cast<int>(GetPin()), static_cast<int>(value));
+					SetDirection(GPIOPinDirections::Out, value);
 					break;
 			}
 	#else
@@ -218,7 +252,12 @@ namespace AL::Hardware
 		{
 			if (IsOpen())
 			{
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+				::gpio_set_dir(
+					GetPin(),
+					false
+				);
+#elif defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_GPIOD)
 				::gpiod_line_release(
 					lpLine
@@ -246,7 +285,9 @@ namespace AL::Hardware
 				"GPIO not open"
 			);
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			value = ::gpio_get(GetPin()) ? 1 : 0;
+#elif defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_GPIOD)
 			if ((value = ::gpiod_line_get_value(lpLine)) == GPIOPinValue(-1))
 			{
@@ -303,7 +344,12 @@ namespace AL::Hardware
 				"Invalid GPIO direction"
 			);
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			::gpio_put(
+				GetPin(),
+				value != 0
+			);
+#elif defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_GPIOD)
 			if (::gpiod_line_set_value(lpLine, static_cast<int>(value)) == -1)
 			{
@@ -365,7 +411,22 @@ namespace AL::Hardware
 				"GPIO not open"
 			);
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			switch (direction)
+			{
+				case GPIOPinDirections::In:
+					::gpio_set_dir(GetPin(), false);
+					break;
+
+				case GPIOPinDirections::Out:
+					::gpio_set_dir(GetPin(), true);
+					::gpio_put(GetPin(), value != 0);
+					break;
+
+				default:
+					throw NotImplementedException();
+			}
+#elif defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_GPIOD)
 			// TODO: remove this when libgpiod2 is released
 			{
@@ -463,7 +524,10 @@ namespace AL::Hardware
 				"GPIO not open"
 			);
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			// TODO: implement
+			throw NotImplementedException();
+#elif defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_GPIOD)
 			// TODO: remove this when libgpiod2 is released
 			{
@@ -576,7 +640,9 @@ namespace AL::Hardware
 			isOpen = gpio.isOpen;
 			gpio.isOpen = False;
 
+#if !defined(AL_PLATFORM_PICO)
 			bus = gpio.bus;
+#endif
 			pin = gpio.pin;
 			value = gpio.value;
 			direction = gpio.direction;
@@ -608,12 +674,14 @@ namespace AL::Hardware
 
 			if (IsOpen() && gpio.IsOpen())
 			{
+#if !defined(AL_PLATFORM_PICO)
 				if (GetBus() != gpio.GetBus())
 				{
 
 					return False;
 				}
-				
+#endif
+
 				if (GetPin() != gpio.GetPin())
 				{
 

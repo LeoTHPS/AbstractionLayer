@@ -34,6 +34,21 @@ namespace AL::Hardware::Drivers
 			mcp3008.isOpen = False;
 		}
 
+#if defined(AL_PLATFORM_PICO)
+		MCP3008(::spi_inst_t* spi, GPIOPin miso, GPIOPin mosi, GPIOPin sclk, GPIOPin cs, SPISpeed speed = DEFAULT_SPEED)
+			: device(
+				spi,
+				miso,
+				mosi,
+				sclk,
+				cs,
+				SPIModes::Zero,
+				speed,
+				8
+			)
+		{
+		}
+#else
 		MCP3008(FileSystem::Path&& path, SPISpeed speed = DEFAULT_SPEED)
 			: device(
 				Move(path),
@@ -50,6 +65,7 @@ namespace AL::Hardware::Drivers
 			)
 		{
 		}
+#endif
 
 		virtual ~MCP3008()
 		{

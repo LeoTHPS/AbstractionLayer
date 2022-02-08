@@ -26,6 +26,18 @@ namespace AL::Hardware::Drivers
 			bn180.isOpen = False;
 		}
 
+#if defined(AL_PLATFORM_PICO)
+		BN_180(::uart_inst_t* uart, GPIOPin rx, GPIOPin tx)
+			: device(
+				uart,
+				rx,
+				tx,
+				UARTDeviceSpeeds::Baud_9600,
+				UARTDeviceFlags::None
+			)
+		{
+		}
+#else
 		explicit BN_180(FileSystem::Path&& path)
 			: device(
 				Move(path),
@@ -40,6 +52,7 @@ namespace AL::Hardware::Drivers
 			)
 		{
 		}
+#endif
 
 		virtual ~BN_180()
 		{
