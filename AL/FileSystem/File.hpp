@@ -8,7 +8,9 @@
 
 #include <cstdio>
 
-#if defined(AL_PLATFOMR_LINUX)
+#if defined(AL_PLATFORM_PICO)
+	#error Platform not supported
+#elif defined(AL_PLATFORM_LINUX)
 	#include <fcntl.h>
 	#include <unistd.h>
 

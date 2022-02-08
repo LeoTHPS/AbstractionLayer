@@ -15,7 +15,9 @@
 	#error Compiler not supported
 #endif
 
-#if defined(__linux__)
+#if defined(AL_PLATFORM_PICO)
+	#define AL_PLATFORM_PICO_RP2040
+#elif defined(__linux__)
 	#define AL_PLATFORM_LINUX
 #elif defined(_WIN32) || defined(_WIN64)
 	#define AL_PLATFORM_WINDOWS
@@ -211,7 +213,11 @@
 #include "Common/BaseConverter.hpp"
 #include "Common/HexConverter.hpp"
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+	#include <pico.h>
+
+	#include <pico/time.h> // sleep_us/
+#elif defined(AL_PLATFORM_LINUX)
 	#include <time.h> // timespec/timespec_get
 	#include <unistd.h> // usleep
 #elif defined(AL_PLATFORM_WINDOWS)
@@ -263,7 +269,9 @@
 
 namespace AL
 {
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+	typedef int(Main)();
+#elif defined(AL_PLATFORM_LINUX)
 	typedef int(Main)(int argc, char* argv[]);
 #elif defined(AL_PLATFORM_WINDOWS)
 	typedef int(WINAPIV Main)(int argc, char* argv[], char* envp[]);
@@ -275,7 +283,11 @@ namespace AL
 
 	inline Void Spin(TimeSpan duration)
 	{
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+		::busy_wait_us(
+			duration.ToMicroseconds()
+		);
+#elif defined(AL_PLATFORM_LINUX)
 		auto duration_Microseconds = duration.ToMicroseconds();
 
 		uint64 start_Microseconds;
@@ -340,7 +352,11 @@ namespace AL
 
 	inline Void Sleep(TimeSpan duration)
 	{
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+		::sleep_us(
+			duration.ToMicroseconds()
+		);
+#elif defined(AL_PLATFORM_LINUX)
 		::usleep(
 			static_cast<::__useconds_t>(duration.ToMicroseconds())
 		);

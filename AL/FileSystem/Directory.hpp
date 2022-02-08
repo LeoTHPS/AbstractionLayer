@@ -7,7 +7,9 @@
 #include "AL/OS/ErrorCode.hpp"
 #include "AL/OS/SystemException.hpp"
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+	#error Platform not supported
+#elif defined(AL_PLATFORM_LINUX)
 	#include <fcntl.h>
 	#include <dirent.h>
 
