@@ -33,7 +33,7 @@ static void AL_Lua543_do_the_thing()
 static void AL_Lua543()
 {
 	using namespace AL;
-	using namespace AL::API::Lua543;
+	using namespace AL::Lua543;
 
 	AL_Lua543_State.Create();
 
