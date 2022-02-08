@@ -35,7 +35,9 @@ namespace AL::Serialization
 	template<>
 	struct Get_Text_Line_Ending<String, TextLineEndings::Auto>
 	{
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+		static constexpr String::Char Value[] = "\n";
+#elif defined(AL_PLATFORM_LINUX)
 		static constexpr String::Char Value[] = "\n";
 #elif defined(AL_PLATFORM_WINDOWS)
 		static constexpr String::Char Value[] = "\r\n";
@@ -44,7 +46,9 @@ namespace AL::Serialization
 	template<>
 	struct Get_Text_Line_Ending<WString, TextLineEndings::Auto>
 	{
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+		static constexpr WString::Char Value[] = L"\n";
+#elif defined(AL_PLATFORM_LINUX)
 		static constexpr WString::Char Value[] = L"\n";
 #elif defined(AL_PLATFORM_WINDOWS)
 		static constexpr WString::Char Value[] = L"\r\n";
