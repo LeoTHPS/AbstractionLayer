@@ -3,7 +3,9 @@
 
 #include "Mutex.hpp"
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+	#error Platform not supported
+#elif defined(AL_PLATFORM_LINUX)
 	#include <cstdio>
 #endif
 

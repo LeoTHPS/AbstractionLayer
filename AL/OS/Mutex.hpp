@@ -1,7 +1,9 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+	#include <pico/mutex.h>
+#elif defined(AL_PLATFORM_LINUX)
 	#include <mutex>
 #endif
 
@@ -13,7 +15,9 @@ namespace AL::OS
 		Mutex(const Mutex&) = delete;
 
 	public:
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+		typedef ::mutex_t          Type;
+#elif defined(AL_PLATFORM_LINUX)
 		typedef ::std::mutex       Type;
 #elif defined(AL_PLATFORM_WINDOWS)
 		typedef ::CRITICAL_SECTION Type;
@@ -21,7 +25,11 @@ namespace AL::OS
 
 		Mutex()
 		{
-#if defined(AL_PLATFORM_WINDOWS)
+#if defined(AL_PLATFORM_PICO)
+			::mutex_init(
+				&mutex
+			);
+#elif defined(AL_PLATFORM_WINDOWS)
 			::InitializeCriticalSection(
 				&mutex
 			);
@@ -39,7 +47,11 @@ namespace AL::OS
 
 		Void Lock()
 		{
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			::mutex_enter_blocking(
+				&mutex
+			);
+#elif defined(AL_PLATFORM_LINUX)
 			mutex.lock();
 #elif defined(AL_PLATFORM_WINDOWS)
 			::EnterCriticalSection(
@@ -50,7 +62,11 @@ namespace AL::OS
 
 		Void Unlock()
 		{
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			::mutex_exit(
+				&mutex
+			);
+#elif defined(AL_PLATFORM_LINUX)
 			mutex.unlock();
 #elif defined(AL_PLATFORM_WINDOWS)
 			::LeaveCriticalSection(

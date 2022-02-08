@@ -6,7 +6,9 @@
 #include "AL/Collections/Array.hpp"
 #include "AL/Collections/UnorderedSet.hpp"
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+	#include <time.h>
+#elif defined(AL_PLATFORM_LINUX)
 	#include <time.h>
 	#include <unistd.h>
 
@@ -24,7 +26,7 @@ namespace AL::OS
 	public:
 		static int8 GetTimezone()
 		{
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO) || defined(AL_PLATFORM_LINUX)
 			auto time = ::time(
 				NULL
 			);
@@ -59,7 +61,7 @@ namespace AL::OS
 		{
 			DateTime dateTime;
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO) || defined(AL_PLATFORM_LINUX)
 			auto time = ::time(
 				NULL
 			);
@@ -130,7 +132,7 @@ namespace AL::OS
 
 		static Timestamp GetTimestamp()
 		{
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO) || defined(AL_PLATFORM_LINUX)
 			return Timestamp::FromSeconds(
 				static_cast<uint64>(::time(NULL))
 			);
@@ -150,7 +152,10 @@ namespace AL::OS
 
 		static auto GetPageSize()
 		{
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			// TODO: implement
+			throw NotImplementedException();
+#elif defined(AL_PLATFORM_LINUX)
 			return static_cast<size_t>(
 				::sysconf(_SC_PAGESIZE)
 			);
@@ -166,7 +171,10 @@ namespace AL::OS
 
 		static auto GetMinimumAddress()
 		{
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			// TODO: implement
+			throw NotImplementedException();
+#elif defined(AL_PLATFORM_LINUX)
 			// TODO: implement
 			throw NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
@@ -181,7 +189,10 @@ namespace AL::OS
 
 		static auto GetMaximumAddress()
 		{
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			// TODO: implement
+			throw NotImplementedException();
+#elif defined(AL_PLATFORM_LINUX)
 			// TODO: implement
 			throw NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
@@ -196,7 +207,9 @@ namespace AL::OS
 
 		static size_t GetProcessorCount()
 		{
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			return 2;
+#elif defined(AL_PLATFORM_LINUX)
 			return static_cast<size_t>(
 				::get_nprocs()
 			);
@@ -215,7 +228,10 @@ namespace AL::OS
 		{
 			size_t count = 0;
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			// TODO: implement
+			throw NotImplementedException();
+#elif defined(AL_PLATFORM_LINUX)
 			// TODO: fix. cache 4 is returning != -1 when it doesn't exist
 
 			if (::sysconf(_SC_LEVEL1_DCACHE_SIZE) != -1)
@@ -272,7 +288,10 @@ namespace AL::OS
 		{
 			size_t size = 0;
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			// TODO: implement
+			throw NotImplementedException();
+#elif defined(AL_PLATFORM_LINUX)
 			switch (cacheLevel)
 			{
 				case 0:
@@ -326,7 +345,10 @@ namespace AL::OS
 		{
 			size_t lineSize = 0;
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			// TODO: implement
+			throw NotImplementedException();
+#elif defined(AL_PLATFORM_LINUX)
 			switch (cacheLevel)
 			{
 				case 0:

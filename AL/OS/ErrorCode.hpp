@@ -7,7 +7,9 @@
 
 namespace AL::OS
 {
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+	typedef uint8                                                                                                ErrorCode;
+#elif defined(AL_PLATFORM_LINUX)
 	typedef typename Get_Enum_Or_Integer_Base<typename Remove_Modifiers<decltype(errno)>::Type>::Type            ErrorCode;
 #elif defined(AL_PLATFORM_WINDOWS)
 	typedef typename Get_Enum_Or_Integer_Base<typename Remove_Modifiers<decltype(::GetLastError())>::Type>::Type ErrorCode;
@@ -15,7 +17,9 @@ namespace AL::OS
 
 	inline ErrorCode GetLastError()
 	{
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+		return 0;
+#elif defined(AL_PLATFORM_LINUX)
 		return static_cast<ErrorCode>(
 			errno
 		);		
@@ -28,7 +32,11 @@ namespace AL::OS
 
 	inline String GetErrorString(ErrorCode errorCode)
 	{
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+		return ToString(
+			errorCode
+		);
+#elif defined(AL_PLATFORM_LINUX)
 		typedef typename Remove_Modifiers<decltype(errno)>::Type Base;
 
 		auto lpString = ::strerror(

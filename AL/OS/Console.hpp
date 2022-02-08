@@ -4,7 +4,9 @@
 #include "Mutex.hpp"
 #include "SystemException.hpp"
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+	#include <pico/stdio.h>
+#elif defined(AL_PLATFORM_LINUX)
 	#include <cstdio>
 
 	#include <unistd.h>
@@ -31,17 +33,13 @@ namespace AL::OS
 		}
 		static Bool SetTitle(const String::Char* value)
 		{
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO) || defined(AL_PLATFORM_LINUX)
 			auto _value = String::Format(
 				"\033]0;%s\007",
 				value
 			);
 
-			MutexGuard lock(
-				mutex
-			);
-
-			if (::write(STDOUT_FILENO, _value.GetCString(), _value.GetSize()) == -1)
+			if (!Write(_value))
 			{
 
 				return False;
@@ -63,14 +61,10 @@ namespace AL::OS
 
 		static Bool Clear()
 		{
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO) || defined(AL_PLATFORM_LINUX)
 			static constexpr String::Char VALUE[] = "\033[H\033[J";
 
-			MutexGuard lock(
-				mutex
-			);
-
-			if (::write(STDOUT_FILENO, VALUE, sizeof(VALUE)) == -1)
+			if (!Write(VALUE))
 			{
 
 				return False;
@@ -119,7 +113,13 @@ namespace AL::OS
 				mutex
 			);
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			value = static_cast<typename String::Char>(
+				::getchar()
+			);
+
+			return True;
+#elif defined(AL_PLATFORM_LINUX)
 			if (::read(STDIN_FILENO, &value, sizeof(String::Char)) == -1)
 			{
 
@@ -162,19 +162,29 @@ namespace AL::OS
 
 			do
 			{
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+				c = static_cast<typename String::Char>(
+					::getchar()
+				);
+#elif defined(AL_PLATFORM_LINUX)
 				if (::read(STDIN_FILENO, &c, sizeof(String::Char)) == -1)
-#elif defined(AL_PLATFORM_WINDOWS)
-				if (::ReadConsoleA(hInput, &c, 1, &numberOfCharsRead, nullptr) == 0)
-#endif
 				{
 
 					return False;
 				}
-
-				if (c != '\n')
+#elif defined(AL_PLATFORM_WINDOWS)
+				if (::ReadConsoleA(hInput, &c, 1, &numberOfCharsRead, nullptr) == 0)
 				{
 
+					return False;
+				}
+#endif
+
+				if (c == '\r')
+				{
+				}
+				else if (c != '\n')
+				{
 					value.Append(
 						c
 					);
@@ -218,7 +228,9 @@ namespace AL::OS
 				Forward<TArgs>(args) ...
 			);
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			size_t numberOfCharsWritten = 1;
+#elif defined(AL_PLATFORM_LINUX)
 			::ssize_t numberOfCharsWritten;
 #elif defined(AL_PLATFORM_WINDOWS)
 			auto hOutput = ::GetStdHandle(
@@ -234,7 +246,11 @@ namespace AL::OS
 
 			for (size_t totalCharsWritten = 0; totalCharsWritten < string.GetLength(); )
 			{
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+				::putchar(
+					static_cast<int>(string[totalCharsWritten])
+				);
+#elif defined(AL_PLATFORM_LINUX)
 				if ((numberOfCharsWritten = ::write(STDOUT_FILENO, &string[totalCharsWritten], string.GetLength() - totalCharsWritten)) == -1)
 				{
 

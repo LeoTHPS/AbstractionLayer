@@ -5,3 +5,4 @@
 *.o
 /Test/Test
 /Test/Test.exe
+/Test.Pico/Build/

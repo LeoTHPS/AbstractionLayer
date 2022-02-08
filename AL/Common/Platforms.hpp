@@ -19,9 +19,10 @@ namespace AL
 		MSVC       = 0x200,
 		Clang      = 0x400,
 
-		Linux      = 0x1000,
-		MinGW      = 0x2000,
-		Windows    = 0x4000,
+		Pico       = 0x1000,
+		Linux      = 0x2000,
+		MinGW      = 0x4000,
+		Windows    = 0x8000,
 
 		Machine    =
 
@@ -29,7 +30,9 @@ namespace AL
 		Debug |
 #endif
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+		Pico |
+#elif defined(AL_PLATFORM_LINUX)
 		Linux |
 #elif defined(AL_PLATFORM_WINDOWS)
 		Windows |
