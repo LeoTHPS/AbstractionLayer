@@ -11,14 +11,25 @@ static void AL_Serialization_CSV()
 	using namespace AL;
 	using namespace AL::Serialization;
 
-	CSV<String, String> csv;
-	csv.Add("hello", "world");
+	CSV<String, String, String> csv;
+	csv.Add("hello", "world", "1,2,3,4");
 
-	auto x = csv.ToString();
+	auto temp = csv.ToString();
 
 #if defined(AL_TEST_SHOW_CONSOLE_OUTPUT)
 	OS::Console::WriteLine(
-		x
+		temp
+	);
+#endif
+
+	decltype(csv)::FromString(
+		csv,
+		temp
+	);
+
+#if defined(AL_TEST_SHOW_CONSOLE_OUTPUT)
+	OS::Console::WriteLine(
+		csv.ToString()
 	);
 #endif
 }
