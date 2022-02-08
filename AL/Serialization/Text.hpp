@@ -92,19 +92,13 @@ namespace AL::Serialization
 
 		Text(String&& string)
 			: string(
-				WString::Format(
-					L"%S",
-					string.GetCString()
-				)
+				string.ToWString()
 			)
 		{
 		}
 		Text(const String& string)
 			: string(
-				WString::Format(
-					L"%S",
-					string.GetCString()
-				)
+				string.ToWString()
 			)
 		{
 		}
@@ -171,10 +165,7 @@ namespace AL::Serialization
 			}
 
 			value.Assign(
-				String::Format(
-					"%S",
-					_value.GetCString()
-				)
+				_value.ToString()
 			);
 
 			return True;
@@ -274,10 +265,7 @@ namespace AL::Serialization
 			}
 
 			value.Assign(
-				String::Format(
-					"%S",
-					_value.GetCString()
-				)
+				_value.ToString()
 			);
 
 			return True;
@@ -316,10 +304,7 @@ namespace AL::Serialization
 			}
 
 			value.Assign(
-				String::Format(
-					"%S",
-					_value.GetCString()
-				)
+				_value.ToString()
 			);
 
 			return True;
@@ -357,7 +342,7 @@ namespace AL::Serialization
 						value.Assign(
 							string.SubString(
 								stringReadOffset,
-								stringReadOffset - i
+								i - stringReadOffset
 							)
 						);
 
@@ -388,7 +373,7 @@ namespace AL::Serialization
 						value.Assign(
 							string.SubString(
 								stringReadOffset,
-								stringReadOffset - i
+								i - stringReadOffset
 							)
 						);
 
@@ -419,7 +404,7 @@ namespace AL::Serialization
 						value.Assign(
 							string.SubString(
 								stringReadOffset,
-								stringReadOffset - i
+								i - stringReadOffset
 							)
 						);
 
@@ -465,10 +450,7 @@ namespace AL::Serialization
 				length
 			);
 
-			auto value = WString::Format(
-				L"%S",
-				string.GetCString()
-			);
+			auto value = string.ToWString();
 
 			Write(
 				value
@@ -613,10 +595,9 @@ namespace AL::Serialization
 
 		String  ToString() const
 		{
-			return String::Format(
-				"%S",
-				string.GetCString()
-			);
+			auto value = ToWString().ToString();
+
+			return value;
 		}
 		WString ToWString() const
 		{
@@ -647,10 +628,7 @@ namespace AL::Serialization
 		Text& operator = (String&& string)
 		{
 			this->string.Assign(
-				WString::Format(
-					L"%S",
-					string.GetCString()
-				)
+				string.ToWString()
 			);
 
 			stringReadOffset = 0;
@@ -660,10 +638,7 @@ namespace AL::Serialization
 		Text& operator = (const String& string)
 		{
 			this->string.Assign(
-				WString::Format(
-					L"%S",
-					string.GetCString()
-				)
+				string.ToWString()
 			);
 
 			stringReadOffset = 0;
