@@ -23,10 +23,7 @@ namespace AL::Serialization
 		// @throw AL::Exception
 		static Void FromString(CSV& csv, const String& value, size_t lineSkip = 0)
 		{
-			auto _value = WString::Format(
-				L"%S",
-				value.GetCString()
-			);
+			auto _value = value.ToWString();
 
 			FromString(
 				csv,
@@ -65,24 +62,72 @@ namespace AL::Serialization
 			);
 
 			{
-				size_t i = 0;
+				auto it = lines.cbegin();
 
-				for (auto& line : lines)
+				for (size_t i = 0; i < lines.GetSize(); ++i, ++it)
 				{
-					auto lineChunks = line.Split(
-						L','
+					auto& line       = *it;
+					auto  lineLength = line.GetLength();
+
+					Collections::Array<WString> lineChunks(
+						sizeof ...(T_VALUES)
 					);
 
-					if (lineChunks.GetSize() != sizeof ...(T_VALUES))
+					size_t lineChunksCount = 0;
+
+					for (size_t lineOffset = 0; lineOffset < lineLength; )
+					{
+						if (line[lineOffset] == L'"')
+						{
+							size_t lineOffsetEndOfChunk;
+
+							if ((lineOffsetEndOfChunk = line.IndexOfAt(L'"', lineOffset + 1)) == WString::NPOS)
+							{
+
+								throw Exception(
+									"No terminating quote on line %s [Chunk: %s, Offset: %s]",
+									AL::ToString(lineSkip + i).GetCString(),
+									AL::ToString(lineChunksCount).GetCString(),
+									AL::ToString(lineOffset).GetCString()
+								);
+							}
+
+							lineChunks[lineChunksCount++] = line.SubString(
+								lineOffset + 1,
+								lineOffsetEndOfChunk - (lineOffset + 1)
+							);
+
+							lineOffset = lineOffsetEndOfChunk + 2;
+
+							continue;
+						}
+
+						size_t lineOffsetEndOfChunk;
+
+						if ((lineOffsetEndOfChunk = line.IndexOfAt(L',', lineOffset)) == WString::NPOS)
+						{
+
+							lineOffsetEndOfChunk = lineLength;
+						}
+
+						lineChunks[lineChunksCount++] = line.SubString(
+							lineOffset,
+							lineOffsetEndOfChunk - lineOffset
+						);
+
+						lineOffset = lineOffsetEndOfChunk + 1;
+					}
+
+					if (lineChunksCount != lineChunks.GetCapacity())
 					{
 
 						throw Exception(
 							"Invalid chunk count at line %s",
-							ToString(lineSkip + i).GetCString()
+							AL::ToString(lineSkip + i).GetCString()
 						);
 					}
 
-					container[i++] = FromString_LineChunksToContainer(
+					container[i] = FromString_LineChunksToContainer(
 						lineChunks
 					);
 				}
@@ -158,10 +203,7 @@ namespace AL::Serialization
 
 		String  ToString() const
 		{
-			auto value = String::Format(
-				"%S",
-				ToWString().GetCString()
-			);
+			auto value = ToWString().ToString();
 
 			return value;
 		}
@@ -233,14 +275,24 @@ namespace AL::Serialization
 
 			if constexpr (Is_Type<String, typename Get_Value_Type<I>::Type>::Value)
 			{
+				auto _value = String::Format(
+					"\"%s\"",
+					container.template Get<I>().GetCString()
+				);
+
 				value.Append(
-					container.template Get<I>().ToWString()
+					_value.ToWString()
 				);
 			}
 			else if constexpr (Is_Type<WString, typename Get_Value_Type<I>::Type>::Value)
 			{
+				auto _value = WString::Format(
+					L"\"%s\"",
+					container.template Get<I>().GetCString()
+				);
+
 				value.Append(
-					container.template Get<I>()
+					_value
 				);
 			}
 			else
@@ -282,7 +334,7 @@ namespace AL::Serialization
 			else if constexpr (Is_Type<WString, typename Get_Value_Type<I>::Type>::Value)
 			{
 				value.template Set<I>(
-					chunks[I]
+					Move(chunks[I])
 				);
 			}
 			else
