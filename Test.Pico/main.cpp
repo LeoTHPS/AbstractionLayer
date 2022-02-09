@@ -20,8 +20,37 @@
 #include <AL/Hardware/Drivers/RFM69HCW.hpp>
 #include <AL/Hardware/Drivers/Stepper_28BYJ_48.hpp>
 
+#include <pico.h>
+
+#include <boards/pico.h>
+
 int main()
 {
+	AL::OS::Pico::Stdio::Init();
+
+	AL::Hardware::GPIO pin(
+		PICO_DEFAULT_LED_PIN
+	);
+
+	pin.Open();
+
+	AL::OS::Timer timer;
+
+	do
+	{
+		timer.Reset();
+
+		pin.Write(AL::Hardware::GPIOPinValues::High);
+		AL::Sleep(AL::TimeSpan::FromMilliseconds(100));
+		pin.Write(AL::Hardware::GPIOPinValues::Low);
+
+		while (timer.GetElapsed() < AL::TimeSpan::FromSeconds(1))
+		{
+			tight_loop_contents();
+		}
+	} while (true);
+
+	pin.Close();
 
 	return 0;
 }
