@@ -621,10 +621,11 @@ namespace AL::Hardware::Drivers
 	{
 		enum _FRAME_HEADER_FLAGS : uint8
 		{
-			_FRAME_HEADER_FLAG_NONE        = 0x00,
+			_FRAME_HEADER_FLAG_NONE             = 0x00,
 
-			_FRAME_HEADER_FLAG_ACK         = 0x01,
-			_FRAME_HEADER_FLAG_REQUIRE_ACK = 0x02
+			_FRAME_HEADER_FLAG_ACK              = 0x01,
+			_FRAME_HEADER_FLAG_REQUIRE_ACK      = 0x02,
+			_FRAME_HEADER_FLAG_EXTENDED_PAYLOAD = 0x04
 		};
 
 	#pragma pack(push, 1)
@@ -1193,7 +1194,7 @@ namespace AL::Hardware::Drivers
 		try_rx_once:
 			try
 			{
-				numberOfBytesReceived = RX_Once(
+				numberOfBytesReceived = RX_Frames(
 					source,
 					lpBuffer,
 					size,
@@ -1205,7 +1206,7 @@ namespace AL::Hardware::Drivers
 
 				throw Exception(
 					Move(exception),
-					"Error reading frame"
+					"Error reading frames"
 				);
 			}
 
@@ -1260,6 +1261,7 @@ namespace AL::Hardware::Drivers
 			return numberOfBytesReceived;
 		}
 		// @throw AL::Exception
+		// @return 0 on timeout
 		// @return number of bytes received
 		size_t RX(NetworkAddress& source, Void* lpBuffer, size_t size, TimeSpan timeout)
 		{
@@ -1285,7 +1287,7 @@ namespace AL::Hardware::Drivers
 
 			try
 			{
-				numberOfBytesReceived = RX_Once(
+				numberOfBytesReceived = RX_Frames(
 					source,
 					lpBuffer,
 					size,
@@ -1297,7 +1299,7 @@ namespace AL::Hardware::Drivers
 
 				throw Exception(
 					Move(exception),
-					"Error receiving _FrameHeader"
+					"Error receiving frames"
 				);
 			}
 
@@ -1331,6 +1333,7 @@ namespace AL::Hardware::Drivers
 			return numberOfBytesTransmitted;
 		}
 		// @throw AL::Exception
+		// @return 0 on timeout
 		// @return number of bytes transmitted
 		size_t TX(NetworkAddress destination, const Void* lpBuffer, size_t size, TimeSpan timeout)
 		{
@@ -1338,16 +1341,6 @@ namespace AL::Hardware::Drivers
 				IsOpen(),
 				"RFM69HCW not open"
 			);
-
-			size_t maxSize;
-
-			if (size > (maxSize = (IsEncryptionEnabled() ? PACKET_SIZE_MAXIMUM_AES : PACKET_SIZE_MAXIMUM)))
-			{
-
-				size = maxSize;
-			}
-
-			size_t numberOfBytesTransmitted;
 
 			try
 			{
@@ -1362,9 +1355,11 @@ namespace AL::Hardware::Drivers
 				);
 			}
 
+			size_t numberOfBytesTransmitted;
+
 			try
 			{
-				numberOfBytesTransmitted = TX_Once(
+				numberOfBytesTransmitted = TX_Frames(
 					destination,
 					lpBuffer,
 					size,
@@ -1383,7 +1378,7 @@ namespace AL::Hardware::Drivers
 
 				throw Exception(
 					Move(exception),
-					"Error writing frame"
+					"Error writing frames"
 				);
 			}
 
@@ -1557,7 +1552,8 @@ namespace AL::Hardware::Drivers
 		}
 
 		// @throw AL::Exception
-		Bool RX_Once(_FrameHeader& header, Void* lpPayload, size_t payloadCapacity, TimeSpan timeout)
+		// @return False on timeout
+		Bool RX_Frame(_FrameHeader& header, Void* lpPayload, size_t payloadCapacity, TimeSpan timeout)
 		{
 			Bool isPayloadReady;
 
@@ -1706,7 +1702,7 @@ namespace AL::Hardware::Drivers
 
 				try
 				{
-					TX_Once(
+					TX_Frame(
 						ackHeader,
 						nullptr,
 						0,
@@ -1747,19 +1743,48 @@ namespace AL::Hardware::Drivers
 		}
 		// @throw AL::Exception
 		// @return number of bytes received
-		size_t RX_Once(NetworkAddress& source, Void* lpPayload, size_t payloadCapacity, TimeSpan timeout)
+		size_t RX_Frame(NetworkAddress& source, Void* lpPayload, size_t payloadCapacity, TimeSpan timeout, Bool& isExtendedPayload)
 		{
 			_FrameHeader header;
 
-			if (!RX_Once(header, lpPayload, payloadCapacity, timeout))
+			if (!RX_Frame(header, lpPayload, payloadCapacity, timeout))
 			{
 
 				return 0;
 			}
 
-			source = header.Source;
+			source            = header.Source;
+			isExtendedPayload = (header.Flags & _FRAME_HEADER_FLAG_EXTENDED_PAYLOAD) == _FRAME_HEADER_FLAG_EXTENDED_PAYLOAD;
 
 			return header.Size - 3;
+		}
+
+		// @throw AL::Exception
+		// @return 0 on timeout
+		// @return number of bytes received
+		size_t RX_Frames(NetworkAddress& source, Void* lpPayload, size_t payloadCapacity, TimeSpan timeout)
+		{
+			Bool   isExtendedPayload;
+			size_t totalBytesReceived = 0;
+			size_t numberOfBytesReceived;
+
+			auto lpPayloadBuffer = reinterpret_cast<uint8*>(
+				lpPayload
+			);
+
+			do
+			{
+				if ((numberOfBytesReceived = RX_Frame(source, lpPayloadBuffer, payloadCapacity - totalBytesReceived, timeout, isExtendedPayload)) == 0)
+				{
+
+					return 0;
+				}
+
+				lpPayloadBuffer    += numberOfBytesReceived;
+				totalBytesReceived += numberOfBytesReceived;
+			} while (isExtendedPayload);
+
+			return totalBytesReceived;
 		}
 
 		// @throw AL::Exception
@@ -1785,8 +1810,9 @@ namespace AL::Hardware::Drivers
 		}
 
 		// @throw AL::Exception
+		// @return 0 on timeout
 		// @return number of bytes transmitted
-		size_t TX_Once(const _FrameHeader& header, const Void* lpPayload, size_t payloadSize, TimeSpan timeout)
+		size_t TX_Frame(const _FrameHeader& header, const Void* lpPayload, size_t payloadSize, TimeSpan timeout)
 		{
 			try
 			{
@@ -1902,7 +1928,7 @@ namespace AL::Hardware::Drivers
 
 				try
 				{
-					isAckHeaderReceived = RX_Once(
+					isAckHeaderReceived = RX_Frame(
 						ackHeader,
 						nullptr,
 						0,
@@ -1948,18 +1974,31 @@ namespace AL::Hardware::Drivers
 			return payloadSize;
 		}
 		// @throw AL::Exception
+		// @return 0 on timeout
 		// @return number of bytes transmitted
-		size_t TX_Once(NetworkAddress destination, const Void* lpPayload, size_t payloadSize, TimeSpan timeout)
+		size_t TX_Frame(NetworkAddress destination, const Void* lpPayload, size_t payloadSize, TimeSpan timeout)
 		{
+			size_t maxPayloadSize;
+			Bool   isExtendedPayload = False;
+
+			if (payloadSize > (maxPayloadSize = (IsEncryptionEnabled() ? PACKET_SIZE_MAXIMUM_AES : PACKET_SIZE_MAXIMUM)))
+			{
+
+				payloadSize = maxPayloadSize;
+			}
+
 			_FrameHeader header =
 			{
 				.Size        = static_cast<decltype(_FrameHeader::Size)>(3 + payloadSize),
 				.Destination = destination,
 				.Source      = GetNetworkAddress(),
-				.Flags       = (timeout == TimeSpan::Zero) ? _FRAME_HEADER_FLAG_NONE : _FRAME_HEADER_FLAG_REQUIRE_ACK
+				.Flags       = _FRAME_HEADER_FLAGS(
+					(isExtendedPayload ? _FRAME_HEADER_FLAG_EXTENDED_PAYLOAD : _FRAME_HEADER_FLAG_NONE) |
+					((timeout == TimeSpan::Zero) ? _FRAME_HEADER_FLAG_NONE : _FRAME_HEADER_FLAG_REQUIRE_ACK)
+				)
 			};
 
-			auto numberOfBytesTransmitted = TX_Once(
+			auto numberOfBytesTransmitted = TX_Frame(
 				header,
 				lpPayload,
 				payloadSize,
@@ -1967,6 +2006,33 @@ namespace AL::Hardware::Drivers
 			);
 
 			return numberOfBytesTransmitted;
+		}
+
+		// @throw AL::Exception
+		// @return 0 on timeout
+		// @return number of bytes transmitted
+		size_t TX_Frames(NetworkAddress destination, const Void* lpPayload, size_t payloadSize, TimeSpan timeout)
+		{
+			size_t totalBytesTransmitted = 0;
+			size_t numberOfBytesTransmitted;
+
+			auto lpPayloadBuffer = reinterpret_cast<const uint8*>(
+				lpPayload
+			);
+
+			do
+			{
+				if ((numberOfBytesTransmitted = TX_Frame(destination, lpPayloadBuffer, payloadSize - totalBytesTransmitted, timeout)) == 0)
+				{
+
+					return 0;
+				}
+
+				lpPayloadBuffer       += numberOfBytesTransmitted;
+				totalBytesTransmitted += numberOfBytesTransmitted;
+			} while (totalBytesTransmitted != payloadSize);
+
+			return totalBytesTransmitted;
 		}
 
 	private:
