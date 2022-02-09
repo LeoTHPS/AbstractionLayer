@@ -255,6 +255,11 @@ namespace AL::Hardware
 #if defined(AL_PLATFORM_PICO)
 				::gpio_set_dir(
 					GetPin(),
+					true
+				);
+
+				::gpio_put(
+					GetPin(),
 					false
 				);
 #elif defined(AL_PLATFORM_LINUX)
