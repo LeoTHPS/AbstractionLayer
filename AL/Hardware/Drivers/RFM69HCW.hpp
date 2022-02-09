@@ -738,9 +738,6 @@ namespace AL::Hardware::Drivers
 
 		static constexpr Double _FREQUENCY_STEP          = 61.03515625;
 
-		static constexpr size_t _PACKET_SIZE_MAXIMUM     = 255 - sizeof(_FrameHeader);
-		static constexpr size_t _PACKET_SIZE_MAXIMUM_AES = 64 - sizeof(_FrameHeader);
-
 		Bool                     isLnaEnabled        = False;
 		Bool                     isEncryptionEnabled = False;
 
@@ -779,7 +776,10 @@ namespace AL::Hardware::Drivers
 
 		typedef RFM69HCWRXCallback       RXCallback;
 
-		static constexpr SPISpeed DEFAULT_SPEED = 10000000;
+		static constexpr SPISpeed DEFAULT_SPEED           = 10000000;
+
+		static constexpr size_t   PACKET_SIZE_MAXIMUM     = 255 - sizeof(_FrameHeader);
+		static constexpr size_t   PACKET_SIZE_MAXIMUM_AES = 64 - sizeof(_FrameHeader);
 
 		RFM69HCW(RFM69HCW&& rfm69hcw)
 			: isLnaEnabled(
@@ -1341,7 +1341,7 @@ namespace AL::Hardware::Drivers
 
 			size_t maxSize;
 
-			if (size > (maxSize = (IsEncryptionEnabled() ? _PACKET_SIZE_MAXIMUM_AES : _PACKET_SIZE_MAXIMUM)))
+			if (size > (maxSize = (IsEncryptionEnabled() ? PACKET_SIZE_MAXIMUM_AES : PACKET_SIZE_MAXIMUM)))
 			{
 
 				size = maxSize;
