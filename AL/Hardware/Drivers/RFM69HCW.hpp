@@ -834,7 +834,7 @@ namespace AL::Hardware::Drivers
 		}
 
 #if defined(AL_PLATFORM_PICO)
-		RFM69HCW(::spi_inst_t* spi, GPIOPin miso, GPIOPin mosi, GPIOPin sclk, GPIOPin cs, SPISpeed speed = DEFAULT_SPEED)
+		RFM69HCW(::spi_inst_t* spi, GPIOPin miso, GPIOPin mosi, GPIOPin sclk, GPIOPin cs, Network network, NetworkAddress networkAddress, Frequency frequency = RFM69HCW_FREQUENCY_DEFAULT, SPISpeed speed = DEFAULT_SPEED)
 			: device(
 				spi,
 				miso,
@@ -844,6 +844,15 @@ namespace AL::Hardware::Drivers
 				SPIModes::Zero,
 				speed,
 				8
+			),
+			network(
+				network
+			),
+			networkAddress(
+				networkAddress
+			),
+			frequency(
+				frequency
 			)
 		{
 		}
