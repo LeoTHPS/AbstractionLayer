@@ -5,19 +5,30 @@
 	#error Platform not supported
 #endif
 
-#include "AL/OS/SystemException.hpp"
+#include <pico/stdio.h>
 
 namespace AL::OS::Pico
 {
 	class Stdio
 	{
+		inline static Bool isInitialized = False;
+
 		Stdio() = delete;
 
 	public:
-		static Void InitAll()
+		static Bool IsInitialized()
 		{
-			// TODO: implement
-			throw NotImplementedException();
+			return isInitialized;
+		}
+
+		static Void Init()
+		{
+			if (!IsInitialized())
+			{
+				::stdio_init_all();
+
+				isInitialized = True;
+			}
 		}
 	};
 }
