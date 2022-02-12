@@ -771,6 +771,27 @@ namespace AL::Lua543
 			return state;
 		}
 
+		Bool operator == (const State& state) const
+		{
+			if (lua != state.lua)
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		Bool operator != (const State& state) const
+		{
+			if (operator==(state))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+
 	protected:
 		// @throw AL::Exception
 		virtual Void OnCreate()
