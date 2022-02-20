@@ -2685,6 +2685,11 @@ namespace AL::OS::Windows
 						::DestroyWindow(
 							GetHandle()
 						);
+
+						::UnregisterClassA(
+							windowClass.lpszClassName,
+							windowClass.hInstance
+						);
 					}
 				}
 				return 0;
