@@ -374,7 +374,7 @@ namespace AL::Collections
 		}
 		Array(const Array& array)
 			: lpValues(
-				new Type[1 + array.capacity + 1]
+				new Type[array.capacity]
 			),
 			capacity(
 				array.capacity
@@ -388,7 +388,7 @@ namespace AL::Collections
 
 		explicit Array(size_t capacity)
 			: lpValues(
-				new Type[1 + capacity + 1]
+				new Type[capacity]
 			),
 			capacity(
 				capacity
@@ -415,7 +415,7 @@ namespace AL::Collections
 		}
 		Array(const Type& value, size_t count, size_t reserve)
 			: lpValues(
-				new Type[1 + count + reserve + 1]
+				new Type[count + reserve]
 			),
 			capacity(
 				count + reserve
@@ -437,7 +437,7 @@ namespace AL::Collections
 		}
 		Array(const Type* lpValues, size_t count, size_t reserve)
 			: lpValues(
-				new Type[1 + count + reserve + 1]
+				new Type[count + reserve]
 			),
 			capacity(
 				count + reserve
@@ -473,12 +473,12 @@ namespace AL::Collections
 		{
 			auto capacity = GetCapacity();
 
-			if (auto lpValues = ((capacity != value) ? new Type[1 + value + 1] : nullptr))
+			if (auto lpValues = ((capacity != value) ? new Type[value] : nullptr))
 			{
 				Move(
-					this->lpValues + 1,
+					this->lpValues,
 					capacity,
-					lpValues + 1,
+					lpValues,
 					value
 				);
 
@@ -496,7 +496,7 @@ namespace AL::Collections
 		// Changes the container size+capacity and discards values
 		Void SetCapacity(size_t value)
 		{
-			if (auto lpValues = ((GetCapacity() != value) ? new Type[1 + value + 1] : nullptr))
+			if (auto lpValues = ((GetCapacity() != value) ? new Type[value] : nullptr))
 			{
 				if (this->lpValues != nullptr)
 				{
@@ -543,7 +543,7 @@ namespace AL::Collections
 			if constexpr (Is_Type<Type, uint8>::Value)
 			{
 				memset(
-					&lpValues[1 + index],
+					&lpValues[index],
 					value,
 					count
 				);
@@ -551,14 +551,14 @@ namespace AL::Collections
 			else if constexpr (Is_Convertable<Type, uint8>::Value)
 			{
 				memset(
-					&lpValues[1 + index],
+					&lpValues[index],
 					static_cast<uint8>(value),
 					count
 				);
 			}
 			else
 			{
-				auto lpValues = &this->lpValues[1 + index];
+				auto lpValues = &this->lpValues[index];
 
 				for (size_t i = 0; i < count; ++i, ++lpValues)
 				{
@@ -583,7 +583,7 @@ namespace AL::Collections
 
 			Copy(
 				lpValues,
-				this->lpValues + 1,
+				this->lpValues,
 				count
 			);
 		}
@@ -595,7 +595,7 @@ namespace AL::Collections
 
 			Copy(
 				lpValues,
-				this->lpValues + 1,
+				this->lpValues,
 				count
 			);
 		}
@@ -603,80 +603,80 @@ namespace AL::Collections
 		virtual Iterator      begin() override
 		{
 			return Iterator(
-				&lpValues[1]
+				&lpValues[0]
 			);
 		}
 		virtual ConstIterator begin() const override
 		{
 			return ConstIterator(
-				&lpValues[1]
+				&lpValues[0]
 			);
 		}
 
 		virtual Iterator      end() override
 		{
 			return Iterator(
-				&lpValues[1 + GetCapacity()]
+				&lpValues[GetCapacity()]
 			);
 		}
 		virtual ConstIterator end() const override
 		{
 			return ConstIterator(
-				&lpValues[1 + GetCapacity()]
+				&lpValues[GetCapacity()]
 			);
 		}
 
 		virtual ConstIterator cbegin() const override
 		{
 			return ConstIterator(
-				&lpValues[1]
+				&lpValues[0]
 			);
 		}
 
 		virtual ConstIterator cend() const override
 		{
 			return ConstIterator(
-				&lpValues[1 + GetCapacity()]
+				&lpValues[GetCapacity()]
 			);
 		}
 
 		virtual ReverseIterator      rbegin() override
 		{
 			return ReverseIterator(
-				&lpValues[1 + GetCapacity() - 1]
+				&lpValues[GetCapacity() - 1]
 			);
 		}
 		virtual ConstReverseIterator rbegin() const override
 		{
 			return ConstReverseIterator(
-				&lpValues[1 + GetCapacity() - 1]
+				&lpValues[GetCapacity() - 1]
 			);
 		}
 
 		virtual ReverseIterator      rend() override
 		{
 			return ReverseIterator(
-				&lpValues[0]
+				&lpValues[0] - 1
 			);
 		}
 		virtual ConstReverseIterator rend() const override
 		{
 			return ConstReverseIterator(
-				&lpValues[0]
+				&lpValues[0] - 1
 			);
 		}
 
 		virtual ConstReverseIterator crbegin() const override
 		{
 			return ConstReverseIterator(
-				&lpValues[1 + GetCapacity() - 1]
+				&lpValues[GetCapacity() - 1]
 			);
 		}
 
 		virtual ConstReverseIterator crend() const override
 		{
 			return ConstReverseIterator(
-				&lpValues[0]
+				&lpValues[0] - 1
 			);
 		}
 
@@ -687,7 +687,7 @@ namespace AL::Collections
 				"index out of bounds"
 			);
 
-			return lpValues[1 + index];
+			return lpValues[index];
 		}
 		const Type& operator [] (size_t index) const
 		{
@@ -696,7 +696,7 @@ namespace AL::Collections
 				"index out of bounds"
 			);
 
-			return lpValues[1 + index];
+			return lpValues[index];
 		}
 
 		Array& operator = (Array&& array)
@@ -718,7 +718,7 @@ namespace AL::Collections
 		Array& operator = (const Array& array)
 		{
 			Assign(
-				array.lpValues + 1,
+				array.lpValues,
 				array.capacity
 			);
 
@@ -747,7 +747,7 @@ namespace AL::Collections
 
 			if constexpr (Is_POD<Type>::Value)
 			{
-				if (!memcmp(1 + lpValues, 1 + array.lpValues, capacity))
+				if (!memcmp(lpValues, array.lpValues, capacity))
 				{
 
 					return False;
@@ -755,8 +755,8 @@ namespace AL::Collections
 			}
 			else
 			{
-				auto lpValues1 = 1 + lpValues;
-				auto lpValues2 = 1 + array.lpValues;
+				auto lpValues1 = lpValues;
+				auto lpValues2 = array.lpValues;
 
 				for (size_t i = 0; i < capacity; ++i, ++lpValues1, ++lpValues2)
 				{
@@ -786,45 +786,7 @@ namespace AL::Collections
 	class Array<T[S]>
 		: public IBidirectionalCollection<T, ArrayIterator, ArrayReverseIterator>
 	{
-		T values[1 + S + 1];
-
-		template<size_t ... INDEXES>
-		constexpr Array(T(&&values)[S], Index_Sequence<INDEXES ...>)
-			: values {
-				T(),
-				Move(values[INDEXES]) ...,
-				T()
-			}
-		{
-		}
-		template<size_t ... INDEXES>
-		constexpr Array(const T(&values)[S], Index_Sequence<INDEXES ...>)
-			: values {
-				T(),
-				values[INDEXES] ...,
-				T()
-			}
-		{
-		}
-
-		template<size_t ... INDEXES>
-		constexpr Array(Array&& array, Index_Sequence<INDEXES ...>)
-			: values {
-				T(),
-				Move(array.values[1 + INDEXES]) ...,
-				T()
-			}
-		{
-		}
-		template<size_t ... INDEXES>
-		constexpr Array(const Array& array, Index_Sequence<INDEXES ...>)
-			: values {
-				T(),
-				array.values[1 + INDEXES] ...,
-				T()
-			}
-		{
-		}
+		T values[S];
 
 	public:
 		typedef typename IBidirectionalCollection<T, ArrayIterator, ArrayReverseIterator>::Type                 Type;
@@ -842,32 +804,28 @@ namespace AL::Collections
 		}
 
 		Array(Array&& array)
-			: Array(
-				Move(array),
-				typename Make_Index_Sequence<S>::Type {}
-			)
+			: values {
+				Expand_Move(array.values)
+			}
 		{
 		}
 		Array(const Array& array)
-			: Array(
-				array,
-				typename Make_Index_Sequence<S>::Type {}
-			)
+			: values {
+				Expand_Copy(array.values)
+			}
 		{
 		}
 
 		Array(Type(&&values)[S])
-			: Array(
-				Move(values),
-				typename Make_Index_Sequence<S>::Type {}
-			)
+			: values {
+				Expand_Move(values)
+			}
 		{
 		}
 		Array(const Type(&values)[S])
-			: Array(
-				values,
-				typename Make_Index_Sequence<S>::Type {}
-			)
+			: values {
+				Expand_Copy(values)
+			}
 		{
 		}
 
@@ -919,7 +877,7 @@ namespace AL::Collections
 			if constexpr (Is_Type<Type, uint8>::Value)
 			{
 				memset(
-					&values[1 + index],
+					&values[index],
 					value,
 					count
 				);
@@ -927,14 +885,14 @@ namespace AL::Collections
 			else if constexpr (Is_Convertable<Type, uint8>::Value)
 			{
 				memset(
-					&values[1 + index],
+					&values[index],
 					static_cast<uint8>(value),
 					count
 				);
 			}
 			else
 			{
-				auto lpValues = &values[1 + index];
+				auto lpValues = &values[index];
 
 				for (size_t i = 0; i < count; ++i, ++lpValues)
 				{
@@ -947,7 +905,7 @@ namespace AL::Collections
 		{
 			Array<Type>::Copy(
 				&values[0],
-				&this->values[1],
+				&this->values[0],
 				S
 			);
 		}
@@ -955,80 +913,80 @@ namespace AL::Collections
 		virtual Iterator begin() override
 		{
 			return Iterator(
-				&values[1]
+				&values[0]
 			);
 		}
 		virtual ConstIterator begin() const override
 		{
 			return ConstIterator(
-				&values[1]
+				&values[0]
 			);
 		}
 
 		virtual Iterator end() override
 		{
 			return Iterator(
-				&values[1 + S]
+				&values[S]
 			);
 		}
 		virtual ConstIterator end() const override
 		{
 			return ConstIterator(
-				&values[1 + S]
+				&values[S]
 			);
 		}
 
 		virtual ConstIterator cbegin() const override
 		{
 			return ConstIterator(
-				&values[1]
+				&values[0]
 			);
 		}
 
 		virtual ConstIterator cend() const override
 		{
 			return ConstIterator(
-				&values[1 + S]
+				&values[S]
 			);
 		}
 
 		virtual ReverseIterator rbegin() override
 		{
 			return ReverseIterator(
-				&values[1 + S - 1]
+				&values[S - 1]
 			);
 		}
 		virtual ConstReverseIterator rbegin() const override
 		{
 			return ConstReverseIterator(
-				&values[1 + S - 1]
+				&values[S - 1]
 			);
 		}
 
 		virtual ReverseIterator rend() override
 		{
 			return ReverseIterator(
-				&values[0]
+				&values[0] - 1
 			);
 		}
 		virtual ConstReverseIterator rend() const override
 		{
 			return ConstReverseIterator(
-				&values[0]
+				&values[0] - 1
 			);
 		}
 
 		virtual ConstReverseIterator crbegin() const override
 		{
 			return ConstReverseIterator(
-				&values[1 + GetCapacity() - 1]
+				&values[GetCapacity() - 1]
 			);
 		}
 
 		virtual ConstReverseIterator crend() const override
 		{
 			return ConstReverseIterator(
-				&values[0]
+				&values[0] - 1
 			);
 		}
 
@@ -1039,7 +997,7 @@ namespace AL::Collections
 				"index out of bounds"
 			);
 
-			return values[1 + index];
+			return values[index];
 		}
 		const Type& operator [] (size_t index) const
 		{
@@ -1048,15 +1006,14 @@ namespace AL::Collections
 				"index out of bounds"
 			);
 
-			return values[1 + index];
+			return values[index];
 		}
 
 		Array& operator = (Array&& array)
 		{
 			Array<Type>::Move(
-				&array.values[1],
-				&values[1],
-				S
+				array.values,
+				values
 			);
 
 			return *this;
@@ -1064,9 +1021,8 @@ namespace AL::Collections
 		Array& operator = (const Array& array)
 		{
 			Array<Type>::Copy(
-				&array.values[1],
-				&values[1],
-				S
+				array.values,
+				values
 			);
 
 			return *this;
@@ -1085,7 +1041,7 @@ namespace AL::Collections
 		{
 			if constexpr (Is_POD<Type>::Value)
 			{
-				if (!memcmp(&values[1], &array.values[1]))
+				if (!memcmp(values, array.values))
 				{
 
 					return False;
@@ -1093,8 +1049,8 @@ namespace AL::Collections
 			}
 			else
 			{
-				auto lpValues1 = &values[1];
-				auto lpValues2 = &array.values[1];
+				auto lpValues1 = &values[0];
+				auto lpValues2 = &array.values[0];
 
 				for (size_t i = 0; i < S; ++i, ++lpValues1, ++lpValues2)
 				{
