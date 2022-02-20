@@ -147,8 +147,9 @@ namespace AL::Hardware
 		I2CBus(I2CBus&& bus)
 			: isOpen(
 				bus.isOpen
-			),
+			)
 #if defined(AL_PLATFORM_PICO)
+			,
 			i2c(
 				bus.i2c
 			),
