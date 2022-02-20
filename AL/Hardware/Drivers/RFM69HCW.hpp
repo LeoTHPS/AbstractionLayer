@@ -779,8 +779,6 @@ namespace AL::Hardware::Drivers
 
 		static constexpr SPISpeed DEFAULT_SPEED           = 10000000;
 
-		static constexpr size_t   PACKET_OVERHEAD         = sizeof(_FrameHeader) - 2;
-
 		static constexpr size_t   PACKET_SIZE_MAXIMUM     = 255 - sizeof(_FrameHeader);
 		static constexpr size_t   PACKET_SIZE_MAXIMUM_AES = 64 - sizeof(_FrameHeader);
 
