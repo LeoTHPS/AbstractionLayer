@@ -628,7 +628,7 @@ namespace AL::Hardware::Drivers
 			_FRAME_HEADER_FLAG_EXTENDED_PAYLOAD = 0x04
 		};
 
-	#pragma pack(push, 1)
+#pragma pack(push, 1)
 		struct _FrameHeader
 		{
 			uint8               Size;
@@ -636,7 +636,7 @@ namespace AL::Hardware::Drivers
 			uint8               Source;
 			_FRAME_HEADER_FLAGS Flags;
 		};
-	#pragma pack(pop)
+#pragma pack(pop)
 
 		enum class _Modes : uint8
 		{
