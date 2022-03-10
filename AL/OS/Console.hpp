@@ -70,6 +70,10 @@ namespace AL::OS
 				return False;
 			}
 #elif defined(AL_PLATFORM_WINDOWS)
+			MutexGuard lock(
+				mutex
+			);
+
 			::DWORD written = 0;
 			::COORD topLeft = { 0, 0 };
 
