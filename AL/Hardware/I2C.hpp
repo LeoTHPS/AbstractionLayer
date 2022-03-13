@@ -27,6 +27,8 @@
 			#include <linux/i2c-dev.h>
 		}
 	#endif
+#elif defined(AL_PLATFORM_WINDOWS)
+	#include "AL/FileSystem/Path.hpp"
 #endif
 
 namespace AL::Hardware
