@@ -44,7 +44,7 @@
 	typedef float GLfloat;
 #endif
 
-namespace AL::OpenGL
+namespace AL::OS::OpenGL
 {
 	class Context
 	{
@@ -132,7 +132,7 @@ namespace AL::OpenGL
 						hDC
 					);
 
-					throw OS::Windows::GDI::GDIException(
+					throw Windows::GDI::GDIException(
 						"ChoosePixelFormat"
 					);
 				}
@@ -144,7 +144,7 @@ namespace AL::OpenGL
 						hDC
 					);
 
-					throw OS::Windows::GDI::GDIException(
+					throw Windows::GDI::GDIException(
 						"SetPixelFormat"
 					);
 				}
@@ -295,7 +295,7 @@ namespace AL::OpenGL
 			if (!::SwapBuffers(hDC))
 			{
 
-				throw OS::Windows::GDI::GDIException(
+				throw Windows::GDI::GDIException(
 					"SwapBuffers"
 				);
 			}

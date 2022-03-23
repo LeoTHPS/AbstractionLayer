@@ -3,7 +3,7 @@
 
 #include "AL/OS/SystemException.hpp"
 
-namespace AL::OpenGL
+namespace AL::OS::OpenGL
 {
 	class OpenGLException
 		: public OS::SystemException
