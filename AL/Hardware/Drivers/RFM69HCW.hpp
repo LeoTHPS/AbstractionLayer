@@ -1764,25 +1764,38 @@ namespace AL::Hardware::Drivers
 		// @return number of bytes received
 		size_t RX_Frames(NetworkAddress& source, Void* lpPayload, size_t payloadCapacity, TimeSpan timeout)
 		{
-			Bool   isExtendedPayload;
-			size_t totalBytesReceived = 0;
-			size_t numberOfBytesReceived;
+			NetworkAddress sender;
+			Bool           isExtendedPayload;
+			size_t         totalBytesReceived = 0;
+			size_t         numberOfBytesReceived;
 
 			auto lpPayloadBuffer = reinterpret_cast<uint8*>(
 				lpPayload
 			);
 
-			do
+			if ((numberOfBytesReceived = RX_Frame(source, lpPayloadBuffer, payloadCapacity, timeout, isExtendedPayload)) == 0)
 			{
-				if ((numberOfBytesReceived = RX_Frame(source, lpPayloadBuffer, payloadCapacity - totalBytesReceived, timeout, isExtendedPayload)) == 0)
+
+				return 0;
+			}
+
+			while (isExtendedPayload)
+			{
+				lpPayloadBuffer    += numberOfBytesReceived;
+				totalBytesReceived += numberOfBytesReceived;
+
+				if ((numberOfBytesReceived = RX_Frame(sender, lpPayloadBuffer, payloadCapacity - totalBytesReceived, timeout, isExtendedPayload)) == 0)
 				{
 
 					return 0;
 				}
 
-				lpPayloadBuffer    += numberOfBytesReceived;
-				totalBytesReceived += numberOfBytesReceived;
-			} while (isExtendedPayload);
+				if (sender != source)
+				{
+
+					numberOfBytesReceived = 0;
+				}
+			}
 
 			return totalBytesReceived;
 		}
