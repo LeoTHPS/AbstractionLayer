@@ -253,7 +253,7 @@ namespace AL::Hardware::Drivers
 
 					throw Exception(
 						Move(exception),
-						"Error opening bus"
+						"Error opening I2CBus"
 					);
 				}
 			}
