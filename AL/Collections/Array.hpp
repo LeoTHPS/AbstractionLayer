@@ -1076,3 +1076,25 @@ namespace AL::Collections
 		}
 	};
 }
+
+template<typename T>
+struct AL::Is_Array<AL::Collections::Array<T>>
+{
+	static constexpr Bool Value = True;
+};
+template<typename T, AL::size_t S>
+struct AL::Is_Array<AL::Collections::Array<T[S]>>
+{
+	static constexpr Bool Value = True;
+};
+
+template<typename T>
+struct AL::Get_Array_Type<AL::Collections::Array<T>>
+{
+	typedef T Type;
+};
+template<typename T, AL::size_t S>
+struct AL::Get_Array_Type<AL::Collections::Array<T[S]>>
+{
+	typedef T Type;
+};
