@@ -64,6 +64,17 @@ namespace AL
 			std::is_standard_layout<T>::value;
 	};
 
+	template<typename T>
+	struct Is_Array
+	{
+		static constexpr Bool Value = False;
+	};
+	template<typename T, size_t S>
+	struct Is_Array<T[S]>
+	{
+		static constexpr Bool Value = True;
+	};
+
 	template<typename T_1, typename T_2>
 	struct Is_Type
 	{
