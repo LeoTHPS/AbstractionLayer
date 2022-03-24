@@ -188,6 +188,24 @@ namespace AL
 		static constexpr Bool Value = std::is_move_assignable<T>::value;
 	};
 
+	template<typename T, size_t S>
+	struct Get_Array_Size
+	{
+		static constexpr size_t Value = sizeof(T) * S;
+	};
+
+	template<typename T, size_t S>
+	struct Get_Array_Count
+	{
+		static constexpr size_t Value = S;
+	};
+
+	template<typename T, size_t S>
+	struct Get_Array_Type
+	{
+		typedef T Type;
+	};
+
 	template<size_t SIZE, Bool IS_SIGNED>
 	struct _Get_Enum_Or_Integer_Base;
 
