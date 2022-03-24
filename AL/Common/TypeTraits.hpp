@@ -189,22 +189,6 @@ namespace AL
 	};
 
 	template<typename T>
-	struct Get_Array_Size;
-	template<typename T, size_t S>
-	struct Get_Array_Size<T[S]>
-	{
-		static constexpr size_t Value = sizeof(T) * S;
-	};
-
-	template<typename T>
-	struct Get_Array_Count;
-	template<typename T, size_t S>
-	struct Get_Array_Count<T[S]>
-	{
-		static constexpr size_t Value = S;
-	};
-
-	template<typename T>
 	struct Get_Array_Type;
 	template<typename T, size_t S>
 	struct Get_Array_Type<T[S]>
