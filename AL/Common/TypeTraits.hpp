@@ -60,8 +60,8 @@ namespace AL
 	struct Is_POD
 	{
 		static constexpr Bool Value =
-			std::is_trivial<T>::value &&
-			std::is_standard_layout<T>::value;
+			::std::is_trivial<T>::value &&
+			::std::is_standard_layout<T>::value;
 	};
 
 	template<typename T>
@@ -89,13 +89,13 @@ namespace AL
 	template<typename T>
 	struct Is_Enum
 	{
-		static constexpr Bool Value = std::is_enum<T>::value;
+		static constexpr Bool Value = ::std::is_enum<T>::value;
 	};
 
 	template<typename T>
 	struct Is_Integer
 	{
-		static constexpr Bool Value = std::is_integral<T>::value;
+		static constexpr Bool Value = ::std::is_integral<T>::value;
 	};
 
 	template<typename T>
@@ -125,67 +125,67 @@ namespace AL
 	template<typename T>
 	struct Is_Signed
 	{
-		static constexpr Bool Value = std::is_signed<T>::value;
+		static constexpr Bool Value = ::std::is_signed<T>::value;
 	};
 
 	template<typename T>
 	struct Is_Unsigned
 	{
-		static constexpr Bool Value = std::is_unsigned<T>::value;
+		static constexpr Bool Value = ::std::is_unsigned<T>::value;
 	};
 
 	template<typename T>
 	struct Is_Const
 	{
-		static constexpr Bool Value = std::is_const<T>::value;
+		static constexpr Bool Value = ::std::is_const<T>::value;
 	};
 
 	template<typename T>
 	struct Is_Pointer
 	{
-		static constexpr Bool Value = std::is_pointer<T>::value;
+		static constexpr Bool Value = ::std::is_pointer<T>::value;
 	};
 
 	template<typename T>
 	struct Is_Reference
 	{
-		static constexpr Bool Value = std::is_reference<T>::value;
+		static constexpr Bool Value = ::std::is_reference<T>::value;
 	};
 
 	template<typename BASE, typename T>
 	struct Is_Base_Of
 	{
-		static constexpr Bool Value = std::is_base_of<BASE, T>::value;
+		static constexpr Bool Value = ::std::is_base_of<BASE, T>::value;
 	};
 
 	template<typename TYPE, typename TYPE2>
 	struct Is_Convertable
 	{
-		static constexpr Bool Value = std::is_convertible<TYPE, TYPE2>::value;
+		static constexpr Bool Value = ::std::is_convertible<TYPE, TYPE2>::value;
 	};
 
 	template<typename T>
 	struct Is_Copy_Constructible
 	{
-		static constexpr Bool Value = std::is_copy_constructible<T>::value;
+		static constexpr Bool Value = ::std::is_copy_constructible<T>::value;
 	};
 
 	template<typename T>
 	struct Is_Copy_Assignable
 	{
-		static constexpr Bool Value = std::is_copy_assignable<T>::value;
+		static constexpr Bool Value = ::std::is_copy_assignable<T>::value;
 	};
 	
 	template<typename T>
 	struct Is_Move_Constructible
 	{
-		static constexpr Bool Value = std::is_move_constructible<T>::value;
+		static constexpr Bool Value = ::std::is_move_constructible<T>::value;
 	};
 
 	template<typename T>
 	struct Is_Move_Assignable
 	{
-		static constexpr Bool Value = std::is_move_assignable<T>::value;
+		static constexpr Bool Value = ::std::is_move_assignable<T>::value;
 	};
 
 	template<typename T>
