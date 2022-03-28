@@ -19,8 +19,9 @@ namespace AL::Network
 {
 	enum class AddressFamilies
 	{
-		IPv4 = AF_INET,
-		IPv6 = AF_INET6
+		IPv4         = AF_INET,
+		IPv6         = AF_INET6,
+		NotSpecified = AF_UNSPEC
 	};
 
 	class IPAddress
