@@ -30,7 +30,7 @@ ifdef PLATFORM
 
 	ifeq ($(PLATFORM), WINDOWS)
 		LDLIBS += -luser32 -lntdll -lkernel32
-		LDLIBS += -lwsock32 -lws2_32
+		LDLIBS += -lwsock32 -lws2_32 -lIphlpapi
 		LDLIBS += -lshlwapi
 		LDLIBS += -lgdi32
 		LDLIBS += -ld3d11 -ld2d1 -ldxguid -ldwrite -lwinmm -ldsound -lwindowscodecs -lOle32
