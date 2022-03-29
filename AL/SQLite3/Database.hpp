@@ -94,7 +94,7 @@ namespace AL::SQLite3
 			database.db     = nullptr;
 		}
 
-		Database(FileSystem::Path&& path, DatabaseFlags flags = DatabaseFlags::None)
+		Database(FileSystem::Path&& path, DatabaseFlags flags = DatabaseFlags::Create | DatabaseFlags::ReadWrite)
 			: path(
 				Move(path)
 			),
@@ -103,7 +103,7 @@ namespace AL::SQLite3
 			)
 		{
 		}
-		Database(const FileSystem::Path& path, DatabaseFlags flags = DatabaseFlags::None)
+		Database(const FileSystem::Path& path, DatabaseFlags flags = DatabaseFlags::Create | DatabaseFlags::ReadWrite)
 			: Database(
 				FileSystem::Path(path),
 				flags
@@ -153,7 +153,6 @@ namespace AL::SQLite3
 #if defined(AL_DEPENDENCY_SQLITE3)
 			int flags = 0;
 
-			if (GetFlags().Value == DatabaseFlags::None)       flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
 			if (GetFlags().IsSet(DatabaseFlags::URI))          flags |= SQLITE_OPEN_URI;
 			if (GetFlags().IsSet(DatabaseFlags::Create))       flags |= SQLITE_OPEN_CREATE;
 			if (GetFlags().IsSet(DatabaseFlags::ReadOnly))     flags |= SQLITE_OPEN_READONLY;
@@ -161,7 +160,9 @@ namespace AL::SQLite3
 			if (GetFlags().IsSet(DatabaseFlags::Memory))       flags |= SQLITE_OPEN_MEMORY;
 			if (GetFlags().IsSet(DatabaseFlags::NoMutex))      flags |= SQLITE_OPEN_NOMUTEX;
 			if (GetFlags().IsSet(DatabaseFlags::FullMutex))    flags |= SQLITE_OPEN_FULLMUTEX;
+#if defined(AL_PLATFORM_WINDOWS)
 			if (GetFlags().IsSet(DatabaseFlags::NoFollow))     flags |= SQLITE_OPEN_NOFOLLOW;
+#endif
 			if (GetFlags().IsSet(DatabaseFlags::SharedCache))  flags |= SQLITE_OPEN_SHAREDCACHE;
 			if (GetFlags().IsSet(DatabaseFlags::PrivateCache)) flags |= SQLITE_OPEN_PRIVATECACHE;
 
