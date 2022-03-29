@@ -26,6 +26,7 @@ ifdef PLATFORM
 		LDLIBS += -ldl -lpthread -lusb-1.0 -li2c -lgpiod
 		LDLIBS += -lGL -lGLU
 		LDLIBS += -llua
+		LDLIBS += -lsqlite3
 	endif
 
 	ifeq ($(PLATFORM), WINDOWS)
@@ -36,6 +37,7 @@ ifdef PLATFORM
 		LDLIBS += -ld3d11 -ld2d1 -ldxguid -ldwrite -lwinmm -ldsound -lwindowscodecs -lOle32
 		LDLIBS += -lopengl32 -lglu32
 		LDLIBS += -llua
+		LDLIBS += -lsqlite3
 	endif
 endif
 
