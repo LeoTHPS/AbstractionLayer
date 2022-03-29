@@ -208,7 +208,7 @@ namespace AL::Hardware::Drivers
 
 				device.Write(
 					&ioBuffer[0],
-					sizeof(Address) + ((count - i) > PAGE_SIZE) ? PAGE_SIZE : (count - i)
+					sizeof(Address) + (((count - i) > PAGE_SIZE) ? PAGE_SIZE : (count - i))
 				);
 
 				Spin( // TODO: replace with polling

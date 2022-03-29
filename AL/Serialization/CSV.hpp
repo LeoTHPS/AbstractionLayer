@@ -309,7 +309,7 @@ namespace AL::Serialization
 		{
 			(ToWString_ContainerToLine<INDEXES>(value, container), ...);
 		}
-		static constexpr WString ToWString_ContainerToLine(const T_CONTAINER& container)
+		static           WString ToWString_ContainerToLine(const T_CONTAINER& container)
 		{
 			WString value;
 
@@ -351,7 +351,7 @@ namespace AL::Serialization
 		{
 			(FromString_LineChunksToContainer<INDEXES>(value, chunks), ...);
 		}
-		static constexpr T_CONTAINER FromString_LineChunksToContainer(const Collections::Array<WString>& chunks)
+		static           T_CONTAINER FromString_LineChunksToContainer(const Collections::Array<WString>& chunks)
 		{
 			T_CONTAINER value;
 

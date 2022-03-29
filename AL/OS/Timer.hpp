@@ -24,7 +24,7 @@ namespace AL::OS
 		Timer()
 #if defined(AL_PLATFORM_WINDOWS)
 			: frequency(
-				[this]()
+				[]()
 				{
 					::LARGE_INTEGER integer;
 
