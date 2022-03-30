@@ -28,7 +28,15 @@ namespace AL
 		template<typename T>
 		static constexpr T Exp(T value)
 		{
-			return std::exp(
+			return ::std::exp(
+				value
+			);
+		}
+
+		template<typename T>
+		static constexpr T Fabs(T value)
+		{
+			return ::std::fabs(
 				value
 			);
 		}
@@ -36,7 +44,7 @@ namespace AL
 		template<typename T>
 		static constexpr T Log(T value)
 		{
-			return std::log(
+			return ::std::log(
 				value
 			);
 		}
@@ -44,7 +52,7 @@ namespace AL
 		template<typename T>
 		static constexpr T Pow(T value, T exponent)
 		{
-			return std::pow(
+			return ::std::pow(
 				value,
 				exponent
 			);
