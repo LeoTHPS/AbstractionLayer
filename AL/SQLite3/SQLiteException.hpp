@@ -5,6 +5,23 @@
 	#define AL_DEPENDENCY_SQLITE3
 
 	#include <sqlite3.h>
+#else
+	typedef void* sqlite3;
+
+	constexpr int sqlite3_errcode(sqlite3*)
+	{
+		return -1;
+	}
+
+	constexpr const char* sqlite3_errmsg(sqlite3*)
+	{
+		return "Unknown";
+	}
+
+	constexpr const char* sqlite3_errstr(int)
+	{
+		return "Unknown";
+	}
 #endif
 
 namespace AL::SQLite3

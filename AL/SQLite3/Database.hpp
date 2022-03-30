@@ -13,6 +13,8 @@
 	#define AL_DEPENDENCY_SQLITE3
 
 	#include <sqlite3.h>
+#else
+	typedef void* sqlite3;
 #endif
 
 namespace AL::SQLite3
@@ -91,7 +93,9 @@ namespace AL::SQLite3
 #endif
 		{
 			database.isOpen = False;
+#if defined(AL_DEPENDENCY_SQLITE3)
 			database.db     = nullptr;
+#endif
 		}
 
 		Database(FileSystem::Path&& path, DatabaseFlags flags = DatabaseFlags::Create | DatabaseFlags::ReadWrite)
@@ -160,9 +164,9 @@ namespace AL::SQLite3
 			if (GetFlags().IsSet(DatabaseFlags::Memory))       flags |= SQLITE_OPEN_MEMORY;
 			if (GetFlags().IsSet(DatabaseFlags::NoMutex))      flags |= SQLITE_OPEN_NOMUTEX;
 			if (GetFlags().IsSet(DatabaseFlags::FullMutex))    flags |= SQLITE_OPEN_FULLMUTEX;
-#if defined(AL_PLATFORM_WINDOWS)
+	#if defined(AL_PLATFORM_WINDOWS)
 			if (GetFlags().IsSet(DatabaseFlags::NoFollow))     flags |= SQLITE_OPEN_NOFOLLOW;
-#endif
+	#endif
 			if (GetFlags().IsSet(DatabaseFlags::SharedCache))  flags |= SQLITE_OPEN_SHAREDCACHE;
 			if (GetFlags().IsSet(DatabaseFlags::PrivateCache)) flags |= SQLITE_OPEN_PRIVATECACHE;
 
@@ -213,13 +217,16 @@ namespace AL::SQLite3
 			{
 				String              Query;
 				DatabaseQueryResult Result;
+#if defined(AL_DEPENDENCY_SQLITE3)
 				::sqlite3_callback  Callback;
+#endif
 				Database*           lpDatabase;
 			};
 
 			Context context =
 			{
 				.Query      = String::Format(format, Forward<TArgs>(args) ...),
+#if defined(AL_DEPENDENCY_SQLITE3)
 				.Callback   = [](void* _lpParam, int _column_count, char** _column_values, char** _column_names)->int
 				{
 					auto lpContext = reinterpret_cast<Context*>(
@@ -249,9 +256,11 @@ namespace AL::SQLite3
 
 					return SQLITE_OK;
 				},
+#endif
 				.lpDatabase = this
 			};
 
+#if defined(AL_DEPENDENCY_SQLITE3)
 			if (::sqlite3_exec(GetHandle(), context.Query.GetCString(), context.Callback, &context, nullptr) != SQLITE_OK)
 			{
 
@@ -260,6 +269,7 @@ namespace AL::SQLite3
 					"sqlite3_exec"
 				);
 			}
+#endif
 
 			return context.Result;
 		}
