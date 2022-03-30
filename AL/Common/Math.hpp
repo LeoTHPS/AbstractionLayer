@@ -58,6 +58,14 @@ namespace AL
 			);
 		}
 
+		template<typename T>
+		static constexpr T Sqrt(T value)
+		{
+			return ::std::sqrt(
+				value
+			);
+		}
+
 		template<typename T, size_t S>
 		static           auto Add(const T(&values)[S])
 		{
