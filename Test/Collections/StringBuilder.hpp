@@ -17,7 +17,11 @@ static void AL_Collections_StringBuilder()
 	sb << "Hello" << " world!" << AL::FileSystem::TextFile::LF;
 	sb << 1 << ' ' << 2 << ',' << 3 << AL::FileSystem::TextFile::LF;
 
+	auto string = sb.ToString();
+
+#if defined(AL_TEST_SHOW_CONSOLE_OUTPUT)
 	OS::Console::WriteLine(
-		sb.ToString()
+		string
 	);
+#endif
 }
