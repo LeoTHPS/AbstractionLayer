@@ -16,7 +16,7 @@
 		typedef AL::Get_Enum_Or_Integer_Base<e>::Type BaseType; \
 		return reinterpret_cast<e&>(reinterpret_cast<BaseType&>(a) |= static_cast<BaseType>(b)); \
 	}
-	
+
 #define AL_DEFINE_ENUM_FLAG_OPERATORS_AND(e) \
 	inline e operator & (e a, e b) \
 	{ \
@@ -49,10 +49,10 @@
 	}
 
 #define AL_DEFINE_ENUM_FLAG_OPERATORS(e) \
-	AL_DEFINE_ENUM_FLAG_OPERATORS_OR(e); \
-	AL_DEFINE_ENUM_FLAG_OPERATORS_AND(e); \
-	AL_DEFINE_ENUM_FLAG_OPERATORS_NOT(e); \
-	AL_DEFINE_ENUM_FLAG_OPERATORS_XOR(e)
+		AL_DEFINE_ENUM_FLAG_OPERATORS_OR(e); \
+		AL_DEFINE_ENUM_FLAG_OPERATORS_AND(e); \
+		AL_DEFINE_ENUM_FLAG_OPERATORS_NOT(e); \
+		AL_DEFINE_ENUM_FLAG_OPERATORS_XOR(e)
 
 namespace AL
 {
