@@ -108,13 +108,6 @@
 		return reinterpret_cast<type1&>(reinterpret_cast<BaseType1&>(a) &= static_cast<BaseType2>(b)); \
 	}
 
-#define AL_DEFINE_ENUM_FLAG_OPERATORS_NOT_2(type1, type2) \
-	inline type2 operator ~ (type2 a) \
-	{ \
-		typedef AL::Get_Enum_Or_Integer_Base<type2>::Type BaseType; \
-		return static_cast<type2>(~static_cast<BaseType>(a)); \
-	}
-
 #define AL_DEFINE_ENUM_FLAG_OPERATORS_XOR_2(type1, type2) \
 	inline type1 operator ^ (type1 a, type2 b) \
 	{ \
@@ -160,7 +153,6 @@
 #define AL_DEFINE_ENUM_FLAG_OPERATORS_2(type1, type2) \
 		AL_DEFINE_ENUM_FLAG_OPERATORS_OR_2(type1, type2); \
 		AL_DEFINE_ENUM_FLAG_OPERATORS_AND_2(type1, type2); \
-		AL_DEFINE_ENUM_FLAG_OPERATORS_NOT_2(type1, type2); \
 		AL_DEFINE_ENUM_FLAG_OPERATORS_XOR_2(type1, type2); \
 		AL_DEFINE_ENUM_FLAG_OPERATORS_LSHIFT_2(type1, type2); \
 		AL_DEFINE_ENUM_FLAG_OPERATORS_RSHIFT_2(type1, type2)

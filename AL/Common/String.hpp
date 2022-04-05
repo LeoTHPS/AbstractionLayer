@@ -732,14 +732,6 @@ AL_DEFINE_TO_STRING(
 			string_AppendIfSet("Debug", Platforms::Debug);
 		}
 
-		// Linux/Windows
-		{
-			string_AppendIfSet("Pico",    Platforms::Pico);
-			string_AppendIfSet("Linux",   Platforms::Linux);
-			string_AppendIfSet("MinGW",   Platforms::MinGW);
-			string_AppendIfSet("Windows", Platforms::Windows);
-		}
-
 		// GNU/MSVC/Clang
 		{
 			string_AppendIfSet("GNU",   Platforms::GNU);
@@ -747,12 +739,20 @@ AL_DEFINE_TO_STRING(
 			string_AppendIfSet("Clang", Platforms::Clang);
 		}
 
-		// x86/x86_64/ARM/ARM64
+		// ARM/ARM64/x86/x86_64
 		{
-			string_AppendIfSet("x86",    Platforms::x86);
-			string_AppendIfSet("x86_64", Platforms::x86_64);
 			string_AppendIfSet("ARM",    Platforms::ARM);
 			string_AppendIfSet("ARM64",  Platforms::ARM64);
+			string_AppendIfSet("x86",    Platforms::x86);
+			string_AppendIfSet("x86_64", Platforms::x86_64);
+		}
+
+		// Pico/Linux/MinGW/Windows
+		{
+			string_AppendIfSet("Pico",    Platforms::Pico);
+			string_AppendIfSet("Linux",   Platforms::Linux);
+			string_AppendIfSet("MinGW",   Platforms::MinGW);
+			string_AppendIfSet("Windows", Platforms::Windows);
 		}
 
 		return string;
@@ -788,14 +788,6 @@ AL_DEFINE_TO_WSTRING(
 			wstring_AppendIfSet(L"Debug", Platforms::Debug);
 		}
 
-		// Linux/Windows
-		{
-			wstring_AppendIfSet(L"Pico",    Platforms::Pico);
-			wstring_AppendIfSet(L"Linux",   Platforms::Linux);
-			wstring_AppendIfSet(L"MinGW",   Platforms::MinGW);
-			wstring_AppendIfSet(L"Windows", Platforms::Windows);
-		}
-
 		// GNU/MSVC/Clang
 		{
 			wstring_AppendIfSet(L"GNU",   Platforms::GNU);
@@ -803,12 +795,20 @@ AL_DEFINE_TO_WSTRING(
 			wstring_AppendIfSet(L"Clang", Platforms::Clang);
 		}
 
-		// x86/x86_64/ARM/ARM64
+		// ARM/ARM64/x86/x86_64
 		{
-			wstring_AppendIfSet(L"x86",    Platforms::x86);
-			wstring_AppendIfSet(L"x86_64", Platforms::x86_64);
 			wstring_AppendIfSet(L"ARM",    Platforms::ARM);
 			wstring_AppendIfSet(L"ARM64",  Platforms::ARM64);
+			wstring_AppendIfSet(L"x86",    Platforms::x86);
+			wstring_AppendIfSet(L"x86_64", Platforms::x86_64);
+		}
+
+		// Pico/Linux/MinGW/Windows
+		{
+			wstring_AppendIfSet(L"Pico",    Platforms::Pico);
+			wstring_AppendIfSet(L"Linux",   Platforms::Linux);
+			wstring_AppendIfSet(L"MinGW",   Platforms::MinGW);
+			wstring_AppendIfSet(L"Windows", Platforms::Windows);
 		}
 
 		return wstring;
