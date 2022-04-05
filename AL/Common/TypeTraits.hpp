@@ -5,54 +5,109 @@
 #include <typeinfo>
 #include <type_traits>
 
-#define AL_DEFINE_ENUM_FLAG_OPERATORS_OR(e) \
-	inline e operator | (e a, e b) \
+#define AL_DEFINE_ENUM_FLAG_OPERATORS_OR(type) \
+	inline type operator | (type a, type b) \
 	{ \
-		typedef AL::Get_Enum_Or_Integer_Base<e>::Type BaseType; \
-		return static_cast<e>(static_cast<BaseType>(a) | static_cast<BaseType>(b)); \
+		typedef AL::Get_Enum_Or_Integer_Base<type>::Type BaseType; \
+		return static_cast<type>(static_cast<BaseType>(a) | static_cast<BaseType>(b)); \
 	} \
-	inline e& operator |= (e& a, e b) \
+	inline type& operator |= (type& a, type b) \
 	{ \
-		typedef AL::Get_Enum_Or_Integer_Base<e>::Type BaseType; \
-		return reinterpret_cast<e&>(reinterpret_cast<BaseType&>(a) |= static_cast<BaseType>(b)); \
+		typedef AL::Get_Enum_Or_Integer_Base<type>::Type BaseType; \
+		return reinterpret_cast<type&>(reinterpret_cast<BaseType&>(a) |= static_cast<BaseType>(b)); \
 	}
 
-#define AL_DEFINE_ENUM_FLAG_OPERATORS_AND(e) \
-	inline e operator & (e a, e b) \
+#define AL_DEFINE_ENUM_FLAG_OPERATORS_AND(type) \
+	inline type operator & (type a, type b) \
 	{ \
-		typedef AL::Get_Enum_Or_Integer_Base<e>::Type BaseType; \
-		return static_cast<e>(static_cast<BaseType>(a) & static_cast<BaseType>(b)); \
+		typedef AL::Get_Enum_Or_Integer_Base<type>::Type BaseType; \
+		return static_cast<type>(static_cast<BaseType>(a) & static_cast<BaseType>(b)); \
 	} \
-	inline e& operator &= (e& a, e b) \
+	inline type& operator &= (type& a, type b) \
 	{ \
-		typedef AL::Get_Enum_Or_Integer_Base<e>::Type BaseType; \
-		return reinterpret_cast<e&>(reinterpret_cast<BaseType&>(a) &= static_cast<BaseType>(b)); \
+		typedef AL::Get_Enum_Or_Integer_Base<type>::Type BaseType; \
+		return reinterpret_cast<type&>(reinterpret_cast<BaseType&>(a) &= static_cast<BaseType>(b)); \
 	}
 
-#define AL_DEFINE_ENUM_FLAG_OPERATORS_NOT(e) \
-	inline e operator ~ (e a) \
+#define AL_DEFINE_ENUM_FLAG_OPERATORS_NOT(type) \
+	inline type operator ~ (type a) \
 	{ \
-		typedef AL::Get_Enum_Or_Integer_Base<e>::Type BaseType; \
-		return static_cast<e>(~static_cast<BaseType>(a)); \
+		typedef AL::Get_Enum_Or_Integer_Base<type>::Type BaseType; \
+		return static_cast<type>(~static_cast<BaseType>(a)); \
 	}
 
-#define AL_DEFINE_ENUM_FLAG_OPERATORS_XOR(e) \
-	inline e operator ^ (e a, e b) \
+#define AL_DEFINE_ENUM_FLAG_OPERATORS_XOR(type) \
+	inline type operator ^ (type a, type b) \
 	{ \
-		typedef AL::Get_Enum_Or_Integer_Base<e>::Type BaseType; \
-		return static_cast<e>(static_cast<BaseType>(a) ^ static_cast<BaseType>(b)); \
+		typedef AL::Get_Enum_Or_Integer_Base<type>::Type BaseType; \
+		return static_cast<type>(static_cast<BaseType>(a) ^ static_cast<BaseType>(b)); \
 	} \
-	inline e& operator ^= (e& a, e b) \
+	inline type& operator ^= (type& a, type b) \
 	{ \
-		typedef AL::Get_Enum_Or_Integer_Base<e>::Type BaseType; \
-		return reinterpret_cast<e&>(reinterpret_cast<BaseType&>(a) ^= static_cast<BaseType>(b)); \
+		typedef AL::Get_Enum_Or_Integer_Base<type>::Type BaseType; \
+		return reinterpret_cast<type&>(reinterpret_cast<BaseType&>(a) ^= static_cast<BaseType>(b)); \
 	}
 
-#define AL_DEFINE_ENUM_FLAG_OPERATORS(e) \
-		AL_DEFINE_ENUM_FLAG_OPERATORS_OR(e); \
-		AL_DEFINE_ENUM_FLAG_OPERATORS_AND(e); \
-		AL_DEFINE_ENUM_FLAG_OPERATORS_NOT(e); \
-		AL_DEFINE_ENUM_FLAG_OPERATORS_XOR(e)
+#define AL_DEFINE_ENUM_FLAG_OPERATORS(type) \
+		AL_DEFINE_ENUM_FLAG_OPERATORS_OR(type); \
+		AL_DEFINE_ENUM_FLAG_OPERATORS_AND(type); \
+		AL_DEFINE_ENUM_FLAG_OPERATORS_NOT(type); \
+		AL_DEFINE_ENUM_FLAG_OPERATORS_XOR(type)
+
+#define AL_DEFINE_ENUM_FLAG_OPERATORS_OR_2(type1, type2) \
+	inline type1 operator | (type1 a, type2 b) \
+	{ \
+		typedef AL::Get_Enum_Or_Integer_Base<type1>::Type BaseType1; \
+		typedef AL::Get_Enum_Or_Integer_Base<type2>::Type BaseType2; \
+		return static_cast<type1>(static_cast<BaseType1>(a) | static_cast<BaseType2>(b)); \
+	} \
+	inline type1& operator |= (type1& a, type2 b) \
+	{ \
+		typedef AL::Get_Enum_Or_Integer_Base<type1>::Type BaseType1; \
+		typedef AL::Get_Enum_Or_Integer_Base<type2>::Type BaseType2; \
+		return reinterpret_cast<type1&>(reinterpret_cast<BaseType1&>(a) |= static_cast<BaseType2>(b)); \
+	}
+
+#define AL_DEFINE_ENUM_FLAG_OPERATORS_AND_2(type1, type2) \
+	inline type1 operator & (type1 a, type2 b) \
+	{ \
+		typedef AL::Get_Enum_Or_Integer_Base<type1>::Type BaseType1; \
+		typedef AL::Get_Enum_Or_Integer_Base<type2>::Type BaseType2; \
+		return static_cast<type1>(static_cast<BaseType1>(a) & static_cast<BaseType2>(b)); \
+	} \
+	inline type1& operator &= (type1& a, type2 b) \
+	{ \
+		typedef AL::Get_Enum_Or_Integer_Base<type1>::Type BaseType1; \
+		typedef AL::Get_Enum_Or_Integer_Base<type2>::Type BaseType2; \
+		return reinterpret_cast<type1&>(reinterpret_cast<BaseType1&>(a) &= static_cast<BaseType2>(b)); \
+	}
+
+#define AL_DEFINE_ENUM_FLAG_OPERATORS_NOT_2(type1, type2) \
+	inline type2 operator ~ (type2 a) \
+	{ \
+		typedef AL::Get_Enum_Or_Integer_Base<type2>::Type BaseType; \
+		return static_cast<type2>(~static_cast<BaseType>(a)); \
+	}
+
+#define AL_DEFINE_ENUM_FLAG_OPERATORS_XOR_2(type1, type2) \
+	inline type1 operator ^ (type1 a, type2 b) \
+	{ \
+		typedef AL::Get_Enum_Or_Integer_Base<type1>::Type BaseType1; \
+		typedef AL::Get_Enum_Or_Integer_Base<type2>::Type BaseType2; \
+		return static_cast<type1>(static_cast<BaseType1>(a) ^ static_cast<BaseType2>(b)); \
+	} \
+	inline type1& operator ^= (type1& a, type2 b) \
+	{ \
+		typedef AL::Get_Enum_Or_Integer_Base<type1>::Type BaseType1; \
+		typedef AL::Get_Enum_Or_Integer_Base<type2>::Type BaseType2; \
+		return reinterpret_cast<type1&>(reinterpret_cast<BaseType1&>(a) ^= static_cast<BaseType2>(b)); \
+	}
+
+#define AL_DEFINE_ENUM_FLAG_OPERATORS_2(type1, type2) \
+		AL_DEFINE_ENUM_FLAG_OPERATORS_OR_2(type1, type2); \
+		AL_DEFINE_ENUM_FLAG_OPERATORS_AND_2(type1, type2); \
+		AL_DEFINE_ENUM_FLAG_OPERATORS_NOT_2(type1, type2); \
+		AL_DEFINE_ENUM_FLAG_OPERATORS_XOR_2(type1, type2)
 
 namespace AL
 {
