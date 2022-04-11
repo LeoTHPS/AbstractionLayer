@@ -3,9 +3,9 @@
 
 #include "IPAddress.hpp"
 #include "IPEndPoint.hpp"
-#include "SocketException.hpp"
 
-#include "AL/OS/ErrorCode.hpp"
+#include "ErrorCode.hpp"
+#include "SocketException.hpp"
 
 #if defined(AL_PLATFORM_PICO)
 	#error Platform not supported
@@ -626,7 +626,7 @@ namespace AL::Network
 #if defined(AL_PLATFORM_LINUX)
 			if ((_socket.socket = ::accept(GetHandle(), nullptr, nullptr)) == -1)
 			{
-				auto errorCode = OS::GetLastError();
+				auto errorCode = GetLastError();
 
 				if ((errorCode == EAGAIN) || (errorCode == EWOULDBLOCK))
 				{
@@ -642,7 +642,7 @@ namespace AL::Network
 #elif defined(AL_PLATFORM_WINDOWS)
 			if ((_socket.socket = ::WSAAccept(GetHandle(), nullptr, nullptr, nullptr, 0)) == INVALID_SOCKET)
 			{
-				auto lastError = OS::GetLastError();
+				auto lastError = GetLastError();
 
 				if (lastError == WSAEWOULDBLOCK)
 				{
@@ -811,7 +811,7 @@ namespace AL::Network
 #if defined(AL_PLATFORM_LINUX)
 			if (::connect(GetHandle(), reinterpret_cast<const ::sockaddr*>(&address), addressSize) == -1)
 			{
-				auto errorCode = OS::GetLastError();
+				auto errorCode = GetLastError();
 
 				switch (errorCode)
 				{
@@ -830,7 +830,7 @@ namespace AL::Network
 #elif defined(AL_PLATFORM_WINDOWS)
 			if (::connect(GetHandle(), reinterpret_cast<const ::sockaddr*>(&address), addressSize) == SOCKET_ERROR)
 			{
-				auto lastError = OS::GetLastError();
+				auto lastError = GetLastError();
 
 				switch (lastError)
 				{
@@ -931,7 +931,7 @@ namespace AL::Network
 #if defined(AL_PLATFORM_LINUX)
 			if ((bytesReceived = ::recv(GetHandle(), lpBuffer, size, 0)) == -1)
 			{
-				auto errorCode = OS::GetLastError();
+				auto errorCode = GetLastError();
 
 				if ((errorCode == EAGAIN) || (errorCode == EWOULDBLOCK))
 				{
@@ -963,7 +963,7 @@ namespace AL::Network
 
 			if ((bytesReceived = ::recv(GetHandle(), reinterpret_cast<char*>(lpBuffer), static_cast<int>((size <= MAX_INT_VALUE) ? size : MAX_INT_VALUE), 0)) == SOCKET_ERROR)
 			{
-				switch (auto errorCode = OS::GetLastError())
+				switch (auto errorCode = GetLastError())
 				{
 					case WSAEWOULDBLOCK:
 						return WOULD_BLOCK;
@@ -1124,7 +1124,7 @@ namespace AL::Network
 #if defined(AL_PLATFORM_LINUX)
 			if ((bytesSent = ::send(GetHandle(), lpBuffer, size, 0)) == -1)
 			{
-				auto errorCode = OS::GetLastError();
+				auto errorCode = GetLastError();
 
 				if ((errorCode == EAGAIN) || (errorCode == EWOULDBLOCK))
 				{
@@ -1156,7 +1156,7 @@ namespace AL::Network
 
 			if ((bytesSent = ::send(GetHandle(), reinterpret_cast<const char*>(lpBuffer), static_cast<int>((size <= MAX_INT_VALUE) ? size : MAX_INT_VALUE), 0)) == SOCKET_ERROR)
 			{
-				switch (auto errorCode = OS::GetLastError())
+				switch (auto errorCode = GetLastError())
 				{
 					case WSAEWOULDBLOCK:
 						return WOULD_BLOCK;
