@@ -897,3 +897,14 @@ struct AL::_Get_Enum_Or_Integer_Base<8, IS_SIGNED>
 {
 	typedef typename Conditional<IS_SIGNED, int64, uint64>::Type Type;
 };
+
+template<AL::Bool IS_SIGNED>
+struct AL::_Get_Decimal_Base<4, IS_SIGNED>
+{
+	typedef typename Conditional<IS_SIGNED, Float, Float>::Type Type;
+};
+template<AL::Bool IS_SIGNED>
+struct AL::_Get_Decimal_Base<8, IS_SIGNED>
+{
+	typedef typename Conditional<IS_SIGNED, Double, Double>::Type Type;
+};
