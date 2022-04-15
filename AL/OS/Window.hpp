@@ -412,6 +412,12 @@ namespace AL::OS
 
 			virtual Bool Native_IsContentLoaded() const = 0;
 
+			virtual Bool Native_IsResizable() const = 0;
+
+			virtual Bool Native_IsMinimizable() const = 0;
+
+			virtual Bool Native_IsMaximizable() const = 0;
+
 			virtual const WindowIcon& Native_GetIconBig() const = 0;
 
 			virtual const WindowIcon& Native_GetIconSmall() const = 0;
@@ -466,6 +472,15 @@ namespace AL::OS
 			virtual Bool Native_SetResolution(WindowResolution::Type width, WindowResolution::Type height) = 0;
 
 			virtual Void Native_EnablePaint(Bool set) = 0;
+
+			// @throw AL::Exception
+			virtual Void Native_EnableResize(Bool set = True) = 0;
+
+			// @throw AL::Exception
+			virtual Void Native_EnableMinimize(Bool set = True) = 0;
+
+			// @throw AL::Exception
+			virtual Void Native_EnableMaximize(Bool set = True) = 0;
 		};
 
 #if defined(AL_PLATFORM_LINUX)
@@ -493,6 +508,21 @@ namespace AL::OS
 			}
 
 			virtual Bool Native_IsContentLoaded() const override
+			{
+				throw NotImplementedException();
+			}
+
+			virtual Bool Native_IsResizable() const override
+			{
+				throw NotImplementedException();
+			}
+
+			virtual Bool Native_IsMinimizable() const override
+			{
+				throw NotImplementedException();
+			}
+
+			virtual Bool Native_IsMaximizable() const override
 			{
 				throw NotImplementedException();
 			}
@@ -607,6 +637,24 @@ namespace AL::OS
 			{
 				throw NotImplementedException();
 			}
+
+			// @throw AL::Exception
+			virtual Void Native_EnableResize(Bool set = True) override
+			{
+				throw NotImplementedException();
+			}
+
+			// @throw AL::Exception
+			virtual Void Native_EnableMinimize(Bool set = True) override
+			{
+				throw NotImplementedException();
+			}
+
+			// @throw AL::Exception
+			virtual Void Native_EnableMaximize(Bool set = True) override
+			{
+				throw NotImplementedException();
+			}
 		};
 #elif defined(AL_PLATFORM_WINDOWS)
 		class NativeWindow
@@ -657,6 +705,21 @@ namespace AL::OS
 			virtual Bool Native_IsContentLoaded() const override
 			{
 				return Window::IsContentLoaded();
+			}
+
+			virtual Bool Native_IsResizable() const override
+			{
+				return lpWindow->IsResizable();
+			}
+
+			virtual Bool Native_IsMinimizable() const override
+			{
+				return lpWindow->IsMinimizable();
+			}
+
+			virtual Bool Native_IsMaximizable() const override
+			{
+				return lpWindow->IsMaximizable();
 			}
 
 			virtual const WindowIcon& Native_GetIconBig() const override
@@ -867,6 +930,30 @@ namespace AL::OS
 			virtual Void Native_EnablePaint(Bool set) override
 			{
 				Window::EnablePaint(
+					set
+				);
+			}
+
+			// @throw AL::Exception
+			virtual Void Native_EnableResize(Bool set = True) override
+			{
+				Window::EnableResize(
+					set
+				);
+			}
+
+			// @throw AL::Exception
+			virtual Void Native_EnableMinimize(Bool set = True) override
+			{
+				Window::EnableMinimize(
+					set
+				);
+			}
+
+			// @throw AL::Exception
+			virtual Void Native_EnableMaximize(Bool set = True) override
+			{
+				Window::EnableMaximize(
 					set
 				);
 			}
@@ -1318,6 +1405,21 @@ namespace AL::OS
 			return lpNativeWindow->Native_IsContentLoaded();
 		}
 
+		Bool IsResizable() const
+		{
+			return lpNativeWindow->Native_IsResizable();
+		}
+
+		Bool IsMinimizable() const
+		{
+			return lpNativeWindow->Native_IsMinimizable();
+		}
+
+		Bool IsMaximizable() const
+		{
+			return lpNativeWindow->Native_IsMaximizable();
+		}
+
 		auto& GetIconBig() const
 		{
 			return lpNativeWindow->Native_GetIconBig();
@@ -1536,6 +1638,30 @@ namespace AL::OS
 		Void EnablePaint(Bool set = True)
 		{
 			lpNativeWindow->Native_EnablePaint(
+				set
+			);
+		}
+
+		// @throw AL::Exception
+		Void EnableResize(Bool set = True)
+		{
+			lpNativeWindow->Native_EnableResize(
+				set
+			);
+		}
+
+		// @throw AL::Exception
+		Void EnableMinimize(Bool set = True)
+		{
+			lpNativeWindow->Native_EnableMinimize(
+				set
+			);
+		}
+
+		// @throw AL::Exception
+		Void EnableMaximize(Bool set = True)
+		{
+			lpNativeWindow->Native_EnableMaximize(
 				set
 			);
 		}
