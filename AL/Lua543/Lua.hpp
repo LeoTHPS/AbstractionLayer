@@ -734,7 +734,7 @@ namespace AL::Lua543
 				IsCreated(),
 				"State not created"
 			);
-			
+
 			Extensions::doString(
 				GetHandle(),
 				lua
