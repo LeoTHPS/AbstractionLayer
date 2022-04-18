@@ -6,8 +6,6 @@
 #if defined(AL_PLATFORM_PICO)
 	#include <hardware/gpio.h>
 #elif defined(AL_PLATFORM_LINUX)
-	#include "AL/OS/Debug.hpp"
-
 	#if __has_include(<wiringPi.h>)
 		#define AL_DEPENDENCY_WIRINGPI
 
@@ -17,6 +15,8 @@
 
 		#include <gpiod.h>
 	#else
+		#warning: AL::Hardware::GPIO will be using sysfs - wiringPi/gpiod are recommended
+
 		#include <fcntl.h>
 		#include <unistd.h>
 
@@ -232,12 +232,6 @@ namespace AL::Hardware
 					break;
 			}
 	#else
-			OS::Debug::WriteLine(
-				"Warning: Initializing GPIO pin #%u on bus #%u using sysfs - wiringPi/gpiod is recommended",
-				GetPin(),
-				GetBus()
-			);
-
 			// TODO: implement
 			throw NotImplementedException();
 	#endif
