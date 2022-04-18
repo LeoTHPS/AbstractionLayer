@@ -316,5 +316,28 @@ namespace AL::OS
 
 			return True;
 		}
+
+		static Bool WriteException(const Exception& exception)
+		{
+			if (!WriteLine(exception.GetMessage()))
+			{
+
+				return False;
+			}
+
+			if (auto lpInnerException = exception.GetInnerException())
+			{
+				do
+				{
+					if (!WriteLine(lpInnerException->GetMessage()))
+					{
+
+						return False;
+					}
+				} while ((lpInnerException = lpInnerException->GetInnerException()) != nullptr);
+			}
+
+			return True;
+		}
 	};
 }

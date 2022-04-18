@@ -166,5 +166,24 @@ namespace AL::OS
 	#endif
 #endif
 		}
+
+		static Void WriteException(const Exception& exception)
+		{
+#if defined(AL_DEBUG)
+			WriteLine(
+				exception.GetMessage()
+			);
+
+			if (auto lpInnerException = exception.GetInnerException())
+			{
+				do
+				{
+					WriteLine(
+						lpInnerException->GetMessage()
+					);
+				} while ((lpInnerException = lpInnerException->GetInnerException()) != nullptr);
+			}
+#endif
+		}
 	};
 }
