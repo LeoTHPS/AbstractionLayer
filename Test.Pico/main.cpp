@@ -19,6 +19,7 @@
 void do_the_thing()
 {
 	AL::Hardware::GPIO pin(
+		0,
 		PICO_DEFAULT_LED_PIN
 	);
 

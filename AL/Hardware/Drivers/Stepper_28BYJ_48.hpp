@@ -56,43 +56,25 @@ namespace AL::Hardware::Drivers
 			stepper.isOpen = False;
 		}
 
-#if defined(AL_PLATFORM_PICO)
-		Stepper_28BYJ_48(GPIOPin in1, GPIOPin in2, GPIOPin in3, GPIOPin in4)
+		Stepper_28BYJ_48(GPIOBus bus1, GPIOPin in1, GPIOBus bus2, GPIOPin in2, GPIOBus bus3, GPIOPin in3, GPIOBus bus4, GPIOPin in4)
 			: in1(
+				bus1,
 				in1
 			),
 			in2(
+				bus2,
 				in1
 			),
 			in3(
+				bus3,
 				in1
 			),
 			in4(
+				bus4,
 				in1
 			)
 		{
 		}
-#else
-		Stepper_28BYJ_48(GPIOBus bus, GPIOPin in1, GPIOPin in2, GPIOPin in3, GPIOPin in4)
-			: in1(
-				bus,
-				in1
-			),
-			in2(
-				bus,
-				in1
-			),
-			in3(
-				bus,
-				in1
-			),
-			in4(
-				bus,
-				in1
-			)
-		{
-		}
-#endif
 
 		virtual ~Stepper_28BYJ_48()
 		{

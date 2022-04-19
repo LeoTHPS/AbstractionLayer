@@ -27,9 +27,7 @@
 
 namespace AL::Hardware
 {
-#if !defined(AL_PLATFORM_PICO)
 	typedef uint8 GPIOBus;
-#endif
 
 	// BCM format
 	typedef uint8 GPIOPin;
@@ -55,9 +53,7 @@ namespace AL::Hardware
 	{
 		Bool              isOpen = False;
 
-#if !defined(AL_PLATFORM_PICO)
 		GPIOBus           bus;
-#endif
 		GPIOPin           pin;
 		GPIOPinValue      value     = 0;
 		GPIOPinDirections direction = GPIOPinDirections::Out;
@@ -78,11 +74,9 @@ namespace AL::Hardware
 			: isOpen(
 				gpio.isOpen
 			),
-#if !defined(AL_PLATFORM_PICO)
 			bus(
 				gpio.bus
 			),
-#endif
 			pin(
 				gpio.pin
 			),
@@ -111,14 +105,6 @@ namespace AL::Hardware
 			gpio.isOpen = False;
 		}
 
-#if defined(AL_PLATFORM_PICO)
-		GPIO(GPIOPin pin)
-			: pin(
-				pin
-			)
-		{
-		}
-#else
 		GPIO(GPIOBus bus, GPIOPin pin)
 			: bus(
 				bus
@@ -128,7 +114,6 @@ namespace AL::Hardware
 			)
 		{
 		}
-#endif
 
 		virtual ~GPIO()
 		{
@@ -144,12 +129,10 @@ namespace AL::Hardware
 			return isOpen;
 		}
 
-#if !defined(AL_PLATFORM_PICO)
 		auto GetBus() const
 		{
 			return bus;
 		}
-#endif
 
 		auto GetPin() const
 		{
@@ -170,6 +153,14 @@ namespace AL::Hardware
 			);
 
 #if defined(AL_PLATFORM_PICO)
+			if (GetBus() != 0)
+			{
+
+				throw Exception(
+					"Bus not found"
+				);
+			}
+
 			::gpio_init(
 				GetPin()
 			);
@@ -639,9 +630,7 @@ namespace AL::Hardware
 			isOpen = gpio.isOpen;
 			gpio.isOpen = False;
 
-#if !defined(AL_PLATFORM_PICO)
 			bus = gpio.bus;
-#endif
 			pin = gpio.pin;
 			value = gpio.value;
 			direction = gpio.direction;
@@ -673,13 +662,11 @@ namespace AL::Hardware
 
 			if (IsOpen() && gpio.IsOpen())
 			{
-#if !defined(AL_PLATFORM_PICO)
 				if (GetBus() != gpio.GetBus())
 				{
 
 					return False;
 				}
-#endif
 
 				if (GetPin() != gpio.GetPin())
 				{
