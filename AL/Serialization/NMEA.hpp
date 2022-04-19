@@ -21,17 +21,19 @@ namespace AL::Serialization
 
 	enum class NMEASentences : uint32
 	{
-		GA  = 0x01, // Galileo
-		GB  = 0x02, // Beidou
-		GL  = 0x04, // Glonass
-		GN  = 0x08, // *
-		GP  = 0x10, // GPS
+		GA  = 0x01, // Galileo Positioning System
+		GB  = 0x02, // BeiDou
+		GI  = 0x04, // NavIC (IRNSS)
+		GL  = 0x08, // GLONASS
+		GN  = 0x10, // Global Navigation Satellite System
+		GP  = 0x20, // Global Positioning System,
+		GQ  = 0x40, // QZSS
 
-		GGA = 0x20,
-		GLL = 0x40,
-		GSV = 0x80,
-		RMC = 0x100,
-		VTG = 0x200
+		GGA = 0x100,
+		GLL = 0x200,
+		GSV = 0x400,
+		RMC = 0x800,
+		VTG = 0x1000
 	};
 
 	AL_DEFINE_ENUM_FLAG_OPERATORS(NMEASentences);
@@ -167,6 +169,12 @@ namespace AL::Serialization
 						NMEASentences::GB
 					);
 				}
+				else if (type.StartsWith("GI"))
+				{
+					sentence.Type.Add(
+						NMEASentences::GI
+					);
+				}
 				else if (type.StartsWith("GL"))
 				{
 					sentence.Type.Add(
@@ -183,6 +191,12 @@ namespace AL::Serialization
 				{
 					sentence.Type.Add(
 						NMEASentences::GP
+					);
+				}
+				else if (type.StartsWith("GQ"))
+				{
+					sentence.Type.Add(
+						NMEASentences::GQ
 					);
 				}
 				else
