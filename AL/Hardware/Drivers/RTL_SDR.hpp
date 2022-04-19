@@ -35,9 +35,9 @@ namespace AL::Hardware::Drivers
 			API(const API&) = delete;
 
 		public:
+#if defined(AL_DEPENDENCY_RTL_SDR)
 			#define AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(__function__) decltype(&::__function__) __function__
 
-#if defined(AL_DEPENDENCY_RTL_SDR)
 			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_get_device_count);
 			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_get_device_name);
 			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_get_device_usb_strings);
@@ -65,9 +65,9 @@ namespace AL::Hardware::Drivers
 			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_cancel_async);
 			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_read_eeprom);
 			AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API(rtlsdr_write_eeprom);
-#endif
 
 			#undef AL_HARDWARE_DRIVERS_RTL_SDR_DECLARE_API
+#endif
 
 			API()
 			{
@@ -92,15 +92,14 @@ namespace AL::Hardware::Drivers
 			{
 				if (!IsLoaded())
 				{
+#if defined(AL_DEPENDENCY_RTL_SDR)
 					FileSystem::Path path(
-						""
+	#if defined(AL_PLATFORM_LINUX)
+						"rtlsdr.so"
+	#elif defined(AL_PLATFORM_WINDOWS)
+						"rtlsdr.dll"
+	#endif
 					);
-
-#if defined(AL_PLATFORM_LINUX)
-					path = "rtlsdr.so";
-#elif defined(AL_PLATFORM_WINDOWS)
-					path = "rtlsdr.dll";
-#endif
 
 					OS::Process::OpenCurrent(
 						process
@@ -140,6 +139,11 @@ namespace AL::Hardware::Drivers
 							"Error resolving symbols"
 						);
 					}
+#else
+					throw DependencyMissingException(
+						"rtl-sdr.h"
+					);
+#endif
 				}
 			}
 
@@ -147,6 +151,7 @@ namespace AL::Hardware::Drivers
 			// @throw AL::Exception
 			Void ResolveSymbols()
 			{
+#if defined(AL_DEPENDENCY_RTL_SDR)
 				#define AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(__function__) \
 					if (!processLibrary.GetExport(__function__, #__function__)) \
 					{ \
@@ -156,7 +161,6 @@ namespace AL::Hardware::Drivers
 						); \
 					}
 
-#if defined(AL_DEPENDENCY_RTL_SDR)
 				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_get_device_count);
 				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_get_device_name);
 				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_get_device_usb_strings);
@@ -184,9 +188,9 @@ namespace AL::Hardware::Drivers
 				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_cancel_async);
 				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_read_eeprom);
 				AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API(rtlsdr_write_eeprom);
-#endif
 
 				#undef AL_HARDWARE_DRIVERS_RTL_SDR_RESOLVE_API
+#endif
 			}
 		};
 
