@@ -548,7 +548,7 @@ namespace AL::Collections
 					count
 				);
 			}
-			else if constexpr (Is_Convertable<Type, uint8>::Value)
+			else if constexpr (Is_Convertible<Type, uint8>::Value)
 			{
 				memset(
 					&lpValues[index],
@@ -882,7 +882,7 @@ namespace AL::Collections
 					count
 				);
 			}
-			else if constexpr (Is_Convertable<Type, uint8>::Value)
+			else if constexpr (Is_Convertible<Type, uint8>::Value)
 			{
 				memset(
 					&values[index],
