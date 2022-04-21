@@ -262,7 +262,7 @@ namespace AL
 	};
 
 	template<typename TYPE, typename TYPE2>
-	struct Is_Convertable
+	struct Is_Convertible
 	{
 		static constexpr Bool Value = ::std::is_convertible<TYPE, TYPE2>::value;
 	};
