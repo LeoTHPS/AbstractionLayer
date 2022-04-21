@@ -177,6 +177,7 @@
 
 #include "Common/Types.hpp"
 #include "Common/TypeTraits.hpp"
+#include "Common/Concepts.hpp"
 
 #include "Common/Utility.hpp"
 
