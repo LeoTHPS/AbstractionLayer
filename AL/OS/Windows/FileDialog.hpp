@@ -20,11 +20,11 @@ namespace AL::OS::Windows
 
 	class FileDialog
 	{
-		String title;
-		String directory;
-		String defaultExtension;
 		Collections::Array<char> name;
+		String                   title;
 		Collections::Array<char> filter;
+		String                   directory;
+		String                   defaultExtension;
 
 		FileDialog(FileDialog&&) = delete;
 		FileDialog(const FileDialog&) = delete;
