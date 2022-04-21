@@ -10,7 +10,7 @@
 
 #include <signal.h>
 
-namespace AL::OS
+namespace AL::OS::Linux
 {
 	typedef Void(SignalHandler)(int signal);
 
