@@ -654,25 +654,22 @@ namespace AL::Hardware
 
 		Bool operator == (const GPIO& gpio) const
 		{
-			if (IsOpen() ^ gpio.IsOpen())
+			if (IsOpen() != gpio.IsOpen())
 			{
 
 				return False;
 			}
 
-			if (IsOpen() && gpio.IsOpen())
+			if (GetBus() != gpio.GetBus())
 			{
-				if (GetBus() != gpio.GetBus())
-				{
 
-					return False;
-				}
+				return False;
+			}
 
-				if (GetPin() != gpio.GetPin())
-				{
+			if (GetPin() != gpio.GetPin())
+			{
 
-					return False;
-				}
+				return False;
 			}
 
 			return True;

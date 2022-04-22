@@ -684,69 +684,66 @@ namespace AL::Hardware
 
 		Bool operator == (const SPIDevice& device) const
 		{
-			if (IsOpen() ^ device.IsOpen())
+			if (IsOpen() != device.IsOpen())
 			{
 
 				return False;
 			}
 
-			if (IsOpen() && device.IsOpen())
-			{
 #if defined(AL_PLATFORM_PICO)
-				if (GetCS() != device.GetCS())
-				{
+			if (GetCS() != device.GetCS())
+			{
 
-					return False;
-				}
+				return False;
+			}
 
-				if (GetMISO() != device.GetMISO())
-				{
+			if (GetMISO() != device.GetMISO())
+			{
 
-					return False;
-				}
+				return False;
+			}
 
-				if (GetMOSI() != device.GetMOSI())
-				{
+			if (GetMOSI() != device.GetMOSI())
+			{
 
-					return False;
-				}
+				return False;
+			}
 
-				if (GetSCLK() != device.GetSCLK())
-				{
+			if (GetSCLK() != device.GetSCLK())
+			{
 
-					return False;
-				}
+				return False;
+			}
 
-				if (GetHandle() != device.GetHandle())
-				{
+			if (GetHandle() != device.GetHandle())
+			{
 
-					return False;
-				}
+				return False;
+			}
 #else
-				if (GetPath() != device.GetPath())
-				{
+			if (GetPath() != device.GetPath())
+			{
 
-					return False;
-				}
+				return False;
+			}
 #endif
 
-				if (GetMode() != device.GetMode())
-				{
+			if (GetMode() != device.GetMode())
+			{
 
-					return False;
-				}
+				return False;
+			}
 
-				if (GetSpeed() != device.GetSpeed())
-				{
+			if (GetSpeed() != device.GetSpeed())
+			{
 
-					return False;
-				}
+				return False;
+			}
 
-				if (GetBitCount() != device.GetBitCount())
-				{
+			if (GetBitCount() != device.GetBitCount())
+			{
 
-					return False;
-				}
+				return False;
 			}
 
 			return True;
