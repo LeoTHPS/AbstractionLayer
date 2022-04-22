@@ -7,8 +7,6 @@
 
 #include "IDriver.hpp"
 
-#include "AL/Hardware/GPIO.hpp"
-
 #include <hardware/adc.h>
 #include <hardware/gpio.h>
 
