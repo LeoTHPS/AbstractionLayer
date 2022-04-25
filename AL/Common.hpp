@@ -47,25 +47,37 @@
 	#define AL_ARCH_ARM64
 #endif
 
+#if __has_feature(cxx_rtti)
+	#define AL_RTTI
+#endif
+
 #if defined(AL_COMPILER_GNU)
 	#define AL_VECTORCALL
 
 	#if defined(AL_X86)
-		#define AL_CDECL    __attribute__((cdecl))
-		#define AL_STDCALL  __attribute__((stdcall))
-		#define AL_FASTCALL __attribute__((fastcall))
-		#define AL_THISCALL __attribute__((thiscall))
+		#define AL_CDECL      __attribute__((cdecl))
+		#define AL_STDCALL    __attribute__((stdcall))
+		#define AL_FASTCALL   __attribute__((fastcall))
+		#define AL_THISCALL   __attribute__((thiscall))
 	#elif defined(AL_X86_64)
 		#define AL_CDECL
-		#define AL_STDCALL  __attribute__((stdcall))
+		#define AL_STDCALL    __attribute__((stdcall))
 		#define AL_FASTCALL
-		#define AL_THISCALL __attribute__((thiscall))
+		#define AL_THISCALL   __attribute__((thiscall))
 	#else
 		#define AL_CDECL
 		#define AL_STDCALL
 		#define AL_FASTCALL
 		#define AL_THISCALL
 	#endif
+
+	#define AL_NAKED          __attribute__((naked))
+
+	#define AL_INLINE         __attribute__((always_inline))
+	#define AL_NO_INLINE      __attribute__((noinline))
+
+	#define AL_DLL_EXPORT
+	#define AL_DLL_IMPORT
 #elif defined(AL_COMPILER_MSVC)
 	#if defined(AL_X86)
 		#define AL_CDECL      __cdecl
@@ -86,6 +98,19 @@
 		#define AL_THISCALL
 		#define AL_VECTORCALL
 	#endif
+
+	#define AL_NAKED          __declspec(naked)
+
+	#define AL_INLINE         __forceinline
+	#define AL_NO_INLINE      __declspec(noinline)
+
+	#if defined(AL_PLATFORM_WINDOWS)
+		#define AL_DLL_EXPORT __declspec(dllexport)
+		#define AL_DLL_IMPORT __declspec(dllimport)
+	#else
+		#define AL_DLL_EXPORT
+		#define AL_DLL_IMPORT
+	#endif
 #elif defined(AL_COMPILER_CLANG)
 	#define AL_CDECL
 
@@ -104,6 +129,19 @@
 		#define AL_FASTCALL
 		#define AL_THISCALL
 		#define AL_VECTORCALL
+	#endif
+
+	#define AL_NAKED          __declspec(naked)
+
+	#define AL_INLINE         __forceinline
+	#define AL_NO_INLINE      __declspec(noinline)
+
+	#if defined(AL_PLATFORM_WINDOWS)
+		#define AL_DLL_EXPORT __declspec(dllexport)
+		#define AL_DLL_IMPORT __declspec(dllimport)
+	#else
+		#define AL_DLL_EXPORT
+		#define AL_DLL_IMPORT
 	#endif
 #endif
 
@@ -127,59 +165,10 @@
 	#define AL_ASSERT(__condition__, __message__)     ((void)0)
 #endif
 
-#if defined(AL_COMPILER_GNU)
-	#if defined(__GXX_RTTI)
-		#define AL_RTTI
-	#endif
-
-	#define AL_NAKED          __attribute__((naked))
-
-	#define AL_INLINE         __attribute__((always_inline))
-	#define AL_NO_INLINE      __attribute__((noinline))
-
-	#define AL_DLL_EXPORT
-	#define AL_DLL_IMPORT
-#elif defined(AL_COMPILER_MSVC)
-	#if defined(_CPPRTTI)
-		#define AL_RTTI
-	#endif
-
-	#define AL_NAKED          __declspec(naked)
-
-	#define AL_INLINE         __forceinline
-	#define AL_NO_INLINE      __declspec(noinline)
-
-	#if defined(AL_PLATFORM_WINDOWS)
-		#define AL_DLL_EXPORT __declspec(dllexport)
-		#define AL_DLL_IMPORT __declspec(dllimport)
-	#else
-		#define AL_DLL_EXPORT
-		#define AL_DLL_IMPORT
-	#endif
-#elif defined(AL_COMPILER_CLANG)
-	#if __has_feature(cxx_rtti)
-		#define AL_RTTI
-	#endif
-
-	#define AL_NAKED          __declspec(naked)
-
-	#define AL_INLINE         __forceinline
-	#define AL_NO_INLINE      __declspec(noinline)
-
-	#if defined(AL_PLATFORM_WINDOWS)
-		#define AL_DLL_EXPORT __declspec(dllexport)
-		#define AL_DLL_IMPORT __declspec(dllimport)
-	#else
-		#define AL_DLL_EXPORT
-		#define AL_DLL_IMPORT
-	#endif
-#endif
-
 #include "Common/Types.hpp"
 #include "Common/TypeTraits.hpp"
 
-// TODO: remove this condition once GNU Arm Embedded Toolchain is v10+ on more platforms
-#if __has_include(<concepts>)
+#if __has_feature(__cpp_concepts)
 	#include "Common/Concepts.hpp"
 #endif
 
