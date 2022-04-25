@@ -3,6 +3,7 @@
 
 namespace AL
 {
+#if defined(AL_FEATURE_CONCEPTS)
 	template<typename T>
 	concept Is_POD_V = Is_POD<T>::Value;
 
@@ -62,4 +63,5 @@ namespace AL
 
 	template<typename T>
 	concept Is_Move_Assignable_V = Is_Move_Assignable<T>::Value;
+#endif
 }

@@ -164,10 +164,7 @@
 #include "Common/Types.hpp"
 #include "Common/Features.hpp"
 #include "Common/TypeTraits.hpp"
-
-#if defined(AL_FEATURE_CONCEPTS)
-	#include "Common/Concepts.hpp"
-#endif
+#include "Common/Concepts.hpp"
 
 #include "Common/Utility.hpp"
 
