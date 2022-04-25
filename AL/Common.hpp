@@ -177,7 +177,11 @@
 
 #include "Common/Types.hpp"
 #include "Common/TypeTraits.hpp"
-#include "Common/Concepts.hpp"
+
+// TODO: remove this condition once GNU Arm Embedded Toolchain is v10+ on more platforms
+#if __has_include(<concepts>)
+	#include "Common/Concepts.hpp"
+#endif
 
 #include "Common/Utility.hpp"
 
