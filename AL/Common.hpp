@@ -161,6 +161,18 @@
 	#define AL_ASSERT(__condition__, __message__)     ((void)0)
 #endif
 
+#if defined(__has_include)
+	#define AL_HAS_INCLUDE                __has_include
+#else
+	#define AL_HAS_INCLUDE(__file_path__) 0
+#endif
+
+#if defined(__has_feature)
+	#define AL_HAS_FEATURE                  __has_feature
+#else
+	#define AL_HAS_FEATURE(__cpp_feature__) (__cpp_feature__ != 0)
+#endif
+
 #include "Common/Types.hpp"
 #include "Common/Features.hpp"
 #include "Common/TypeTraits.hpp"

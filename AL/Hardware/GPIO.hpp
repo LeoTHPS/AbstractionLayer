@@ -6,11 +6,11 @@
 #if defined(AL_PLATFORM_PICO)
 	#include <hardware/gpio.h>
 #elif defined(AL_PLATFORM_LINUX)
-	#if __has_include(<wiringPi.h>)
+	#if AL_HAS_INCLUDE(<wiringPi.h>)
 		#define AL_DEPENDENCY_WIRINGPI
 
 		#include <wiringPi.h>
-	#elif __has_include(<gpiod.h>)
+	#elif AL_HAS_INCLUDE(<gpiod.h>)
 		#define AL_DEPENDENCY_GPIOD
 
 		#include <gpiod.h>

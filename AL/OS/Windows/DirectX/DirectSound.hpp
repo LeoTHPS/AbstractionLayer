@@ -12,7 +12,7 @@
 
 #include "AL/FileSystem/File.hpp"
 
-#if __has_include(<dsound.h>)
+#if AL_HAS_INCLUDE(<dsound.h>)
 	#define AL_DEPENDENCY_DSOUND
 
 	#include <MMSystem.h>

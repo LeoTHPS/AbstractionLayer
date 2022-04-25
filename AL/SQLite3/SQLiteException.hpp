@@ -1,7 +1,7 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#if __has_include(<sqlite3.h>)
+#if AL_HAS_INCLUDE(<sqlite3.h>)
 	#define AL_DEPENDENCY_SQLITE3
 
 	#include <sqlite3.h>

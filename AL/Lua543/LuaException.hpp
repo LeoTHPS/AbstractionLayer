@@ -1,7 +1,7 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#if __has_include(<lua.hpp>)
+#if AL_HAS_INCLUDE(<lua.hpp>)
 	#define AL_DEPENDENCY_LUA
 
 	#include <lua.hpp>

@@ -18,7 +18,7 @@
 
 	#include <sys/ioctl.h>
 
-	#if __has_include(<linux/i2c-dev.h>)
+	#if AL_HAS_INCLUDE(<linux/i2c-dev.h>)
 		#define AL_DEPENDENCY_LIBI2C_DEV
 
 		extern "C"

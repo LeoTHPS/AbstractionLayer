@@ -5,7 +5,7 @@
 
 #include "AL/OS/Process.hpp"
 
-#if __has_include(<rtl-sdr.h>)
+#if AL_HAS_INCLUDE(<rtl-sdr.h>)
 	#define AL_DEPENDENCY_RTL_SDR
 
 	#include <rtl-sdr.h>

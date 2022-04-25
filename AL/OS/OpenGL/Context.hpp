@@ -14,7 +14,7 @@
 #if defined(AL_PLATFORM_PICO)
 	#error Platform not supported
 #elif defined(AL_PLATFORM_LINUX)
-	#if __has_include(<GL/gl.h>)
+	#if AL_HAS_INCLUDE(<GL/gl.h>)
 		#define AL_DEPENDENCY_OPENGL
 
 		#include <GL/gl.h>
@@ -23,7 +23,7 @@
 #elif defined(AL_PLATFORM_WINDOWS)
 	#include "AL/OS/Windows/GDI/GDIException.hpp"
 
-	#if __has_include(<gl/GL.h>)
+	#if AL_HAS_INCLUDE(<gl/GL.h>)
 		#define AL_DEPENDENCY_OPENGL
 
 		#include <GL/gl.h>

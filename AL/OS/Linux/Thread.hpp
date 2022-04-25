@@ -10,7 +10,7 @@
 
 #include <unistd.h>
 
-#if __has_include(<pthread.h>)
+#if AL_HAS_INCLUDE(<pthread.h>)
 	#define AL_DEPENDENCY_PTHREAD
 
 	extern "C"

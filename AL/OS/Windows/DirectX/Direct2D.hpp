@@ -17,22 +17,22 @@
 
 #include "AL/FileSystem/Path.hpp"
 
-#if __has_include(<d2d1_3.h>)
+#if AL_HAS_INCLUDE(<d2d1_3.h>)
 	#include <d2d1_3.h>
 
 	#define AL_DEPENDENCY_DIRECT2D
 	#define AL_DEPENDENCY_DIRECT2D_3
-#elif __has_include(<d2d1_2.h>)
+#elif AL_HAS_INCLUDE(<d2d1_2.h>)
 	#include <d2d1_2.h>
 
 	#define AL_DEPENDENCY_DIRECT2D
 	#define AL_DEPENDENCY_DIRECT2D_2
-#elif __has_include(<d2d1_1.h>)
+#elif AL_HAS_INCLUDE(<d2d1_1.h>)
 	#include <d2d1_1.h>
 
 	#define AL_DEPENDENCY_DIRECT2D
 	#define AL_DEPENDENCY_DIRECT2D_1
-#elif __has_include(<d2d1.h>)
+#elif AL_HAS_INCLUDE(<d2d1.h>)
 	#include <d2d1.h>
 
 	#define AL_DEPENDENCY_DIRECT2D
@@ -40,22 +40,22 @@
 
 #endif
 
-#if __has_include(<dwrite_3.h>)
+#if AL_HAS_INCLUDE(<dwrite_3.h>)
 	#include <dwrite_3.h>
 
 	#define AL_DEPENDENCY_DWRITE
 	#define AL_DEPENDENCY_DWRITE_3
-#elif __has_include(<dwrite_2.h>)
+#elif AL_HAS_INCLUDE(<dwrite_2.h>)
 	#include <dwrite_2.h>
 
 	#define AL_DEPENDENCY_DWRITE
 	#define AL_DEPENDENCY_DWRITE_2
-#elif __has_include(<dwrite_1.h>)
+#elif AL_HAS_INCLUDE(<dwrite_1.h>)
 	#include <dwrite_1.h>
 
 	#define AL_DEPENDENCY_DWRITE
 	#define AL_DEPENDENCY_DWRITE_1
-#elif __has_include(<dwrite.h>)
+#elif AL_HAS_INCLUDE(<dwrite.h>)
 	#include <dwrite.h>
 
 	#define AL_DEPENDENCY_DWRITE

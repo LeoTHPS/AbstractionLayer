@@ -4,7 +4,7 @@
 #if defined(AL_PLATFORM_PICO)
 	#error Platform not supported
 #elif defined(AL_PLATFORM_LINUX)
-	#if __has_include(<libusb-1.0/libusb.h>)
+	#if AL_HAS_INCLUDE(<libusb-1.0/libusb.h>)
 		#define AL_DEPENDENCY_LIBUSB
 
 		#include <libusb-1.0/libusb.h>

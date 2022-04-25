@@ -17,7 +17,7 @@
 
 	#include <sys/ioctl.h>
 
-	#if __has_include(<linux/spi/spidev.h>)
+	#if AL_HAS_INCLUDE(<linux/spi/spidev.h>)
 		#define AL_DEPENDENCY_SPIDEV
 
 		#include <linux/spi/spidev.h>

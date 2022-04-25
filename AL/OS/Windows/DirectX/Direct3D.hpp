@@ -13,7 +13,7 @@
 #include "AL/Drawing/Vector.hpp"
 #include "AL/Drawing/Rectangle.hpp"
 
-#if __has_include(<d3d11_4.h>)
+#if AL_HAS_INCLUDE(<d3d11_4.h>)
 	#include <d3d11_4.h>
 
 	#define AL_DEPENDENCY_DIRECT3D
@@ -21,7 +21,7 @@
 	#define AL_DEPENDENCY_DIRECT3D_11_4
 
 	#define AL_DEPENDENCY_DIRECT3D_VERSION 11.4
-#elif __has_include(<d3d11_3.h>)
+#elif AL_HAS_INCLUDE(<d3d11_3.h>)
 	#include <d3d11_3.h>
 
 	#define AL_DEPENDENCY_DIRECT3D
@@ -29,7 +29,7 @@
 	#define AL_DEPENDENCY_DIRECT3D_11_3
 
 	#define AL_DEPENDENCY_DIRECT3D_VERSION 11.3
-#elif __has_include(<d3d11_2.h>)
+#elif AL_HAS_INCLUDE(<d3d11_2.h>)
 	#include <d3d11_2.h>
 
 	#define AL_DEPENDENCY_DIRECT3D
@@ -37,7 +37,7 @@
 	#define AL_DEPENDENCY_DIRECT3D_11_2
 
 	#define AL_DEPENDENCY_DIRECT3D_VERSION 11.2
-#elif __has_include(<d3d11_1.h>)
+#elif AL_HAS_INCLUDE(<d3d11_1.h>)
 	#include <d3d11_1.h>
 
 	#define AL_DEPENDENCY_DIRECT3D
@@ -45,7 +45,7 @@
 	#define AL_DEPENDENCY_DIRECT3D_11_1
 
 	#define AL_DEPENDENCY_DIRECT3D_VERSION 11.1
-#elif __has_include(<d3d11.h>)
+#elif AL_HAS_INCLUDE(<d3d11.h>)
 	#include <d3d11.h>
 
 	#define AL_DEPENDENCY_DIRECT3D
