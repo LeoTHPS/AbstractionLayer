@@ -19,6 +19,7 @@ target_link_libraries(
 	pico_stdlib
 	pico_malloc
 	pico_multicore
+	hardware_adc
 	hardware_i2c
 	hardware_spi
 	hardware_gpio
