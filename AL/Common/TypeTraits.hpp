@@ -603,7 +603,7 @@ namespace AL
 	template<typename T>
 	struct Type
 	{
-#if defined(AL_RTTI)
+#if defined(AL_FEATURE_RTTI)
 		inline static const char*  Name = typeid(T).name();
 #else
 		inline static const char*  Name = []()

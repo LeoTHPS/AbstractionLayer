@@ -47,10 +47,6 @@
 	#define AL_ARCH_ARM64
 #endif
 
-#if __has_feature(cxx_rtti)
-	#define AL_RTTI
-#endif
-
 #if defined(AL_COMPILER_GNU)
 	#define AL_VECTORCALL
 
@@ -166,9 +162,10 @@
 #endif
 
 #include "Common/Types.hpp"
+#include "Common/Features.hpp"
 #include "Common/TypeTraits.hpp"
 
-#if __has_feature(__cpp_concepts)
+#if defined(AL_FEATURE_CONCEPTS)
 	#include "Common/Concepts.hpp"
 #endif
 
