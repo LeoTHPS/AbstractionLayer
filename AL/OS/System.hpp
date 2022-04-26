@@ -12,8 +12,10 @@
 	#include <time.h>
 	#include <unistd.h>
 
+	#include <sys/types.h>
 	#include <sys/sysinfo.h>
 #elif defined(AL_PLATFORM_WINDOWS)
+	#include <lmcons.h>
 	#include <sysinfoapi.h>
 #endif
 
@@ -175,6 +177,76 @@ namespace AL::OS
 			return static_cast<size_t>(
 				systemInfo.dwPageSize
 			);
+#endif
+		}
+
+		static auto GetCurrentUser()
+		{
+#if defined(AL_PLATFORM_PICO)
+
+#elif defined(AL_PLATFORM_LINUX)
+			Collections::Array<typename String::Char> buffer(
+				String::END,
+				32 + 1
+			);
+
+			if (::getlogin_r(&buffer[0], buffer.GetCapacity() - 1) != 0)
+			{
+
+				throw SystemException(
+					"getlogin_r"
+				);
+			}
+
+			return String(
+				&buffer[0]
+			);
+#elif defined(AL_PLATFORM_WINDOWS)
+			::DWORD bufferSize = 0;
+
+			if (::GetUserNameA(nullptr, &bufferSize) == 0)
+			{
+				auto lastError = GetLastError();
+
+				if (lastError != ERROR_INSUFFICIENT_BUFFER)
+				{
+
+					throw SystemException(
+						"GetUserNameA",
+						lastError
+					);
+				}
+			}
+
+			Collections::Array<typename String::Char> buffer(
+				bufferSize
+			);
+
+			if (::GetUserNameA(&buffer[0], &bufferSize) == 0)
+			{
+
+				throw SystemException(
+					"GetUserNameA"
+				);
+			}
+
+			return String(
+				&buffer[0],
+				static_cast<size_t>(bufferSize - 1)
+			);
+#endif
+		}
+
+		static auto GetCurrentUserID()
+		{
+#if defined(AL_PLATFORM_PICO)
+
+#elif defined(AL_PLATFORM_LINUX)
+			return static_cast<uint32>(
+				::geteuid()
+			);
+#elif defined(AL_PLATFORM_WINDOWS)
+
 #endif
 		}
 
@@ -355,8 +427,8 @@ namespace AL::OS
 			size_t lineSize = 0;
 
 #if defined(AL_PLATFORM_PICO)
-			// TODO: implement
-			throw NotImplementedException();
+			// the RP2040 has an official line size of 64 bits but only the first 32 are guaranteed
+			lineSize = 4;
 #elif defined(AL_PLATFORM_LINUX)
 			switch (cacheLevel)
 			{
