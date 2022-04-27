@@ -5,7 +5,6 @@ namespace AL
 {
 	template<int S_LONG>
 	struct _int32_;
-
 	template<>
 	struct _int32_<4>
 	{
