@@ -569,7 +569,15 @@ namespace AL::Serialization
 		typedef typename SectionContainer::ConstReverseIterator ConstReverseIterator;
 
 		// @throw AL::Exception
-		static Void FromString(INI& ini, const String& string);
+		static Void FromString(INI& ini, const String& string)
+		{
+			auto wstring = string.ToWString();
+
+			FromString(
+				ini,
+				wstring
+			);
+		}
 		// @throw AL::Exception
 		static Void FromString(INI& ini, const WString& wstring)
 		{
