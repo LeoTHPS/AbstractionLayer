@@ -9,6 +9,7 @@
 #if defined(AL_PLATFORM_PICO)
 	#include <time.h>
 #elif defined(AL_PLATFORM_LINUX)
+	#include <pwd.h>
 	#include <time.h>
 	#include <unistd.h>
 
@@ -186,21 +187,18 @@ namespace AL::OS
 #if defined(AL_PLATFORM_PICO)
 
 #elif defined(AL_PLATFORM_LINUX)
-			Collections::Array<typename String::Char> buffer(
-				String::END,
-				32 + 1
-			);
+			::passwd* lpPasswd;
 
-			if (::getlogin_r(&buffer[0], buffer.GetCapacity() - 1) != 0)
+			if ((lpPasswd = ::getpwuid(::geteuid())) == nullptr)
 			{
 
 				throw SystemException(
-					"getlogin_r"
+					"getpwuid"
 				);
 			}
 
 			return String(
-				&buffer[0]
+				lpPasswd->pw_name
 			);
 #elif defined(AL_PLATFORM_WINDOWS)
 			::DWORD bufferSize = 0;
