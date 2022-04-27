@@ -6,8 +6,9 @@ OBJECT_FILES = $(SOURCE_FILES:.cpp=.o)
 
 AL_INCLUDE   ?= ..
 
-CPPFLAGS     += -D_DEBUG -DAL_TEST_SHOW_CONSOLE_OUTPUT
-CXXFLAGS     += -Wall -Wfatal-errors -g -std=c++2a -I. -I"$(AL_INCLUDE)"
+CPPFLAGS     += -D_DEBUG
+CPPFLAGS     += -DAL_TEST_SHOW_CONSOLE_OUTPUT
+CXXFLAGS     += -Wall -Wfatal-errors -g -std=c++20 -I. -I"$(AL_INCLUDE)"
 #CXXFLAGS     += -Wno-unused-function -Wno-unused-variable -Wno-unused-lambda-capture -Wno-unused-private-field
 #CXXFLAGS     += -Wno-format-security
 
@@ -30,7 +31,7 @@ ifdef PLATFORM
 	endif
 
 	ifeq ($(PLATFORM), WINDOWS)
-		LDLIBS += -luser32 -lntdll -lkernel32
+		LDLIBS += -luser32 -lntdll -lkernel32 -lAdvapi32
 		LDLIBS += -lwsock32 -lws2_32 -lIphlpapi
 		LDLIBS += -lshlwapi
 		LDLIBS += -lgdi32
