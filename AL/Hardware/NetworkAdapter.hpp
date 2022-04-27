@@ -2,6 +2,7 @@
 #include "AL/Common.hpp"
 
 #include "AL/OS/ErrorCode.hpp"
+#include "AL/OS/SystemException.hpp"
 
 #include "AL/Collections/Array.hpp"
 
