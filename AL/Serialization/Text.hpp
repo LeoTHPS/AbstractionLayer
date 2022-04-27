@@ -599,9 +599,9 @@ namespace AL::Serialization
 
 		String  ToString() const
 		{
-			auto value = ToWString().ToString();
+			auto wstring = ToWString();
 
-			return value;
+			return wstring.ToString();
 		}
 		WString ToWString() const
 		{

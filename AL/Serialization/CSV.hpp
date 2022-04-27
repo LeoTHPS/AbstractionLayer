@@ -21,18 +21,18 @@ namespace AL::Serialization
 
 	public:
 		// @throw AL::Exception
-		static Void FromString(CSV& csv, const String& value, size_t lineSkip = 0)
+		static Void FromString(CSV& csv, const String& string, size_t lineSkip = 0)
 		{
-			auto _value = value.ToWString();
+			auto wstring = string.ToWString();
 
 			FromString(
 				csv,
-				_value,
+				wstring,
 				lineSkip
 			);
 		}
 		// @throw AL::Exception
-		static Void FromString(CSV& csv, const WString& value, size_t lineSkip = 0)
+		static Void FromString(CSV& csv, const WString& wstring, size_t lineSkip = 0)
 		{
 			Collections::LinkedList<WString> lines;
 
@@ -203,9 +203,9 @@ namespace AL::Serialization
 
 		String  ToString() const
 		{
-			auto value = ToWString().ToString();
+			auto wstring = ToWString();
 
-			return value;
+			return wstring.ToString();
 		}
 		WString ToWString() const
 		{
