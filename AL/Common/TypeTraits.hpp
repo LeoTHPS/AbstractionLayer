@@ -325,6 +325,31 @@ namespace AL
 		);
 	};
 
+	template<size_t SIZE>
+	struct _Get_Pointer_Base;
+	template<>
+	struct _Get_Pointer_Base<1>
+	{
+		typedef uint8 Type;
+	};
+	template<>
+	struct _Get_Pointer_Base<2>
+	{
+		typedef uint16 Type;
+	};
+	template<>
+	struct _Get_Pointer_Base<4>
+	{
+		typedef uint32 Type;
+	};
+	template<>
+	struct _Get_Pointer_Base<8>
+	{
+		typedef uint64 Type;
+	};
+
+	using Get_Pointer_Base = _Get_Pointer_Base<sizeof(Void*)>;
+
 	template<Bool CONDITION, typename T_1, typename T_2>
 	struct Conditional
 	{
