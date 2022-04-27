@@ -156,13 +156,20 @@ namespace AL::Collections
 
 		Bool Dequeue()
 		{
-			Type value;
+			Node* lpNode;
 
-			if (!Dequeue(value))
+			if ((lpNode = lpFront->lpPrevious) == lpBack)
 			{
 
 				return False;
 			}
+
+			lpFront->lpPrevious         = lpNode->lpPrevious;
+			lpFront->lpPrevious->lpNext = lpFront;
+
+			--size;
+
+			delete lpNode;
 
 			return True;
 		}
