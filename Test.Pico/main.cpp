@@ -11,19 +11,19 @@
 #include <AL/Hardware/GPIO.hpp>
 #include <AL/Hardware/UART.hpp>
 
-#include <pico.h>
+#include <AL/OS/Pico/Boards/RP2040.hpp>
 
-#include <boards/pico.h>
+#include <AL/Hardware/Drivers/RP2040.hpp>
 
 // @throw AL::Exception
 void do_the_thing()
 {
-	AL::Hardware::GPIO pin(
+	AL::Hardware::GPIO led(
 		0,
-		PICO_DEFAULT_LED_PIN
+		AL::OS::Pico::Boards::RP2040_DEFAULT_PIN_LED
 	);
 
-	pin.Open();
+	led.Open();
 
 	AL::OS::Timer timer;
 
@@ -31,9 +31,9 @@ void do_the_thing()
 	{
 		timer.Reset();
 
-		pin.Write(AL::Hardware::GPIOPinValues::High);
+		led.Write(AL::Hardware::GPIOPinValues::High);
 		AL::Sleep(AL::TimeSpan::FromMilliseconds(100));
-		pin.Write(AL::Hardware::GPIOPinValues::Low);
+		led.Write(AL::Hardware::GPIOPinValues::Low);
 
 		while (timer.GetElapsed() < AL::TimeSpan::FromSeconds(1))
 		{
@@ -41,7 +41,7 @@ void do_the_thing()
 		}
 	} while (true);
 
-	pin.Close();
+	led.Close();
 }
 
 int main()
