@@ -1,20 +1,20 @@
 #pragma once
 #include "AL/Common.hpp"
 
+#include "IPAddress.hpp"
+#include "IPEndPoint.hpp"
+
 #include "AL/OS/ErrorCode.hpp"
 #include "AL/OS/SystemException.hpp"
 
 #include "AL/Collections/Array.hpp"
-
-#include "AL/Network/IPAddress.hpp"
-#include "AL/Network/IPEndPoint.hpp"
 
 #if defined(AL_PLATFORM_PICO)
 	#error Platform not supported
 #elif defined(AL_PLATFORM_LINUX)
 
 #elif defined(AL_PLATFORM_WINDOWS)
-	#include "AL/Network/WinSock.hpp"
+	#include "WinSock.hpp"
 
 	#include <iphlpapi.h>
 
@@ -23,15 +23,15 @@
 	#endif
 #endif
 
-namespace AL::Hardware
+namespace AL::Network
 {
-	struct NetworkAdapter;
+	struct Adapter;
 
 	// @throw AL::Exception
 	// @return False to stop enumerating
-	typedef Function<Bool(const NetworkAdapter& networkAdapter)> NetworkAdapterEnumCallback;
+	typedef Function<Bool(const Adapter& adapter)> AdapterEnumCallback;
 
-	enum class NetworkAdapterFlags : uint16
+	enum class AdapterFlags : uint16
 	{
 #if defined(AL_PLATFORM_LINUX)
 		// TODO: implement
@@ -59,9 +59,9 @@ namespace AL::Hardware
 #endif
 	};
 
-	AL_DEFINE_ENUM_FLAG_OPERATORS(NetworkAdapterFlags);
+	AL_DEFINE_ENUM_FLAG_OPERATORS(AdapterFlags);
 
-	enum class NetworkAdapterTypes : uint8
+	enum class AdapterTypes : uint8
 	{
 #if defined(AL_PLATFORM_LINUX)
 		// TODO: implement
@@ -214,7 +214,7 @@ namespace AL::Hardware
 #endif
 	};
 
-	enum class NetworkAdapterStatus : uint8
+	enum class AdapterStatus : uint8
 	{
 #if defined(AL_PLATFORM_LINUX)
 		// TODO: implement
@@ -229,29 +229,29 @@ namespace AL::Hardware
 #endif
 	};
 
-	typedef Collections::Array<Network::IPAddress> NetworkAdapterAddresses;
+	typedef Collections::Array<IPAddress> AdapterAddresses;
 
-	struct NetworkAdapter
+	struct Adapter
 	{
-		String                       Name;
-		String                       Description;
+		String                Name;
+		String                Description;
 
-		String                       MAC;
-		uint32                       MTU;
-		NetworkAdapterTypes          Type;
-		BitMask<NetworkAdapterFlags> Flags;
-		NetworkAdapterStatus         Status;
+		String                MAC;
+		uint32                MTU;
+		AdapterTypes          Type;
+		BitMask<AdapterFlags> Flags;
+		AdapterStatus         Status;
 
-		NetworkAdapterAddresses      DNS;
-		NetworkAdapterAddresses      Gateway;
-		NetworkAdapterAddresses      Addresses;
+		AdapterAddresses      DNS;
+		AdapterAddresses      Gateway;
+		AdapterAddresses      Addresses;
 
 		struct
 		{
 			struct
 			{
-				Network::IPAddress IPv4;
-				Network::IPAddress IPv6;
+				IPAddress IPv4;
+				IPAddress IPv6;
 			} Server;
 		} DHCP;
 
@@ -262,15 +262,15 @@ namespace AL::Hardware
 		} LinkSpeed;
 
 		// @throw AL::Exception
-		static Void Enumerate(const NetworkAdapterEnumCallback& callback)
+		static Void Enumerate(const AdapterEnumCallback& callback)
 		{
 			Enumerate(
 				callback,
-				Network::AddressFamilies::NotSpecified
+				AddressFamilies::NotSpecified
 			);
 		}
 		// @throw AL::Exception
-		static Void Enumerate(const NetworkAdapterEnumCallback& callback, Network::AddressFamilies addressFamily)
+		static Void Enumerate(const AdapterEnumCallback& callback, AddressFamilies addressFamily)
 		{
 #if defined(AL_PLATFORM_LINUX)
 			// TODO: implement
@@ -313,7 +313,7 @@ namespace AL::Hardware
 				);
 			}
 
-			auto GetNetworkAdapterAddresses = [](auto _lpAddress)->NetworkAdapterAddresses
+			auto GetAdapterAddresses = [](auto _lpAddress)->AdapterAddresses
 			{
 				size_t count = 0;
 
@@ -322,7 +322,7 @@ namespace AL::Hardware
 					++count;
 				}
 
-				NetworkAdapterAddresses addresses(
+				AdapterAddresses addresses(
 					count
 				);
 
@@ -348,26 +348,26 @@ namespace AL::Hardware
 
 			for (auto lpAddress = reinterpret_cast<const ::PIP_ADAPTER_ADDRESSES>(&addressBuffer[0]); lpAddress != nullptr; lpAddress = lpAddress->Next)
 			{
-				NetworkAdapter adapter =
+				Adapter adapter =
 				{
 					.Name          = lpAddress->AdapterName,
 					.Description  = String::Format("%S", lpAddress->Description),
 
 					.MAC          = HexConverter::Encode(&lpAddress->PhysicalAddress[0], lpAddress->PhysicalAddressLength),
 					.MTU          = lpAddress->Mtu,
-					.Type         = static_cast<NetworkAdapterTypes>(lpAddress->IfType),
-					.Flags        = static_cast<NetworkAdapterFlags>(lpAddress->Flags),
-					.Status       = static_cast<NetworkAdapterStatus>(lpAddress->OperStatus),
+					.Type         = static_cast<AdapterTypes>(lpAddress->IfType),
+					.Flags        = static_cast<AdapterFlags>(lpAddress->Flags),
+					.Status       = static_cast<AdapterStatus>(lpAddress->OperStatus),
 
-					.DNS          = GetNetworkAdapterAddresses(lpAddress->FirstDnsServerAddress),
-					.Gateway      = GetNetworkAdapterAddresses(lpAddress->FirstGatewayAddress),
-					.Addresses    = GetNetworkAdapterAddresses(lpAddress->FirstPrefix),
+					.DNS          = GetAdapterAddresses(lpAddress->FirstDnsServerAddress),
+					.Gateway      = GetAdapterAddresses(lpAddress->FirstGatewayAddress),
+					.Addresses    = GetAdapterAddresses(lpAddress->FirstPrefix),
 
 					.DHCP =
 					{
 						.Server =
 						{
-							.IPv4 = (lpAddress->Dhcpv4Enabled && (lpAddress->Dhcpv4Server.lpSockaddr != nullptr)) ? reinterpret_cast<const ::sockaddr_in*>(lpAddress->Dhcpv4Server.lpSockaddr)->sin_addr : Network::IPAddress(),
+							.IPv4 = (lpAddress->Dhcpv4Enabled && (lpAddress->Dhcpv4Server.lpSockaddr != nullptr)) ? reinterpret_cast<const ::sockaddr_in*>(lpAddress->Dhcpv4Server.lpSockaddr)->sin_addr : IPAddress(),
 							.IPv6 = reinterpret_cast<const ::sockaddr_in6&>(lpAddress->Dhcpv6Server).sin6_addr
 						}
 					},
