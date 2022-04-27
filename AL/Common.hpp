@@ -16,7 +16,7 @@
 #endif
 
 #if defined(AL_PLATFORM_PICO)
-	#define AL_PLATFORM_PICO_RP2040
+	// TODO: detect which Pico board is being targetted
 #elif defined(__linux__)
 	#define AL_PLATFORM_LINUX
 #elif defined(_WIN32) || defined(_WIN64)
