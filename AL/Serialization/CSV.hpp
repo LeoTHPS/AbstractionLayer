@@ -38,7 +38,7 @@ namespace AL::Serialization
 
 			{
 				WString line;
-				Text    text(value);
+				Text    text(wstring);
 
 				for (size_t i = 0; i < lineSkip; ++i)
 				{
