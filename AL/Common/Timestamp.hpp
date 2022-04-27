@@ -8,45 +8,52 @@ namespace AL
 		uint64 value;
 
 	public:
-		static Timestamp FromMicroseconds(uint64 value)
+		static Timestamp FromNanoseconds(uint64 value)
 		{
 			return Timestamp(
 				value
 			);
 		}
 
-		static Timestamp FromMilliseconds(uint64 value)
+		static Timestamp FromMicroseconds(uint64 value)
 		{
 			return Timestamp(
 				value * 1000
 			);
 		}
 
-		static Timestamp FromSeconds(uint64 value)
+		static Timestamp FromMilliseconds(uint64 value)
 		{
 			return Timestamp(
 				value * 1000000
 			);
 		}
 
+		static Timestamp FromSeconds(uint64 value)
+		{
+			return Timestamp(
+				value * 1000000000
+			);
+		}
+
 		static Timestamp FromMinutes(uint64 value)
 		{
 			return Timestamp(
-				value * 60000000
+				value * 60000000000
 			);
 		}
 
 		static Timestamp FromHours(uint64 value)
 		{
 			return Timestamp(
-				value * 3600000000
+				value * 3600000000000
 			);
 		}
 
 		static Timestamp FromDays(uint64 value)
 		{
 			return Timestamp(
-				value * 86400000000
+				value * 86400000000000
 			);
 		}
 
@@ -57,9 +64,9 @@ namespace AL
 		{
 		}
 
-		Timestamp(uint64 microseconds)
+		Timestamp(uint64 nanoseconds)
 			: value(
-				microseconds
+				nanoseconds
 			)
 		{
 		}
@@ -68,34 +75,39 @@ namespace AL
 		{
 		}
 
-		auto ToMicroseconds() const
+		auto ToNanoseconds() const
 		{
 			return value;
 		}
 
-		auto ToMilliseconds() const
+		auto ToMicroseconds() const
 		{
 			return value / 1000;
 		}
 
-		auto ToSeconds() const
+		auto ToMilliseconds() const
 		{
 			return value / 1000000;
 		}
 
+		auto ToSeconds() const
+		{
+			return value / 1000000000;
+		}
+
 		auto ToMinutes() const
 		{
-			return value / 60000000;
+			return value / 60000000000;
 		}
 
 		auto ToHours() const
 		{
-			return value / 3600000000;
+			return value / 3600000000000;
 		}
 
 		auto ToDays() const
 		{
-			return value / 86400000000;
+			return value / 86400000000000;
 		}
 
 		operator TimeSpan () const
@@ -107,13 +119,13 @@ namespace AL
 
 		Timestamp& operator += (TimeSpan time)
 		{
-			value += time.ToMicroseconds();
+			value += time.ToNanoseconds();
 
 			return *this;
 		}
 		Timestamp& operator -= (TimeSpan time)
 		{
-			auto ms = time.ToMicroseconds();
+			auto ms = time.ToNanoseconds();
 
 			value = (value >= ms) ? (value - ms) : ((~0 - ms) + value);
 
@@ -122,7 +134,7 @@ namespace AL
 
 		TimeSpan operator - (TimeSpan time) const
 		{
-			auto ms = time.ToMicroseconds();
+			auto ms = time.ToNanoseconds();
 
 			return TimeSpan(
 				(value >= ms) ? (value - ms) : ((~0 - ms) + value)

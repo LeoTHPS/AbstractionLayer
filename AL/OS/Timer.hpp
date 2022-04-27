@@ -32,7 +32,7 @@ namespace AL::OS
 						&integer
 					);
 
-					return integer.QuadPart / 1000000.0;
+					return 1000000000.0 / integer.QuadPart;
 				}()
 			)
 #endif
@@ -96,8 +96,8 @@ namespace AL::OS
 				elapsed.tv_nsec = (1000000000 - start.tv_nsec) + time.tv_nsec;
 			}
 
-			return TimeSpan::FromMicroseconds(
-				static_cast<uint64>((elapsed.tv_sec * 1000000) + (elapsed.tv_nsec / 1000))
+			return TimeSpan::FromNanoseconds(
+				static_cast<uint64>((elapsed.tv_sec * 1000000000) + elapsed.tv_nsec)
 			);
 #elif defined(AL_PLATFORM_WINDOWS)
 			::LARGE_INTEGER integer;
@@ -106,9 +106,9 @@ namespace AL::OS
 				&integer
 			);
 
-			return TimeSpan::FromMicroseconds(
+			return TimeSpan::FromNanoseconds(
 				static_cast<uint64>(
-					(integer.QuadPart - start) / frequency
+					(integer.QuadPart - start) * frequency
 				)
 			);
 #endif

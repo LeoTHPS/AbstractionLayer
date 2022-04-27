@@ -153,7 +153,7 @@ namespace AL::OS
 			::GetSystemTimeAsFileTime(&time);
 
 			Integer<uint64> integer;
-			integer.Low.Value = time.dwLowDateTime;
+			integer.Low.Value  = time.dwLowDateTime;
 			integer.High.Value = time.dwHighDateTime;
 
 			return Timestamp::FromSeconds(
