@@ -180,6 +180,7 @@ namespace AL::OS
 #endif
 		}
 
+		// @throw AL::Exception
 		static auto GetCurrentUser()
 		{
 #if defined(AL_PLATFORM_PICO)
@@ -237,6 +238,7 @@ namespace AL::OS
 #endif
 		}
 
+		// @throw AL::Exception
 		static auto GetCurrentUserID()
 		{
 #if defined(AL_PLATFORM_PICO)
@@ -246,7 +248,8 @@ namespace AL::OS
 				::geteuid()
 			);
 #elif defined(AL_PLATFORM_WINDOWS)
-
+			// TODO: implement
+			throw NotImplementedException();
 #endif
 		}
 
@@ -310,8 +313,7 @@ namespace AL::OS
 			size_t count = 0;
 
 #if defined(AL_PLATFORM_PICO)
-			// TODO: implement
-			throw NotImplementedException();
+			count = 1;
 #elif defined(AL_PLATFORM_LINUX)
 			// TODO: fix. cache 4 is returning != -1 when it doesn't exist
 
@@ -365,7 +367,7 @@ namespace AL::OS
 		}
 
 		// @throw AL::Exception
-		static size_t GetProcessorCacheSize(size_t cacheLevel)
+		static size_t GetProcessorCacheSize(size_t cache)
 		{
 			size_t size = 0;
 
@@ -373,7 +375,7 @@ namespace AL::OS
 			// TODO: implement
 			throw NotImplementedException();
 #elif defined(AL_PLATFORM_LINUX)
-			switch (cacheLevel)
+			switch (cache)
 			{
 				case 0:
 					size = static_cast<size_t>(::sysconf(_SC_LEVEL1_DCACHE_SIZE));
@@ -401,11 +403,11 @@ namespace AL::OS
 			}
 #elif defined(AL_PLATFORM_WINDOWS)
 			EnumerateLogicalProcessorInformation(
-				[&size, cacheLevel = cacheLevel + 1](const ::SYSTEM_LOGICAL_PROCESSOR_INFORMATION& _info)
+				[&size, cache = cache + 1](const ::SYSTEM_LOGICAL_PROCESSOR_INFORMATION& _info)
 				{
 					if (_info.Relationship == ::LOGICAL_PROCESSOR_RELATIONSHIP::RelationCache)
 					{
-						if (_info.Cache.Level == static_cast<::BYTE>(cacheLevel))
+						if (_info.Cache.Level == static_cast<::BYTE>(cache))
 						{
 							size = _info.Cache.Size;
 
@@ -422,15 +424,24 @@ namespace AL::OS
 		}
 
 		// @throw AL::Exception
-		static size_t GetProcessorCacheLineSize(size_t cacheLevel)
+		static size_t GetProcessorCacheLineSize(size_t cache)
 		{
 			size_t lineSize = 0;
 
 #if defined(AL_PLATFORM_PICO)
-			// the RP2040 has an official line size of 64 bits but only the first 32 are guaranteed
-			lineSize = 4;
+			switch (cache)
+			{
+				case 0:
+					// the RP2040 line size is 64 bits
+					// but only the first 32 are guaranteed
+					lineSize = 4;
+					break;
+
+				default:
+					throw OperationNotSupportedException();
+			}
 #elif defined(AL_PLATFORM_LINUX)
-			switch (cacheLevel)
+			switch (cache)
 			{
 				case 0:
 					lineSize = static_cast<size_t>(::sysconf(_SC_LEVEL1_DCACHE_LINESIZE));
@@ -447,8 +458,11 @@ namespace AL::OS
 				case 3:
 					lineSize = static_cast<size_t>(::sysconf(_SC_LEVEL4_CACHE_LINESIZE));
 					break;
+
+				default:
+					throw OperationNotSupportedException();
 			}
-			
+
 			if (lineSize == static_cast<size_t>(-1))
 			{
 
@@ -457,13 +471,16 @@ namespace AL::OS
 				);
 			}
 #elif defined(AL_PLATFORM_WINDOWS)
+			Bool isFound = False;
+
 			EnumerateLogicalProcessorInformation(
-				[&lineSize, cacheLevel = cacheLevel + 1](const ::SYSTEM_LOGICAL_PROCESSOR_INFORMATION& _info)
+				[&isFound, &lineSize, cache = cache + 1](const ::SYSTEM_LOGICAL_PROCESSOR_INFORMATION& _info)
 				{
 					if (_info.Relationship == ::LOGICAL_PROCESSOR_RELATIONSHIP::RelationCache)
 					{
-						if (_info.Cache.Level == static_cast<::BYTE>(cacheLevel))
+						if (_info.Cache.Level == static_cast<::BYTE>(cache))
 						{
+							isFound  = True;
 							lineSize = _info.Cache.LineSize;
 
 							return False;
@@ -473,6 +490,12 @@ namespace AL::OS
 					return True;
 				}
 			);
+
+			if (!isFound)
+			{
+
+				throw OperationNotSupportedException();
+			}
 #endif
 
 			return lineSize;
@@ -480,7 +503,7 @@ namespace AL::OS
 
 	private:
 #if defined(AL_PLATFORM_WINDOWS)
-		// @throw AL::Exceptions::Exception
+		// @throw AL::Exception
 		template<typename F = Bool(*)(const ::SYSTEM_LOGICAL_PROCESSOR_INFORMATION&)>
 		static Void EnumerateLogicalProcessorInformation(F&& callback)
 		{
