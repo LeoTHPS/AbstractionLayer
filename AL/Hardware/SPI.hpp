@@ -24,6 +24,8 @@
 	#endif
 #elif defined(AL_PLATFORM_WINDOWS)
 	#include "AL/FileSystem/Path.hpp"
+
+	#warning Platform not supported
 #endif
 
 namespace AL::Hardware
@@ -406,7 +408,7 @@ namespace AL::Hardware
 
 		// @throw AL::Exception
 		template<typename T>
-		Void Read(T& value)
+		Void Read(T& value) const
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -419,18 +421,53 @@ namespace AL::Hardware
 			);
 		}
 		// @throw AL::Exception
-		Void Read(Void* lpBuffer, size_t size)
+		Void Read(Void* lpBuffer, size_t size) const
 		{
 			AL_ASSERT(
 				IsOpen(),
 				"SPIDevice not open"
 			);
 
-			ReadWrite(
-				lpBuffer,
-				nullptr,
+#if defined(AL_PLATFORM_PICO)
+			::gpio_put(
+				GetCS(),
+				false
+			);
+
+			::spi_read_blocking(
+				GetHandle(),
+				0,
+				reinterpret_cast<::uint8_t*>(lpBuffer),
 				size
 			);
+
+			::gpio_put(
+				GetCS(),
+				true
+			);
+#elif defined(AL_PLATFORM_LINUX)
+	#if defined(AL_DEPENDENCY_SPIDEV)
+			::spi_ioc_transfer transfer = { };
+			transfer.len           = static_cast<decltype(transfer.len)>(size);
+			transfer.rx_buf        = reinterpret_cast<decltype(::spi_ioc_transfer::rx_buf)>(lpBuffer);
+			transfer.tx_buf        = nullptr;
+			transfer.speed_hz      = static_cast<decltype(transfer.speed_hz)>(GetSpeed());
+			transfer.cs_change     = IsCSChangeEnabled() ? 1 : 0;
+			transfer.bits_per_word = static_cast<decltype(transfer.bits_per_word)>(GetBitCount());
+
+			if (::ioctl(fd, SPI_IOC_MESSAGE(1), &transfer) == -1)
+			{
+
+				throw OS::SystemException(
+					"ioctl"
+				);
+			}
+	#else
+			throw NotImplementedException();
+	#endif
+#else
+			throw NotImplementedException();
+#endif
 		}
 
 		// @throw AL::Exception

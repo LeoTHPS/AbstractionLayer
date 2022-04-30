@@ -23,6 +23,8 @@
 		#include <sys/stat.h>
 		#include <sys/ioctl.h>
 	#endif
+#elif defined(AL_PLATFORM_WINDOWS)
+	#warning Platform not supported
 #endif
 
 namespace AL::Hardware
@@ -51,17 +53,17 @@ namespace AL::Hardware
 
 	class GPIO
 	{
-		Bool              isOpen = False;
+		Bool                 isOpen = False;
 
-		GPIOBus           bus;
-		GPIOPin           pin;
-		GPIOPinValue      value     = 0;
-		GPIOPinDirections direction = GPIOPinDirections::Out;
+		GPIOBus              bus;
+		GPIOPin              pin;
+		mutable GPIOPinValue value     = 0;
+		GPIOPinDirections    direction = GPIOPinDirections::Out;
 
 #if defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_GPIOD)
-		::gpiod_chip*     lpChip;
-		::gpiod_line*     lpLine;
+		::gpiod_chip*        lpChip;
+		::gpiod_line*        lpLine;
 	#elif defined(AL_DEPENDENCY_WIRINGPI)
 
 	#else
@@ -268,7 +270,7 @@ namespace AL::Hardware
 		}
 
 		// @throw AL::Exception
-		Void Read(GPIOPinValue& value)
+		Void Read(GPIOPinValue& value) const
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -303,7 +305,7 @@ namespace AL::Hardware
 			this->value = value;
 		}
 		// @throw AL::Exception
-		Void Read(GPIOPinValues& value)
+		Void Read(GPIOPinValues& value) const
 		{
 			AL_ASSERT(
 				IsOpen(),

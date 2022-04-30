@@ -490,7 +490,7 @@ namespace AL::Hardware
 
 		// @throw AL::Exception
 		// @return number of bytes read
-		size_t Read(uint8 endPoint, Void* lpBuffer, size_t size)
+		size_t Read(uint8 endPoint, Void* lpBuffer, size_t size) const
 		{
 			AL_ASSERT(
 				IsOpen(),

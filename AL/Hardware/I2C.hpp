@@ -29,6 +29,8 @@
 	#endif
 #elif defined(AL_PLATFORM_WINDOWS)
 	#include "AL/FileSystem/Path.hpp"
+
+	#warning Platform not supported
 #endif
 
 namespace AL::Hardware
@@ -332,7 +334,7 @@ namespace AL::Hardware
 
 		// @throw AL::Exception
 		template<typename T, size_t S = sizeof(T)>
-		Void Read(I2CAddress address, T& value)
+		Void Read(I2CAddress address, T& value) const
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -346,7 +348,7 @@ namespace AL::Hardware
 			);
 		}
 		// @throw AL::Exception
-		Void Read(I2CAddress address, Void* lpBuffer, size_t size)
+		Void Read(I2CAddress address, Void* lpBuffer, size_t size) const
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -810,10 +812,10 @@ namespace AL::Hardware
 		{
 			return address;
 		}
-		
+
 		// @throw AL::Exception
 		template<typename T, size_t S = sizeof(T)>
-		Void Read(T& value)
+		Void Read(T& value) const
 		{
 			GetBus().Read(
 				GetAddress(),
@@ -821,7 +823,7 @@ namespace AL::Hardware
 			);
 		}
 		// @throw AL::Exception
-		Void Read(Void* lpBuffer, size_t size)
+		Void Read(Void* lpBuffer, size_t size) const
 		{
 			GetBus().Read(
 				GetAddress(),
