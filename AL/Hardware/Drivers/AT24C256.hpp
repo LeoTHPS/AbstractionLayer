@@ -16,7 +16,7 @@ namespace AL::Hardware::Drivers
 		Bool                            isBusAllocated = False;
 
 		I2CBus*                         lpBus;
-		I2CDevice                       device;
+		mutable I2CDevice               device;
 		Collections::Array<uint8[0x42]> ioBuffer; // sizeof(Address) + PAGE_SIZE
 
 	public:
@@ -221,7 +221,7 @@ namespace AL::Hardware::Drivers
 
 		// @throw AL::Exception
 		template<typename T>
-		Bool Read(Address address, T& value)
+		Bool Read(Address address, T& value) const
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -237,7 +237,7 @@ namespace AL::Hardware::Drivers
 			return True;
 		}
 		// @throw AL::Exception
-		Bool Read(Address address, Void* lpBuffer, size_t size)
+		Bool Read(Address address, Void* lpBuffer, size_t size) const
 		{
 			AL_ASSERT(
 				IsOpen(),

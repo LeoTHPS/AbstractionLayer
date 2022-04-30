@@ -350,7 +350,7 @@ namespace AL::Hardware::Drivers
 		}
 
 		// @throw AL::Exception
-		Void Device_Read(uint8(&buffer)[6])
+		Void Device_Read(uint8(&buffer)[6]) const
 		{
 			device.Read(
 				buffer
