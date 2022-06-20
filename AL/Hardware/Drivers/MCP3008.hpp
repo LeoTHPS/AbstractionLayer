@@ -23,6 +23,11 @@ namespace AL::Hardware::Drivers
 		static constexpr Channel  CHANNEL_LAST  = 7;
 		static constexpr Channel  CHANNEL_COUNT = 8;
 
+		static constexpr Float CalculateVoltage(Float vdd, ReadData value)
+		{
+			return vdd * (static_cast<Float>(DATA_MAX) / value);
+		}
+
 		MCP3008(MCP3008&& mcp3008)
 			: isOpen(
 				mcp3008.isOpen
