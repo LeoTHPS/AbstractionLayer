@@ -25,7 +25,7 @@ namespace AL::Hardware::Drivers
 
 		static constexpr Float CalculateVoltage(Float vdd, ReadData value)
 		{
-			return vdd * (static_cast<Float>(DATA_MAX) / value);
+			return vdd * (static_cast<Float>(value) / DATA_MAX);
 		}
 
 		MCP3008(MCP3008&& mcp3008)
