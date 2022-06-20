@@ -22,10 +22,10 @@ namespace AL::Hardware::Drivers
 	public:
 		typedef uint16 Address;
 
-		static constexpr size_t  PAGE_SIZE      = 0x40;
-		static constexpr size_t  PAGE_COUNT     = 0x200;
+		static constexpr size_t        PAGE_SIZE      = 0x40;
+		static constexpr size_t        PAGE_COUNT     = 0x200;
 
-		inline static I2CAddress DEVICE_ADDRESS = 0x50;
+		inline static const I2CAddress DEVICE_ADDRESS = 0x50;
 
 		AT24C256(AT24C256&& at24c256)
 			: isOpen(

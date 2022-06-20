@@ -37,7 +37,7 @@ namespace AL::Hardware::Drivers
 		I2CDevice device;
 
 	public:
-		inline static I2CAddress DEVICE_ADDRESS = 0x38;
+		inline static const I2CAddress DEVICE_ADDRESS = 0x38;
 
 		AHT10(AHT10&& aht10)
 			: isOpen(

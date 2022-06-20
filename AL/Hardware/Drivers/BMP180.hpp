@@ -83,7 +83,7 @@ namespace AL::Hardware::Drivers
 		Double    refPressure;
 
 	public:
-		inline static I2CAddress DEVICE_ADDRESS = 0x77;
+		inline static const I2CAddress DEVICE_ADDRESS = 0x77;
 
 		BMP180(BMP180&& bmp180)
 			: isOpen(
