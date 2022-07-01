@@ -17,6 +17,8 @@
 
 #if defined(AL_PLATFORM_PICO)
 	// TODO: detect which Pico board is being targetted
+#elif defined(AL_PLATFORM_PICO_W)
+	#define AL_PLATFORM_PICO
 #elif defined(__linux__)
 	#define AL_PLATFORM_LINUX
 #elif defined(_WIN32) || defined(_WIN64)
