@@ -17,7 +17,7 @@ namespace AL::OS::Windows
 		using FileDialog::FileDialog;
 
 		// @throw AL::Exception
-		// @return False if closed
+		// @return AL::False if closed
 		virtual Bool Show(FileSystem::Path& path) override
 		{
 			if (!::GetSaveFileNameA(&openfilename))

@@ -134,7 +134,7 @@ namespace AL::Serialization
 			lineEnding = value;
 		}
 
-		// @return False if end of buffer
+		// @return AL::False if end of buffer
 		Bool Read(String::Char& value)
 		{
 			if (!Read(&value, 1))
@@ -145,7 +145,7 @@ namespace AL::Serialization
 
 			return True;
 		}
-		// @return False if end of buffer
+		// @return AL::False if end of buffer
 		template<size_t S>
 		Bool Read(String::Char(&value)[S])
 		{
@@ -157,7 +157,7 @@ namespace AL::Serialization
 
 			return True;
 		}
-		// @return False if end of buffer
+		// @return AL::False if end of buffer
 		Bool Read(String& value, size_t length)
 		{
 			WString _value;
@@ -174,7 +174,7 @@ namespace AL::Serialization
 
 			return True;
 		}
-		// @return False if end of buffer
+		// @return AL::False if end of buffer
 		Bool Read(String::Char* lpValue, size_t length)
 		{
 			WString value;
@@ -194,7 +194,7 @@ namespace AL::Serialization
 			return True;
 		}
 
-		// @return False if end of buffer
+		// @return AL::False if end of buffer
 		Bool Read(WString::Char& value)
 		{
 			if (!Read(&value, 1))
@@ -205,7 +205,7 @@ namespace AL::Serialization
 
 			return True;
 		}
-		// @return False if end of buffer
+		// @return AL::False if end of buffer
 		template<size_t S>
 		Bool Read(WString::Char(&value)[S])
 		{
@@ -217,7 +217,7 @@ namespace AL::Serialization
 
 			return True;
 		}
-		// @return False if end of buffer
+		// @return AL::False if end of buffer
 		Bool Read(WString& value, size_t length)
 		{
 			Collections::Array<WString::Char> _value(
@@ -237,7 +237,7 @@ namespace AL::Serialization
 
 			return True;
 		}
-		// @return False if end of buffer
+		// @return AL::False if end of buffer
 		Bool Read(WString::Char* lpValue, size_t length)
 		{
 			if ((stringReadOffset + length) > string.GetLength())
@@ -257,7 +257,7 @@ namespace AL::Serialization
 			return True;
 		}
 
-		// @return False if end of buffer
+		// @return AL::False if end of buffer
 		Bool ReadAll(String& value)
 		{
 			WString _value;
@@ -274,7 +274,7 @@ namespace AL::Serialization
 
 			return True;
 		}
-		// @return False if end of buffer
+		// @return AL::False if end of buffer
 		Bool ReadAll(WString& value)
 		{
 			auto length = string.GetLength();
@@ -296,7 +296,7 @@ namespace AL::Serialization
 			return True;
 		}
 
-		// @return False if end of buffer
+		// @return AL::False if end of buffer
 		Bool ReadLine(String& value)
 		{
 			WString _value;
@@ -313,7 +313,7 @@ namespace AL::Serialization
 
 			return True;
 		}
-		// @return False if end of buffer
+		// @return AL::False if end of buffer
 		Bool ReadLine(WString& value)
 		{
 			if (stringReadOffset >= string.GetLength())

@@ -23,13 +23,13 @@ namespace AL::FileSystem
 	class Directory;
 
 	// @throw AL::Exception
-	// @return False to stop enumeration
+	// @return AL::False to stop enumeration
 	typedef Function<Bool(const Path& path)>           DirectoryEnumCallback;
 	// @throw AL::Exception
-	// @return False to stop enumeration
+	// @return AL::False to stop enumeration
 	typedef Function<Bool(const File& file)>           DirectoryEnumFilesCallback;
 	// @throw AL::Exception
-	// @return False to stop enumeration
+	// @return AL::False to stop enumeration
 	typedef Function<Bool(const Directory& directory)> DirectoryEnumDirectoriesCallback;
 
 	class Directory
@@ -69,7 +69,7 @@ namespace AL::FileSystem
 		}
 
 		// @throw AL::Exception
-		// @return False if already exists
+		// @return AL::False if already exists
 		static Bool Create(const Path& path)
 		{
 			if (!Create(path.GetString()))
@@ -81,7 +81,7 @@ namespace AL::FileSystem
 			return True;
 		}
 		// @throw AL::Exception
-		// @return False if already exists
+		// @return AL::False if already exists
 		static Bool Create(const String& path)
 		{
 			if (Path::Exists(path))
@@ -122,7 +122,7 @@ namespace AL::FileSystem
 		static Void Delete(const String& path);
 
 		// @throw AL::Exception
-		// @return False if already exists
+		// @return AL::False if already exists
 		static Bool Copy(const Path& source, const Path& destination)
 		{
 			if (!Copy(source.GetString(), destination.GetString()))
@@ -134,11 +134,11 @@ namespace AL::FileSystem
 			return True;
 		}
 		// @throw AL::Exception
-		// @return False if already exists
+		// @return AL::False if already exists
 		static Bool Copy(const String& source, const String& destination);
 
 		// @throw AL::Exception
-		// @return False if already exists
+		// @return AL::False if already exists
 		static Bool Move(const Path& source, const Path& destination)
 		{
 			if (!Move(source.GetString(), destination.GetString()))
@@ -150,7 +150,7 @@ namespace AL::FileSystem
 			return True;
 		}
 		// @throw AL::Exception
-		// @return False if already exists
+		// @return AL::False if already exists
 		static Bool Move(const String& source, const String& destination);
 
 		// @throw AL::Exception

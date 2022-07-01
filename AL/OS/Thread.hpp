@@ -193,7 +193,7 @@ namespace AL::OS
 		}
 
 		// @throw AL::Exception
-		// @return False if time elapsed and thread is still running
+		// @return AL::False if time elapsed and thread is still running
 		Bool Join(TimeSpan maxWaitTime = TimeSpan::Infinite)
 		{
 			if (!thread.Join(maxWaitTime))

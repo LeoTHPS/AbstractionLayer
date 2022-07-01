@@ -44,7 +44,7 @@ namespace AL::OS::Windows
 			virtual Void Terminate(uint32 exitCode) = 0;
 
 			// @throw AL::Exception
-			// @return False if maxWaitTime elapsed
+			// @return AL::False if maxWaitTime elapsed
 			virtual Bool Join(TimeSpan maxWaitTime) = 0;
 		};
 
@@ -178,7 +178,7 @@ namespace AL::OS::Windows
 			}
 
 			// @throw AL::Exception
-			// @return False if maxWaitTime elapsed
+			// @return AL::False if maxWaitTime elapsed
 			virtual Bool Join(TimeSpan maxWaitTime) override
 			{
 				AL_ASSERT(
@@ -402,7 +402,7 @@ namespace AL::OS::Windows
 		}
 
 		// @throw AL::Exception
-		// @return False if time elapsed and Thread is still running
+		// @return AL::False if time elapsed and Thread is still running
 		Bool Join(TimeSpan maxWaitTime = TimeSpan::Infinite)
 		{
 			if (IsRunning() && !lpNativeThread->Join(maxWaitTime))

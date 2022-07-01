@@ -162,7 +162,7 @@ namespace AL::Hardware
 
 	public:
 		// @throw AL::Exception
-		// @return False if device does not exist
+		// @return AL::False if device does not exist
 		static Bool Open(USBDevice& device, USBVendorId vendorId, USBProductId productId)
 		{
 #if defined(AL_PLATFORM_LINUX)

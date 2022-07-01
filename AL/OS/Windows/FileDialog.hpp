@@ -188,7 +188,7 @@ namespace AL::OS::Windows
 		}
 
 		// @throw AL::Exception
-		// @return False if closed
+		// @return AL::False if closed
 		virtual Bool Show(FileSystem::Path& path) = 0;
 	};
 }

@@ -52,7 +52,7 @@ namespace AL::OS::Windows
 		}
 
 		// @throw AL::Exception
-		// @return False on ERROR_PIPE_BUSY
+		// @return AL::False on ERROR_PIPE_BUSY
 		Bool Connect()
 		{
 			AL_ASSERT(
@@ -88,7 +88,7 @@ namespace AL::OS::Windows
 		}
 
 		// @throw AL::Exception
-		// @return False on timeout
+		// @return AL::False on timeout
 		Bool Accept(size_t writeBufferSize, size_t readBufferSize)
 		{
 			auto waitTime = TimeSpan::FromMilliseconds(
@@ -104,7 +104,7 @@ namespace AL::OS::Windows
 			return True;
 		}
 		// @throw AL::Exception
-		// @return False on timeout
+		// @return AL::False on timeout
 		Bool Accept(size_t writeBufferSize, size_t readBufferSize, TimeSpan waitTime)
 		{
 			AL_ASSERT(
@@ -122,7 +122,7 @@ namespace AL::OS::Windows
 		}
 
 		// @throw AL::Exception
-		// @return False on timeout
+		// @return AL::False on timeout
 		Bool AcceptAny(size_t writeBufferSize, size_t readBufferSize)
 		{
 			auto waitTime = TimeSpan::FromMilliseconds(
@@ -138,7 +138,7 @@ namespace AL::OS::Windows
 			return True;
 		}
 		// @throw AL::Exception
-		// @return False on timeout
+		// @return AL::False on timeout
 		Bool AcceptAny(size_t writeBufferSize, size_t readBufferSize, TimeSpan waitTime)
 		{
 			AL_ASSERT(

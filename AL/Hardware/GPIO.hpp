@@ -508,7 +508,7 @@ namespace AL::Hardware
 		}
 
 		// @throw AL::Exception
-		// @return False if time elapsed
+		// @return AL::False if time elapsed
 		Bool WaitForEdge(GPIOPinEdges edge, TimeSpan maxWaitTime = TimeSpan::Infinite)
 		{
 			AL_ASSERT(

@@ -128,7 +128,7 @@ namespace AL::OS
 	};
 
 	// @throw AL::Exception
-	// @return False to stop enumeration
+	// @return AL::False to stop enumeration
 	typedef Function<Bool(const ProcessMemoryRegion& region)> ProcessMemoryEnumRegionsCallback;
 
 	class ProcessMemory
@@ -180,7 +180,7 @@ namespace AL::OS
 
 	public:
 		// @throw AL::Exception
-		// @return False on access denied
+		// @return AL::False on access denied
 		static Bool Open(ProcessMemory& processMemory, Process& process)
 		{
 			if (!Open(processMemory, process, ProcessMemoryAccessFlags::All))
@@ -192,7 +192,7 @@ namespace AL::OS
 			return True;
 		}
 		// @throw AL::Exception
-		// @return False on access denied
+		// @return AL::False on access denied
 		static Bool Open(ProcessMemory& processMemory, Process& process, ProcessMemoryAccessFlags flags);
 
 		ProcessMemory()
@@ -481,7 +481,7 @@ namespace AL::OS
 		}
 
 		// @throw AL::Exception
-		// @return False if not found
+		// @return AL::False if not found
 		Bool Search(ProcessMemoryAddress& address, const ProcessMemoryPattern& pattern) const
 		{
 			Bool found = False;
@@ -518,7 +518,7 @@ namespace AL::OS
 			return found;
 		}
 		// @throw AL::Exception
-		// @return False if not found
+		// @return AL::False if not found
 		Bool Search(ProcessMemoryAddress& address, const ProcessMemoryPattern& pattern, ProcessMemoryAddress offset, ProcessMemoryAddress length) const
 		{
 			AL_ASSERT(
@@ -712,11 +712,11 @@ namespace AL::OS
 
 	public:
 		// @throw AL::Exception
-		// @return False if file not found
+		// @return AL::False if file not found
 		static Bool Load(ProcessLibrary& library, Process& process, const FileSystem::Path& path);
 
 		// @throw AL::Exception
-		// @return False if library not loaded
+		// @return AL::False if library not loaded
 		static Bool Open(ProcessLibrary& library, Process& process, const String& name);
 
 		// @throw AL::Exception
@@ -780,7 +780,7 @@ namespace AL::OS
 		}
 
 		// @throw AL::Exception
-		// @return False if export not found
+		// @return AL::False if export not found
 		template<typename T>
 		Bool GetExport(T*& lpValue, uint16 ordinal) const
 		{
@@ -797,7 +797,7 @@ namespace AL::OS
 			return True;
 		}
 		// @throw AL::Exception
-		// @return False if export not found
+		// @return AL::False if export not found
 		template<typename T>
 		Bool GetExport(T*& lpValue, const String& name) const
 		{
@@ -871,7 +871,7 @@ namespace AL::OS
 	};
 
 	// @throw AL::Exception
-	// @return False to stop enumeration
+	// @return AL::False to stop enumeration
 	typedef Function<Bool(ProcessId processId, const String& processName)> ProcessEnumCallback;
 
 	class Process
@@ -921,7 +921,7 @@ namespace AL::OS
 
 	public:
 		// @throw AL::Exception
-		// @return False if not found
+		// @return AL::False if not found
 		static Bool Open(Process& process, ProcessId id)
 		{
 #if defined(AL_PLATFORM_LINUX)
@@ -979,7 +979,7 @@ namespace AL::OS
 			return True;
 		}
 		// @throw AL::Exception
-		// @return False if not found
+		// @return AL::False if not found
 		static Bool Open(Process& process, const String& name)
 		{
 			ProcessId processId;
@@ -1398,7 +1398,7 @@ namespace AL::OS
 }
 
 // @throw AL::Exception
-// @return False on access denied
+// @return AL::False on access denied
 inline AL::Bool AL::OS::ProcessMemory::Open(ProcessMemory& processMemory, Process& process, ProcessMemoryAccessFlags flags)
 {
 #if defined(AL_PLATFORM_LINUX)
@@ -1457,7 +1457,7 @@ inline AL::Bool AL::OS::ProcessMemory::Open(ProcessMemory& processMemory, Proces
 }
 
 // @throw AL::Exception
-// @return False if file not found
+// @return AL::False if file not found
 inline AL::Bool AL::OS::ProcessLibrary::Load(ProcessLibrary& library, Process& process, const FileSystem::Path& path)
 {
 	if (!path.Exists())
@@ -1520,7 +1520,7 @@ inline AL::Bool AL::OS::ProcessLibrary::Load(ProcessLibrary& library, Process& p
 }
 
 // @throw AL::Exception
-// @return False if library not loaded
+// @return AL::False if library not loaded
 inline AL::Bool AL::OS::ProcessLibrary::Open(ProcessLibrary& library, Process& process, const String& name)
 {
 #if defined(AL_PLATFORM_LINUX)

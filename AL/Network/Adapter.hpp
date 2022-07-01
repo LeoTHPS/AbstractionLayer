@@ -28,7 +28,7 @@ namespace AL::Network
 	struct Adapter;
 
 	// @throw AL::Exception
-	// @return False to stop enumerating
+	// @return AL::False to stop enumerating
 	typedef Function<Bool(const Adapter& adapter)> AdapterEnumCallback;
 
 	enum class AdapterFlags : uint16

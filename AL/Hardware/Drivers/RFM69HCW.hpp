@@ -612,7 +612,7 @@ namespace AL::Hardware::Drivers
 	typedef Collections::Array<uint8[16]> RFM69HCWEncryptionKey;
 
 	// @throw AL::Exception
-	// @return False to stop receiving
+	// @return AL::False to stop receiving
 	typedef Function<Bool(RFM69HCWNetworkAddress source, Void* lpBuffer, size_t size, size_t numberOfBytesReceived)> RFM69HCWRXCallback;
 
 	// TODO: Debug this
@@ -1552,7 +1552,7 @@ namespace AL::Hardware::Drivers
 		}
 
 		// @throw AL::Exception
-		// @return False on timeout
+		// @return AL::False on timeout
 		Bool RX_Frame(_FrameHeader& header, Void* lpPayload, size_t payloadCapacity, TimeSpan timeout)
 		{
 			Bool isPayloadReady;

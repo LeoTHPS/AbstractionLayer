@@ -34,7 +34,7 @@ namespace AL::FileSystem
 		}
 
 		// @throw AL::Exception
-		// @return False if not found
+		// @return AL::False if not found
 		Bool Open(FileOpenModes mode)
 		{
 			mode = BitMask<FileOpenModes>::Remove(
@@ -52,7 +52,7 @@ namespace AL::FileSystem
 		}
 
 		// @throw AL::Exception
-		// @return False if end of file
+		// @return AL::False if end of file
 		Bool Read(String::Char& value)
 		{
 			if (!Read(&value, 1))
@@ -64,7 +64,7 @@ namespace AL::FileSystem
 			return True;
 		}
 		// @throw AL::Exception
-		// @return False if end of file
+		// @return AL::False if end of file
 		template<size_t S>
 		Bool Read(String::Char(&value)[S])
 		{
@@ -77,7 +77,7 @@ namespace AL::FileSystem
 			return True;
 		}
 		// @throw AL::Exception
-		// @return False if end of file
+		// @return AL::False if end of file
 		Bool Read(String& value, size_t length)
 		{
 			Collections::Array<String::Char> buffer(
@@ -100,7 +100,7 @@ namespace AL::FileSystem
 			return True;
 		}
 		// @throw AL::Exception
-		// @return False if end of file
+		// @return AL::False if end of file
 		Bool Read(String::Char* lpValue, size_t length)
 		{
 			size_t bytesRead;
@@ -115,7 +115,7 @@ namespace AL::FileSystem
 		}
 
 		// @throw AL::Exception
-		// @return False if end of file
+		// @return AL::False if end of file
 		Bool ReadAll(String& value)
 		{
 			auto remainingCharCount = static_cast<size_t>(
@@ -132,7 +132,7 @@ namespace AL::FileSystem
 		}
 
 		// @throw AL::Exception
-		// @return False if end of file
+		// @return AL::False if end of file
 		Bool ReadLine(String& value, size_t chunkSize = 128)
 		{
 			Collections::Array<String::Char> chunkBuffer(

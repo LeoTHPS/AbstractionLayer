@@ -492,7 +492,7 @@ namespace AL::OS::Windows
 			}
 
 			// @throw AL::Exception
-			// @return False if empty
+			// @return AL::False if empty
 			template<typename T>
 			Bool Get(T& value) const
 			{
@@ -758,7 +758,7 @@ namespace AL::OS::Windows
 			friend Window;
 
 			// @throw AL::Exception
-			// @return True if handled
+			// @return AL::True if handled
 			Bool HandleMessage(::LRESULT& result, ::UINT message, ::WPARAM wParam, ::LPARAM lParam)
 			{
 				if (message == WM_CLIPBOARDUPDATE)
@@ -1004,7 +1004,7 @@ namespace AL::OS::Windows
 		}
 
 		// @throw AL::Exception
-		// @return False if empty
+		// @return AL::False if empty
 		template<typename T>
 		Bool GetClipboard(T& value) const
 		{
@@ -1602,7 +1602,7 @@ namespace AL::OS::Windows
 		}
 
 		// @throw AL::Exception
-		// @return False on closed
+		// @return AL::False on closed
 		Bool Update(TimeSpan delta)
 		{
 			AL_ASSERT(
@@ -1817,7 +1817,7 @@ namespace AL::OS::Windows
 			}
 		}
 
-		// @return False to cancel
+		// @return AL::False to cancel
 		virtual Bool OnClosing()
 		{
 
@@ -1849,7 +1849,7 @@ namespace AL::OS::Windows
 		}
 
 		// @throw AL::Exception
-		// @return False to cancel
+		// @return AL::False to cancel
 		virtual Bool OnIconChanging(const WindowIcon& icon, WindowIconTypes type)
 		{
 
@@ -1862,7 +1862,7 @@ namespace AL::OS::Windows
 		}
 
 		// @throw AL::Exception
-		// @return False to cancel
+		// @return AL::False to cancel
 		virtual Bool OnTitleChanging(const String& title)
 		{
 
@@ -1875,7 +1875,7 @@ namespace AL::OS::Windows
 		}
 
 		// @throw AL::Exception
-		// @return False to cancel
+		// @return AL::False to cancel
 		virtual Bool OnCursorChanging(const WindowCursor& cursor)
 		{
 
@@ -1888,7 +1888,7 @@ namespace AL::OS::Windows
 		}
 
 		// @throw AL::Exception
-		// @return False to cancel
+		// @return AL::False to cancel
 		virtual Bool OnPositionChanging(WindowPosition::Type x, WindowPosition::Type y)
 		{
 
@@ -1901,7 +1901,7 @@ namespace AL::OS::Windows
 		}
 
 		// @throw AL::Exception
-		// @return False to cancel
+		// @return AL::False to cancel
 		virtual Bool OnResolutionChanging(WindowResolution::Type width, WindowResolution::Type height)
 		{
 
@@ -1909,7 +1909,7 @@ namespace AL::OS::Windows
 		}
 
 		// @throw AL::Exception
-		// @return True if handled
+		// @return AL::True if handled
 		virtual Bool OnMouseEvent(const Hardware::MouseEvent& event)
 		{
 
@@ -1917,7 +1917,7 @@ namespace AL::OS::Windows
 		}
 
 		// @throw AL::Exception
-		// @return True if handled
+		// @return AL::True if handled
 		virtual Bool OnKeyboardEvent(const Hardware::KeyboardEvent& event)
 		{
 

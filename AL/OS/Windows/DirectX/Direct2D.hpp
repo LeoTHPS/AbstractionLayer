@@ -2201,7 +2201,7 @@ namespace AL::OS::Windows::DirectX
 		}
 
 		// @throw AL::Exception
-		// @return False on D2DERR_RECREATE_TARGET
+		// @return AL::False on D2DERR_RECREATE_TARGET
 		Bool EndDraw()
 		{
 			AL_ASSERT(

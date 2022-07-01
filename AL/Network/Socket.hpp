@@ -604,7 +604,7 @@ namespace AL::Network
 		}
 
 		// @throw AL::Exception
-		// @return False if would block
+		// @return AL::False if would block
 		Bool Accept(Socket& socket) const
 		{
 			AL_ASSERT(
@@ -724,7 +724,7 @@ namespace AL::Network
 		}
 
 		// @throw AL::Exception
-		// @return False on timeout
+		// @return AL::False on timeout
 		Bool Connect(const IPEndPoint& ep)
 		{
 			AL_ASSERT(

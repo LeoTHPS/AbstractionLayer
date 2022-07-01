@@ -32,7 +32,7 @@ namespace AL::OS::Linux
 		}
 
 		// @throw AL::Exception
-		// @return False if would block
+		// @return AL::False if would block
 		static Bool Post(ProcessId& processId, int signal)
 		{
 			if (::sigqueue(static_cast<::pid_t>(processId), signal, ::sigval { }) == -1)

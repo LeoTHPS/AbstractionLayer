@@ -123,7 +123,7 @@ namespace AL::FileSystem
 		}
 
 		// @throw AL::Exception
-		// @return False if already exists
+		// @return AL::False if already exists
 		static Bool Create(const Path& path)
 		{
 			if (!Create(path.GetString()))
@@ -135,7 +135,7 @@ namespace AL::FileSystem
 			return True;
 		}
 		// @throw AL::Exception
-		// @return False if already exists
+		// @return AL::False if already exists
 		static Bool Create(const String& path)
 		{
 			if (Path::Exists(path))
@@ -200,7 +200,7 @@ namespace AL::FileSystem
 		}
 
 		// @throw AL::Exception
-		// @return False if already exists
+		// @return AL::False if already exists
 		static Bool Copy(const Path& source, const Path& destination)
 		{
 			if (!Copy(source.GetString(), destination.GetString()))
@@ -212,7 +212,7 @@ namespace AL::FileSystem
 			return True;
 		}
 		// @throw AL::Exception
-		// @return False if already exists
+		// @return AL::False if already exists
 		static Bool Copy(const String& source, const String& destination)
 		{
 			if (Path::Exists(destination))
@@ -323,7 +323,7 @@ namespace AL::FileSystem
 		}
 		
 		// @throw AL::Exception
-		// @return False if already exists
+		// @return AL::False if already exists
 		static Bool Move(const Path& source, const Path& destination)
 		{
 			if (!Move(source.GetString(), destination.GetString()))
@@ -335,7 +335,7 @@ namespace AL::FileSystem
 			return True;
 		}
 		// @throw AL::Exception
-		// @return False if already exists
+		// @return AL::False if already exists
 		static Bool Move(const String& source, const String& destination)
 		{
 			if (Path::Exists(destination))
@@ -489,7 +489,7 @@ namespace AL::FileSystem
 		}
 
 		// @throw AL::Exception
-		// @return False if not found
+		// @return AL::False if not found
 		Bool Open(FileOpenModes mode)
 		{
 			AL_ASSERT(

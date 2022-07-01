@@ -121,7 +121,7 @@ namespace AL::Network
 		}
 
 		// @throw AL::Exception
-		// @return False if not found
+		// @return AL::False if not found
 		static Bool Resolve(IPAddress& address, const String& hostname)
 		{
 			::addrinfo hint = { 0 };

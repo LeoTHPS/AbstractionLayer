@@ -450,7 +450,7 @@ namespace AL::OS
 			virtual Void Native_UnloadContent() = 0;
 
 			// @throw AL::Exception
-			// @return False on close
+			// @return AL::False on close
 			virtual Bool Native_Update(TimeSpan delta) = 0;
 
 			// @throw AL::Exception
@@ -591,7 +591,7 @@ namespace AL::OS
 			}
 
 			// @throw AL::Exception
-			// @return False on close
+			// @return AL::False on close
 			virtual Bool Native_Update(TimeSpan delta) override
 			{
 				throw NotImplementedException();
@@ -787,7 +787,7 @@ namespace AL::OS
 			}
 
 			// @throw AL::Exception
-			// @return False on close
+			// @return AL::False on close
 			virtual Bool Native_Update(TimeSpan delta) override
 			{
 				if (!Window::Update(delta))
@@ -1024,7 +1024,7 @@ namespace AL::OS
 				}
 			}
 
-			// @return False to cancel
+			// @return AL::False to cancel
 			virtual Bool OnClosing() override
 			{
 				if (!Window::OnClosing())
@@ -1132,7 +1132,7 @@ namespace AL::OS
 			}
 
 			// @throw AL::Exception
-			// @return False to cancel
+			// @return AL::False to cancel
 			virtual Bool OnIconChanging(const Windows::WindowIcon& icon, Windows::WindowIconTypes type) override
 			{
 				if (!Window::OnIconChanging(icon, type))
@@ -1155,7 +1155,7 @@ namespace AL::OS
 			}
 
 			// @throw AL::Exception
-			// @return False to cancel
+			// @return AL::False to cancel
 			virtual Bool OnTitleChanging(const String& title) override
 			{
 				if (!Window::OnTitleChanging(title))
@@ -1190,7 +1190,7 @@ namespace AL::OS
 			}
 
 			// @throw AL::Exception
-			// @return False to cancel
+			// @return AL::False to cancel
 			virtual Bool OnCursorChanging(const Windows::WindowCursor& cursor) override
 			{
 				if (!Window::OnCursorChanging(cursor))
@@ -1214,7 +1214,7 @@ namespace AL::OS
 			}
 
 			// @throw AL::Exception
-			// @return False to cancel
+			// @return AL::False to cancel
 			virtual Bool OnPositionChanging(Windows::WindowPosition::Type x, Windows::WindowPosition::Type y) override
 			{
 				if (!Window::OnPositionChanging(x, y))
@@ -1241,7 +1241,7 @@ namespace AL::OS
 			}
 
 			// @throw AL::Exception
-			// @return False to cancel
+			// @return AL::False to cancel
 			virtual Bool OnResolutionChanging(Windows::WindowResolution::Type width, Windows::WindowResolution::Type height) override
 			{
 				if (!Window::OnResolutionChanging(width, height))
@@ -1254,7 +1254,7 @@ namespace AL::OS
 			}
 
 			// @throw AL::Exception
-			// @return True if handled
+			// @return AL::True if handled
 			virtual Bool OnMouseEvent(const Hardware::MouseEvent& event) override
 			{
 				if (Window::OnMouseEvent(event))
@@ -1273,7 +1273,7 @@ namespace AL::OS
 			}
 
 			// @throw AL::Exception
-			// @return True if handled
+			// @return AL::True if handled
 			virtual Bool OnKeyboardEvent(const Hardware::KeyboardEvent& event) override
 			{
 				if (Window::OnKeyboardEvent(event))
@@ -1484,7 +1484,7 @@ namespace AL::OS
 		}
 
 		// @throw AL::Exception
-		// @return False on close
+		// @return AL::False on close
 		Bool Update(TimeSpan delta)
 		{
 			if (!lpNativeWindow->Native_Update(delta))
@@ -1705,7 +1705,7 @@ namespace AL::OS
 		}
 
 		// @throw AL::Exception
-		// @return True if handled
+		// @return AL::True if handled
 		virtual Bool OnMouseEvent(const Hardware::MouseEvent& event)
 		{
 
@@ -1713,7 +1713,7 @@ namespace AL::OS
 		}
 
 		// @throw AL::Exception
-		// @return True if handled
+		// @return AL::True if handled
 		virtual Bool OnKeyboardEvent(const Hardware::KeyboardEvent& event)
 		{
 
