@@ -6,22 +6,22 @@ set(PICO_CXX_ENABLE_EXCEPTIONS 1)
 
 include(pico_sdk_import.cmake)
 
-project(Test_Pico)
+project(Test_PicoW)
 
 pico_sdk_init()
 
 add_executable(
-	Test_Pico
+	Test_PicoW
 	main.cpp
 )
 
 target_link_libraries(
-	Test_Pico
+	Test_PicoW
 	pico_stdlib
 	pico_malloc
 	pico_multicore
 	pico_lwip
-	pico_cyw43_arch_lwip_poll
+	pico_cyw43_arch_lwip_threadsafe_background
 	hardware_adc
 	hardware_i2c
 	hardware_spi
@@ -31,28 +31,28 @@ target_link_libraries(
 )
 
 target_include_directories(
-	Test_Pico
+	Test_PicoW
 	PRIVATE
 	"."
 	".."
 )
 
 target_compile_definitions(
-	Test_Pico
+	Test_PicoW
 	PRIVATE
 	AL_PLATFORM_PICO_W
 )
 
 pico_add_extra_outputs(
-	Test_Pico
+	Test_PicoW
 )
 
 pico_enable_stdio_usb(
-	Test_Pico
+	Test_PicoW
 	0
 )
 
 pico_enable_stdio_uart(
-	Test_Pico
+	Test_PicoW
 	1
 )
