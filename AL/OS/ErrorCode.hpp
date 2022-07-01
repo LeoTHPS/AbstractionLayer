@@ -8,7 +8,7 @@
 namespace AL::OS
 {
 #if defined(AL_PLATFORM_PICO)
-	typedef uint8                                                                                                ErrorCode;
+	typedef int32                                                                                                ErrorCode;
 #elif defined(AL_PLATFORM_LINUX)
 	typedef typename Get_Enum_Or_Integer_Base<typename Remove_Modifiers<decltype(errno)>::Type>::Type            ErrorCode;
 #elif defined(AL_PLATFORM_WINDOWS)

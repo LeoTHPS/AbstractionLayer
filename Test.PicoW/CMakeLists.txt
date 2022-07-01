@@ -20,6 +20,8 @@ target_link_libraries(
 	pico_stdlib
 	pico_malloc
 	pico_multicore
+	pico_lwip
+	pico_cyw43_arch_lwip_poll
 	hardware_adc
 	hardware_i2c
 	hardware_spi
@@ -38,7 +40,7 @@ target_include_directories(
 target_compile_definitions(
 	Test_Pico
 	PRIVATE
-	AL_PLATFORM_PICO
+	AL_PLATFORM_PICO_W
 )
 
 pico_add_extra_outputs(
