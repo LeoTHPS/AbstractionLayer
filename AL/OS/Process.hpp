@@ -10,7 +10,7 @@
 #include "AL/FileSystem/Path.hpp"
 
 #if defined(AL_PLATFORM_PICO)
-	#error Platform not supported
+	#warning Platform not supported
 #elif defined(AL_PLATFORM_LINUX)
 	#include "Linux/DLException.hpp"
 

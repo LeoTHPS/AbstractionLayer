@@ -2,7 +2,7 @@
 #include <AL/Common.hpp>
 
 #if defined(AL_PLATFORM_PICO)
-	#error Platform not supported
+	#warning Platform not supported
 #elif defined(AL_PLATFORM_LINUX)
 	#if AL_HAS_INCLUDE(<libusb-1.0/libusb.h>)
 		#define AL_DEPENDENCY_LIBUSB

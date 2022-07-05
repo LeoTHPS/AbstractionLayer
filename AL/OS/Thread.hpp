@@ -2,7 +2,7 @@
 #include "AL/Common.hpp"
 
 #if defined(AL_PLATFORM_PICO)
-	#error Platform not supported
+	#warning Platform not supported
 #elif defined(AL_PLATFORM_LINUX)
 	#include "Linux/Thread.hpp"
 #elif defined(AL_PLATFORM_WINDOWS)

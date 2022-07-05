@@ -2,7 +2,7 @@
 #include "AL/Common.hpp"
 
 #if !defined(AL_PLATFORM_LINUX)
-	#error Platform not supported
+	#warning Platform not supported
 #endif
 
 #include "AL/OS/Timer.hpp"
