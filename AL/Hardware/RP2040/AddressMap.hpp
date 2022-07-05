@@ -1,7 +1,7 @@
 #pragma once
 #include "AL/Common.hpp"
 
-namespace AL::Hardware::Drivers::RP2040
+namespace AL::Hardware::RP2040
 {
 	enum RP2040_ADDRESS_MAP : uint32
 	{

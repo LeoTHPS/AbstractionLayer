@@ -11,13 +11,13 @@
 #include <AL/Hardware/GPIO.hpp>
 #include <AL/Hardware/UART.hpp>
 
-#include <AL/Hardware/Drivers/PicoW/ADC.hpp>
-#include <AL/Hardware/Drivers/PicoW/CYW43.hpp>
+#include <AL/Hardware/PicoW/ADC.hpp>
+#include <AL/Hardware/PicoW/CYW43.hpp>
 
 // @throw AL::Exception
 void do_the_thing()
 {
-	AL::Hardware::Drivers::PicoW::CYW43::Open();
+	AL::Hardware::PicoW::CYW43::Open();
 
 	AL::OS::Timer timer;
 
@@ -25,9 +25,9 @@ void do_the_thing()
 	{
 		timer.Reset();
 
-		AL::Hardware::Drivers::PicoW::CYW43::LED::Write(AL::True);
+		AL::Hardware::PicoW::CYW43::LED::Write(AL::True);
 		AL::Sleep(AL::TimeSpan::FromMilliseconds(100));
-		AL::Hardware::Drivers::PicoW::CYW43::LED::Write(AL::False);
+		AL::Hardware::PicoW::CYW43::LED::Write(AL::False);
 
 		while (timer.GetElapsed() < AL::TimeSpan::FromSeconds(1))
 		{
@@ -35,7 +35,7 @@ void do_the_thing()
 		}
 	} while (true);
 
-	AL::Hardware::Drivers::PicoW::CYW43::Close();
+	AL::Hardware::PicoW::CYW43::Close();
 }
 
 int main()

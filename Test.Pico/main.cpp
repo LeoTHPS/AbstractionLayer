@@ -11,13 +11,13 @@
 #include <AL/Hardware/GPIO.hpp>
 #include <AL/Hardware/UART.hpp>
 
-#include <AL/Hardware/Drivers/Pico/ADC.hpp>
-#include <AL/Hardware/Drivers/Pico/LED.hpp>
+#include <AL/Hardware/Pico/ADC.hpp>
+#include <AL/Hardware/Pico/LED.hpp>
 
 // @throw AL::Exception
 void do_the_thing()
 {
-	AL::Hardware::Drivers::Pico::LED::Open();
+	AL::Hardware::Pico::LED::Open();
 
 	AL::OS::Timer timer;
 
@@ -25,9 +25,9 @@ void do_the_thing()
 	{
 		timer.Reset();
 
-		AL::Hardware::Drivers::Pico::LED::Write(AL::True);
+		AL::Hardware::Pico::LED::Write(AL::True);
 		AL::Sleep(AL::TimeSpan::FromMilliseconds(100));
-		AL::Hardware::Drivers::Pico::LED::Write(AL::False);
+		AL::Hardware::Pico::LED::Write(AL::False);
 
 		while (timer.GetElapsed() < AL::TimeSpan::FromSeconds(1))
 		{
@@ -35,7 +35,7 @@ void do_the_thing()
 		}
 	} while (true);
 
-	AL::Hardware::Drivers::Pico::LED::Close();
+	AL::Hardware::Pico::LED::Close();
 }
 
 int main()

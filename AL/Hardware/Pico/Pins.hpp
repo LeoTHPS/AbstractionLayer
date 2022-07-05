@@ -3,7 +3,7 @@
 
 #include <boards/pico.h>
 
-namespace AL::Hardware::Drivers::Pico
+namespace AL::Hardware::Pico
 {
 	enum PINS : uint8
 	{

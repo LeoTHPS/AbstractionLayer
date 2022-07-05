@@ -10,7 +10,7 @@
 #include <hardware/adc.h>
 #include <hardware/gpio.h>
 
-namespace AL::Hardware::Drivers::RP2040
+namespace AL::Hardware::RP2040
 {
 	enum class ADCChannels : uint8
 	{
@@ -21,7 +21,7 @@ namespace AL::Hardware::Drivers::RP2040
 	};
 
 	class ADC
-		: public IDriver<ADCChannels, uint16, Void>
+		: public Drivers::IDriver<ADCChannels, uint16, Void>
 	{
 		Bool                 isOpen = False;
 
