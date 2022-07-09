@@ -10,12 +10,12 @@ namespace AL::OS
 	class Timer
 	{
 #if defined(AL_PLATFORM_PICO)
-		uint64     start;
+		uint64 start;
 #elif defined(AL_PLATFORM_LINUX)
-		::timespec start;
+		uint64 start;
 #elif defined(AL_PLATFORM_WINDOWS)
-		Double     start;
-		Double     frequency;
+		Double start;
+		Double frequency;
 #endif
 
 		Timer(const Timer&) = delete;
@@ -47,7 +47,7 @@ namespace AL::OS
 			)
 #elif defined(AL_PLATFORM_LINUX)
 			: start(
-				Move(timer.start)
+				timer.start
 			)
 #elif defined(AL_PLATFORM_WINDOWS)
 			: start(
@@ -78,26 +78,8 @@ namespace AL::OS
 				TIME_UTC
 			);
 
-			::timespec elapsed =
-			{
-				.tv_sec  = time.tv_sec - start.tv_sec,
-				.tv_nsec = (time.tv_nsec >= start.tv_nsec) ? (time.tv_nsec - start.tv_nsec) : 0
-			};
-
-			if (time.tv_nsec >= start.tv_nsec)
-			{
-
-				elapsed.tv_nsec = time.tv_nsec - start.tv_nsec;
-			}
-			else
-			{
-				--elapsed.tv_sec;
-
-				elapsed.tv_nsec = (1000000000 - start.tv_nsec) + time.tv_nsec;
-			}
-
 			return TimeSpan::FromNanoseconds(
-				static_cast<uint64>((elapsed.tv_sec * 1000000000) + elapsed.tv_nsec)
+				((time.tv_sec * 1000000000) + time.tv_nsec) - start
 			);
 #elif defined(AL_PLATFORM_WINDOWS)
 			::LARGE_INTEGER integer;
@@ -119,10 +101,14 @@ namespace AL::OS
 #if defined(AL_PLATFORM_PICO)
 			start = ::time_us_64();
 #elif defined(AL_PLATFORM_LINUX)
+			::timespec time;
+
 			::timespec_get(
-				&start,
+				&time,
 				TIME_UTC
 			);
+
+			start = (time.tv_sec * 1000000000) + time.tv_nsec;
 #elif defined(AL_PLATFORM_WINDOWS)
 			::LARGE_INTEGER integer;
 
@@ -139,11 +125,9 @@ namespace AL::OS
 		Timer& operator = (Timer&& timer)
 		{
 #if defined(AL_PLATFORM_PICO)
-			start = timer.start;
+			start     = timer.start;
 #elif defined(AL_PLATFORM_LINUX)
-			start = Move(
-				timer.start
-			);
+			start     = timer.start;
 #elif defined(AL_PLATFORM_WINDOWS)
 			start     = timer.start;
 			frequency = timer.frequency;
