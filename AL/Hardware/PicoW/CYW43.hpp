@@ -156,9 +156,9 @@ namespace AL::Hardware::PicoW
 			);
 
 #if defined(AL_DEPENDENCY_CYW43)
-			int errorCode;
+			OS::ErrorCode errorCode;
 
-			if ((errorCode = ::cyw43_arch_init_with_country(static_cast<typename Get_Enum_Or_Integer_Base<CYW43Countries>::Type>(country))) != 0)
+			if ((errorCode = ::cyw43_arch_init_with_country(static_cast<typename Get_Enum_Or_Integer_Base<CYW43Countries>::Type>(country))) != PICO_ERROR_NONE)
 			{
 
 				throw OS::SystemException(
@@ -234,7 +234,7 @@ namespace AL::Hardware::PicoW
 			{
 
 				throw OS::SystemException(
-					"cyw43_arch_wifi_connect_blocking",
+					"cyw43_arch_wifi_connect_timeout_ms",
 					errorCode
 				);
 			}
@@ -270,6 +270,75 @@ namespace AL::Hardware::PicoW
 
 			isConnected = True;
 			isListening = False;
+		}
+
+		// @throw AL::Exception
+		// @return AL::False on timeout
+		static Bool TryConnect(const String& ssid, TimeSpan timeout = TimeSpan::Infinite)
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"CYW43 not open"
+			);
+
+#if defined(AL_DEPENDENCY_CYW43)
+			OS::ErrorCode errorCode;
+
+			if ((errorCode = ::cyw43_arch_wifi_connect_timeout_ms(ssid.GetCString(), nullptr, CYW43_AUTH_OPEN, static_cast<::uint32_t>(timeout.ToMilliseconds()))) != PICO_ERROR_NONE)
+			{
+				if (errorCode == PICO_ERROR_TIMEOUT)
+				{
+
+					return False;
+				}
+
+				throw OS::SystemException(
+					"cyw43_arch_wifi_connect_timeout_ms",
+					errorCode
+				);
+			}
+#else
+			throw NotImplementedException();
+#endif
+
+			isConnected = True;
+			isListening = False;
+
+			return True;
+		}
+		// @throw AL::Exception
+		// @return AL::False on timeout
+		static Bool TryConnect(const String& ssid, const String& password, CYW43AuthTypes authType, TimeSpan timeout = TimeSpan::Infinite)
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"CYW43 not open"
+			);
+
+#if defined(AL_DEPENDENCY_CYW43)
+			OS::ErrorCode errorCode;
+
+			if ((errorCode = ::cyw43_arch_wifi_connect_timeout_ms(ssid.GetCString(), nullptr, CYW43_AUTH_OPEN, static_cast<::uint32_t>(timeout.ToMilliseconds()))) != PICO_ERROR_NONE)
+			{
+				if (errorCode == PICO_ERROR_TIMEOUT)
+				{
+
+					return False;
+				}
+
+				throw OS::SystemException(
+					"cyw43_arch_wifi_connect_timeout_ms",
+					errorCode
+				);
+			}
+#else
+			throw NotImplementedException();
+#endif
+
+			isConnected = True;
+			isListening = False;
+
+			return True;
 		}
 
 		// @throw AL::Exception
