@@ -90,8 +90,27 @@ namespace AL::Hardware::PicoW
 		USA            = CYW43_COUNTRY_USA
 	};
 
+	struct CYW43Network
+	{
+		int16          RSSI;
+		String         SSID;
+		String         BSSID;
+		uint16         Channel;
+		CYW43AuthTypes AuthType;
+	};
+
+	// @throw AL::Exception
+	// @return AL::False to stop scanning
+	typedef Function<Bool(const CYW43Network& network)> CYW43ScanCallback;
+
 	class CYW43
 	{
+		struct ScanContext
+		{
+			Bool                     Stop;
+			const CYW43ScanCallback* lpCallback;
+		};
+
 		inline static Bool isOpen      = False;
 		inline static Bool isConnected = False;
 		inline static Bool isListening = False;
@@ -215,9 +234,54 @@ namespace AL::Hardware::PicoW
 			}
 		}
 
-		// TODO: implement
 		// @throw AL::Exception
-		static Void Scan();
+		static Void Scan(const CYW43ScanCallback& callback)
+		{
+			AL_ASSERT(
+				!IsOpen(),
+				"CYW43 already open"
+			);
+
+#if defined(AL_DEPENDENCY_CYW43)
+			OS::ErrorCode errorCode;
+
+			ScanContext context =
+			{
+				.Stop       = False,
+				.lpCallback = &callback
+			};
+
+			::cyw43_wifi_scan_options_t options =
+			{
+				.ssid_len  = 0, // 0=all
+				.scan_type = 0  // 0=active, 1=passive
+			};
+
+			cyw43_arch_enable_sta_mode();
+
+			if ((errorCode = ::cyw43_wifi_scan(&cyw43_state, &options, &context, &OnScan)) != PICO_ERROR_NONE)
+			{
+
+				throw OS::SystemException(
+					"cyw43_wifi_scan",
+					errorCode
+				);
+			}
+
+			auto timeSpan = TimeSpan::FromMilliseconds(
+				100
+			);
+
+			while (::cyw43_wifi_scan_active(&cyw43_state))
+			{
+				Sleep(
+					timeSpan
+				);
+			}
+#else
+			throw NotImplementedException();
+#endif
+		}
 
 		// @throw AL::Exception
 		static Void Connect(const String& ssid)
@@ -229,6 +293,8 @@ namespace AL::Hardware::PicoW
 
 #if defined(AL_DEPENDENCY_CYW43)
 			OS::ErrorCode errorCode;
+
+			::cyw43_arch_enable_sta_mode();
 
 			if ((errorCode = ::cyw43_arch_wifi_connect_blocking(ssid.GetCString(), nullptr, CYW43_AUTH_OPEN)) != PICO_ERROR_NONE)
 			{
@@ -256,7 +322,9 @@ namespace AL::Hardware::PicoW
 #if defined(AL_DEPENDENCY_CYW43)
 			OS::ErrorCode errorCode;
 
-			if ((errorCode = ::cyw43_arch_wifi_connect_blocking(ssid.GetCString(), nullptr, CYW43_AUTH_OPEN)) != PICO_ERROR_NONE)
+			::cyw43_arch_enable_sta_mode();
+
+			if ((errorCode = ::cyw43_arch_wifi_connect_blocking(ssid.GetCString(), password.GetCString(), static_cast<typename Get_Enum_Or_Integer_Base<CYW43AuthTypes>::Type>(authType))) != PICO_ERROR_NONE)
 			{
 
 				throw OS::SystemException(
@@ -283,6 +351,8 @@ namespace AL::Hardware::PicoW
 
 #if defined(AL_DEPENDENCY_CYW43)
 			OS::ErrorCode errorCode;
+
+			::cyw43_arch_enable_sta_mode();
 
 			if ((errorCode = ::cyw43_arch_wifi_connect_timeout_ms(ssid.GetCString(), nullptr, CYW43_AUTH_OPEN, static_cast<::uint32_t>(timeout.ToMilliseconds()))) != PICO_ERROR_NONE)
 			{
@@ -318,7 +388,9 @@ namespace AL::Hardware::PicoW
 #if defined(AL_DEPENDENCY_CYW43)
 			OS::ErrorCode errorCode;
 
-			if ((errorCode = ::cyw43_arch_wifi_connect_timeout_ms(ssid.GetCString(), nullptr, CYW43_AUTH_OPEN, static_cast<::uint32_t>(timeout.ToMilliseconds()))) != PICO_ERROR_NONE)
+			::cyw43_arch_enable_sta_mode();
+
+			if ((errorCode = ::cyw43_arch_wifi_connect_timeout_ms(ssid.GetCString(), password.GetCString(), static_cast<typename Get_Enum_Or_Integer_Base<CYW43AuthTypes>::Type>(authType), static_cast<::uint32_t>(timeout.ToMilliseconds()))) != PICO_ERROR_NONE)
 			{
 				if (errorCode == PICO_ERROR_TIMEOUT)
 				{
@@ -382,6 +454,43 @@ namespace AL::Hardware::PicoW
 
 			isConnected = False;
 			isListening = True;
+		}
+
+	private:
+		static int OnScan(void* lpParam, const cyw43_ev_scan_result_t* lpResult)
+		{
+			if (auto lpContext = reinterpret_cast<ScanContext*>(lpParam); !lpContext->Stop)
+			{
+				CYW43Network network =
+				{
+					.RSSI     = lpResult->rssi,
+					.SSID     = String(reinterpret_cast<const char*>(lpResult->ssid), lpResult->ssid_len),
+					.BSSID    = BSSID_ToString(lpResult->bssid),
+					.Channel  = lpResult->channel,
+					.AuthType = static_cast<CYW43AuthTypes>(lpResult->auth_mode)
+				};
+
+				if (!(*lpContext->lpCallback)(network))
+				{
+
+					lpContext->Stop = True;
+				}
+			}
+
+			return 0;
+		}
+
+		static String BSSID_ToString(const ::uint8_t(&value)[6])
+		{
+			return String::Format(
+				"%02X:%02X:%02X:%02X:%02X:%02X",
+				value[0],
+				value[1],
+				value[2],
+				value[3],
+				value[4],
+				value[5]
+			);
 		}
 	};
 }
