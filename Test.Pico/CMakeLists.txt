@@ -48,10 +48,10 @@ pico_add_extra_outputs(
 
 pico_enable_stdio_usb(
 	Test_Pico
-	0
+	1
 )
 
 pico_enable_stdio_uart(
 	Test_Pico
-	1
+	0
 )

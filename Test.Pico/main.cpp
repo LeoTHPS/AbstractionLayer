@@ -63,5 +63,9 @@ int main()
 		}
 	}
 
+	AL::Sleep(
+		AL::TimeSpan::Infinite
+	);
+
 	return 0;
 }
