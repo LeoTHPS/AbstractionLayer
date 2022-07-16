@@ -7,15 +7,13 @@
 
 #if defined(AL_PLATFORM_PICO_W)
 	#include <lwip/ip_addr.h>
-	#include <lwip/ip4_addr.h>
-	#include <lwip/ip6_addr.h>
 
 	#if defined(LWIP_IPV4) && LWIP_IPV4
-		#define AL_DEPENDENCY_LWIP_IPV4
+		#define AL_DEPENDENCY_PICO_LWIP_IPV4
 	#endif
 
 	#if defined(LWIP_IPV6) && LWIP_IPV6
-		#define AL_DEPENDENCY_LWIP_IPV6
+		#define AL_DEPENDENCY_PICO_LWIP_IPV6
 	#endif
 #elif defined(AL_PLATFORM_PICO)
 	#warning Platform not supported
@@ -51,10 +49,10 @@ namespace AL::Network
 		union Address
 		{
 #if defined(AL_PLATFORM_PICO_W)
-	#if defined(AL_DEPENDENCY_LWIP_IPV4)
+	#if defined(AL_DEPENDENCY_PICO_LWIP_IPV4)
 			::ip4_addr_t v4;
 	#endif
-	#if defined(AL_DEPENDENCY_LWIP_IPV6)
+	#if defined(AL_DEPENDENCY_PICO_LWIP_IPV6)
 			::ip6_addr_t v6;
 	#endif
 #elif defined(AL_PLATFORM_LINUX)
@@ -73,17 +71,25 @@ namespace AL::Network
 
 	public:
 #if defined(AL_PLATFORM_PICO_W)
-	#if defined(AL_DEPENDENCY_LWIP_IPV4)
+	#if defined(AL_DEPENDENCY_PICO_LWIP_IPV4) && defined(AL_DEPENDENCY_PICO_LWIP_IPV6)
+		typedef ::ip_addr_t  ip_addr;
 		typedef ::ip4_addr_t in_addr;
-	#else
-		typedef void*        in_addr;
-	#endif
-	#if defined(AL_DEPENDENCY_LWIP_IPV6)
+		typedef ::ip6_addr_t in6_addr;
+	#elif defined(AL_DEPENDENCY_PICO_LWIP_IPV4)
+		typedef ::ip_addr_t  ip_addr;
+		typedef ::ip4_addr_t in_addr;
+		typedef Void*        in6_addr;
+	#elif defined(AL_DEPENDENCY_PICO_LWIP_IPV6)
+		typedef ::ip_addr_t  ip_addr;
+		typedef Void*        in_addr;
 		typedef ::ip6_addr_t in6_addr;
 	#else
-		typedef void*        in6_addr;
+		typedef Void*        ip_addr;
+		typedef Void*        in_addr;
+		typedef Void*        in6_addr;
 	#endif
 #elif defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
+		typedef ::sockaddr   ip_addr;
 		typedef ::in_addr    in_addr;
 		typedef ::in6_addr   in6_addr;
 #endif
@@ -91,7 +97,7 @@ namespace AL::Network
 		static IPAddress Any()
 		{
 #if defined(AL_PLATFORM_PICO_W)
-	#if defined(AL_DEPENDENCY_LWIP_IPV4)
+	#if defined(AL_DEPENDENCY_PICO_LWIP_IPV4)
 			return IPADDR_ANY;
 	#else
 			throw DependencyMissingException(
@@ -116,7 +122,7 @@ namespace AL::Network
 		static IPAddress Any6()
 		{
 #if defined(AL_PLATFORM_PICO_W)
-	#if defined(AL_DEPENDENCY_LWIP_IPV6)
+	#if defined(AL_DEPENDENCY_PICO_LWIP_IPV6)
 			in6_addr addr;
 			ip6_addr_set_any(&addr);
 
@@ -134,7 +140,7 @@ namespace AL::Network
 		static IPAddress Loopback()
 		{
 #if defined(AL_PLATFORM_PICO_W)
-	#if defined(AL_DEPENDENCY_LWIP_IPV4)
+	#if defined(AL_DEPENDENCY_PICO_LWIP_IPV4)
 			return IPADDR_LOOPBACK;
 	#else
 			throw DependencyMissingException(
@@ -159,7 +165,7 @@ namespace AL::Network
 		static IPAddress Loopback6()
 		{
 #if defined(AL_PLATFORM_PICO_W)
-	#if defined(AL_DEPENDENCY_LWIP_IPV6)
+	#if defined(AL_DEPENDENCY_PICO_LWIP_IPV6)
 			in6_addr addr;
 			ip6_addr_set_loopback(&addr);
 
@@ -175,18 +181,49 @@ namespace AL::Network
 		}
 
 		// @throw AL::Exception
-		static IPAddress FromString(const String& string)
+		static IPAddress FromNative(const ip_addr& value)
+		{
+			IPAddress address;
+
+#if defined(AL_PLATFORM_PICO_W)
+	#if defined(AL_DEPENDENCY_PICO_LWIP_IPV4) && defined(AL_DEPENDENCY_PICO_LWIP_IPV6)
+			switch (value.type)
+			{
+				case IPADDR_TYPE_V4:
+					address = value.u_addr.ip4;
+					break;
+
+				case IPADDR_TYPE_V6:
+					address = value.u_addr.ip6;
+					break;
+
+				default:
+					throw OperationNotSupportedException();
+			}
+	#elif defined(AL_DEPENDENCY_PICO_LWIP_IPV4) || defined(AL_DEPENDENCY_PICO_LWIP_IPV6)
+			address = value;
+	#endif
+#elif defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
+			// TODO: implement
+			throw NotImplementedException();
+#endif
+
+			return address;
+		}
+
+		// @throw AL::Exception
+		static IPAddress FromString(const String& value)
 		{
 			IPAddress address;
 
 #if defined(AL_PLATFORM_PICO_W)
 			address = ipaddr_addr(
-				string.GetCString()
+				value.GetCString()
 			);
 #elif defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
 			int result;
 
-			if ((result = ::inet_pton(AF_INET, string.GetCString(), &address.address.v4)) <= 0)
+			if ((result = ::inet_pton(AF_INET, value.GetCString(), &address.address.v4)) <= 0)
 			{
 				if (result == -1)
 				{
@@ -196,7 +233,7 @@ namespace AL::Network
 					);
 				}
 
-				if ((result = ::inet_pton(AF_INET6, string.GetCString(), &address.address.v6)) <= 0)
+				if ((result = ::inet_pton(AF_INET6, value.GetCString(), &address.address.v6)) <= 0)
 				{
 					if (result == -1)
 					{
@@ -208,7 +245,7 @@ namespace AL::Network
 
 					throw Exception(
 						"'%s' is not a valid IPv4 or IPv6 address",
-						string.GetCString()
+						value.GetCString()
 					);
 				}
 
@@ -240,12 +277,12 @@ namespace AL::Network
 		IPAddress(uint32 address)
 			: IPAddress(
 #if defined(AL_PLATFORM_PICO_W)
-	#if defined(AL_DEPENDENCY_LWIP_IPV4)
+	#if defined(AL_DEPENDENCY_PICO_LWIP_IPV4)
 				in_addr
 				{
 					.addr = address
 				}
-	#elif defined(AL_DEPENDENCY_LWIP_IPV6)
+	#elif defined(AL_DEPENDENCY_PICO_LWIP_IPV6)
 				in6_addr
 				{
 					.addr =
@@ -291,22 +328,15 @@ namespace AL::Network
 				WinSock::TryLoad()
 #endif
 			),
-#if defined(AL_DEPENDENCY_LWIP_IPV4)
+#if defined(AL_PLATFORM_PICO_W)
+	#if defined(AL_DEPENDENCY_PICO_LWIP_IPV4)
 			address{
 				.v4 = Move(address)
 			},
-#elif defined(AL_DEPENDENCY_LWIP_IPV6)
+	#endif
+#elif defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
 			address{
-				.v6 =
-				{
-					.addr =
-					{
-						0x00000000,
-						0x00000000,
-						0x00000000,
-						address.addr
-					}
-				}
+				.v4 = Move(address)
 			},
 #endif
 			addressFamily(
@@ -331,7 +361,13 @@ namespace AL::Network
 				WinSock::TryLoad()
 #endif
 			),
-#if defined(AL_DEPENDENCY_LWIP_IPV6)
+#if defined(AL_PLATFORM_PICO_W)
+	#if defined(AL_DEPENDENCY_PICO_LWIP_IPV6)
+			address{
+				.v6 = Move(address)
+			},
+	#endif
+#elif defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
 			address{
 				.v6 = Move(address)
 			},
@@ -429,7 +465,7 @@ namespace AL::Network
 			};
 
 #if defined(AL_PLATFORM_PICO_W)
-	#if defined(AL_DEPENDENCY_LWIP_IPV6)
+	#if defined(AL_DEPENDENCY_PICO_LWIP_IPV6)
 			if (!ip6_addr_isipv4mappedipv6(&address.v6))
 			{
 
@@ -464,7 +500,7 @@ namespace AL::Network
 
 		auto& GetAddress() const
 		{
-#if defined(AL_PLATFORM_PICO_W) && defined(AL_DEPENDENCY_LWIP_IPV4)
+#if defined(AL_PLATFORM_PICO_W) && defined(AL_DEPENDENCY_PICO_LWIP_IPV4)
 			return address.v4;
 #elif defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
 			return address.v4;
@@ -477,7 +513,7 @@ namespace AL::Network
 
 		auto& GetAddress6() const
 		{
-#if defined(AL_PLATFORM_PICO_W) && defined(AL_DEPENDENCY_LWIP_IPV6)
+#if defined(AL_PLATFORM_PICO_W) && defined(AL_DEPENDENCY_PICO_LWIP_IPV6)
 			return address.v6;
 #elif defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
 			return address.v6;
@@ -502,7 +538,7 @@ namespace AL::Network
 						case AddressFamilies::IPv4:
 						{
 #if defined(AL_PLATFORM_PICO_W)
-	#if defined(AL_DEPENDENCY_LWIP_IPV4)
+	#if defined(AL_DEPENDENCY_PICO_LWIP_IPV4)
 							address.address.v4    = this->address.v4;
 							address.addressFamily = AddressFamilies::IPv4;
 	#else
@@ -520,7 +556,7 @@ namespace AL::Network
 						case AddressFamilies::IPv6:
 						{
 #if defined(AL_PLATFORM_PICO_W)
-	#if defined(AL_DEPENDENCY_LWIP_IPV4) && defined(AL_DEPENDENCY_LWIP_IPV6)
+	#if defined(AL_DEPENDENCY_PICO_LWIP_IPV4) && defined(AL_DEPENDENCY_PICO_LWIP_IPV6)
 							memset(
 								&address.address.v6.addr[0],
 								0x00,
@@ -592,7 +628,7 @@ namespace AL::Network
 							}
 
 #if defined(AL_PLATFORM_PICO_W)
-	#if defined(AL_DEPENDENCY_LWIP_IPV4) && defined(AL_DEPENDENCY_LWIP_IPV6)
+	#if defined(AL_DEPENDENCY_PICO_LWIP_IPV4) && defined(AL_DEPENDENCY_PICO_LWIP_IPV6)
 							address.address.v4.addr = *reinterpret_cast<const uint32*>(
 								reinterpret_cast<const uint8*>(&this->address.v6.addr[0])[12]
 							);
@@ -622,7 +658,7 @@ namespace AL::Network
 						case AddressFamilies::IPv6:
 						{
 #if defined(AL_PLATFORM_PICO_W)
-	#if defined(AL_DEPENDENCY_LWIP_IPV6)
+	#if defined(AL_DEPENDENCY_PICO_LWIP_IPV6)
 							address.address.v6    = this->address.v6;
 							address.addressFamily = AddressFamilies::IPv6;
 	#else
@@ -657,7 +693,7 @@ namespace AL::Network
 			switch (GetFamily())
 			{
 				case AddressFamilies::IPv4:
-	#if defined(AL_DEPENDENCY_LWIP_IPV4)
+	#if defined(AL_DEPENDENCY_PICO_LWIP_IPV4)
 					return ip4addr_ntoa(&address.v4);
 	#else
 					throw DependencyMissingException(
@@ -666,7 +702,7 @@ namespace AL::Network
 	#endif
 
 				case AddressFamilies::IPv6:
-	#if defined(AL_DEPENDENCY_LWIP_IPV6)
+	#if defined(AL_DEPENDENCY_PICO_LWIP_IPV6)
 					return ip6addr_ntoa(&address.v6);
 	#else
 					throw DependencyMissingException(
@@ -723,47 +759,33 @@ namespace AL::Network
 		auto ToNative() const
 		{
 #if defined(AL_PLATFORM_PICO_W)
-	#if defined(AL_DEPENDENCY_LWIP_IPV4) && defined(AL_DEPENDENCY_LWIP_IPV6)
-			::ip_addr_t ip_addr =
-			{
-				.type = static_cast<typename Get_Enum_Or_Integer_Base<AddressFamilies>::Type>(GetFamily()),
-			};
+	#if defined(AL_DEPENDENCY_PICO_LWIP_IPV4) && defined(AL_DEPENDENCY_PICO_LWIP_IPV6)
+			ip_addr address = { 0 };
 
-			switch (ip_addr.type)
+			switch (GetFamily())
 			{
-				case IPADDR_TYPE_V4:
-					ip_addr.u_addr.ip4 = GetAddress();
+				case AddressFamilies::IPv4:
+					address.type = IPADDR_TYPE_V4;
+					address.u_addr.ip4 = GetAddress();
 					break;
 
-				case IPADDR_TYPE_V6:
-					ip_addr.u_addr.ip6 = GetAddress6();
+				case AddressFamilies::IPv6:
+					address.type = IPADDR_TYPE_V6;
+					address.u_addr.ip6 = GetAddress6();
 					break;
 
 				default:
 					throw OperationNotSupportedException();
 			}
 
-			return ip_addr;
-	#elif defined(AL_DEPENDENCY_LWIP_IPV4)
-			::ip_addr_t ip_addr =
-			{
-				.addr = GetAddress().addr
-			};
-
-			return ip_addr;
-	#elif defined(AL_DEPENDENCY_LWIP_IPV6)
-			auto& addr6 = GetAddress6();
-
-			::ip_addr_t ip_addr =
-			{
-				.addr = addr6.addr,
-				.zone = addr6.zone
-			};
-
-			return ip_addr;
+			return address;
+	#elif defined(AL_DEPENDENCY_PICO_LWIP_IPV4)
+			return GetAddress();
+	#elif defined(AL_DEPENDENCY_PICO_LWIP_IPV6)
+			return GetAddress6();
 	#endif
 #elif defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
-			// TODO: implement something useful
+			// TODO: implement
 #endif
 		}
 
@@ -786,7 +808,7 @@ namespace AL::Network
 #endif
 
 #if defined(AL_PLATFORM_PICO_W)
-	#if defined(AL_DEPENDENCY_LWIP_IPV4)
+	#if defined(AL_DEPENDENCY_PICO_LWIP_IPV4)
 			this->address.v4.addr = address;
 	#endif
 #elif defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
@@ -864,7 +886,7 @@ namespace AL::Network
 #endif
 
 #if defined(AL_PLATFORM_PICO_W)
-	#if defined(AL_DEPENDENCY_LWIP_IPV6)
+	#if defined(AL_DEPENDENCY_PICO_LWIP_IPV6)
 			this->address.v6 = Move(address);
 	#endif
 #elif defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
@@ -894,7 +916,7 @@ namespace AL::Network
 #endif
 
 #if defined(AL_PLATFORM_PICO_W)
-	#if defined(AL_DEPENDENCY_LWIP_IPV6)
+	#if defined(AL_DEPENDENCY_PICO_LWIP_IPV6)
 			this->address.v6 = address;
 	#endif
 #elif defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
@@ -963,7 +985,7 @@ namespace AL::Network
 				case AddressFamilies::IPv4:
 				{
 #if defined(AL_PLATFORM_PICO)
-	#if defined(AL_DEPENDENCY_LWIP_IPV4)
+	#if defined(AL_DEPENDENCY_PICO_LWIP_IPV4)
 					if (!AL::memcmp(&this->address.v4.addr, &address.address.v4.addr, sizeof(in_addr::addr)))
 					{
 
@@ -983,7 +1005,7 @@ namespace AL::Network
 				case AddressFamilies::IPv6:
 				{
 #if defined(AL_PLATFORM_PICO)
-	#if defined(AL_DEPENDENCY_LWIP_IPV6)
+	#if defined(AL_DEPENDENCY_PICO_LWIP_IPV6)
 					if (!AL::memcmp(this->address.v6.addr, address.address.v6.addr))
 					{
 
