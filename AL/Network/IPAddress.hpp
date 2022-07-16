@@ -29,7 +29,7 @@
 
 namespace AL::Network
 {
-	enum class AddressFamilies
+	enum class AddressFamilies : uint8
 	{
 #if defined(AL_PLATFORM_PICO_W)
 		IPv4         = IPADDR_TYPE_V4,
@@ -582,7 +582,7 @@ namespace AL::Network
 							);
 
 							memcpy(
-								&reinterpret_cast<const uint8*>(&address.address.v6.addr[0])[12],
+								&reinterpret_cast<uint8*>(&address.address.v6.addr[0])[12],
 								&this->address.v4.addr,
 								4
 							);
