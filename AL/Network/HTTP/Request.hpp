@@ -90,13 +90,42 @@ namespace AL::Network::HTTP
 				.Port = 80
 			};
 
+			Bool dns_IsInitialized;
+
+			if ((dns_IsInitialized = DNS::IsInitialized()) == False)
+			{
+				try
+				{
+					DNS::Init();
+				}
+				catch (Exception& exception)
+				{
+
+					throw Exception(
+						Move(exception),
+						"Error initializing DNS"
+					);
+				}
+			}
+
 			if (!DNS::Resolve(serverEP.Host, uri.GetAuthority().Host))
 			{
+				if (!dns_IsInitialized)
+				{
+
+					DNS::Deinit();
+				}
 
 				throw Exception(
 					"Error resolving '%s'",
 					uri.GetAuthority().Host.GetCString()
 				);
+			}
+
+			if (!dns_IsInitialized)
+			{
+
+				DNS::Deinit();
 			}
 
 			Socket socket(
