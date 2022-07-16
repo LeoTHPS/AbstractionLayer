@@ -8,17 +8,19 @@
 #include "AL/OS/SystemException.hpp"
 
 #if AL_HAS_INCLUDE(<pico/cyw43_arch.h>)
-	#define AL_DEPENDENCY_CYW43
+	#define AL_DEPENDENCY_PICO_CYW43
 
 	#include <pico/cyw43_arch.h>
 
 	#include <boards/pico_w.h>
 
 	#if defined(CYW43_LWIP)
-		#define AL_DEPENDENCY_CYW43_LWIP CYW43_LWIP
+		// TODO: use this
+		#define AL_DEPENDENCY_PICO_CYW43_LWIP CYW43_LWIP
 	#endif
 
 	#if defined(PICO_CYW43_ARCH_THREADSAFE_BACKGROUND)
+		// TODO: use this
 		#define AL_DEPENDENCY_PICO_CYW43_ARCH_THREADSAFE_BACKGROUND
 	#endif
 #endif
@@ -174,7 +176,7 @@ namespace AL::Hardware::PicoW
 				"CYW43 already open"
 			);
 
-#if defined(AL_DEPENDENCY_CYW43)
+#if defined(AL_DEPENDENCY_PICO_CYW43)
 			OS::ErrorCode errorCode;
 
 			if ((errorCode = ::cyw43_arch_init_with_country(static_cast<typename Get_Enum_Or_Integer_Base<CYW43Countries>::Type>(country))) != PICO_ERROR_NONE)
@@ -214,7 +216,7 @@ namespace AL::Hardware::PicoW
 		{
 			if (IsOpen())
 			{
-#if defined(AL_DEPENDENCY_CYW43)
+#if defined(AL_DEPENDENCY_PICO_CYW43)
 				try
 				{
 					LED::Write(
@@ -242,7 +244,7 @@ namespace AL::Hardware::PicoW
 				"CYW43 already open"
 			);
 
-#if defined(AL_DEPENDENCY_CYW43)
+#if defined(AL_DEPENDENCY_PICO_CYW43)
 			OS::ErrorCode errorCode;
 
 			ScanContext context =
@@ -291,7 +293,7 @@ namespace AL::Hardware::PicoW
 				"CYW43 not open"
 			);
 
-#if defined(AL_DEPENDENCY_CYW43)
+#if defined(AL_DEPENDENCY_PICO_CYW43)
 			OS::ErrorCode errorCode;
 
 			::cyw43_arch_enable_sta_mode();
@@ -319,7 +321,7 @@ namespace AL::Hardware::PicoW
 				"CYW43 not open"
 			);
 
-#if defined(AL_DEPENDENCY_CYW43)
+#if defined(AL_DEPENDENCY_PICO_CYW43)
 			OS::ErrorCode errorCode;
 
 			::cyw43_arch_enable_sta_mode();
@@ -349,7 +351,7 @@ namespace AL::Hardware::PicoW
 				"CYW43 not open"
 			);
 
-#if defined(AL_DEPENDENCY_CYW43)
+#if defined(AL_DEPENDENCY_PICO_CYW43)
 			OS::ErrorCode errorCode;
 
 			::cyw43_arch_enable_sta_mode();
@@ -385,7 +387,7 @@ namespace AL::Hardware::PicoW
 				"CYW43 not open"
 			);
 
-#if defined(AL_DEPENDENCY_CYW43)
+#if defined(AL_DEPENDENCY_PICO_CYW43)
 			OS::ErrorCode errorCode;
 
 			::cyw43_arch_enable_sta_mode();
@@ -421,7 +423,7 @@ namespace AL::Hardware::PicoW
 				"CYW43 not open"
 			);
 
-#if defined(AL_DEPENDENCY_CYW43)
+#if defined(AL_DEPENDENCY_PICO_CYW43)
 			::cyw43_arch_enable_ap_mode(
 				ssid.GetCString(),
 				nullptr,
@@ -442,7 +444,7 @@ namespace AL::Hardware::PicoW
 				"CYW43 not open"
 			);
 
-#if defined(AL_DEPENDENCY_CYW43)
+#if defined(AL_DEPENDENCY_PICO_CYW43)
 			::cyw43_arch_enable_ap_mode(
 				ssid.GetCString(),
 				password.GetCString(),
