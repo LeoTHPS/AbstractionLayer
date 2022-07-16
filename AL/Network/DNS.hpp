@@ -153,21 +153,26 @@ namespace AL::Network
 
 			if ((errorCode = ::dns_gethostbyname_addrtype(hostname.GetCString(), &context.ip_addr, callback, &context, LWIP_DNS_ADDRTYPE_IPV4_IPV6)) != ::ERR_OK)
 			{
-				if (errorCode == ::ERR_INPROGRESS)
+				if (errorCode != ::ERR_INPROGRESS)
 				{
-					while (!context.Complete)
-					{
-						Sleep(
-							TimeSpan::FromMilliseconds(10)
-						);
-					}
+
+					throw SocketException(
+						"dns_gethostbyname_addrtype",
+						errorCode
+					);
 				}
 
-				throw SocketException(
-					"dns_gethostbyname_addrtype",
-					errorCode
-				);
+				while (!context.Complete)
+				{
+					Sleep(
+						TimeSpan::FromMilliseconds(10)
+					);
+				}
 			}
+
+			address = IPAddress::FromNative(
+				context.ip_addr
+			);
 #elif defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
 			::addrinfo hint = { 0 };
 			hint.ai_family = AF_UNSPEC;
