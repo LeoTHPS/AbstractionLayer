@@ -192,13 +192,11 @@ namespace AL::Network
 			switch (lpResult->ai_family)
 			{
 				case AF_INET:
-					address.address.v4 = reinterpret_cast<const ::sockaddr_in*>(lpResult->ai_addr)->sin_addr;
-					address.addressFamily = AddressFamilies::IPv4;
+					address = reinterpret_cast<const ::sockaddr_in*>(lpResult->ai_addr)->sin_addr;
 					break;
 
 				case AF_INET6:
-					address.address.v6 = reinterpret_cast<const ::sockaddr_in6*>(lpResult->ai_addr)->sin6_addr;
-					address.addressFamily = AddressFamilies::IPv6;
+					address = reinterpret_cast<const ::sockaddr_in6*>(lpResult->ai_addr)->sin6_addr;
 					break;
 
 				default:
