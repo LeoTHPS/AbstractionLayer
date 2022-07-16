@@ -8,6 +8,7 @@
 #include "StatusCodes.hpp"
 #include "RequestMethods.hpp"
 
+#include "AL/Network/DNS.hpp"
 #include "AL/Network/Socket.hpp"
 #include "AL/Network/IPAddress.hpp"
 
@@ -86,11 +87,10 @@ namespace AL::Network::HTTP
 
 			IPEndPoint serverEP =
 			{
-				.Host = 0,
 				.Port = 80
 			};
 
-			if (!IPAddress::Resolve(serverEP.Host, uri.GetAuthority().Host))
+			if (!DNS::Resolve(serverEP.Host, uri.GetAuthority().Host))
 			{
 
 				throw Exception(

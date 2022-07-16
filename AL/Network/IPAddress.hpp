@@ -224,60 +224,6 @@ namespace AL::Network
 			return address;
 		}
 
-		// @throw AL::Exception
-		// @return AL::False if not found
-		static Bool Resolve(IPAddress& address, const String& hostname)
-		{
-#if defined(AL_PLATFORM_PICO_W)
-			// TODO: resolve if the hostname is actually an address
-
-			throw PlatformNotSupportedException();
-#elif defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
-			::addrinfo hint = { 0 };
-			hint.ai_family = AF_UNSPEC;
-
-			::addrinfo* lpResult;
-
-			if (OS::ErrorCode errorCode = ::getaddrinfo(hostname.GetCString(), "", &hint, &lpResult))
-			{
-				switch (errorCode)
-				{
-					case EAI_FAIL:
-					case EAI_AGAIN:
-						return False;
-				}
-
-				throw SocketException(
-					"getaddrinfo",
-					errorCode
-				);
-			}
-
-			switch (lpResult->ai_family)
-			{
-				case AF_INET:
-					address.address.v4 = reinterpret_cast<const ::sockaddr_in*>(lpResult->ai_addr)->sin_addr;
-					address.addressFamily = AddressFamilies::IPv4;
-					break;
-
-				case AF_INET6:
-					address.address.v6 = reinterpret_cast<const ::sockaddr_in6*>(lpResult->ai_addr)->sin6_addr;
-					address.addressFamily = AddressFamilies::IPv6;
-					break;
-
-				default:
-					::freeaddrinfo(lpResult);
-					throw OperationNotSupportedException();
-			}
-
-			::freeaddrinfo(
-				lpResult
-			);
-#endif
-
-			return True;
-		}
-
 		IPAddress()
 			: isWinSockLoaded(
 #if defined(AL_PLATFORM_PICO_W)
@@ -771,6 +717,53 @@ namespace AL::Network
 				&buffer[0],
 				addressStringLength
 			);
+#endif
+		}
+
+		auto ToNative() const
+		{
+#if defined(AL_PLATFORM_PICO_W)
+	#if defined(AL_DEPENDENCY_LWIP_IPV4) && defined(AL_DEPENDENCY_LWIP_IPV6)
+			::ip_addr_t ip_addr =
+			{
+				.type = static_cast<typename Get_Enum_Or_Integer_Base<AddressFamilies>::Type>(GetFamily()),
+			};
+
+			switch (ip_addr.type)
+			{
+				case IPADDR_TYPE_V4:
+					ip_addr.u_addr.ip4 = GetAddress();
+					break;
+
+				case IPADDR_TYPE_V6:
+					ip_addr.u_addr.ip6 = GetAddress6();
+					break;
+
+				default:
+					throw OperationNotSupportedException();
+			}
+
+			return ip_addr;
+	#elif defined(AL_DEPENDENCY_LWIP_IPV4)
+			::ip_addr_t ip_addr =
+			{
+				.addr = GetAddress().addr
+			};
+
+			return ip_addr;
+	#elif defined(AL_DEPENDENCY_LWIP_IPV6)
+			auto& addr6 = GetAddress6();
+
+			::ip_addr_t ip_addr =
+			{
+				.addr = addr6.addr,
+				.zone = addr6.zone
+			};
+
+			return ip_addr;
+	#endif
+#elif defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
+			// TODO: implement something useful
 #endif
 		}
 
