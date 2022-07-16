@@ -17,7 +17,7 @@
 
 namespace AL::Network::HTTP
 {
-	enum class RequestMethods
+	enum class RequestMethods : uint8
 	{
 		GET,
 		HEAD,

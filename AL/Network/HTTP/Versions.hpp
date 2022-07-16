@@ -6,7 +6,7 @@
 
 namespace AL::Network::HTTP
 {
-	enum class Versions
+	enum class Versions : uint8
 	{
 		HTTP_1_0,
 		HTTP_1_1
