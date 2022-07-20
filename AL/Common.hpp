@@ -283,6 +283,16 @@ namespace AL
 	typedef BOOL(WINAPI DllMain)(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved);
 #endif
 
+	inline Void Spin()
+	{
+#if defined(AL_PLATFORM_PICO)
+		::busy_wait_us(0);
+#elif defined(AL_PLATFORM_LINUX)
+		// do nothing
+#elif defined(AL_PLATFORM_WINDOWS)
+		// do nothing
+#endif
+	}
 	inline Void Spin(TimeSpan duration)
 	{
 #if defined(AL_PLATFORM_PICO)
@@ -352,6 +362,22 @@ namespace AL
 #endif
 	}
 
+	inline Void Sleep()
+	{
+#if defined(AL_PLATFORM_PICO)
+		::sleep_us(
+			0
+		);
+#elif defined(AL_PLATFORM_LINUX)
+		::usleep(
+			0
+		);
+#elif defined(AL_PLATFORM_WINDOWS)
+		::Sleep(
+			0
+		);
+#endif
+	}
 	inline Void Sleep(TimeSpan duration)
 	{
 #if defined(AL_PLATFORM_PICO)
