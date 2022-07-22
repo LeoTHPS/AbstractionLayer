@@ -15,8 +15,6 @@
 	#include <lwip/tcp.h>
 	#include <lwip/udp.h>
 	#include <lwip/pbuf.h>
-
-	#include <pico/cyw43_arch.h>
 #elif defined(AL_PLATFORM_PICO)
 	#warning Platform not supported
 #elif defined(AL_PLATFORM_LINUX)
