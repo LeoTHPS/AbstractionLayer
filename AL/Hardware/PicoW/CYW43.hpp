@@ -13,6 +13,16 @@
 	#include <pico/cyw43_arch.h>
 
 	#include <boards/pico_w.h>
+
+	#if defined(CYW43_LWIP)
+		#define AL_DEPENDENCY_PICO_CYW43_LWIP CYW43_LWIP
+	#endif
+
+	#if defined(PICO_CYW43_ARCH_POLL)
+		#define AL_DEPENDENCY_PICO_CYW43_ARCH_POLL
+	#elif defined(PICO_CYW43_ARCH_THREADSAFE_BACKGROUND)
+		#define AL_DEPENDENCY_PICO_CYW43_ARCH_THREADSAFE_BACKGROUND
+	#endif
 #endif
 
 namespace AL::Hardware::PicoW
@@ -158,8 +168,34 @@ namespace AL::Hardware::PicoW
 			return isListening;
 		}
 
+		static Void Poll()
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"CYW43 not open"
+			);
+
+#if defined(PICO_CYW43_ARCH_POLL)
+			::cyw43_arch_poll();
+#elif defined(PICO_CYW43_ARCH_THREADSAFE_BACKGROUND)
+			Spin();
+#endif
+		}
+
 		// @throw AL::Exception
-		static Void Open(CYW43Countries country = CYW43Countries::Worldwide)
+		static Void Open()
+		{
+			AL_ASSERT(
+				!IsOpen(),
+				"CYW43 already open"
+			);
+
+			Open(
+				CYW43Countries::Worldwide
+			);
+		}
+		// @throw AL::Exception
+		static Void Open(CYW43Countries country)
 		{
 			AL_ASSERT(
 				!IsOpen(),
@@ -266,9 +302,7 @@ namespace AL::Hardware::PicoW
 
 			while (::cyw43_wifi_scan_active(&cyw43_state))
 			{
-				Sleep(
-					timeSpan
-				);
+				Poll();
 			}
 #else
 			throw NotImplementedException();
