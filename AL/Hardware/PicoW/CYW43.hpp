@@ -13,16 +13,6 @@
 	#include <pico/cyw43_arch.h>
 
 	#include <boards/pico_w.h>
-
-	#if defined(CYW43_LWIP)
-		// TODO: use this
-		#define AL_DEPENDENCY_PICO_CYW43_LWIP CYW43_LWIP
-	#endif
-
-	#if defined(PICO_CYW43_ARCH_THREADSAFE_BACKGROUND)
-		// TODO: use this
-		#define AL_DEPENDENCY_PICO_CYW43_ARCH_THREADSAFE_BACKGROUND
-	#endif
 #endif
 
 namespace AL::Hardware::PicoW
