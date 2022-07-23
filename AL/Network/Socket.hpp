@@ -638,15 +638,39 @@ namespace AL::Network
 			{
 				case SocketTypes::Stream:
 				{
-					// TODO: implement
-					throw NotImplementedException();
+					try
+					{
+						reinterpret_cast<LWIP::TcpSocket*>(socket)->Bind(
+							ep
+						);
+					}
+					catch (Exception& exception)
+					{
+
+						throw Exception(
+							Move(exception),
+							"Error binding LWIP::TcpSocket"
+						);
+					}
 				}
 				break;
 
 				case SocketTypes::DataGram:
 				{
-					// TODO: implement
-					throw NotImplementedException();
+					try
+					{
+						reinterpret_cast<LWIP::UdpSocket*>(socket)->Bind(
+							ep
+						);
+					}
+					catch (Exception& exception)
+					{
+
+						throw Exception(
+							Move(exception),
+							"Error binding LWIP::UdpSocket"
+						);
+					}
 				}
 				break;
 
@@ -757,8 +781,20 @@ namespace AL::Network
 			{
 				case SocketTypes::Stream:
 				{
-					// TODO: implement
-					throw NotImplementedException();
+					try
+					{
+						reinterpret_cast<LWIP::TcpSocket*>(socket)->Listen(
+							static_cast<uint8>((backlog > 0xFF) ? 0xFF : backlog)
+						);
+					}
+					catch (Exception& exception)
+					{
+
+						throw Exception(
+							Move(exception),
+							"Error listening LWIP::TcpSocket"
+						);
+					}
 				}
 				break;
 
@@ -791,7 +827,7 @@ namespace AL::Network
 
 		// @throw AL::Exception
 		// @return AL::False if would block
-		Bool Accept(Socket& socket) const
+		Bool Accept(Socket& socket)
 		{
 			if (!Accept(socket, TimeSpan::FromSeconds(5)))
 			{
@@ -803,7 +839,7 @@ namespace AL::Network
 		}
 		// @throw AL::Exception
 		// @return AL::False if would block
-		Bool Accept(Socket& socket, TimeSpan timeout) const
+		Bool Accept(Socket& socket, TimeSpan timeout)
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -811,7 +847,7 @@ namespace AL::Network
 			);
 
 			AL_ASSERT(
-				IsListening(),
+				((GetType() == SocketTypes::Stream) && IsListening()) || (GetType() == SocketTypes::DataGram),
 				"Socket not listening"
 			);
 
@@ -826,8 +862,22 @@ namespace AL::Network
 			{
 				case SocketTypes::Stream:
 				{
-					// TODO: implement
-					throw NotImplementedException();
+					try
+					{
+						if (!reinterpret_cast<LWIP::TcpSocket*>(this->socket)->Accept(*reinterpret_cast<LWIP::TcpSocket*>(_socket.socket)))
+						{
+
+							return False;
+						}
+					}
+					catch (Exception& exception)
+					{
+
+						throw Exception(
+							Move(exception),
+							"Error accepting LWIP::TcpSocket"
+						);
+					}
 				}
 				break;
 
@@ -1202,7 +1252,7 @@ namespace AL::Network
 			);
 
 			AL_ASSERT(
-				IsConnected(),
+				((GetType() == SocketTypes::Stream) && IsConnected()) || (GetType() == SocketTypes::DataGram),
 				"Socket not connected"
 			);
 
@@ -1249,8 +1299,33 @@ namespace AL::Network
 
 				case SocketTypes::DataGram:
 				{
-					// TODO: implement
-					throw NotImplementedException();
+					IPEndPoint ep; // TODO: utilize this
+
+					size_t numberOfBytesReceived;
+
+					try
+					{
+						if (!reinterpret_cast<LWIP::UdpSocket*>(socket)->Receive(lpBuffer, size, ep))
+						{
+							Close();
+
+							return CONNECTION_CLOSED;
+						}
+					}
+					catch (Exception& exception)
+					{
+
+						throw Exception(
+							Move(exception),
+							"Error receiving LWIP::UdpSocket"
+						);
+					}
+
+					if ((bytesReceived = numberOfBytesReceived) == 0)
+					{
+
+						return WOULD_BLOCK;
+					}
 				}
 				break;
 
@@ -1333,7 +1408,7 @@ namespace AL::Network
 			);
 
 			AL_ASSERT(
-				IsConnected(),
+				((GetType() == SocketTypes::Stream) && IsConnected()) || (GetType() == SocketTypes::DataGram),
 				"Socket not connected"
 			);
 
@@ -1378,7 +1453,7 @@ namespace AL::Network
 			);
 
 			AL_ASSERT(
-				IsConnected(),
+				((GetType() == SocketTypes::Stream) && IsConnected()) || (GetType() == SocketTypes::DataGram),
 				"Socket not connected"
 			);
 
@@ -1438,7 +1513,7 @@ namespace AL::Network
 			);
 
 			AL_ASSERT(
-				IsConnected(),
+				((GetType() == SocketTypes::Stream) && IsConnected()) || (GetType() == SocketTypes::DataGram),
 				"Socket not connected"
 			);
 
@@ -1593,7 +1668,7 @@ namespace AL::Network
 			);
 
 			AL_ASSERT(
-				IsConnected(),
+				((GetType() == SocketTypes::Stream) && IsConnected()) || (GetType() == SocketTypes::DataGram),
 				"Socket not connected"
 			);
 
@@ -1638,7 +1713,7 @@ namespace AL::Network
 			);
 
 			AL_ASSERT(
-				IsConnected(),
+				((GetType() == SocketTypes::Stream) && IsConnected()) || (GetType() == SocketTypes::DataGram),
 				"Socket not connected"
 			);
 
