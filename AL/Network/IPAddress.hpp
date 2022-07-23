@@ -5,9 +5,9 @@
 
 #include "AL/Collections/Array.hpp"
 
-#include "AL/Hardware/PicoW/CYW43.hpp"
-
 #if defined(AL_PLATFORM_PICO_W)
+	#include "AL/Hardware/PicoW/CYW43.hpp"
+
 	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 		#include <lwip/ip_addr.h>
 	#endif
@@ -1023,7 +1023,7 @@ namespace AL::Network
 					}
 	#endif
 #elif defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
-					if (!AL::memcmp(this->address.v6.u.Word, address.address.v6.u.Word))
+					if (!AL::memcmp(this->address.v6.s6_addr, address.address.v6.s6_addr))
 					{
 
 						return False;
