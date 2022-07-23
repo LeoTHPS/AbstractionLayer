@@ -100,16 +100,19 @@ namespace AL::Network
 		class TcpSocket
 			: public Socket
 		{
-			enum class IOFlags : uint8
+			enum class IOFlags : uint16
 			{
 				Open              = 0x01,
-				Aborted           = 0x02,
-				Timeout           = 0x04,
-				Connected         = 0x08,
-				ConnectionClosed  = 0x10,
+				Bound             = 0x02,
+				Aborted           = 0x04,
+				Timeout           = 0x08,
+				Listening         = 0x10,
+				Connected         = 0x20,
+				ConnectionClosed  = 0x40,
 
-				SendInProgress    = 0x20,
-				ConnectInProgress = 0x40
+				SendInProgress    = 0x100,
+				AcceptInProgress  = 0x200,
+				ConnectInProgress = 0x400
 			};
 
 			typedef Collections::Array<uint8> RXBuffer;
@@ -191,6 +194,13 @@ namespace AL::Network
 				);
 			}
 
+			virtual Bool IsBound() const
+			{
+				return flags.IsSet(
+					IOFlags::Bound
+				);
+			}
+
 			virtual Bool IsConnected() const
 			{
 				return flags.IsSet(
@@ -202,6 +212,13 @@ namespace AL::Network
 			{
 				return flags.IsSet(
 					IOFlags::ConnectInProgress
+				);
+			}
+
+			virtual Bool IsListening() const
+			{
+				return flags.IsSet(
+					IOFlags::Listening
 				);
 			}
 
@@ -276,6 +293,108 @@ namespace AL::Network
 
 					flags.Clear();
 				}
+			}
+
+			// @throw AL::Exception
+			virtual Void Bind(const IPEndPoint& ep)
+			{
+				AL_ASSERT(
+					IsOpen(),
+					"TcpSocket not open"
+				);
+
+				AL_ASSERT(
+					!IsBound(),
+					"TcpSocket already bound"
+				);
+
+#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
+				ErrorCode errorCode;
+
+				auto address = ep.Host.ToNative();
+
+				if ((errorCode = ::tcp_bind(pcb, &address, ep.Port)) != ::ERR_OK)
+				{
+
+					throw SocketException(
+						"tcp_bind",
+						errorCode
+					);
+				}
+#else
+				throw NotImplementedException();
+#endif
+
+				flags.Add(
+					IOFlags::Bound
+				);
+			}
+
+			// @throw AL::Exception
+			virtual Void Listen(uint8 backlog)
+			{
+				AL_ASSERT(
+					IsOpen(),
+					"TcpSocket not open"
+				);
+
+				AL_ASSERT(
+					!IsListening(),
+					"TcpSocket already listening"
+				);
+
+#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
+				::tcp_pcb* pcb;
+				::err_t    errorCode;
+
+				if ((pcb = ::tcp_listen_with_backlog_and_err(this->pcb, backlog, &errorCode)) == nullptr)
+				{
+
+					throw SocketException(
+						"tcp_listen_with_backlog_and_err",
+						::ERR_MEM
+					);
+				}
+
+				if (errorCode != ::ERR_OK)
+				{
+
+					throw SocketException(
+						"tcp_listen_with_backlog_and_err",
+						errorCode
+					);
+				}
+#else
+				throw NotImplementedException();
+#endif
+
+				flags.Add(
+					IOFlags::Listening
+				);
+			}
+
+			// @throw AL::Exception
+			// @return AL::False on timeout
+			virtual Bool Accept(TcpSocket& socket)
+			{
+				AL_ASSERT(
+					IsOpen(),
+					"TcpSocket not open"
+				);
+
+				AL_ASSERT(
+					IsListening(),
+					"TcpSocket not listening"
+				);
+
+#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
+				// TODO: implement
+				throw NotImplementedException();
+#else
+				throw NotImplementedException();
+#endif
+
+				return True;
 			}
 
 			// @throw AL::Exception
@@ -717,6 +836,24 @@ namespace AL::Network
 				);
 			}
 
+			static ::err_t OnAccept(void* lpParam, ::tcp_pcb* pcb, ::err_t errorCode)
+			{
+				auto lpSocket = reinterpret_cast<TcpSocket*>(
+					lpParam
+				);
+
+				// OS::Console::WriteLine(
+				// 	"[LWIP::TcpSocket::OnAccept] [lpParam: 0x%p, pcb: 0x%p, errorCode: %i]",
+				// 	lpParam,
+				// 	pcb,
+				// 	errorCode
+				// );
+
+				// TODO: implement
+
+				return ::ERR_OK;
+			}
+
 			static ::err_t OnConnect(void* lpParam, ::tcp_pcb* pcb, ::err_t errorCode)
 			{
 				auto lpSocket = reinterpret_cast<TcpSocket*>(
@@ -861,6 +998,7 @@ namespace AL::Network
 			typedef Collections::LinkedList<RXContext> RXContexts;
 
 			Bool       isOpen      = False;
+			Bool       isBound     = False;
 			Bool       isConnected = False;
 
 			RXContexts rxContexts;
@@ -906,6 +1044,11 @@ namespace AL::Network
 			virtual Bool IsOpen() const override
 			{
 				return isOpen;
+			}
+
+			virtual Bool IsBound() const
+			{
+				return isBound;
 			}
 
 			virtual Bool IsConnected() const
@@ -970,6 +1113,39 @@ namespace AL::Network
 			}
 
 			// @throw AL::Exception
+			virtual Void Bind(const IPEndPoint& ep)
+			{
+				AL_ASSERT(
+					IsOpen(),
+					"UdpSocket not open"
+				);
+
+				AL_ASSERT(
+					!IsBound(),
+					"UdpSocket already bound"
+				);
+
+#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
+				ErrorCode errorCode;
+
+				auto address = ep.Host.ToNative();
+
+				if ((errorCode = ::udp_bind(pcb, &address, ep.Port)) != ::ERR_OK)
+				{
+
+					throw SocketException(
+						"udp_bind",
+						errorCode
+					);
+				}
+#else
+				throw NotImplementedException();
+#endif
+
+				isBound = True;
+			}
+
+			// @throw AL::Exception
 			virtual Void Connect(const IPEndPoint& ep)
 			{
 				AL_ASSERT(
@@ -989,7 +1165,7 @@ namespace AL::Network
 
 					auto address = ep.Host.ToNative();
 
-					if ((errorCode = ::udp_connect(pcb, &address, ep.Port)) == ::ERR_OK)
+					if ((errorCode = ::udp_connect(pcb, &address, ep.Port)) != ::ERR_OK)
 					{
 
 						throw SocketException(
