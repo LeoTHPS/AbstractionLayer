@@ -11,10 +11,6 @@
 
 #if defined(AL_PLATFORM_PICO_W)
 	#include "LWIP.hpp"
-
-	#include <lwip/tcp.h>
-	#include <lwip/udp.h>
-	#include <lwip/pbuf.h>
 #elif defined(AL_PLATFORM_PICO)
 	#warning Platform not supported
 #elif defined(AL_PLATFORM_LINUX)
@@ -52,8 +48,8 @@ namespace AL::Network
 	enum class SocketProtocols
 	{
 #if defined(AL_PLATFORM_PICO_W)
-		TCP = IP_PROTO_TCP,
-		UDP = IP_PROTO_UDP
+		TCP,
+		UDP
 #elif defined(AL_PLATFORM_LINUX)
 		IP  = IPPROTO_IP,
 		TCP = IPPROTO_TCP,
@@ -90,17 +86,7 @@ namespace AL::Network
 
 	class Socket
 	{
-#if defined(AL_PLATFORM_PICO_W)
-		enum class IOTypes : uint8
-		{
-			None,
-
-			RX,
-			TX,
-			Accept,
-			Connect
-		};
-#elif defined(AL_PLATFORM_WINDOWS)
+#if defined(AL_PLATFORM_WINDOWS)
 		template<typename F>
 		static Bool WSALoadExtension(const Socket& s, ::GUID guid, F* lpFunction)
 		{
@@ -221,12 +207,7 @@ namespace AL::Network
 		Bool isWinSockLoaded = False;
 
 #if defined(AL_PLATFORM_PICO_W)
-		union _Socket
-		{
-			::tcp_pcb* tcp;
-			::udp_pcb* udp;
-			Void*      handle;
-		} socket;
+		LWIP::Socket*   socket;
 #elif defined(AL_PLATFORM_LINUX)
 		int             socket;
 #elif defined(AL_PLATFORM_WINDOWS)
@@ -238,44 +219,11 @@ namespace AL::Network
 		IPEndPoint      localEndPoint;
 		IPEndPoint      remoteEndPoint;
 
-#if defined(AL_PLATFORM_PICO_W)
-		struct
-		{
-			Bool      IsSuccess      = False;
-			Bool      IsComplete     = False;
-			Bool      IsTimedOut     = False;
-			Bool      IsTimerEnabled = False;
-
-			OS::Timer Timer;
-			TimeSpan  Timeout;
-			ErrorCode LastErrorCode    = 0;
-			IOTypes   CurrentOperation = IOTypes::None;
-
-			struct
-			{
-				Void*    lpBuffer;
-				size_t   BufferSize;
-				size_t   NumberOfBytesReceived;
-			} RX;
-
-			struct
-			{
-				const Void* lpBuffer;
-				size_t      BufferSize;
-				size_t      NumberOfBytesSent;
-			} TX;
-
-			struct
-			{
-			} Connect;
-		} ioContext;
-#endif
-
 		Socket(const Socket&) = delete;
 
 	public:
 #if defined(AL_PLATFORM_PICO_W)
-		typedef decltype(socket.handle) Handle;
+		typedef Void*                   Handle;
 #elif defined(AL_PLATFORM_LINUX)
 		typedef decltype(socket)        Handle;
 #elif defined(AL_PLATFORM_WINDOWS)
@@ -322,12 +270,6 @@ namespace AL::Network
 			remoteEndPoint(
 				Move(socket.remoteEndPoint)
 			)
-#if defined(AL_PLATFORM_PICO_W)
-			,
-			ioContext(
-				Move(socket.ioContext)
-			)
-#endif
 		{
 			socket.isOpen = False;
 			socket.isBound = False;
@@ -409,7 +351,7 @@ namespace AL::Network
 		auto GetHandle() const
 		{
 #if defined(AL_PLATFORM_PICO_W)
-			return socket.handle;
+			return (socket != nullptr) ? socket->GetHandle() : nullptr;
 #elif defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
 			return socket;
 #endif
@@ -443,10 +385,9 @@ namespace AL::Network
 				if (IsOpen())
 				{
 #if defined(AL_PLATFORM_PICO_W)
-					// do nothing
-					// non-blocking sockets aren't supported on this platform
+					// TODO: implement
 
-					set = True;
+					set = False;
 #elif defined(AL_PLATFORM_LINUX)
 					int flags;
 
@@ -495,29 +436,44 @@ namespace AL::Network
 			{
 				case SocketTypes::Stream:
 				{
-					if ((socket.tcp = ::tcp_new_ip_type(static_cast<typename Get_Enum_Or_Integer_Base<AddressFamilies>::Type>(GetAddressFamily()))) == nullptr)
-					{
+					socket = new LWIP::TcpSocket(
+						GetAddressFamily(),
+						0xFFF
+					);
 
-						throw SocketException(
-							"tcp_new_ip_type",
-							0
+					try
+					{
+						socket->Open();
+					}
+					catch (Exception& exception)
+					{
+						delete socket;
+
+						throw Exception(
+							Move(exception),
+							"Error opening LWIP::TcpSocket"
 						);
 					}
-
-					LWIP_TCP_Init(
-						socket.tcp
-					);
 				}
 				break;
 
 				case SocketTypes::DataGram:
 				{
-					if ((socket.udp = ::udp_new_ip_type(static_cast<typename Get_Enum_Or_Integer_Base<AddressFamilies>::Type>(GetAddressFamily()))) == nullptr)
-					{
+					socket = new LWIP::UdpSocket(
+						GetAddressFamily()
+					);
 
-						throw SocketException(
-							"udp_new_ip_type",
-							0
+					try
+					{
+						socket->Open();
+					}
+					catch (Exception& exception)
+					{
+						delete socket;
+
+						throw Exception(
+							Move(exception),
+							"Error opening LWIP::UdpSocket"
 						);
 					}
 				}
@@ -572,17 +528,9 @@ namespace AL::Network
 			if (IsOpen())
 			{
 #if defined(AL_PLATFORM_PICO_W)
-				switch (GetType())
-				{
-					case SocketTypes::Stream:
-						::tcp_close(socket.tcp);
-						break;
+				socket->Close();
 
-					case SocketTypes::DataGram:
-						::udp_disconnect(socket.udp);
-						::udp_remove(socket.udp);
-						break;
-				}
+				delete socket;
 #elif defined(AL_PLATFORM_LINUX)
 				::close(
 					GetHandle()
@@ -614,21 +562,40 @@ namespace AL::Network
 			{
 				case SocketTypes::Stream:
 				{
-					ErrorCode errorCode;
-
-					if ((errorCode = ::tcp_shutdown(socket.tcp, ((type == ShutdownTypes::Read) || (type == ShutdownTypes::ReadWrite)) ? 1 : 0, (type == ShutdownTypes::Write) ? 1 : 0)) != ::ERR_OK)
+					try
+					{
+						reinterpret_cast<LWIP::TcpSocket*>(socket)->Shutdown(
+							(type == ShutdownTypes::Read) || (type == ShutdownTypes::ReadWrite),
+							type == ShutdownTypes::Write
+						);
+					}
+					catch (Exception& exception)
 					{
 
-						throw SocketException(
-							"tcp_shutdown",
-							errorCode
+						throw Exception(
+							Move(exception),
+							"Error shutting down LWIP::TcpSocket"
 						);
 					}
 				}
 				break;
 
 				case SocketTypes::DataGram:
-					break;
+				{
+					try
+					{
+						reinterpret_cast<LWIP::UdpSocket*>(socket)->Disconnect();
+					}
+					catch (Exception& exception)
+					{
+
+						throw Exception(
+							Move(exception),
+							"Error disconnecting LWIP::UdpSocket"
+						);
+					}
+				}
+				break;
 
 				default:
 					throw NotImplementedException();
@@ -672,31 +639,15 @@ namespace AL::Network
 			{
 				case SocketTypes::Stream:
 				{
-					ErrorCode errorCode;
-
-					if ((errorCode = ::tcp_bind(socket.tcp, &ip_addr, ep.Port)) != ::ERR_OK)
-					{
-
-						throw SocketException(
-							"tcp_bind",
-							errorCode
-						);
-					}
+					// TODO: implement
+					throw NotImplementedException();
 				}
 				break;
 
 				case SocketTypes::DataGram:
 				{
-					ErrorCode errorCode;
-
-					if ((errorCode = ::udp_bind(socket.udp, &ip_addr, ep.Port)) != ::ERR_OK)
-					{
-
-						throw SocketException(
-							"udp_bind",
-							errorCode
-						);
-					}
+					// TODO: implement
+					throw NotImplementedException();
 				}
 				break;
 
@@ -806,8 +757,11 @@ namespace AL::Network
 			switch (GetType())
 			{
 				case SocketTypes::Stream:
+				{
 					// TODO: implement
 					throw NotImplementedException();
+				}
+				break;
 
 				case SocketTypes::DataGram:
 					throw OperationNotSupportedException();
@@ -872,8 +826,11 @@ namespace AL::Network
 			switch (GetType())
 			{
 				case SocketTypes::Stream:
+				{
 					// TODO: implement
 					throw NotImplementedException();
+				}
+				break;
 
 				case SocketTypes::DataGram:
 					throw OperationNotSupportedException();
@@ -1029,35 +986,45 @@ namespace AL::Network
 			}
 
 #if defined(AL_PLATFORM_PICO_W)
-			auto ip_addr = ep.Host.ToNative();
-
 			switch (GetType())
 			{
 				case SocketTypes::Stream:
-					if (!LWIP_TCP_Connect(ip_addr, ep.Port, timeout))
+				{
+					try
+					{
+						if (!reinterpret_cast<LWIP::TcpSocket*>(socket)->Connect(ep, timeout))
+						{
+
+							return False;
+						}
+					}
+					catch (Exception& exception)
 					{
 
-						return False;
+						throw Exception(
+							Move(exception),
+							"Error connecting LWIP::TcpSocket"
+						);
 					}
-					break;
+				}
+				break;
 
 				case SocketTypes::DataGram:
 				{
-					LWIP::Sync([this, &ip_addr, &ep]()
+					try
 					{
-						// TODO: refactor
+						reinterpret_cast<LWIP::UdpSocket*>(socket)->Connect(
+							ep
+						);
+					}
+					catch (Exception& exception)
+					{
 
-						ErrorCode errorCode;
-
-						if ((errorCode = ::udp_connect(socket.udp, &ip_addr, ep.Port)) != ::ERR_OK)
-						{
-
-							throw SocketException(
-								"udp_connect",
-								errorCode
-							);
-						}
-					});
+						throw Exception(
+							Move(exception),
+							"Error connecting LWIP::UdpSocket"
+						);
+					}
 				}
 				break;
 
@@ -1255,21 +1222,38 @@ namespace AL::Network
 				{
 					size_t numberOfBytesReceived;
 
-					if ((bytesReceived = LWIP_TCP_Read(lpBuffer, size, numberOfBytesReceived)) == 0)
+					try
+					{
+						if (!reinterpret_cast<LWIP::TcpSocket*>(socket)->Receive(lpBuffer, size, numberOfBytesReceived))
+						{
+							Close();
+
+							return CONNECTION_CLOSED;
+						}
+					}
+					catch (Exception& exception)
 					{
 
-						return CONNECTION_CLOSED;
+						throw Exception(
+							Move(exception),
+							"Error receiving LWIP::TcpSocket"
+						);
 					}
 
-					bytesReceived = static_cast<ssize_t>(
-						numberOfBytesReceived
-					);
+					if ((bytesReceived = numberOfBytesReceived) == 0)
+					{
+
+						return WOULD_BLOCK;
+					}
 				}
 				break;
 
 				case SocketTypes::DataGram:
+				{
 					// TODO: implement
 					throw NotImplementedException();
+				}
+				break;
 
 				default:
 					throw NotImplementedException();
@@ -1471,16 +1455,64 @@ namespace AL::Network
 			switch (GetType())
 			{
 				case SocketTypes::Stream:
-					if ((bytesSent = LWIP_TCP_Write(lpBuffer, size)) == 0)
+				{
+					size_t numberOfBytesSent;
+
+					try
+					{
+						if (!reinterpret_cast<LWIP::TcpSocket*>(socket)->Send(lpBuffer, size, numberOfBytesSent))
+						{
+							Close();
+
+							return CONNECTION_CLOSED;
+						}
+					}
+					catch (Exception& exception)
 					{
 
-						return CONNECTION_CLOSED;
+						throw Exception(
+							Move(exception),
+							"Error sending LWIP::TcpSocket payload"
+						);
 					}
-					break;
+
+					if ((bytesSent = numberOfBytesSent) == 0)
+					{
+
+						return WOULD_BLOCK;
+					}
+				}
+				break;
 
 				case SocketTypes::DataGram:
-					// TODO: implement
-					throw NotImplementedException();
+				{
+					size_t numberOfBytesSent;
+
+					try
+					{
+						if (!reinterpret_cast<LWIP::UdpSocket*>(socket)->Send(lpBuffer, size, numberOfBytesSent))
+						{
+							Close();
+
+							return CONNECTION_CLOSED;
+						}
+					}
+					catch (Exception& exception)
+					{
+
+						throw Exception(
+							Move(exception),
+							"Error sending LWIP::UdpSocket payload"
+						);
+					}
+
+					if ((bytesSent = numberOfBytesSent) == 0)
+					{
+
+						return WOULD_BLOCK;
+					}
+				}
+				break;
 
 				default:
 					throw NotImplementedException();
@@ -1724,384 +1756,6 @@ namespace AL::Network
 		}
 
 	private:
-#if defined(AL_PLATFORM_PICO_W)
-		Bool LWIP_IsOperationSuccess() const
-		{
-			return ioContext.IsSuccess;
-		}
-
-		Bool LWIP_IsOperationComplete() const
-		{
-			return ioContext.IsComplete;
-		}
-
-		Bool LWIP_IsOperationTimedOut() const
-		{
-			return ioContext.IsTimedOut;
-		}
-
-		Bool LWIP_IsOperationTimerEnabled() const
-		{
-			return ioContext.IsTimerEnabled;
-		}
-
-		Bool LWIP_IsOperationInProgress() const
-		{
-			return ioContext.CurrentOperation != IOTypes::None;
-		}
-
-		size_t LWIP_GetNumberOfBytesSent() const
-		{
-			return ioContext.TX.NumberOfBytesSent;
-		}
-
-		size_t LWIP_GetNumberOfBytesReceived() const
-		{
-			return ioContext.RX.NumberOfBytesReceived;
-		}
-
-		ErrorCode LWIP_GetLastOperationErrorCode() const
-		{
-			return ioContext.LastErrorCode;
-		}
-
-		Void LWIP_BeginOperation(IOTypes type)
-		{
-			LWIP_WaitForOperation();
-
-			ioContext.CurrentOperation = type;
-		}
-		Void LWIP_BeginOperation(IOTypes type, TimeSpan timeout)
-		{
-			LWIP_WaitForOperation();
-
-			ioContext.Timeout          = ioContext.Timer.GetElapsed() + timeout;
-			ioContext.IsTimerEnabled   = True;
-			ioContext.CurrentOperation = type;
-		}
-
-		// @return AL::True on success
-		Bool LWIP_WaitForOperation() const
-		{
-			while (!LWIP_IsOperationComplete())
-			{
-				LWIP::Poll();
-			}
-
-			return LWIP_IsOperationSuccess();
-		}
-
-		// called by *OnComplete handlers
-		Void LWIP_CompleteOperation(Bool isSuccess, Bool isTimedOut, ErrorCode errorCode)
-		{
-			ioContext.IsSuccess        = isSuccess;
-			ioContext.IsTimedOut       = isTimedOut;
-			ioContext.IsTimerEnabled   = False;
-			ioContext.LastErrorCode    = errorCode;
-			ioContext.CurrentOperation = IOTypes::None;
-			ioContext.IsComplete       = True;
-		}
-
-		Void LWIP_TCP_Init(::tcp_pcb* lpPCB)
-		{
-			::tcp_arg(lpPCB, this);
-			::tcp_err(lpPCB, &Socket::LWIP_TCP_OnError);
-			::tcp_poll(lpPCB, &Socket::LWIP_TCP_OnPoll, 1);
-			::tcp_recv(lpPCB, &Socket::LWIP_TCP_OnRead);
-			::tcp_sent(lpPCB, &Socket::LWIP_TCP_OnWrite);
-		}
-
-		// @return AL::False on connection closed
-		Bool LWIP_TCP_Read(Void* lpBuffer, size_t size, size_t& numberOfBytesReceived)
-		{
-			if (size > Integer<::u16_t>::Maximum)
-			{
-
-				size = Integer<::u16_t>::Maximum;
-			}
-
-			LWIP_WaitForOperation();
-
-			ioContext.RX.lpBuffer              = lpBuffer;
-			ioContext.RX.BufferSize            = size;
-			ioContext.RX.NumberOfBytesReceived = 0;
-
-			LWIP_BeginOperation(
-				IOTypes::RX
-			);
-
-			if (!LWIP_WaitForOperation())
-			{
-
-				throw SocketException(
-					"tcp_recv",
-					LWIP_GetLastOperationErrorCode()
-				);
-			}
-
-			if (LWIP_IsOperationTimedOut())
-			{
-				numberOfBytesReceived = 0;
-
-				return True;
-			}
-
-			numberOfBytesReceived = LWIP_GetNumberOfBytesReceived();
-
-			return True;
-		}
-
-		// @return 0 on connection closed
-		// @return number of bytes written
-		size_t LWIP_TCP_Write(const Void* lpBuffer, size_t size)
-		{
-			if (size > Integer<::u16_t>::Maximum)
-			{
-
-				size = Integer<::u16_t>::Maximum;
-			}
-
-			LWIP_BeginOperation(
-				IOTypes::TX
-			);
-
-			LWIP::Sync([this, lpBuffer, size]()
-			{
-				ErrorCode errorCode;
-
-				if ((errorCode = ::tcp_write(socket.tcp, lpBuffer, static_cast<::u16_t>(size), TCP_WRITE_FLAG_COPY)) != ::ERR_OK)
-				{
-
-					throw SocketException(
-						"tcp_write",
-						errorCode
-					);
-				}
-			});
-
-			if (!LWIP_WaitForOperation())
-			{
-
-				throw SocketException(
-					"tcp_write",
-					LWIP_GetLastOperationErrorCode()
-				);
-			}
-
-			return LWIP_GetNumberOfBytesSent();
-		}
-
-		// @return AL::False on timeout
-		Bool LWIP_TCP_Connect(const typename IPAddress::ip_addr& address, uint16 port, TimeSpan timeout)
-		{
-			LWIP_BeginOperation(
-				IOTypes::Connect,
-				timeout
-			);
-
-			LWIP::Sync([this, &address, port]()
-			{
-				ErrorCode errorCode;
-
-				if ((errorCode = ::tcp_connect(socket.tcp, &address, port, &Socket::LWIP_TCP_OnConnect)) != ::ERR_OK)
-				{
-
-					throw SocketException(
-						"tcp_connect",
-						errorCode
-					);
-				}
-			});
-
-			if (!LWIP_WaitForOperation())
-			{
-
-				throw SocketException(
-					"tcp_connect",
-					LWIP_GetLastOperationErrorCode()
-				);
-			}
-
-			if (LWIP_IsOperationTimedOut())
-			{
-
-				return False;
-			}
-
-			return True;
-		}
-
-		static ::err_t LWIP_TCP_OnPoll(void* lpParam, ::tcp_pcb* lpPCB)
-		{
-			auto lpSocket = reinterpret_cast<Socket*>(
-				lpParam
-			);
-
-			return lpSocket->LWIP_TCP_OnPollComplete();
-		}
-		       ::err_t LWIP_TCP_OnPollComplete()
-		{
-			if (LWIP_IsOperationInProgress() && LWIP_IsOperationTimerEnabled())
-			{
-				if (ioContext.Timer.GetElapsed() >= ioContext.Timeout)
-				{
-					LWIP_CompleteOperation(
-						True,
-						True,
-						::ERR_TIMEOUT
-					);
-				}
-			}
-
-			return ::ERR_OK;
-		}
-
-		static void    LWIP_TCP_OnError(void* lpParam, ::err_t errorCode)
-		{
-			auto lpSocket = reinterpret_cast<Socket*>(
-				lpParam
-			);
-
-			return lpSocket->LWIP_TCP_OnErrorComplete(
-				errorCode
-			);
-		}
-		       Void    LWIP_TCP_OnErrorComplete(::err_t errorCode)
-		{
-			// TODO: implement
-		}
-
-		static ::err_t LWIP_TCP_OnConnect(void* lpParam, ::tcp_pcb* lpPCB, ::err_t errorCode)
-		{
-			auto lpSocket = reinterpret_cast<Socket*>(
-				lpParam
-			);
-
-			return lpSocket->LWIP_TCP_OnConnectComplete(
-				lpPCB,
-				errorCode
-			);
-		}
-		       ::err_t LWIP_TCP_OnConnectComplete(::tcp_pcb* lpPCB, ::err_t errorCode)
-		{
-			if ((errorCode == ::ERR_VAL) || (lpPCB == nullptr))
-			{
-				LWIP_CompleteOperation(
-					False,
-					False,
-					errorCode
-				);
-
-				return errorCode;
-			}
-
-			socket.tcp = lpPCB;
-
-			LWIP_CompleteOperation(
-				True,
-				False,
-				::ERR_OK
-			);
-
-			return ::ERR_OK;
-		}
-
-		static ::err_t LWIP_TCP_OnRead(void* lpParam, ::tcp_pcb* lpPCB, ::pbuf* lpBuffer, ::err_t errorCode)
-		{
-			auto lpSocket = reinterpret_cast<Socket*>(
-				lpParam
-			);
-
-			return lpSocket->LWIP_TCP_OnReadComplete(
-				lpPCB,
-				lpBuffer,
-				errorCode
-			);
-		}
-		       ::err_t LWIP_TCP_OnReadComplete(::tcp_pcb* lpPCB, ::pbuf* lpBuffer, ::err_t errorCode)
-		{
-			if ((errorCode == ::ERR_VAL) || (lpPCB == nullptr))
-			{
-				LWIP_CompleteOperation(
-					False,
-					False,
-					errorCode
-				);
-
-				return errorCode;
-			}
-
-			auto bufferSize = lpBuffer->tot_len;
-
-			if (bufferSize > ioContext.RX.BufferSize)
-			{
-
-				bufferSize = ioContext.RX.BufferSize;
-			}
-
-			auto numberOfBytesReceived = ::pbuf_copy_partial(
-				lpBuffer,
-				reinterpret_cast<uint8*>(ioContext.RX.lpBuffer),
-				bufferSize,
-				0
-			);
-
-			::tcp_recved(
-				socket.tcp,
-				bufferSize
-			);
-
-			::pbuf_free(
-				lpBuffer
-			);
-
-			ioContext.RX.NumberOfBytesReceived = numberOfBytesReceived;
-
-			LWIP_CompleteOperation(
-				True,
-				False,
-				::ERR_OK
-			);
-
-			return ::ERR_OK;
-		}
-
-		static ::err_t LWIP_TCP_OnWrite(void* lpParam, ::tcp_pcb* lpPCB, ::u16_t numberOfBytesSent)
-		{
-			auto lpSocket = reinterpret_cast<Socket*>(
-				lpParam
-			);
-
-			return lpSocket->LWIP_TCP_OnWriteComplete(
-				lpPCB,
-				numberOfBytesSent
-			);
-		}
-		       ::err_t LWIP_TCP_OnWriteComplete(::tcp_pcb* lpPCB, ::u16_t numberOfBytesSent)
-		{
-			if (lpPCB == nullptr)
-			{
-				LWIP_CompleteOperation(
-					False,
-					False,
-					::ERR_VAL
-				);
-
-				return ::ERR_VAL;
-			}
-
-			ioContext.TX.NumberOfBytesSent = numberOfBytesSent;
-
-			LWIP_CompleteOperation(
-				True,
-				False,
-				::ERR_OK
-			);
-
-			return ::ERR_OK;
-		}
-#endif
-
 		// @throw AL::Exception
 		static Void GetLocalEndPoint(IPEndPoint& ep, Handle socket, SocketTypes socketType, AddressFamilies addressFamily)
 		{

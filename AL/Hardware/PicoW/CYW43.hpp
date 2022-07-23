@@ -16,6 +16,14 @@
 
 	#if defined(CYW43_LWIP)
 		#define AL_DEPENDENCY_PICO_CYW43_LWIP CYW43_LWIP
+
+		#if defined(LWIP_IPV4) && LWIP_IPV4
+			#define AL_DEPENDENCY_PICO_CYW43_LWIP_IPV4
+		#endif
+
+		#if defined(LWIP_IPV6) && LWIP_IPV6
+			#define AL_DEPENDENCY_PICO_CYW43_LWIP_IPV6
+		#endif
 	#endif
 
 	#if defined(PICO_CYW43_ARCH_POLL)
