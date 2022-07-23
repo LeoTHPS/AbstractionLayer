@@ -437,8 +437,7 @@ namespace AL::Network
 				case SocketTypes::Stream:
 				{
 					socket = new LWIP::TcpSocket(
-						GetAddressFamily(),
-						0xFFF
+						GetAddressFamily()
 					);
 
 					try

@@ -13,6 +13,7 @@
 #include "AL/OS/Timer.hpp"
 
 #include "AL/Collections/Array.hpp"
+#include "AL/Collections/LinkedList.hpp"
 
 #include "AL/Hardware/PicoW/CYW43.hpp"
 
@@ -105,22 +106,33 @@ namespace AL::Network
 				Aborted           = 0x02,
 				Timeout           = 0x04,
 				Connected         = 0x08,
+				ConnectionClosed  = 0x10,
 
-				SendInProgress    = 0x10,
-				ConnectInProgress = 0x20
+				SendInProgress    = 0x20,
+				ConnectInProgress = 0x40
 			};
 
-			BitMask<IOFlags>          flags;
-			OS::Timer                 timer;
-			TimeSpan                  timeout;
-			Collections::Array<uint8> rxBuffer;
-			size_t                    rxBufferSize     = 0;
-			size_t                    txBufferSize     = 0;
-			size_t                    txBufferCapacity = 0;
+			typedef Collections::Array<uint8> RXBuffer;
+
+			struct RXContext
+			{
+				RXBuffer Buffer;
+				size_t   BufferSize;
+				size_t   BufferOffset;
+			};
+
+			typedef Collections::LinkedList<RXContext> RXContexts;
+
+			BitMask<IOFlags> flags;
+			OS::Timer        timer;
+			TimeSpan         timeout;
+			RXContexts       rxContexts;
+			size_t           txBufferSize     = 0;
+			size_t           txBufferCapacity = 0;
 
 #if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
-			::tcp_pcb*                pcb;
-			::err_t                   errorCode;
+			::tcp_pcb*       pcb;
+			::err_t          errorCode;
 #endif
 
 		public:
@@ -137,11 +149,8 @@ namespace AL::Network
 				timeout(
 					Move(tcpSocket.timeout)
 				),
-				rxBuffer(
-					Move(tcpSocket.rxBuffer)
-				),
-				rxBufferSize(
-					tcpSocket.rxBufferSize
+				rxContexts(
+					Move(tcpSocket.rxContexts)
 				),
 				txBufferSize(
 					tcpSocket.txBufferSize
@@ -159,18 +168,14 @@ namespace AL::Network
 				)
 #endif
 			{
-				tcpSocket.rxBufferSize     = 0;
 				tcpSocket.txBufferSize     = 0;
 				tcpSocket.txBufferCapacity = 0;
 			}
 
-			TcpSocket(AddressFamilies addressFamily, size_t internalBufferSize)
+			explicit TcpSocket(AddressFamilies addressFamily)
 				: Socket(
 					SocketTypes::Tcp,
 					addressFamily
-				),
-				rxBuffer(
-					internalBufferSize
 				)
 			{
 			}
@@ -257,25 +262,15 @@ namespace AL::Network
 				{
 					if (!flags.IsSet(IOFlags::Aborted))
 					{
-						if (IsConnected())
-						{
-							Shutdown(
-								True,
-								True
-							);
-						}
-
 #if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
-						Sync([this]()
-						{
-							::tcp_close(
-								pcb
-							);
+						Sync(
+							::tcp_close,
+							pcb
+						);
 
-							SetLastErrorCode(
-								::ERR_OK
-							);
-						});
+						SetLastErrorCode(
+							::ERR_OK
+						);
 #endif
 					}
 
@@ -294,6 +289,11 @@ namespace AL::Network
 			// @return AL::False on timeout
 			virtual Bool Connect(const IPEndPoint& ep, TimeSpan timeout)
 			{
+				AL_ASSERT(
+					IsOpen(),
+					"TcpSocket not open"
+				);
+
 				AL_ASSERT(
 					!IsConnected(),
 					"TcpSocket already connected"
@@ -376,40 +376,33 @@ namespace AL::Network
 			// @throw AL::Exception
 			virtual Void Shutdown(Bool rx, Bool tx)
 			{
-				AL_ASSERT(
-					IsOpen(),
-					"TcpSocket not open"
-				);
-
-				AL_ASSERT(
-					IsConnected(),
-					"TcpSocket not connected"
-				);
-
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
-				Sync([this, rx, tx]()
+				if (IsConnected() && !flags.IsSet(IOFlags::ConnectionClosed))
 				{
-					ErrorCode errorCode;
-
-					if ((errorCode = ::tcp_shutdown(pcb, rx ? 1 : 0, tx ? 1 : 0)) != ::ERR_OK)
+#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
+					Sync([this, rx, tx]()
 					{
+						ErrorCode errorCode;
+
+						if ((errorCode = ::tcp_shutdown(pcb, rx ? 1 : 0, tx ? 1 : 0)) != ::ERR_OK)
+						{
+							SetLastErrorCode(
+								errorCode
+							);
+
+							throw SocketException(
+								"tcp_shutdown",
+								errorCode
+							);
+						}
+
 						SetLastErrorCode(
-							errorCode
+							::ERR_OK
 						);
-
-						throw SocketException(
-							"tcp_shutdown",
-							errorCode
-						);
-					}
-
-					SetLastErrorCode(
-						::ERR_OK
-					);
-				});
+					});
 #else
-				throw NotImplementedException();
+					throw NotImplementedException();
 #endif
+				}
 			}
 
 			// @throw AL::Exception
@@ -425,6 +418,12 @@ namespace AL::Network
 					IsConnected(),
 					"TcpSocket not connected"
 				);
+
+				if (CloseIfConnectionClosed())
+				{
+
+					return False;
+				}
 
 #if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				if (size > Integer<::u16_t>::Maximum)
@@ -466,14 +465,16 @@ namespace AL::Network
 				while (flags.IsSet(IOFlags::SendInProgress))
 				{
 					Poll();
+
+					if (flags.IsSet(IOFlags::ConnectionClosed))
+					{
+
+						break;
+					}
 				}
 
-				if (!IsConnected())
+				if (auto errorCode = GetLastErrorCode(); CloseIfConnectionClosed())
 				{
-					auto errorCode = GetLastErrorCode();
-
-					Close();
-
 					try
 					{
 						Open();
@@ -516,6 +517,12 @@ namespace AL::Network
 					"TcpSocket not connected"
 				);
 
+				if (CloseIfConnectionClosed())
+				{
+
+					return False;
+				}
+
 #if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				if (size > Integer<::u16_t>::Maximum)
 				{
@@ -523,40 +530,43 @@ namespace AL::Network
 					size = Integer<::u16_t>::Maximum;
 				}
 
+				numberOfBytesReceived = 0;
+
 				Poll();
 
 				Sync([this, lpBuffer, size, &numberOfBytesReceived]()
 				{
-					if ((numberOfBytesReceived = rxBufferSize) > 0)
+					if (rxContexts.GetSize() > 0)
 					{
-						if (numberOfBytesReceived > size)
+						size_t rxBufferSize;
+
+						auto& rxContext = *rxContexts.begin();
+
+						if ((rxBufferSize = rxContext.BufferSize) > size)
 						{
 
-							numberOfBytesReceived = size;
+							rxBufferSize = size;
 						}
 
 						memcpy(
 							lpBuffer,
-							&rxBuffer[0],
-							numberOfBytesReceived
+							&rxContext.Buffer[rxContext.BufferOffset],
+							rxBufferSize
 						);
 
-						if (numberOfBytesReceived < rxBufferSize)
-						{
-							memcpy(
-								&rxBuffer[numberOfBytesReceived],
-								&rxBuffer[0],
-								rxBufferSize - numberOfBytesReceived
-							);
-						}
+						numberOfBytesReceived   = rxBufferSize;
+						rxContext.BufferOffset += rxBufferSize;
 
-						rxBufferSize -= numberOfBytesReceived;
+						if ((rxContext.BufferSize -= rxBufferSize) == 0)
+						{
+
+							rxContexts.PopFront();
+						}
 					}
 				});
 
-				if ((numberOfBytesReceived == 0) && !IsConnected())
+				if ((numberOfBytesReceived == 0) && CloseIfConnectionClosed())
 				{
-					Close();
 
 					return False;
 				}
@@ -585,12 +595,9 @@ namespace AL::Network
 					tcpSocket.timeout
 				);
 
-				rxBuffer = Move(
-					tcpSocket.rxBuffer
+				rxContexts = Move(
+					tcpSocket.rxContexts
 				);
-
-				rxBufferSize = tcpSocket.rxBufferSize;
-				tcpSocket.rxBufferSize = 0;
 
 				txBufferSize = tcpSocket.txBufferSize;
 				tcpSocket.txBufferSize = 0;
@@ -607,6 +614,28 @@ namespace AL::Network
 			}
 
 		private:
+			Void Abort()
+			{
+#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
+				::tcp_abort(
+					pcb
+				);
+#endif
+
+				flags.Add(
+					IOFlags::Aborted
+				);
+
+				CloseConnection();
+			}
+
+			Void SetLastErrorCode(ErrorCode value)
+			{
+#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
+				errorCode = value;
+#endif
+			}
+
 			Void RegisterEventHandlers()
 			{
 #if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
@@ -618,11 +647,24 @@ namespace AL::Network
 #endif
 			}
 
-			Void SetLastErrorCode(ErrorCode value)
+			Void CloseConnection()
 			{
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
-				errorCode = value;
-#endif
+				flags.Add(
+					IOFlags::ConnectionClosed
+				);
+			}
+
+			// @return AL::True on connection closed
+			Bool CloseIfConnectionClosed()
+			{
+				if (flags.IsSet(IOFlags::ConnectionClosed))
+				{
+					Close();
+
+					return True;
+				}
+
+				return False;
 			}
 
 		private:
@@ -637,15 +679,17 @@ namespace AL::Network
 				{
 					if (lpSocket->timer.GetElapsed() >= lpSocket->timeout)
 					{
-						::tcp_abort(
-							pcb
-						);
-
-						lpSocket->Close();
+						// OS::Console::WriteLine(
+						// 	"[LWIP::TcpSocket::OnPoll] [lpParam: 0x%p, pcb: 0x%p] Connect timed out",
+						// 	lpParam,
+						// 	pcb
+						// );
 
 						lpSocket->flags.Add(
 							IOFlags::Timeout
 						);
+
+						lpSocket->Abort();
 
 						return ::ERR_ABRT;
 					}
@@ -660,7 +704,13 @@ namespace AL::Network
 					lpParam
 				);
 
-				lpSocket->Close();
+				// OS::Console::WriteLine(
+				// 	"[LWIP::TcpSocket::OnError] [lpParam: 0x%p, errorCode: %i]",
+				// 	lpParam,
+				// 	errorCode
+				// );
+
+				lpSocket->CloseConnection();
 
 				lpSocket->SetLastErrorCode(
 					errorCode
@@ -673,8 +723,17 @@ namespace AL::Network
 					lpParam
 				);
 
+				// OS::Console::WriteLine(
+				// 	"[LWIP::TcpSocket::OnConnect] [lpParam: 0x%p, pcb: 0x%p, errorCode: %i]",
+				// 	lpParam,
+				// 	pcb,
+				// 	errorCode
+				// );
+
 				if ((errorCode != ::ERR_OK) || (pcb == nullptr))
 				{
+					lpSocket->CloseConnection();
+
 					lpSocket->SetLastErrorCode(
 						errorCode
 					);
@@ -705,6 +764,13 @@ namespace AL::Network
 					lpParam
 				);
 
+				// OS::Console::WriteLine(
+				// 	"[LWIP::TcpSocket::OnSend] [lpParam: 0x%p, pcb: 0x%p, numberOfBytesSent: %u]",
+				// 	lpParam,
+				// 	pcb,
+				// 	numberOfBytesSent
+				// );
+
 				lpSocket->txBufferSize = numberOfBytesSent;
 
 				lpSocket->flags.Remove(
@@ -720,54 +786,59 @@ namespace AL::Network
 					lpParam
 				);
 
+				// OS::Console::WriteLine(
+				// 	"[LWIP::TcpSocket::OnReceive] [lpParam: 0x%p, pcb: 0x%p, buffer: { tot_len: %u }, errorCode: %i]",
+				// 	lpParam,
+				// 	pcb,
+				// 	buffer->tot_len,
+				// 	errorCode
+				// );
+
 				if (errorCode != ::ERR_OK)
 				{
-					::tcp_abort(
-						pcb
-					);
-
-					lpSocket->flags.Add(
-						IOFlags::Aborted
-					);
-
-					lpSocket->Close();
+					lpSocket->Abort();
 
 					return ::ERR_ABRT;
 				}
 
-				size_t bufferSize = 0;
+				size_t rxBufferSize = 0;
 
-				if (buffer->tot_len > 0)
+				if ((rxBufferSize = buffer->tot_len) > 0)
 				{
-					size_t bufferCapacity;
-
-					if ((bufferSize = buffer->tot_len) > (bufferCapacity = (lpSocket->rxBuffer.GetCapacity() - lpSocket->rxBufferSize)))
+					RXContext rxContext =
 					{
+						.Buffer       = RXBuffer(rxBufferSize),
+						.BufferSize   = rxBufferSize,
+						.BufferOffset = 0
+					};
 
-						bufferSize = bufferCapacity;
-					}
+					::pbuf_copy_partial(
+						buffer,
+						&rxContext.Buffer[0],
+						static_cast<::u16_t>(rxBufferSize),
+						0
+					);
 
-					if (bufferSize > 0)
-					{
-						::pbuf_copy_partial(
-							buffer,
-							&lpSocket->rxBuffer[lpSocket->rxBufferSize],
-							static_cast<::u16_t>(bufferSize),
-							0
-						);
+					::tcp_recved(
+						pcb,
+						static_cast<::u16_t>(rxBufferSize)
+					);
 
-						::tcp_recved(
-							pcb,
-							static_cast<::u16_t>(bufferSize)
-						);
-					}
+					// OS::Console::WriteLine(
+					// 	HexConverter::Encode(
+					// 		&rxContext.Buffer[0],
+					// 		rxBufferSize
+					// 	)
+					// );
+
+					lpSocket->rxContexts.PushBack(
+						Move(rxContext)
+					);
 				}
 
 				::pbuf_free(
 					buffer
 				);
-
-				lpSocket->rxBufferSize += bufferSize;
 
 				return ::ERR_OK;
 			}
@@ -777,8 +848,22 @@ namespace AL::Network
 		class UdpSocket
 			: public Socket
 		{
+			typedef Collections::Array<uint8> RXBuffer;
+
+			struct RXContext
+			{
+				IPEndPoint EP;
+				RXBuffer   Buffer;
+				size_t     BufferSize;
+				size_t     BufferOffset;
+			};
+
+			typedef Collections::LinkedList<RXContext> RXContexts;
+
 			Bool       isOpen      = False;
 			Bool       isConnected = False;
+
+			RXContexts rxContexts;
 
 #if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 			::udp_pcb* pcb;
@@ -795,6 +880,9 @@ namespace AL::Network
 				isConnected(
 					udpSocket.isConnected
 				),
+				rxContexts(
+					Move(udpSocket.rxContexts)
+				),
 				pcb(
 					udpSocket.pcb
 				)
@@ -805,7 +893,7 @@ namespace AL::Network
 
 			explicit UdpSocket(AddressFamilies addressFamily)
 				: Socket(
-					SocketTypes::Tcp,
+					SocketTypes::Udp,
 					addressFamily
 				)
 			{
@@ -885,6 +973,11 @@ namespace AL::Network
 			virtual Void Connect(const IPEndPoint& ep)
 			{
 				AL_ASSERT(
+					IsOpen(),
+					"UdpSocket not open"
+				);
+
+				AL_ASSERT(
 					!IsConnected(),
 					"UdpSocket already connected"
 				);
@@ -912,10 +1005,9 @@ namespace AL::Network
 				isConnected = True;
 			}
 
-			// @throw AL::Exception
 			virtual Void Disconnect()
 			{
-				if (IsOpen())
+				if (IsConnected())
 				{
 #if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 					Sync([this]()
@@ -1059,6 +1151,65 @@ namespace AL::Network
 				return True;
 			}
 
+			// @throw AL::Exception
+			// @return number of bytes received
+			virtual size_t Receive(Void* lpBuffer, size_t size, IPEndPoint& ep)
+			{
+				AL_ASSERT(
+					IsOpen(),
+					"UdpSocket not open"
+				);
+
+				size_t numberOfBytesReceived = 0;
+
+#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
+				if (size > Integer<::u16_t>::Maximum)
+				{
+
+					size = Integer<::u16_t>::Maximum;
+				}
+
+				Poll();
+
+				Sync([this, lpBuffer, size, &ep, &numberOfBytesReceived]()
+				{
+					if (rxContexts.GetSize() > 0)
+					{
+						size_t rxBufferSize;
+
+						auto& rxContext = *rxContexts.begin();
+
+						if ((rxBufferSize = rxContext.BufferSize) > size)
+						{
+
+							rxBufferSize = size;
+						}
+
+						ep = rxContext.EP;
+
+						memcpy(
+							lpBuffer,
+							&rxContext.Buffer[rxContext.BufferOffset],
+							rxBufferSize
+						);
+
+						numberOfBytesReceived   = rxBufferSize;
+						rxContext.BufferOffset += rxBufferSize;
+
+						if ((rxContext.BufferSize -= rxBufferSize) == 0)
+						{
+
+							rxContexts.PopFront();
+						}
+					}
+				});
+#else
+				throw NotImplementedException();
+#endif
+
+				return numberOfBytesReceived;
+			}
+
 			UdpSocket& operator = (UdpSocket&& udpSocket)
 			{
 				Socket::operator=(
@@ -1070,6 +1221,10 @@ namespace AL::Network
 
 				isConnected = udpSocket.isConnected;
 				udpSocket.isConnected = False;
+
+				rxContexts = Move(
+					udpSocket.rxContexts
+				);
 
 #if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				pcb = udpSocket.pcb;
@@ -1094,6 +1249,52 @@ namespace AL::Network
 					lpParam
 				);
 
+				OS::Console::WriteLine(
+					"[LWIP::UdpSocket::OnReceive] [lpParam: 0x%p, pcb: 0x%p, buffer: { tot_len: %u }, lpAddress->addr: %lu, port: %u]",
+					lpParam,
+					pcb,
+					buffer->tot_len,
+					lpAddress->addr,
+					port
+				);
+
+				size_t rxBufferSize = 0;
+
+				if ((rxBufferSize = buffer->tot_len) > 0)
+				{
+					RXContext rxContext =
+					{
+						.EP =
+						{
+							.Host   = IPAddress::FromNative(*lpAddress),
+							.Port   = port
+						},
+						.Buffer     = RXBuffer(rxBufferSize),
+						.BufferSize = rxBufferSize
+					};
+
+					::pbuf_copy_partial(
+						buffer,
+						&rxContext.Buffer[0],
+						static_cast<::u16_t>(rxBufferSize),
+						0
+					);
+
+					OS::Console::WriteLine(
+						HexConverter::Encode(
+							&rxContext.Buffer[0],
+							rxBufferSize
+						)
+					);
+
+					lpSocket->rxContexts.PushBack(
+						Move(rxContext)
+					);
+				}
+
+				::pbuf_free(
+					buffer
+				);
 			}
 #endif
 		};
