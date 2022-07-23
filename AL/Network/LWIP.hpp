@@ -535,12 +535,6 @@ namespace AL::Network
 							numberOfBytesReceived = size;
 						}
 
-						OS::Console::WriteLine(
-							"[LWIP::TcpSocket::Receive] Copying %lu/%lu bytes",
-							numberOfBytesReceived,
-							rxBufferSize
-						);
-
 						memcpy(
 							lpBuffer,
 							&rxBuffer[0],
