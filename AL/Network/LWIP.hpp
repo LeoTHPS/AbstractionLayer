@@ -1249,14 +1249,14 @@ namespace AL::Network
 					lpParam
 				);
 
-				OS::Console::WriteLine(
-					"[LWIP::UdpSocket::OnReceive] [lpParam: 0x%p, pcb: 0x%p, buffer: { tot_len: %u }, lpAddress->addr: %lu, port: %u]",
-					lpParam,
-					pcb,
-					buffer->tot_len,
-					lpAddress->addr,
-					port
-				);
+				// OS::Console::WriteLine(
+				// 	"[LWIP::UdpSocket::OnReceive] [lpParam: 0x%p, pcb: 0x%p, buffer: { tot_len: %u }, lpAddress->addr: %lu, port: %u]",
+				// 	lpParam,
+				// 	pcb,
+				// 	buffer->tot_len,
+				// 	lpAddress->addr,
+				// 	port
+				// );
 
 				size_t rxBufferSize = 0;
 
