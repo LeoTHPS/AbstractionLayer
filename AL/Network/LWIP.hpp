@@ -1280,12 +1280,12 @@ namespace AL::Network
 						0
 					);
 
-					OS::Console::WriteLine(
-						HexConverter::Encode(
-							&rxContext.Buffer[0],
-							rxBufferSize
-						)
-					);
+					// OS::Console::WriteLine(
+					// 	HexConverter::Encode(
+					// 		&rxContext.Buffer[0],
+					// 		rxBufferSize
+					// 	)
+					// );
 
 					lpSocket->rxContexts.PushBack(
 						Move(rxContext)
