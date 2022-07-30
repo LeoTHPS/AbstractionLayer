@@ -844,7 +844,7 @@ namespace AL::Network
 				return False;
 			}
 
-			numberOfBytesSent = static_cast<int>(
+			numberOfBytesSent = static_cast<size_t>(
 				_numberOfBytesSent & Integer<int>::SignedCastMask
 			);
 #else
@@ -957,7 +957,7 @@ namespace AL::Network
 				return False;
 			}
 
-			numberOfBytesReceived = static_cast<int>(
+			numberOfBytesReceived = static_cast<size_t>(
 				_numberOfBytesReceived & Integer<int>::SignedCastMask
 			);
 #else
