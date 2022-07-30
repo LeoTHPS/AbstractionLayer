@@ -9,8 +9,9 @@
 #include "RequestMethods.hpp"
 
 #include "AL/Network/DNS.hpp"
-#include "AL/Network/Socket.hpp"
 #include "AL/Network/IPAddress.hpp"
+#include "AL/Network/TcpSocket.hpp"
+#include "AL/Network/SocketExtensions.hpp"
 
 #include "AL/Collections/Array.hpp"
 
@@ -87,8 +88,14 @@ namespace AL::Network::HTTP
 
 			IPEndPoint serverEP =
 			{
-				.Port = 80
+				.Port = uri.GetAuthority().Port
 			};
+
+			if (serverEP.Port == 0)
+			{
+
+				serverEP.Port = 80;
+			}
 
 			Bool dns_IsInitialized;
 
@@ -128,10 +135,8 @@ namespace AL::Network::HTTP
 				DNS::Deinit();
 			}
 
-			Socket socket(
-				SocketTypes::Stream,
-				SocketProtocols::TCP,
-				AddressFamilies::IPv4
+			TcpSocket socket(
+				serverEP.Host.GetFamily()
 			);
 
 			try
@@ -169,9 +174,11 @@ namespace AL::Network::HTTP
 				);
 			}
 
+			size_t numberOfBytesSent;
+
 			try
 			{
-				if (socket.WriteAll(request.GetCString(), request.GetSize()) == Socket::CONNECTION_CLOSED)
+				if (!SocketExtensions::SendAll(socket, request.GetCString(), request.GetSize(), numberOfBytesSent))
 				{
 
 					throw Exception(
@@ -202,45 +209,35 @@ namespace AL::Network::HTTP
 						buffer.GetCapacity()
 					);
 
-					ssize_t numberOfBytesReceived;
+					size_t numberOfBytesReceived;
 
 					try
 					{
-						do
+						while (socket.Receive(&bufferChunk[0], bufferChunk.GetCapacity() * sizeof(ResponseBuffer::Type), numberOfBytesReceived))
 						{
-							numberOfBytesReceived = socket.Read(
+							if (numberOfBytesReceived == 0)
+							{
+
+								continue;
+							}
+
+							auto numberOfBytesRemaining = buffer.GetCapacity() - bufferSize;
+
+							if (numberOfBytesRemaining < static_cast<size_t>(numberOfBytesReceived))
+							{
+								buffer.SetSize(
+									numberOfBytesReceived - numberOfBytesRemaining
+								);
+							}
+
+							memcpy(
+								&buffer[bufferSize],
 								&bufferChunk[0],
-								bufferChunk.GetCapacity() * sizeof(String::Char)
+								static_cast<size_t>(numberOfBytesReceived)
 							);
 
-							switch (numberOfBytesReceived)
-							{
-								case Socket::WOULD_BLOCK:
-								case Socket::CONNECTION_CLOSED:
-									break;
-
-								default:
-								{
-									auto numberOfBytesRemaining = buffer.GetCapacity() - bufferSize;
-
-									if (numberOfBytesRemaining < static_cast<size_t>(numberOfBytesReceived))
-									{
-										buffer.SetSize(
-											numberOfBytesReceived - numberOfBytesRemaining
-										);
-									}
-
-									memcpy(
-										&buffer[bufferSize],
-										&bufferChunk[0],
-										static_cast<size_t>(numberOfBytesReceived)
-									);
-
-									bufferSize += numberOfBytesReceived;
-								}
-								break;
-							}
-						} while (numberOfBytesReceived != Socket::CONNECTION_CLOSED);
+							bufferSize += numberOfBytesReceived;
+						}
 					}
 					catch (Exception& exception)
 					{

@@ -129,6 +129,8 @@ namespace AL::Network
 			BitMask<IOFlags> flags;
 			OS::Timer        timer;
 			TimeSpan         timeout;
+			IPEndPoint       localEP;
+			IPEndPoint       remoteEP;
 			RXContexts       rxContexts;
 			size_t           txBufferSize     = 0;
 			size_t           txBufferCapacity = 0;
@@ -139,6 +141,10 @@ namespace AL::Network
 #endif
 
 		public:
+			typedef Void* Handle;
+
+			static constexpr size_t BACKLOG_MAX = 0xFF;
+
 			TcpSocket(TcpSocket&& tcpSocket)
 				: Socket(
 					Move(tcpSocket)
@@ -151,6 +157,12 @@ namespace AL::Network
 				),
 				timeout(
 					Move(tcpSocket.timeout)
+				),
+				localEP(
+					Move(tcpSocket.localEP)
+				),
+				remoteEP(
+					Move(tcpSocket.remoteEP)
 				),
 				rxContexts(
 					Move(tcpSocket.rxContexts)
@@ -222,9 +234,13 @@ namespace AL::Network
 				);
 			}
 
-			virtual Void* GetHandle() const override
+			virtual Handle GetHandle() const override
 			{
+#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				return IsOpen() ? pcb : nullptr;
+#else
+				return nullptr;
+#endif
 			}
 
 			virtual ErrorCode GetLastErrorCode() const
@@ -234,6 +250,16 @@ namespace AL::Network
 #else
 				return 0;
 #endif
+			}
+
+			virtual const IPEndPoint& GetLocalEndPoint() const
+			{
+				return localEP;
+			}
+
+			virtual const IPEndPoint& GetRemoteEndPoint() const
+			{
+				return remoteEP;
 			}
 
 			// @throw AL::Exception
@@ -267,6 +293,18 @@ namespace AL::Network
 					"CYW43_LWIP"
 				);
 #endif
+
+				localEP =
+				{
+					.Host = IPAddress::Any(),
+					.Port = 0
+				};
+
+				remoteEP =
+				{
+					.Host = IPAddress::Any(),
+					.Port = 0
+				};
 
 				flags.Add(
 					IOFlags::Open
@@ -325,13 +363,15 @@ namespace AL::Network
 				throw NotImplementedException();
 #endif
 
+				localEP = ep;
+
 				flags.Add(
 					IOFlags::Bound
 				);
 			}
 
 			// @throw AL::Exception
-			virtual Void Listen(uint8 backlog)
+			virtual Void Listen(size_t backlog)
 			{
 				AL_ASSERT(
 					IsOpen(),
@@ -342,6 +382,12 @@ namespace AL::Network
 					!IsListening(),
 					"TcpSocket already listening"
 				);
+
+				if (backlog > BACKLOG_MAX)
+				{
+
+					backlog = BACKLOG_MAX;
+				}
 
 #if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				::tcp_pcb* pcb;
@@ -485,6 +531,18 @@ namespace AL::Network
 						GetLastErrorCode()
 					);
 				}
+
+				localEP =
+				{
+					.Host = IPAddress::FromNative(pcb->local_ip),
+					.Port = pcb->local_port
+				};
+
+				remoteEP =
+				{
+					.Host = IPAddress::FromNative(pcb->remote_ip),
+					.Port = pcb->remote_port
+				};
 #else
 				throw NotImplementedException();
 #endif
@@ -518,6 +576,12 @@ namespace AL::Network
 							::ERR_OK
 						);
 					});
+
+					remoteEP =
+					{
+						.Host = IPAddress::Any(),
+						.Port = 0
+					};
 #else
 					throw NotImplementedException();
 #endif
@@ -712,6 +776,14 @@ namespace AL::Network
 
 				timeout = Move(
 					tcpSocket.timeout
+				);
+
+				localEP = Move(
+					tcpSocket.localEP
+				);
+
+				remoteEP = Move(
+					tcpSocket.remoteEP
 				);
 
 				rxContexts = Move(
@@ -1001,6 +1073,8 @@ namespace AL::Network
 			Bool       isBound     = False;
 			Bool       isConnected = False;
 
+			IPEndPoint localEP;
+			IPEndPoint remoteEP;
 			RXContexts rxContexts;
 
 #if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
@@ -1008,6 +1082,8 @@ namespace AL::Network
 #endif
 
 		public:
+			typedef Void* Handle;
+
 			UdpSocket(UdpSocket&& udpSocket)
 				: Socket(
 					Move(udpSocket)
@@ -1018,12 +1094,21 @@ namespace AL::Network
 				isConnected(
 					udpSocket.isConnected
 				),
+				localEP(
+					Move(udpSocket.localEP)
+				),
+				remoteEP(
+					Move(udpSocket.remoteEP)
+				),
 				rxContexts(
 					Move(udpSocket.rxContexts)
-				),
+				)
+#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
+				,
 				pcb(
 					udpSocket.pcb
 				)
+#endif
 			{
 				udpSocket.isOpen = False;
 				udpSocket.isConnected = False;
@@ -1056,9 +1141,23 @@ namespace AL::Network
 				return isConnected;
 			}
 
-			virtual Void* GetHandle() const override
+			virtual Handle GetHandle() const override
 			{
+#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				return IsOpen() ? pcb : nullptr;
+#else
+				return nullptr;
+#endif
+			}
+
+			virtual const IPEndPoint& GetLocalEndPoint() const
+			{
+				return localEP;
+			}
+
+			virtual const IPEndPoint& GetRemoteEndPoint() const
+			{
+				return remoteEP;
 			}
 
 			// @throw AL::Exception
@@ -1085,6 +1184,18 @@ namespace AL::Network
 					"CYW43_LWIP"
 				);
 #endif
+
+				localEP =
+				{
+					.Host = IPAddress::Any(),
+					.Port = 0
+				};
+
+				remoteEP =
+				{
+					.Host = IPAddress::Any(),
+					.Port = 0
+				};
 
 				isOpen = True;
 			}
@@ -1142,6 +1253,8 @@ namespace AL::Network
 				throw NotImplementedException();
 #endif
 
+				localEP = ep;
+
 				isBound = True;
 			}
 
@@ -1178,6 +1291,8 @@ namespace AL::Network
 				throw NotImplementedException();
 #endif
 
+				remoteEP = ep;
+
 				isConnected = True;
 			}
 
@@ -1193,6 +1308,12 @@ namespace AL::Network
 						);
 					});
 #endif
+
+					remoteEP =
+					{
+						.Host = IPAddress::Any(),
+						.Port = 0
+					};
 
 					isConnected = False;
 				}
@@ -1397,6 +1518,14 @@ namespace AL::Network
 
 				isConnected = udpSocket.isConnected;
 				udpSocket.isConnected = False;
+
+				localEP = Move(
+					udpSocket.localEP
+				);
+
+				remoteEP = Move(
+					udpSocket.remoteEP
+				);
 
 				rxContexts = Move(
 					udpSocket.rxContexts
