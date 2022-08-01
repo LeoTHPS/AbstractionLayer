@@ -99,7 +99,7 @@ namespace AL::Network
 #if defined(AL_PLATFORM_PICO_W)
 	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV4)
 			return IPAddress(
-				IPADDR_ANY
+				BitConverter::HostToNetwork(IPADDR_ANY)
 			);
 	#endif
 #elif defined(AL_PLATFORM_LINUX)
@@ -144,7 +144,7 @@ namespace AL::Network
 #if defined(AL_PLATFORM_PICO_W)
 	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV4)
 			return IPAddress(
-				IPADDR_LOOPBACK
+				BitConverter::HostToNetwork(IPADDR_LOOPBACK)
 			);
 	#endif
 #elif defined(AL_PLATFORM_LINUX)
