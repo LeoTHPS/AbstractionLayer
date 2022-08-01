@@ -13,10 +13,15 @@ static void AL_Serialization_NMEA()
 	using namespace AL;
 	using namespace AL::Serialization;
 
+	size_t       i = 0;
 	NMEASentence sentence;
 
 	for (auto message : AL_Serialization_NMEA_Messages)
 	{
+		OS::Console::WriteLine(
+			ToString(++i)
+		);
+
 		if (!NMEA::FromString(sentence, message))
 		{
 
