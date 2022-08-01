@@ -423,6 +423,18 @@ namespace AL::Network
 			// @return AL::False on timeout
 			virtual Bool Accept(TcpSocket& socket)
 			{
+				if (!Accept(socket, TimeSpan::Infinite))
+				{
+
+					return False;
+				}
+
+				return True;
+			}
+			// @throw AL::Exception
+			// @return AL::False on timeout
+			virtual Bool Accept(TcpSocket& socket, TimeSpan timeout)
+			{
 				AL_ASSERT(
 					IsOpen(),
 					"TcpSocket not open"
@@ -592,6 +604,18 @@ namespace AL::Network
 			// @return AL::False on connection closed
 			virtual Bool Send(const Void* lpBuffer, size_t size, size_t& numberOfBytesSent)
 			{
+				if (!Send(lpBuffer, size, numberOfBytesSent, TimeSpan::Infinite))
+				{
+
+					return False;
+				}
+
+				return True;
+			}
+			// @throw AL::Exception
+			// @return AL::False on connection closed
+			virtual Bool Send(const Void* lpBuffer, size_t size, size_t& numberOfBytesSent, TimeSpan timeout)
+			{
 				AL_ASSERT(
 					IsOpen(),
 					"TcpSocket not open"
@@ -615,7 +639,7 @@ namespace AL::Network
 					size = Integer<::u16_t>::Maximum;
 				}
 
-				Sync([this, lpBuffer, size]()
+				Sync([this, lpBuffer, size, timeout]()
 				{
 					ErrorCode errorCode;
 
@@ -626,7 +650,7 @@ namespace AL::Network
 						IOFlags::SendInProgress
 					);
 
-					this->timeout = timer.GetElapsed() + TimeSpan::Infinite;
+					this->timeout = timer.GetElapsed() + timeout;
 
 					if ((errorCode = ::tcp_write(pcb, lpBuffer, static_cast<::u16_t>(size), TCP_WRITE_FLAG_COPY)) != ::ERR_OK)
 					{
@@ -648,6 +672,15 @@ namespace AL::Network
 				while (flags.IsSet(IOFlags::SendInProgress))
 				{
 					Poll();
+
+					if (flags.IsSet(IOFlags::Timeout))
+					{
+						SetLastErrorCode(
+							::ERR_TIMEOUT
+						);
+
+						break;
+					}
 
 					if (flags.IsSet(IOFlags::ConnectionClosed))
 					{
@@ -690,6 +723,18 @@ namespace AL::Network
 			// @return AL::False on connection closed
 			virtual Bool Receive(Void* lpBuffer, size_t size, size_t& numberOfBytesReceived)
 			{
+				if (!Receive(lpBuffer, size, numberOfBytesReceived, TimeSpan::Infinite))
+				{
+
+					return False;
+				}
+
+				return True;
+			}
+			// @throw AL::Exception
+			// @return AL::False on connection closed
+			virtual Bool Receive(Void* lpBuffer, size_t size, size_t& numberOfBytesReceived, TimeSpan timeout)
+			{
 				AL_ASSERT(
 					IsOpen(),
 					"TcpSocket not open"
@@ -715,44 +760,49 @@ namespace AL::Network
 
 				numberOfBytesReceived = 0;
 
-				Poll();
+				auto _timeout = timer.GetElapsed() + timeout;
 
-				Sync([this, lpBuffer, size, &numberOfBytesReceived]()
+				do
 				{
-					if (rxContexts.GetSize() > 0)
+					Poll();
+
+					Sync([this, lpBuffer, size, &numberOfBytesReceived]()
 					{
-						size_t rxBufferSize;
-
-						auto& rxContext = *rxContexts.begin();
-
-						if ((rxBufferSize = rxContext.BufferSize) > size)
+						if (rxContexts.GetSize() > 0)
 						{
+							size_t rxBufferSize;
 
-							rxBufferSize = size;
+							auto& rxContext = *rxContexts.begin();
+
+							if ((rxBufferSize = rxContext.BufferSize) > size)
+							{
+
+								rxBufferSize = size;
+							}
+
+							memcpy(
+								lpBuffer,
+								&rxContext.Buffer[rxContext.BufferOffset],
+								rxBufferSize
+							);
+
+							numberOfBytesReceived   = rxBufferSize;
+							rxContext.BufferOffset += rxBufferSize;
+
+							if ((rxContext.BufferSize -= rxBufferSize) == 0)
+							{
+
+								rxContexts.PopFront();
+							}
 						}
+					});
 
-						memcpy(
-							lpBuffer,
-							&rxContext.Buffer[rxContext.BufferOffset],
-							rxBufferSize
-						);
+					if ((numberOfBytesReceived == 0) && CloseIfConnectionClosed())
+					{
 
-						numberOfBytesReceived   = rxBufferSize;
-						rxContext.BufferOffset += rxBufferSize;
-
-						if ((rxContext.BufferSize -= rxBufferSize) == 0)
-						{
-
-							rxContexts.PopFront();
-						}
+						return False;
 					}
-				});
-
-				if ((numberOfBytesReceived == 0) && CloseIfConnectionClosed())
-				{
-
-					return False;
-				}
+				} while ((numberOfBytesReceived == 0) && (timer.GetElapsed() < _timeout));
 #else
 				throw NotImplementedException();
 #endif
@@ -872,6 +922,25 @@ namespace AL::Network
 					{
 						// OS::Console::WriteLine(
 						// 	"[LWIP::TcpSocket::OnPoll] [lpParam: 0x%p, pcb: 0x%p] Connect timed out",
+						// 	lpParam,
+						// 	pcb
+						// );
+
+						lpSocket->flags.Add(
+							IOFlags::Timeout
+						);
+
+						lpSocket->Abort();
+
+						return ::ERR_ABRT;
+					}
+				}
+				else if (lpSocket->flags.IsSet(IOFlags::SendInProgress))
+				{
+					if (lpSocket->timer.GetElapsed() >= lpSocket->timeout)
+					{
+						// OS::Console::WriteLine(
+						// 	"[LWIP::TcpSocket::OnPoll] [lpParam: 0x%p, pcb: 0x%p] Send timed out",
 						// 	lpParam,
 						// 	pcb
 						// );

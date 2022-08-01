@@ -754,8 +754,6 @@ namespace AL::Network
 			);
 
 #if defined(AL_PLATFORM_PICO_W)
-			// TODO: emulate blocking state
-
 			try
 			{
 				if (!socket.Send(lpBuffer, size, numberOfBytesSent))
@@ -869,14 +867,20 @@ namespace AL::Network
 			);
 
 #if defined(AL_PLATFORM_PICO_W)
-			// TODO: emulate blocking state
-
 			try
 			{
-				if (!socket.Receive(lpBuffer, size, numberOfBytesReceived))
+				if (IsBlocking())
+				{
+					if (!socket.Receive(lpBuffer, size, numberOfBytesReceived))
+					{
+
+						return False;
+					}
+				}
+				else if (!socket.Receive(lpBuffer, size, numberOfBytesReceived, 0))
 				{
 
-					return False;
+					numberOfBytesReceived = 0;
 				}
 			}
 			catch (Exception& exception)
