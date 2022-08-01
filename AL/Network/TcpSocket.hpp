@@ -612,6 +612,8 @@ namespace AL::Network
 			}
 	#endif
 
+			isConnected = True;
+
 			if (!isBlocking)
 			{
 				try
@@ -668,8 +670,6 @@ namespace AL::Network
 #else
 			throw NotImplementedException();
 #endif
-
-			isConnected = True;
 
 			return True;
 		}
