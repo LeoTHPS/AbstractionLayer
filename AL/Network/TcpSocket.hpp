@@ -457,9 +457,9 @@ namespace AL::Network
 			{
 				ISocket::GetLocalEndPoint(
 					_socket.localEP,
-					GetHandle(),
-					GetType(),
-					GetAddressFamily()
+					_socket.GetHandle(),
+					_socket.GetType(),
+					_socket.GetAddressFamily()
 				);
 			}
 			catch (Exception& exception)
@@ -476,9 +476,9 @@ namespace AL::Network
 			{
 				ISocket::GetRemoteEndPoint(
 					_socket.remoteEP,
-					GetHandle(),
-					GetType(),
-					GetAddressFamily()
+					_socket.GetHandle(),
+					_socket.GetType(),
+					_socket.GetAddressFamily()
 				);
 			}
 			catch (Exception& exception)
