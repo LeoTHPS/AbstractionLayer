@@ -288,33 +288,12 @@ namespace AL::Serialization
 				);
 			}
 
+			sentence.GGA.Time = FromString_Time(
+				wstringChunks[1]
+			);
+
 			if ((sentence.GGA.FixQuality = AL::FromString<NMEAFixQualities>(wstringChunks[6])) != NMEAFixQualities::Invalid)
 			{
-				{
-					Regex::MatchCollection matches;
-
-					if (!Regex::Match(matches, "^(\\d\\d)(\\d\\d)(\\d\\d).(\\d\\d)$", wstringChunks[1]))
-					{
-
-						throw Exception(
-							"Invalid format"
-						);
-					}
-
-					sentence.GGA.Time.Hours = AL::FromString<uint32>(
-						matches[1]
-					);
-					sentence.GGA.Time.Minutes = AL::FromString<uint32>(
-						matches[2]
-					);
-					sentence.GGA.Time.Seconds = AL::FromString<uint32>(
-						matches[3]
-					);
-					sentence.GGA.Time.Deciseconds = AL::FromString<uint32>(
-						matches[4]
-					);
-				}
-
 				sentence.GGA.NumberOfSatellitesInUse = AL::FromString<uint32>(
 					wstringChunks[7]
 				);
@@ -407,33 +386,12 @@ namespace AL::Serialization
 				);
 			}
 
+			sentence.GLL.Time = FromString_Time(
+				wstringChunks[5]
+			);
+
 			if ((sentence.GLL.Valid = wstringChunks[6].Compare("A")) != False)
 			{
-				{
-					Regex::MatchCollection matches;
-
-					if (!Regex::Match(matches, "^(\\d\\d)(\\d\\d)(\\d\\d).(\\d\\d)$", wstringChunks[5]))
-					{
-
-						throw Exception(
-							"Invalid format"
-						);
-					}
-
-					sentence.GLL.Time.Hours = AL::FromString<uint32>(
-						matches[1]
-					);
-					sentence.GLL.Time.Minutes = AL::FromString<uint32>(
-						matches[2]
-					);
-					sentence.GLL.Time.Seconds = AL::FromString<uint32>(
-						matches[3]
-					);
-					sentence.GLL.Time.Deciseconds = AL::FromString<uint32>(
-						matches[4]
-					);
-				}
-
 				sentence.GLL.Latitude = FromString_Latitude(
 					wstringChunks[1]
 				);
@@ -565,33 +523,12 @@ namespace AL::Serialization
 				);
 			}
 
+			sentence.RMC.Time = FromString_Time(
+				wstringChunks[1]
+			);
+
 			if ((sentence.RMC.Valid = wstringChunks[2].Compare("A")) != False)
 			{
-				{
-					Regex::MatchCollection matches;
-
-					if (!Regex::Match(matches, "^(\\d\\d)(\\d\\d)(\\d\\d).(\\d\\d)$", wstringChunks[1]))
-					{
-
-						throw Exception(
-							"Invalid format"
-						);
-					}
-
-					sentence.RMC.Time.Hours = AL::FromString<uint32>(
-						matches[1]
-					);
-					sentence.RMC.Time.Minutes = AL::FromString<uint32>(
-						matches[2]
-					);
-					sentence.RMC.Time.Seconds = AL::FromString<uint32>(
-						matches[3]
-					);
-					sentence.RMC.Time.Deciseconds = AL::FromString<uint32>(
-						matches[4]
-					);
-				}
-
 				{
 					Regex::MatchCollection matches;
 
@@ -697,6 +634,23 @@ namespace AL::Serialization
 			sentence.VTG.GroundSpeedInKPH = AL::FromString<Double>(
 				wstringChunks[7]
 			);
+		}
+
+		// @throw AL::Exception
+		static NMEATime FromString_Time(const String& string)
+		{
+			NMEATime               time;
+			Regex::MatchCollection matches;
+
+			if (Regex::Match(matches, "^(\\d\\d)(\\d\\d)(\\d\\d).(\\d\\d)$", string))
+			{
+				time.Hours       = AL::FromString<uint32>(matches[1]);
+				time.Minutes     = AL::FromString<uint32>(matches[2]);
+				time.Seconds     = AL::FromString<uint32>(matches[3]);
+				time.Deciseconds = AL::FromString<uint32>(matches[4]);
+			}
+
+			return time;
 		}
 
 		// @throw AL::Exception
