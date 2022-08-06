@@ -5,19 +5,19 @@
 
 #define AL_DEFINE_TO_STRING(__type__, ...) \
 	template<> \
-	inline AL::String AL::ToString __VA_ARGS__
+	inline AL::String AL::ToString<__type__>__VA_ARGS__
 
 #define AL_DEFINE_FROM_STRING(__type__, ...) \
 	template<> \
-	inline __type__ AL::FromString __VA_ARGS__
+	inline __type__ AL::FromString<__type__>__VA_ARGS__
 
 #define AL_DEFINE_TO_WSTRING(__type__, ...) \
 	template<> \
-	inline AL::WString AL::ToWString __VA_ARGS__
+	inline AL::WString AL::ToWString<__type__>__VA_ARGS__
 
 #define AL_DEFINE_FROM_WSTRING(__type__, ...) \
 	template<> \
-	inline __type__ AL::FromWString __VA_ARGS__
+	inline __type__ AL::FromWString<__type__>__VA_ARGS__
 
 namespace AL
 {
