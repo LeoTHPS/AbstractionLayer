@@ -21,24 +21,29 @@ namespace AL::Serialization
 
 	public:
 		// @throw AL::Exception
-		static Void FromString(CSV& csv, const String& string, size_t lineSkip = 0)
+		static Void FromString(CSV& csv, const String& string, size_t lineSkip = 0, TextLineEndings lineEnding = TextLineEndings::Auto)
 		{
 			auto wstring = string.ToWString();
 
 			FromString(
 				csv,
 				wstring,
-				lineSkip
+				lineSkip,
+				lineEnding
 			);
 		}
 		// @throw AL::Exception
-		static Void FromString(CSV& csv, const WString& wstring, size_t lineSkip = 0)
+		static Void FromString(CSV& csv, const WString& wstring, size_t lineSkip = 0, TextLineEndings lineEnding = TextLineEndings::Auto)
 		{
 			Collections::LinkedList<WString> lines;
 
 			{
 				WString line;
 				Text    text(wstring);
+
+				text.SetLineEnding(
+					lineEnding
+				);
 
 				for (size_t i = 0; i < lineSkip; ++i)
 				{
