@@ -695,7 +695,35 @@ namespace AL::Network
 						"Error shutting down LWIP::TcpSocket"
 					);
 				}
-#elif defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
+#elif defined(AL_PLATFORM_LINUX)
+				int shutdownType;
+
+				switch (type)
+				{
+					case SocketShutdownTypes::Read:
+						shutdownType = SHUT_RD;
+						break;
+
+					case SocketShutdownTypes::Write:
+						shutdownType = SHUT_WR;
+						break;
+
+					case SocketShutdownTypes::ReadWrite:
+						shutdownType = SHUT_RDWR;
+						break;
+
+					default:
+						throw NotImplementedException();
+				}
+
+				if (::shutdown(socket, shutdownType) == -1)
+				{
+
+					throw SocketException(
+						"shutdown"
+					);
+				}
+#elif defined(AL_PLATFORM_WINDOWS)
 				int shutdownType;
 
 				switch (type)
@@ -716,15 +744,6 @@ namespace AL::Network
 						throw NotImplementedException();
 				}
 
-	#if defined(AL_PLATFORM_LINUX)
-				if (::shutdown(socket, shutdownType) == -1)
-				{
-
-					throw SocketException(
-						"shutdown"
-					);
-				}
-	#elif defined(AL_PLATFORM_WINDOWS)
 				if (::shutdown(socket, shutdownType) == SOCKET_ERROR)
 				{
 
@@ -732,7 +751,6 @@ namespace AL::Network
 						"shutdown"
 					);
 				}
-	#endif
 #else
 				throw NotImplementedException();
 #endif
