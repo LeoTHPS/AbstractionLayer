@@ -350,7 +350,7 @@ namespace AL::Serialization
 							)
 						);
 
-						stringReadOffset = (i + (sizeof(Get_Text_Line_Ending<WString, TextLineEndings::Auto>::Value) - 1));
+						stringReadOffset = (i + WString::GetLength_Const(Get_Text_Line_Ending<WString, TextLineEndings::Auto>::Value, 0));
 					}
 				}
 				break;
@@ -381,7 +381,7 @@ namespace AL::Serialization
 							)
 						);
 
-						stringReadOffset = (i + (sizeof(Get_Text_Line_Ending<WString, TextLineEndings::LF>::Value) - 1));
+						stringReadOffset = (i + WString::GetLength_Const(Get_Text_Line_Ending<WString, TextLineEndings::LF>::Value, 0));
 					}
 				}
 				break;
@@ -412,7 +412,7 @@ namespace AL::Serialization
 							)
 						);
 
-						stringReadOffset = (i + (sizeof(Get_Text_Line_Ending<WString, TextLineEndings::CRLF>::Value) - 1));
+						stringReadOffset = (i + WString::GetLength_Const(Get_Text_Line_Ending<WString, TextLineEndings::CRLF>::Value, 0));
 					}
 				}
 				break;
