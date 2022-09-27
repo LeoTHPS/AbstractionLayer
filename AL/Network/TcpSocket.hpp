@@ -313,6 +313,7 @@ namespace AL::Network
 			throw NotImplementedException();
 #endif
 
+			localEP = ep;
 			isBound = True;
 		}
 
