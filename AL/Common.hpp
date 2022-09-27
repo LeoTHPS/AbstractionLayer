@@ -17,8 +17,12 @@
 
 #if defined(AL_PLATFORM_PICO)
 	// TODO: detect which Pico board is being targetted
+	#define AL_PLATFORM_RP2040
 #elif defined(AL_PLATFORM_PICO_W)
 	#define AL_PLATFORM_PICO
+	#define AL_PLATFORM_RP2040
+#elif defined(AL_PLATFORM_RP2040)
+
 #elif defined(__linux__)
 	#define AL_PLATFORM_LINUX
 #elif defined(_WIN32) || defined(_WIN64)
@@ -271,7 +275,7 @@
 
 namespace AL
 {
-#if defined(AL_PLATFORM_PICO)
+#if defined(AL_PLATFORM_RP2040)
 	typedef int(Main)();
 #elif defined(AL_PLATFORM_LINUX)
 	typedef int(Main)(int argc, char* argv[]);
