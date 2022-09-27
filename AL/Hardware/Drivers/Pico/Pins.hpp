@@ -1,9 +1,13 @@
 #pragma once
 #include "AL/Common.hpp"
 
+#if !defined(AL_PLATFORM_PICO)
+	#warning Platform not supported
+#endif
+
 #include <boards/pico.h>
 
-namespace AL::Hardware::Pico
+namespace AL::Hardware::Drivers::Pico
 {
 	enum PINS : uint8
 	{

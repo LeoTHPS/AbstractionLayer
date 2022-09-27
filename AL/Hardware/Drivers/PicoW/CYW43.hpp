@@ -33,7 +33,7 @@
 	#endif
 #endif
 
-namespace AL::Hardware::PicoW
+namespace AL::Hardware::Drivers::PicoW
 {
 	enum class CYW43AuthTypes : uint32
 	{

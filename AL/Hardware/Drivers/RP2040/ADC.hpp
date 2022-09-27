@@ -1,7 +1,7 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#if !defined(AL_PLATFORM_PICO)
+#if !defined(AL_PLATFORM_RP2040)
 	#warning Platform not supported
 #endif
 
@@ -10,7 +10,7 @@
 #include <hardware/adc.h>
 #include <hardware/gpio.h>
 
-namespace AL::Hardware::RP2040
+namespace AL::Hardware::Drivers::RP2040
 {
 	enum class ADCChannels : uint8
 	{

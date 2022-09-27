@@ -11,7 +11,7 @@
 	#include <hardware/gpio.h>
 #endif
 
-namespace AL::Hardware::Pico
+namespace AL::Hardware::Drivers::Pico
 {
 	class LED
 	{

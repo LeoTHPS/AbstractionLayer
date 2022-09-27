@@ -1,7 +1,11 @@
 #pragma once
 #include "AL/Common.hpp"
 
-namespace AL::Hardware::RP2040
+#if !defined(AL_PLATFORM_RP2040)
+	#warning Platform not supported
+#endif
+
+namespace AL::Hardware::Drivers::RP2040
 {
 	enum RP2040_ADDRESS_MAP : uint32
 	{
