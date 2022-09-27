@@ -221,10 +221,10 @@ namespace AL::Network::HTTP
 								continue;
 							}
 
-							auto numberOfBytesRemaining = buffer.GetCapacity() - bufferSize;
-
-							if (numberOfBytesRemaining < static_cast<size_t>(numberOfBytesReceived))
+							if (auto numberOfBytesRemaining = (buffer.GetCapacity() - bufferSize);
+								numberOfBytesRemaining < static_cast<size_t>(numberOfBytesReceived))
 							{
+
 								buffer.SetSize(
 									numberOfBytesReceived - numberOfBytesRemaining
 								);
