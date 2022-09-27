@@ -5,12 +5,6 @@
 
 namespace AL
 {
-	// 0 = Debug
-	// 1 = Compiler
-	// 2 = Architecture
-	// 3 = Operating System
-	// ???? 3333 2222 1110
-	// 0000 0000 0000 0000
 	enum class Platforms : uint16
 	{
 		// Debug
@@ -34,9 +28,13 @@ namespace AL
 		// Operating System
 
 		Pico       = 0x0100,
-		Linux      = 0x0200,
-		MinGW      = 0x0400,
-		Windows    = 0x0800,
+		PicoW      = 0x0200,
+		RP2040     = 0x0400,
+		Linux      = 0x0800,
+		MinGW      = 0x1000,
+		Windows    = 0x2000,
+
+		// Machine Constant
 
 		Machine    =
 
@@ -62,39 +60,22 @@ namespace AL
 		x86_64 |
 #endif
 
-#if defined(AL_PLATFORM_PICO)
-		Pico
+#if defined(AL_PLATFORM_RP2040)
+		RP2040
+
+		#if defined(AL_PLATFORM_PICO)
+			| Pico
+		#elif defined(AL_PLATFORM_PICO_W)
+			| PicoW
+		#endif
 #elif defined(AL_PLATFORM_LINUX)
 		Linux
 #elif defined(AL_PLATFORM_WINDOWS)
 		Windows
+
 	#if defined(AL_PLATFORM_WINDOWS_MINGW32) || defined(AL_PLATFORM_WINDOWS_MINGW64)
 		| MinGW
 	#endif
 #endif
 	};
-
-	enum class PlatformShifts : uint8
-	{
-		Debug        = 0,
-		Compiler     = 1,
-		Architecture = 4,
-		OS           = 8
-	};
-
-	enum class PlatformMasks : uint16
-	{
-		Debug        = 0b0000000000000001,
-		Compiler     = 0b0000000000001110,
-		Architecture = 0b0000000011110000,
-		OS           = 0b0000111100000000
-	};
-
-	AL_DEFINE_ENUM_FLAG_OPERATORS(Platforms);
-	AL_DEFINE_ENUM_FLAG_OPERATORS(PlatformMasks);
-
-	AL_DEFINE_ENUM_FLAG_OPERATORS_2(Platforms, PlatformMasks);
-
-	AL_DEFINE_ENUM_FLAG_OPERATORS_LSHIFT_2(Platforms, PlatformShifts);
-	AL_DEFINE_ENUM_FLAG_OPERATORS_RSHIFT_2(Platforms, PlatformShifts);
 }

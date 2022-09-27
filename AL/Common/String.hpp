@@ -747,9 +747,11 @@ AL_DEFINE_TO_STRING(
 			string_AppendIfSet("x86_64", Platforms::x86_64);
 		}
 
-		// Pico/Linux/MinGW/Windows
+		// Pico/PicoW/RP2040/Linux/MinGW/Windows
 		{
 			string_AppendIfSet("Pico",    Platforms::Pico);
+			string_AppendIfSet("PicoW",   Platforms::PicoW);
+			string_AppendIfSet("RP2040",  Platforms::RP2040);
 			string_AppendIfSet("Linux",   Platforms::Linux);
 			string_AppendIfSet("MinGW",   Platforms::MinGW);
 			string_AppendIfSet("Windows", Platforms::Windows);
@@ -803,9 +805,11 @@ AL_DEFINE_TO_WSTRING(
 			wstring_AppendIfSet(L"x86_64", Platforms::x86_64);
 		}
 
-		// Pico/Linux/MinGW/Windows
+		// Pico/PicoW/RP2040/Linux/MinGW/Windows
 		{
 			wstring_AppendIfSet(L"Pico",    Platforms::Pico);
+			wstring_AppendIfSet(L"PicoW",   Platforms::PicoW);
+			wstring_AppendIfSet(L"RP2040",  Platforms::RP2040);
 			wstring_AppendIfSet(L"Linux",   Platforms::Linux);
 			wstring_AppendIfSet(L"MinGW",   Platforms::MinGW);
 			wstring_AppendIfSet(L"Windows", Platforms::Windows);
