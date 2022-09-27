@@ -189,82 +189,87 @@ void main_display_process_information()
 // @throw AL::Exception
 void main_execute_tests(AL::uint32& testCount, AL::uint32& testFailCount)
 {
-	#define main_execute_test(__function__, ...) \
-		++testCount; \
-		\
-		AL::OS::Console::WriteLine( \
-			"Executing " #__function__ \
-		); \
-		\
-		try \
-		{ \
-			AL::OS::Timer timer; \
-			\
-			__function__( \
-				__VA_ARGS__ \
-			); \
-			\
-			auto elapsed = timer.GetElapsed(); \
-			\
-			AL::OS::Console::Write( \
-				"Completed in " \
-			); \
-			\
-			if (elapsed.ToMinutes() > 0) \
-			{ \
-				AL::OS::Console::WriteLine( \
-					"%llu minute(s)", \
-					elapsed.ToMinutes() \
-				); \
-			} \
-			else if (elapsed.ToSeconds() > 0) \
-			{ \
-				AL::OS::Console::WriteLine( \
-					"%llu second(s)", \
-					elapsed.ToSeconds() \
-				); \
-			} \
-			else if (elapsed.ToMilliseconds() > 0) \
-			{ \
-				AL::OS::Console::WriteLine( \
-					"%llums", \
-					elapsed.ToMilliseconds() \
-				); \
-			} \
-			else if (elapsed.ToMicroseconds() > 0) \
-			{ \
-				AL::OS::Console::WriteLine( \
-					"%lluus", \
-					elapsed.ToMicroseconds() \
-				); \
-			} \
-			else \
-			{ \
-				AL::OS::Console::WriteLine( \
-					"%lluns", \
-					elapsed.ToNanoseconds() \
-				); \
-			} \
-		} \
-		catch (const AL::Exception& exception) \
-		{ \
-			++testFailCount; \
-			\
-			AL::OS::Console::WriteLine( \
-				exception.GetMessage() \
-			); \
-			\
-			if (auto lpInnerException = exception.GetInnerException()) \
-			{ \
-				do \
-				{ \
-					AL::OS::Console::WriteLine( \
-						lpInnerException->GetMessage() \
-					); \
-				} while ((lpInnerException = lpInnerException->GetInnerException()) != nullptr); \
-			} \
-		} \
-		AL::OS::Console::WriteLine()
+	#define main_execute_test(__function__) \
+		_main_execute_test(#__function__, __function__)
+
+	auto _main_execute_test = [&testCount, &testFailCount](const char* _name, void(*_lpEntryPoint)())
+	{
+		++testCount;
+
+		AL::OS::Console::WriteLine(
+			"Executing %s",
+			_name
+		);
+
+		try
+		{
+			AL::OS::Timer timer;
+
+			_lpEntryPoint();
+
+			auto elapsed = timer.GetElapsed();
+
+			AL::OS::Console::Write(
+				"Completed in "
+			);
+
+			if (elapsed.ToMinutes() > 0)
+			{
+				AL::OS::Console::WriteLine(
+					"%llu minute(s)",
+					elapsed.ToMinutes()
+				);
+			}
+			else if (elapsed.ToSeconds() > 0)
+			{
+				AL::OS::Console::WriteLine(
+					"%llu second(s)",
+					elapsed.ToSeconds()
+				);
+			}
+			else if (elapsed.ToMilliseconds() > 0)
+			{
+				AL::OS::Console::WriteLine(
+					"%llums",
+					elapsed.ToMilliseconds()
+				);
+			}
+			else if (elapsed.ToMicroseconds() > 0)
+			{
+				AL::OS::Console::WriteLine(
+					"%lluus",
+					elapsed.ToMicroseconds()
+				);
+			}
+			else
+			{
+				AL::OS::Console::WriteLine(
+					"%lluns",
+					elapsed.ToNanoseconds()
+				);
+			}
+		}
+		catch (const AL::Exception& exception)
+		{
+			++testFailCount;
+
+			AL::OS::Console::WriteLine(
+				exception.GetMessage()
+			);
+
+			if (auto lpInnerException = exception.GetInnerException())
+			{
+				do
+				{
+					AL::OS::Console::WriteLine(
+						lpInnerException->GetMessage()
+					);
+				} while ((lpInnerException = lpInnerException->GetInnerException()) != nullptr);
+			}
+		}
+
+		AL::OS::Console::WriteLine();
+	};
 
 	// main_execute_test(AL_Collections_Array);
 	// main_execute_test(AL_Collections_ArrayList);
