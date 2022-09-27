@@ -24,6 +24,7 @@ target_link_libraries(
 	pico_multicore
 	pico_lwip
 	pico_cyw43_arch_lwip_poll
+#[[	pico_cyw43_arch_lwip_poll ]]
 #[[	pico_cyw43_arch_lwip_threadsafe_background ]]
 	hardware_adc
 	hardware_i2c

@@ -6,165 +6,138 @@
 #include <AL/OS/Thread.hpp>
 #include <AL/OS/Process.hpp>
 
-#include "Collections/Array.hpp"
-#include "Collections/ArrayList.hpp"
-#include "Collections/Dictionary.hpp"
-#include "Collections/LinkedList.hpp"
-#include "Collections/MPSCQueue.hpp"
-#include "Collections/Queue.hpp"
-#include "Collections/String.hpp"
-#include "Collections/StringBuilder.hpp"
+// #include "Collections/Array.hpp"
+// #include "Collections/ArrayList.hpp"
+// #include "Collections/Dictionary.hpp"
+// #include "Collections/LinkedList.hpp"
+// #include "Collections/MPSCQueue.hpp"
+// #include "Collections/Queue.hpp"
+// #include "Collections/CircularQueue.hpp"
+// #include "Collections/String.hpp"
+// #include "Collections/StringBuilder.hpp"
 
-#include "Common/Function.hpp"
+// #include "Common/Function.hpp"
 
-#include "FileSystem/File.hpp"
+// #include "FileSystem/File.hpp"
 
-#include "Hardware/Drivers/AT24C256.hpp"
-#include "Hardware/Drivers/RTL_SDR.hpp"
+// #include "Game/Engine/Window.hpp"
 
-#include "Lua543/Lua.hpp"
+// #include "Game/FileSystem/DataFile.hpp"
+// #include "Game/FileSystem/ConfigFile.hpp"
 
-#include "Network/HTTP/Request.hpp"
+// #include "Game/Network/ClientServer.hpp"
 
-#include "OS/Process.hpp"
-#include "OS/Thread.hpp"
-#include "OS/ThreadPool.hpp"
-#include "OS/Window.hpp"
+// #include "Hardware/Drivers/ADS1115.hpp"
+// #include "Hardware/Drivers/AT24C256.hpp"
+// #include "Hardware/Drivers/MLX90640.hpp"
 
-#include "Serialization/CSV.hpp"
-#include "Serialization/HTML.hpp"
-#include "Serialization/NMEA.hpp"
+// #include "Lua543/Lua.hpp"
 
-#define AL_TEST_EXECUTE(__function__, ...) \
-	++testCount; \
-	\
-	AL::OS::Console::WriteLine( \
-		"Executing " #__function__ \
-	); \
-	\
-	try \
-	{ \
-		AL::OS::Timer timer; \
-		\
-		__function__( \
-			__VA_ARGS__ \
-		); \
-		\
-		auto elapsed = timer.GetElapsed(); \
-		\
-		AL::OS::Console::WriteLine( \
-			"Completed in %llu%s", \
-			(elapsed.ToMicroseconds() < 1000) ? elapsed.ToMicroseconds() : elapsed.ToMilliseconds(), \
-			(elapsed.ToMicroseconds() < 1000) ? "us" : "ms" \
-		); \
-		\
-		AL::OS::Console::WriteLine(); \
-	} \
-	catch (const AL::Exception& exception) \
-	{ \
-		++testFailCount; \
-		\
-		AL::OS::Console::WriteLine( \
-			exception.GetMessage() \
-		); \
-		\
-		if (auto lpInnerException = exception.GetInnerException()) \
-		{ \
-			do \
-			{ \
-				AL::OS::Console::WriteLine( \
-					lpInnerException->GetMessage() \
-				); \
-			} while ((lpInnerException = lpInnerException->GetInnerException()) != nullptr); \
-		} \
-		\
-		AL::OS::Console::WriteLine(); \
-	}
+// #include "Network/Adapter.hpp"
+// #include "Network/UdpSocket.hpp"
+
+// #include "Network/HTTP/Request.hpp"
+
+// #include "OS/Process.hpp"
+// #include "OS/Thread.hpp"
+// #include "OS/ThreadPool.hpp"
+// #include "OS/Window.hpp"
+
+// #include "Serialization/CSV.hpp"
+// #include "Serialization/HTML.hpp"
+// #include "Serialization/JSON.hpp"
+// #include "Serialization/NMEA.hpp"
+// #include "Serialization/XML.hpp"
+
+// #include "SQLite3/Database.hpp"
 
 void main_display_build_information()
 {
 	AL::OS::Console::WriteLine(
-		"Compiler: %s",
-#if defined(AL_COMPILER_GNU)
-		"GNU"
-#elif defined(AL_COMPILER_MSVC)
-		"MSVC"
-#elif defined(AL_COMPILER_CLANG)
-		"CLANG"
-#else
-		"Undefined"
-#endif
+		"Build Information"
 	);
 
 	AL::OS::Console::WriteLine(
-		"Architecture: %s",
-#if defined(AL_ARCH_X86)
-		"x86"
-#elif defined(AL_ARCH_X86_64)
-		"x86_64"
-#elif defined(AL_ARCH_ARM)
-		"ARM"
-#elif defined(AL_ARCH_ARM64)
-		"ARM64"
-#else
-		"Undefined"
-#endif
+		"\tPlatform: %s",
+		AL::ToString(AL::Platforms::Machine).GetCString()
 	);
 }
 
 void main_display_system_information()
 {
 	AL::OS::Console::WriteLine(
-		"OS: %s",
-#if defined(AL_PLATFORM_LINUX)
-		"Linux"
-#elif defined(AL_PLATFORM_WINDOWS)
-		"Windows"
-	#if defined(AL_PLATFORM_WINDOWS_MINGW32) || defined(AL_PLATFORM_WINDOWS_MINGW64)
-		" (MinGW)"
-	#endif
-#else
-		"Undefined"
-#endif
+		"System Information"
 	);
 
 	AL::OS::Console::WriteLine(
-		"Timezone: %i",
+		"\tTimezone: %i",
 		AL::OS::System::GetTimezone()
 	);
 
 	AL::OS::Console::WriteLine(
-		"Timestamp: %llu",
+		"\tTimestamp: %llu",
 		AL::OS::System::GetTimestamp().ToSeconds()
 	);
 
 	AL::OS::Console::WriteLine(
-		"CPU Count: %s",
+		"\tCPU Count: %s",
 		AL::ToString(AL::OS::System::GetProcessorCount()).GetCString()
 	);
 
 	AL::OS::Console::WriteLine(
-		"Page Size: %s",
+		"\tCPU Cache Count: %s",
+		AL::ToString(AL::OS::System::GetProcessorCacheCount()).GetCString()
+	);
+
+#if defined(AL_PLATFORM_PICO)
+
+#elif defined(AL_PLATFORM_LINUX)
+	AL::OS::Console::WriteLine(
+		"\tPage Size: %s",
 		AL::ToString(AL::OS::System::GetPageSize()).GetCString()
 	);
 
-#if defined(AL_PLATFORM_LINUX)
+	AL::OS::Console::WriteLine(
+		"\tCurrent User: %s",
+		AL::OS::System::GetCurrentUser().GetCString()
+	);
 
+	AL::OS::Console::WriteLine(
+		"\tCurrent User ID: %lu",
+		AL::OS::System::GetCurrentUserID()
+	);
 #elif defined(AL_PLATFORM_WINDOWS)
+	AL::OS::Console::WriteLine(
+		"\tPage Size: %s",
+		AL::ToString(AL::OS::System::GetPageSize()).GetCString()
+	);
 
+	AL::OS::Console::WriteLine(
+		"\tCurrent User: %s",
+		AL::OS::System::GetCurrentUser().GetCString()
+	);
 #endif
 }
 
 void main_display_thread_information()
 {
 	AL::OS::Console::WriteLine(
-		"Thread ID: %lu",
+		"Thread Information"
+	);
+
+#if defined(AL_PLATFORM_PICO)
+
+#elif defined(AL_PLATFORM_LINUX)
+	AL::OS::Console::WriteLine(
+		"\tThread ID: %lu",
+		AL::OS::GetCurrentThreadId()
+	);
+#elif defined(AL_PLATFORM_WINDOWS)
+	AL::OS::Console::WriteLine(
+		"\tThread ID: %lu",
 		AL::OS::GetCurrentThreadId()
 	);
 
-#if defined(AL_PLATFORM_LINUX)
-
-#elif defined(AL_PLATFORM_WINDOWS)
 	auto lpTEB = AL::OS::GetThreadEnvironmentBlock();
 
 
@@ -174,32 +147,40 @@ void main_display_thread_information()
 void main_display_process_information()
 {
 	AL::OS::Console::WriteLine(
-		"Process ID: %lu",
-		AL::OS::GetCurrentProcessId()
+		"Process Information"
 	);
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
 
+#elif defined(AL_PLATFORM_LINUX)
+	AL::OS::Console::WriteLine(
+		"\tProcess ID: %lu",
+		AL::OS::GetCurrentProcessId()
+	);
 #elif defined(AL_PLATFORM_WINDOWS)
+	AL::OS::Console::WriteLine(
+		"\tProcess ID: %lu",
+		AL::OS::GetCurrentProcessId()
+	);
 	auto lpPEB = AL::OS::GetProcessEnvironmentBlock();
 
 	AL::OS::Console::WriteLine(
-		"Session ID: %lu",
+		"\tSession ID: %lu",
 		lpPEB->SessionId
 	);
 
 	AL::OS::Console::WriteLine(
-		"Image Path: %S",
+		"\tImage Path: %S",
 		lpPEB->ProcessParameters->ImagePathName.Buffer
 	);
 
 	AL::OS::Console::WriteLine(
-		"Parameters: %S",
+		"\tParameters: %S",
 		lpPEB->ProcessParameters->CommandLine.Buffer
 	);
 
 	AL::OS::Console::WriteLine(
-		"Debugger Present: %s",
+		"\tDebugger Present: %s",
 		AL::ToString(AL::OS::IsDebuggerPresent()).GetCString()
 	);
 #endif
@@ -208,34 +189,127 @@ void main_display_process_information()
 // @throw AL::Exception
 void main_execute_tests(AL::uint32& testCount, AL::uint32& testFailCount)
 {
-	AL_TEST_EXECUTE(AL_Collections_Array);
-	AL_TEST_EXECUTE(AL_Collections_ArrayList);
-	AL_TEST_EXECUTE(AL_Collections_Dictionary);
-	AL_TEST_EXECUTE(AL_Collections_LinkedList);
-	AL_TEST_EXECUTE(AL_Collections_MPSCQueue);
-	AL_TEST_EXECUTE(AL_Collections_Queue);
-	AL_TEST_EXECUTE(AL_Collections_String);
-	AL_TEST_EXECUTE(AL_Collections_StringBuilder);
+	#define main_execute_test(__function__, ...) \
+		++testCount; \
+		\
+		AL::OS::Console::WriteLine( \
+			"Executing " #__function__ \
+		); \
+		\
+		try \
+		{ \
+			AL::OS::Timer timer; \
+			\
+			__function__( \
+				__VA_ARGS__ \
+			); \
+			\
+			auto elapsed = timer.GetElapsed(); \
+			\
+			AL::OS::Console::Write( \
+				"Completed in " \
+			); \
+			\
+			if (elapsed.ToMinutes() > 0) \
+			{ \
+				AL::OS::Console::WriteLine( \
+					"%llu minute(s)", \
+					elapsed.ToMinutes() \
+				); \
+			} \
+			else if (elapsed.ToSeconds() > 0) \
+			{ \
+				AL::OS::Console::WriteLine( \
+					"%llu second(s)", \
+					elapsed.ToSeconds() \
+				); \
+			} \
+			else if (elapsed.ToMilliseconds() > 0) \
+			{ \
+				AL::OS::Console::WriteLine( \
+					"%llums", \
+					elapsed.ToMilliseconds() \
+				); \
+			} \
+			else if (elapsed.ToMicroseconds() > 0) \
+			{ \
+				AL::OS::Console::WriteLine( \
+					"%lluus", \
+					elapsed.ToMicroseconds() \
+				); \
+			} \
+			else \
+			{ \
+				AL::OS::Console::WriteLine( \
+					"%lluns", \
+					elapsed.ToNanoseconds() \
+				); \
+			} \
+		} \
+		catch (const AL::Exception& exception) \
+		{ \
+			++testFailCount; \
+			\
+			AL::OS::Console::WriteLine( \
+				exception.GetMessage() \
+			); \
+			\
+			if (auto lpInnerException = exception.GetInnerException()) \
+			{ \
+				do \
+				{ \
+					AL::OS::Console::WriteLine( \
+						lpInnerException->GetMessage() \
+					); \
+				} while ((lpInnerException = lpInnerException->GetInnerException()) != nullptr); \
+			} \
+		} \
+		AL::OS::Console::WriteLine()
 
-	AL_TEST_EXECUTE(AL_Function);
+	// main_execute_test(AL_Collections_Array);
+	// main_execute_test(AL_Collections_ArrayList);
+	// main_execute_test(AL_Collections_Dictionary);
+	// main_execute_test(AL_Collections_LinkedList);
+	// main_execute_test(AL_Collections_MPSCQueue);
+	// main_execute_test(AL_Collections_Queue);
+	// main_execute_test(AL_Collections_CircularQueue);
+	// main_execute_test(AL_Collections_String);
+	// main_execute_test(AL_Collections_StringBuilder);
 
-	AL_TEST_EXECUTE(AL_FileSystem_File);
+	// main_execute_test(AL_Function);
 
-	AL_TEST_EXECUTE(AL_Hardware_Drivers_AT24C256);
-	AL_TEST_EXECUTE(AL_Hardware_Drivers_RTL_SDR);
+	// main_execute_test(AL_FileSystem_File);
 
-	AL_TEST_EXECUTE(AL_Lua543);
+	// main_execute_test(AL_Game_Engine_Window);
 
-	AL_TEST_EXECUTE(AL_Network_HTTP_Request);
+	// main_execute_test(AL_Game_FileSystem_DataFile);
+	// main_execute_test(AL_Game_FileSystem_ConfigFile);
 
-	AL_TEST_EXECUTE(AL_OS_Process);
-	AL_TEST_EXECUTE(AL_OS_Thread);
-	AL_TEST_EXECUTE(AL_OS_ThreadPool);
-	AL_TEST_EXECUTE(AL_OS_Window);
+	// main_execute_test(AL_Game_Network_ClientServer);
 
-	AL_TEST_EXECUTE(AL_Serialization_CSV);
-	AL_TEST_EXECUTE(AL_Serialization_HTML);
-	AL_TEST_EXECUTE(AL_Serialization_NMEA);
+	// main_execute_test(AL_Hardware_Drivers_ADS1115);
+	// main_execute_test(AL_Hardware_Drivers_AT24C256);
+	// main_execute_test(AL_Hardware_Drivers_MLX90640);
+
+	// main_execute_test(AL_Lua543);
+
+	// main_execute_test(AL_Network_Adapter);
+	// main_execute_test(AL_Network_UdpSocket);
+
+	// main_execute_test(AL_Network_HTTP_Request);
+
+	// main_execute_test(AL_OS_Process);
+	// main_execute_test(AL_OS_Thread);
+	// main_execute_test(AL_OS_ThreadPool);
+	// main_execute_test(AL_OS_Window);
+
+	// main_execute_test(AL_Serialization_CSV);
+	// main_execute_test(AL_Serialization_HTML);
+	// main_execute_test(AL_Serialization_JSON);
+	// main_execute_test(AL_Serialization_NMEA);
+	// main_execute_test(AL_Serialization_XML);
+
+	// main_execute_test(AL_SQLite3_Database);
 }
 
 int main(int argc, char* argv[])
@@ -260,16 +334,58 @@ int main(int argc, char* argv[])
 		testFailCount
 	);
 
-	AL::OS::Console::WriteLine(
-		"%lu/%lu tests completed in %llums",
-		testCount - testFailCount,
-		testCount,
-		timer.GetElapsed().ToMilliseconds()
-	);
+	{
+		auto elapsed = timer.GetElapsed();
 
+		AL::OS::Console::Write(
+			"%lu/%lu tests completed in ",
+			testCount - testFailCount,
+			testCount
+		);
+
+		if (elapsed.ToMinutes() > 0)
+		{
+			AL::OS::Console::WriteLine(
+				"%llu minute(s)",
+				elapsed.ToMinutes()
+			);
+		}
+		else if (elapsed.ToSeconds() > 0)
+		{
+			AL::OS::Console::WriteLine(
+				"%llu second(s)",
+				elapsed.ToSeconds()
+			);
+		}
+		else if (elapsed.ToMilliseconds() > 0)
+		{
+			AL::OS::Console::WriteLine(
+				"%llums",
+				elapsed.ToMilliseconds()
+			);
+		}
+		else if (elapsed.ToMicroseconds() > 0)
+		{
+			AL::OS::Console::WriteLine(
+				"%lluus",
+				elapsed.ToMicroseconds()
+			);
+		}
+		else
+		{
+			AL::OS::Console::WriteLine(
+				"%lluns",
+				elapsed.ToNanoseconds()
+			);
+		}
+	}
+
+// Windows debugging is often done through a spawned shell so this will keep results open
+#if defined(AL_PLATFORM_WINDOWS)
 	AL::OS::Console::WriteLine();
 	AL::OS::Console::Write("Press any key to exit");
 	AL::String::Char c; AL::OS::Console::Read(c);
+#endif
 
 	return 0;
 }
