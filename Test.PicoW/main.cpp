@@ -5,9 +5,9 @@
 
 #include <AL/OS/Pico/Stdio.hpp>
 
-#include <AL/Hardware/Drivers/PicoW/CYW43.hpp>
-
 #include <AL/Network/HTTP/Request.hpp>
+
+#include <AL/Hardware/Drivers/PicoW/CYW43.hpp>
 
 #define WIFI_DEFAULT_SSID       "ssid"
 #define WIFI_DEFAULT_PASSWORD   "passwd"
