@@ -5,107 +5,16 @@
 
 #include <AL/OS/Pico/Stdio.hpp>
 
-#include <AL/Hardware/PicoW/CYW43.hpp>
-
-#include <AL/Network/LWIP.hpp>
+#include <AL/Hardware/Drivers/PicoW/CYW43.hpp>
 
 #include <AL/Network/HTTP/Request.hpp>
 
-#define WIFI_DEFAULT_SSID       "WiFi"
+#define WIFI_DEFAULT_SSID       "ssid"
 #define WIFI_DEFAULT_PASSWORD   "passwd"
-#define WIFI_DEFAULT_AUTH_TYPE  AL::Hardware::PicoW::CYW43AuthTypes::WPA2_AES
-
-#define HTTP_REQUEST_REMOTE_URL "http://192.168.0.102/"
+#define WIFI_DEFAULT_AUTH_TYPE  AL::Hardware::Drivers::PicoW::CYW43AuthTypes::WPA2_AES
 
 // @throw AL::Exception
-void test_http_request()
-{
-	AL::Network::HTTP::Request request(
-		AL::Network::HTTP::Versions::HTTP_1_1,
-		AL::Network::HTTP::RequestMethods::GET
-	);
-
-	auto uri = AL::Network::HTTP::Uri::FromString(
-		HTTP_REQUEST_REMOTE_URL
-	);
-
-	auto HTTP_Versions_ToString = [](AL::Network::HTTP::Versions _value)
-	{
-		switch (_value)
-		{
-			case AL::Network::HTTP::Versions::HTTP_1_0:
-				return "1.0";
-
-			case AL::Network::HTTP::Versions::HTTP_1_1:
-				return "1.1";
-		}
-
-		return "Unknown";
-	};
-
-	auto HTTP_Methods_ToString = [](AL::Network::HTTP::RequestMethods _value)
-	{
-		switch (_value)
-		{
-			case AL::Network::HTTP::RequestMethods::GET:
-				return AL_NETWORK_HTTP_REQUEST_METHOD_GET;
-
-			case AL::Network::HTTP::RequestMethods::HEAD:
-				return AL_NETWORK_HTTP_REQUEST_METHOD_HEAD;
-
-			case AL::Network::HTTP::RequestMethods::POST:
-				return AL_NETWORK_HTTP_REQUEST_METHOD_POST;
-
-			case AL::Network::HTTP::RequestMethods::PUT:
-				return AL_NETWORK_HTTP_REQUEST_METHOD_PUT;
-
-			case AL::Network::HTTP::RequestMethods::DELETE:
-				return AL_NETWORK_HTTP_REQUEST_METHOD_DELETE;
-
-			case AL::Network::HTTP::RequestMethods::CONNECT:
-				return AL_NETWORK_HTTP_REQUEST_METHOD_CONNECT;
-
-			case AL::Network::HTTP::RequestMethods::OPTIONS:
-				return AL_NETWORK_HTTP_REQUEST_METHOD_OPTIONS;
-
-			case AL::Network::HTTP::RequestMethods::TRACE:
-				return AL_NETWORK_HTTP_REQUEST_METHOD_TRACE;
-
-			case AL::Network::HTTP::RequestMethods::PATCH:
-				return AL_NETWORK_HTTP_REQUEST_METHOD_PATCH;
-		}
-
-		return "Unknown";
-	};
-
-	AL::OS::Console::WriteLine(
-		"Executing AL::Network::HTTP::Request [Uri: %s, Method: %s, Version: %s]",
-		uri.ToString().GetCString(),
-		HTTP_Methods_ToString(request.GetMethod()),
-		HTTP_Versions_ToString(request.GetVersion())
-	);
-
-	auto response = request.Execute(
-		uri
-	);
-
-	auto responseStatus = response.GetStatus();
-
-	AL::OS::Console::WriteLine(
-		"AL::Network::HTTP::Response Status: %u",
-		responseStatus
-	);
-
-	if (responseStatus == AL::Network::HTTP::StatusCodes::OK)
-	{
-		AL::OS::Console::WriteLine(
-			response.GetContent()
-		);
-	}
-}
-
-// @throw AL::Exception
-void wifi_scan(AL::Hardware::PicoW::CYW43Network& network, AL::Bool& networkFound)
+void wifi_scan(AL::Hardware::Drivers::PicoW::CYW43Network& network, AL::Bool& networkFound)
 {
 	AL::OS::Console::WriteLine(
 		"Scanning for open WiFi networks"
@@ -113,10 +22,10 @@ void wifi_scan(AL::Hardware::PicoW::CYW43Network& network, AL::Bool& networkFoun
 
 	networkFound = AL::False;
 
-	AL::Hardware::PicoW::CYW43ScanCallback onScan(
-		[&network, &networkFound](const AL::Hardware::PicoW::CYW43Network& _network)
+	AL::Hardware::Drivers::PicoW::CYW43ScanCallback onScan(
+		[&network, &networkFound](const AL::Hardware::Drivers::PicoW::CYW43Network& _network)
 		{
-			if (_network.AuthType == AL::Hardware::PicoW::CYW43AuthTypes::Open)
+			if (_network.AuthType == AL::Hardware::Drivers::PicoW::CYW43AuthTypes::Open)
 			{
 				AL::OS::Console::WriteLine(
 					"Found open network %s [BSSID: %s, Channel: %u, RSSI: %i]",
@@ -145,13 +54,13 @@ void wifi_scan(AL::Hardware::PicoW::CYW43Network& network, AL::Bool& networkFoun
 		}
 	);
 
-	AL::Hardware::PicoW::CYW43::Scan(
+	AL::Hardware::Drivers::PicoW::CYW43::Scan(
 		onScan
 	);
 }
 
 // @throw AL::Exception
-void wifi_connect(const AL::Hardware::PicoW::CYW43Network& network, AL::Bool networkFound)
+void wifi_connect(const AL::Hardware::Drivers::PicoW::CYW43Network& network, AL::Bool networkFound)
 {
 	AL::OS::Console::WriteLine(
 		"Connecting to %s",
@@ -160,13 +69,13 @@ void wifi_connect(const AL::Hardware::PicoW::CYW43Network& network, AL::Bool net
 
 	if (networkFound)
 	{
-		AL::Hardware::PicoW::CYW43::Connect(
+		AL::Hardware::Drivers::PicoW::CYW43::Connect(
 			network.SSID
 		);
 	}
 	else
 	{
-		AL::Hardware::PicoW::CYW43::Connect(
+		AL::Hardware::Drivers::PicoW::CYW43::Connect(
 			WIFI_DEFAULT_SSID,
 			WIFI_DEFAULT_PASSWORD,
 			WIFI_DEFAULT_AUTH_TYPE
@@ -178,27 +87,59 @@ void wifi_connect(const AL::Hardware::PicoW::CYW43Network& network, AL::Bool net
 void wifi_open()
 {
 	AL::OS::Console::WriteLine(
-		"Opening AL::Hardware::PicoW::CYW43"
+		"Opening AL::Hardware::Drivers::PicoW::CYW43"
 	);
 
-	AL::Hardware::PicoW::CYW43::Open(
-		AL::Hardware::PicoW::CYW43Countries::USA
+	AL::Hardware::Drivers::PicoW::CYW43::Open(
+		AL::Hardware::Drivers::PicoW::CYW43Countries::USA
 	);
 }
 
 void wifi_close()
 {
 	AL::OS::Console::WriteLine(
-		"Closing AL::Hardware::PicoW::CYW43"
+		"Closing AL::Hardware::Drivers::PicoW::CYW43"
 	);
 
-	AL::Hardware::PicoW::CYW43::Close();
+	AL::Hardware::Drivers::PicoW::CYW43::Close();
 }
 
 // @throw AL::Exception
-bool update_the_thing(AL::TimeSpan delta)
+// @return false to shutdown
+bool do_the_thing_once(AL::TimeSpan delta)
 {
-	test_http_request();
+	using namespace AL;
+	using namespace AL::Network;
+	using namespace AL::Network::HTTP;
+
+	Request request(
+		Versions::HTTP_1_1,
+		RequestMethods::GET
+	);
+
+	auto uri = Uri::FromString(
+		"http://192.168.0.102/"
+	);
+
+	auto response = request.Execute(
+		uri
+	);
+
+	if (response.GetStatus() == StatusCodes::OK)
+	{
+		for (auto& responseHeader : response.GetHeader())
+		{
+			OS::Console::WriteLine(
+				"%s: %s",
+				responseHeader.Key.GetCString(),
+				responseHeader.Value.GetCString()
+			);
+		}
+
+		OS::Console::WriteLine(
+			response.GetContent()
+		);
+	}
 
 	return true;
 }
@@ -206,6 +147,8 @@ bool update_the_thing(AL::TimeSpan delta)
 // @throw AL::Exception
 void do_the_thing()
 {
+	AL::OS::Pico::Stdio::Init();
+
 	for (int i = 0; i < 5; ++i)
 	{
 		AL::OS::Console::WriteLine(
@@ -222,8 +165,8 @@ void do_the_thing()
 
 	wifi_open();
 
-	AL::Hardware::PicoW::CYW43Network network;
-	AL::Bool                          networkFound;
+	AL::Hardware::Drivers::PicoW::CYW43Network network;
+	AL::Bool                                   networkFound;
 
 	wifi_scan(
 		network,
@@ -235,18 +178,18 @@ void do_the_thing()
 		networkFound
 	);
 
-	AL::Hardware::PicoW::CYW43::LED::Write(
+	AL::Hardware::Drivers::PicoW::CYW43::LED::Write(
 		AL::True
 	);
 
-	for (AL::OS::Timer timer; update_the_thing(timer.GetElapsed()); timer.Reset())
+	for (AL::OS::Timer timer; do_the_thing_once(timer.GetElapsed()); timer.Reset())
 	{
 		AL::Sleep(
 			AL::TimeSpan::FromSeconds(5)
 		);
 	}
 
-	AL::Hardware::PicoW::CYW43::LED::Write(
+	AL::Hardware::Drivers::PicoW::CYW43::LED::Write(
 		AL::False
 	);
 
@@ -255,8 +198,6 @@ void do_the_thing()
 
 int main()
 {
-	AL::OS::Pico::Stdio::Init();
-
 	try
 	{
 		do_the_thing();
