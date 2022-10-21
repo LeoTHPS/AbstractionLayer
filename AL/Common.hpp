@@ -15,15 +15,7 @@
 	#error Compiler not supported
 #endif
 
-#if defined(AL_PLATFORM_PICO)
-	// TODO: detect which Pico board is being targetted
-	#define AL_PLATFORM_RP2040
-#elif defined(AL_PLATFORM_PICO_W)
-	#define AL_PLATFORM_PICO
-	#define AL_PLATFORM_RP2040
-#elif defined(AL_PLATFORM_RP2040)
-
-#elif defined(__linux__)
+#if defined(__linux__)
 	#define AL_PLATFORM_LINUX
 #elif defined(_WIN32) || defined(_WIN64)
 	#define AL_PLATFORM_WINDOWS
@@ -34,6 +26,18 @@
 
 	#if defined(__MINGW64__)
 		#define AL_PLATFORM_WINDOWS_MINGW64
+	#endif
+#elif defined(__has_include) && __has_include(<RP2040.h>)
+	// TODO: use something other than __has_include
+
+	#define AL_PLATFORM_RP2040
+
+	#if __has_include(<pico.h>)
+		#define AL_PLATFORM_PICO
+	#endif
+
+	#if __has_include(<cyw43.h>)
+		#define AL_PLATFORM_PICO_W
 	#endif
 #else
 	#error Platform not supported
@@ -168,7 +172,7 @@
 #endif
 
 #if defined(__has_include)
-	#define AL_HAS_INCLUDE                __has_include
+	#define AL_HAS_INCLUDE                  __has_include
 #else
 	#define AL_HAS_INCLUDE(__file_path__) 0
 #endif
