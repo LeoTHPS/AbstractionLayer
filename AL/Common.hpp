@@ -27,16 +27,14 @@
 	#if defined(__MINGW64__)
 		#define AL_PLATFORM_WINDOWS_MINGW64
 	#endif
-#elif defined(__has_include) && __has_include(<RP2040.h>)
+#elif defined(__has_include) && __has_include(<pico/platform.h>)
 	// TODO: use something other than __has_include
+	// TODO: find a more reliable way to detect these boards
 
+	#define AL_PLATFORM_PICO
 	#define AL_PLATFORM_RP2040
 
-	#if __has_include(<pico.h>)
-		#define AL_PLATFORM_PICO
-	#endif
-
-	#if __has_include(<cyw43.h>)
+	#if __has_include(<pico/cyw43_arch.h>)
 		#define AL_PLATFORM_PICO_W
 	#endif
 #else

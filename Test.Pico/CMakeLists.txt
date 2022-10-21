@@ -36,12 +36,6 @@ target_include_directories(
 	".."
 )
 
-target_compile_definitions(
-	Test_Pico
-	PRIVATE
-	AL_PLATFORM_PICO
-)
-
 pico_add_extra_outputs(
 	Test_Pico
 )

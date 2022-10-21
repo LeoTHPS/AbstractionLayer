@@ -41,12 +41,6 @@ target_include_directories(
 	".."
 )
 
-target_compile_definitions(
-	Test_PicoW
-	PRIVATE
-	AL_PLATFORM_PICO_W
-)
-
 pico_add_extra_outputs(
 	Test_PicoW
 )
