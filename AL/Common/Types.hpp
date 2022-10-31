@@ -52,7 +52,7 @@ namespace AL
 	typedef void                                  Void;
 
 	typedef bool                                  Bool;
-	constexpr Bool                                True = true;
+	constexpr Bool                                True  = true;
 	constexpr Bool                                False = false;
 
 	typedef float                                 Float;
