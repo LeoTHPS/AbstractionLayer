@@ -214,7 +214,7 @@ namespace AL
 		template<size_t I>
 		Void SetField(typename Get_Type_Sequence<I, Fields>::Type value)
 		{
-			fields.Set<I>(
+			fields.template Set<I>(
 				value
 			);
 		}
