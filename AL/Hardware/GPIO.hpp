@@ -71,6 +71,8 @@ namespace AL::Hardware
 	#endif
 #endif
 
+		GPIO(const GPIO&) = delete;
+
 	public:
 		GPIO(GPIO&& gpio)
 			: isOpen(
