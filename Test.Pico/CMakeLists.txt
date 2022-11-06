@@ -33,7 +33,12 @@ target_include_directories(
 	Test_Pico
 	PRIVATE
 	"."
-	".."
+)
+
+target_include_directories(
+	Test_Pico
+	PUBLIC
+	$ENV{AL_INCLUDE}
 )
 
 pico_add_extra_outputs(
