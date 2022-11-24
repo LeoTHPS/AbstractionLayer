@@ -25,12 +25,11 @@ namespace AL::Network
 		Bool            isOpen      = False;
 		Bool            isBound     = False;
 		Bool            isBlocking  = True;
-		Bool            isConnected = False;
+#if defined(AL_PLATFORM_WINDOWS)
+		Bool            isWinSockLoaded = False;
+#endif
 
 		SocketTypes     type;
-
-		IPEndPoint      localEP;
-		IPEndPoint      remoteEP;
 		AddressFamilies addressFamily;
 
 #if defined(AL_PLATFORM_PICO_W)
@@ -62,17 +61,13 @@ namespace AL::Network
 			isBlocking(
 				udpSocket.isBlocking
 			),
-			isConnected(
-				udpSocket.isConnected
+#if defined(AL_PLATFORM_WINDOWS)
+			isWinSockLoaded(
+				udpSocket.isWinSockLoaded
 			),
+#endif
 			type(
 				udpSocket.type
-			),
-			localEP(
-				Move(udpSocket.localEP)
-			),
-			remoteEP(
-				Move(udpSocket.remoteEP)
 			),
 			addressFamily(
 				udpSocket.addressFamily
@@ -81,14 +76,20 @@ namespace AL::Network
 				Move(udpSocket.socket)
 			)
 		{
-			udpSocket.isOpen      = False;
-			udpSocket.isBound     = False;
-			udpSocket.isBlocking  = True;
-			udpSocket.isConnected = False;
+			udpSocket.isOpen          = False;
+			udpSocket.isBound         = False;
+			udpSocket.isBlocking      = True;
+			udpSocket.isWinSockLoaded = True;
 		}
 
 		explicit UdpSocket(AddressFamilies addressFamily)
-			: type(
+			:
+#if defined(AL_PLATFORM_WINDOWS)
+			isWinSockLoaded(
+				WinSock::TryLoad()
+			),
+#endif
+			type(
 				SocketTypes::UDP
 			),
 			addressFamily(
@@ -110,6 +111,12 @@ namespace AL::Network
 
 				Close();
 			}
+
+			if (isWinSockLoaded)
+			{
+
+				WinSock::Unload();
+			}
 		}
 
 		virtual Bool IsOpen() const override
@@ -125,11 +132,6 @@ namespace AL::Network
 		virtual Bool IsBlocking() const
 		{
 			return isBlocking;
-		}
-
-		virtual Bool IsConnected() const
-		{
-			return isConnected;
 		}
 
 		virtual SocketTypes GetType() const override
@@ -153,16 +155,6 @@ namespace AL::Network
 		virtual AddressFamilies GetAddressFamily() const
 		{
 			return addressFamily;
-		}
-
-		virtual const IPEndPoint& GetLocalEndPoint() const
-		{
-			return localEP;
-		}
-
-		virtual const IPEndPoint& GetRemoteEndPoint() const
-		{
-			return remoteEP;
 		}
 
 		// @throw AL::Exception
@@ -241,9 +233,8 @@ namespace AL::Network
 				);
 #endif
 
-				isOpen      = False;
-				isBound     = False;
-				isConnected = False;
+				isOpen  = False;
+				isBound = False;
 			}
 		}
 
@@ -278,7 +269,7 @@ namespace AL::Network
 			);
 
 	#if defined(AL_PLATFORM_LINUX)
-			if (::bind(GetHandle(), &address.Address.addr, address.Size) == -1)
+			if (::bind(GetHandle(), reinterpret_cast<::sockaddr*>(&address.Address.Storage), address.Size) == -1)
 			{
 
 				throw SocketException(
@@ -286,7 +277,7 @@ namespace AL::Network
 				);
 			}
 	#elif defined(AL_PLATFORM_WINDOWS)
-			if (::bind(GetHandle(), &address.Address.addr, address.Size) == SOCKET_ERROR)
+			if (::bind(GetHandle(), reinterpret_cast<::sockaddr*>(&address.Address.Storage), address.Size) == SOCKET_ERROR)
 			{
 
 				throw SocketException(
@@ -294,8 +285,6 @@ namespace AL::Network
 				);
 			}
 	#endif
-
-			localEP = ep;
 #else
 			throw NotImplementedException();
 #endif
@@ -304,109 +293,8 @@ namespace AL::Network
 		}
 
 		// @throw AL::Exception
-		virtual Void Connect(const IPEndPoint& ep)
-		{
-			AL_ASSERT(
-				IsOpen(),
-				"UdpSocket not open"
-			);
-
-			AL_ASSERT(
-				!IsConnected(),
-				"UdpSocket already connected"
-			);
-
-#if defined(AL_PLATFORM_PICO_W)
-			try
-			{
-				socket.Connect(
-					ep
-				);
-			}
-			catch (Exception& exception)
-			{
-
-				throw Exception(
-					Move(exception),
-					"Error connecting LWIP::UdpSocket"
-				);
-			}
-
-			remoteEP = socket.GetRemoteEndPoint();
-#elif defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
-			remoteEP = ep;
-#else
-			throw NotImplementedException();
-#endif
-
-			isConnected = True;
-		}
-
-		virtual Void Disconnect()
-		{
-			if (IsOpen() && IsConnected())
-			{
-#if defined(AL_PLATFORM_PICO_W)
-				socket.Disconnect();
-#elif defined(AL_PLATFORM_LINUX)
-				// do nothing
-#elif defined(AL_PLATFORM_WINDOWS)
-				// do nothing
-#endif
-
-				isConnected = False;
-			}
-		}
-
-		// @throw AL::Exception
 		// @return AL::False on no route to host
-		virtual Bool Send(const Void* lpBuffer, size_t size, size_t& numberOfBytesSent)
-		{
-			AL_ASSERT(
-				IsOpen(),
-				"UdpSocket not open"
-			);
-
-			AL_ASSERT(
-				IsConnected(),
-				"UdpSocket not connected"
-			);
-
-#if defined(AL_PLATFORM_PICO_W)
-			// TODO: emulate blocking state
-
-			try
-			{
-				if (!socket.Send(lpBuffer, size, numberOfBytesSent))
-				{
-
-					return False;
-				}
-			}
-			catch (Exception& exception)
-			{
-
-				throw Exception(
-					Move(exception),
-					"Error sending LWIP::UdpSocket"
-				);
-			}
-#elif defined(AL_PLATFORM_LINUX)
-			// TODO: implement
-			throw NotImplementedException();
-#elif defined(AL_PLATFORM_WINDOWS)
-			// TODO: implement
-			throw NotImplementedException();
-#else
-			throw NotImplementedException();
-#endif
-
-			return True;
-		}
-
-		// @throw AL::Exception
-		// @return AL::False on no route to host
-		virtual Bool SendTo(const Void* lpBuffer, size_t size, size_t& numberOfBytesSent, const IPEndPoint& ep)
+		virtual Bool Send(const Void* lpBuffer, size_t size, size_t& numberOfBytesSent, const IPEndPoint& ep)
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -436,8 +324,38 @@ namespace AL::Network
 			// TODO: implement
 			throw NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
-			// TODO: implement
-			throw NotImplementedException();
+			auto addr = GetNativeSocketAddress(
+				ep
+			);
+
+			int _numberOfBytesSent;
+
+			if ((_numberOfBytesSent = ::sendto(GetHandle(), reinterpret_cast<const char*>(lpBuffer), static_cast<int>(size & Integer<int>::SignedCastMask), 0, reinterpret_cast<::sockaddr*>(&addr.Address.Storage), addr.Size)) == SOCKET_ERROR)
+			{
+				ErrorCode errorCode;
+
+				switch (errorCode = GetLastError())
+				{
+					case WSAEWOULDBLOCK:
+						numberOfBytesSent = 0;
+						return True;
+
+					case WSAENETDOWN:
+					case WSAETIMEDOUT:
+					case WSAECONNRESET:
+					case WSAECONNABORTED:
+					case WSAEHOSTUNREACH:
+						Close();
+						return False;
+				}
+
+				throw SocketException(
+					"sendto",
+					errorCode
+				);
+			}
+
+			numberOfBytesSent = _numberOfBytesSent;
 #else
 			throw NotImplementedException();
 #endif
@@ -477,8 +395,55 @@ namespace AL::Network
 			// TODO: implement
 			throw NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
-			// TODO: implement
-			throw NotImplementedException();
+			NativeSocketAddress addr
+			{
+				.Size = sizeof(::sockaddr_storage)
+			};
+
+			int _numberOfBytesReceived;
+
+			if ((_numberOfBytesReceived = ::recvfrom(GetHandle(), reinterpret_cast<char*>(lpBuffer), static_cast<int>(size & Integer<int>::SignedCastMask), 0, reinterpret_cast<::sockaddr*>(&addr.Address.Storage), &addr.Size)) == SOCKET_ERROR)
+			{
+				ErrorCode errorCode;
+
+				if ((errorCode = GetLastError()) == WSAEWOULDBLOCK)
+				{
+					ep = IPEndPoint
+					{
+						.Host = IPAddress::Any(),
+						.Port = 0
+					};
+
+					numberOfBytesReceived = 0;
+
+					return True;
+				}
+
+				Close();
+
+				throw SocketException(
+					"recvfrom",
+					errorCode
+				);
+			}
+
+			switch (addr.Address.Storage.ss_family)
+			{
+				case AF_INET:
+					ep.Host = Move(addr.Address.V4.sin_addr);
+					ep.Port = BitConverter::NetworkToHost(addr.Address.V4.sin_port);
+					break;
+
+				case AF_INET6:
+					ep.Host = Move(addr.Address.V6.sin6_addr);
+					ep.Port = BitConverter::NetworkToHost(addr.Address.V6.sin6_port);
+					break;
+
+				default:
+					throw OperationNotSupportedException();
+			}
+
+			numberOfBytesReceived = _numberOfBytesReceived;
 #else
 			throw NotImplementedException();
 #endif
@@ -495,11 +460,33 @@ namespace AL::Network
 				// do nothing
 				// this has to be emulated on the Pi Pico W due to LWIP not supporting it
 #elif defined(AL_PLATFORM_LINUX)
-				// TODO: implement
-				throw NotImplementedException();
+				int flags;
+
+				if ((flags = ::fcntl(GetHandle(), F_GETFL, 0)) == -1)
+				{
+
+					throw OS::SystemException(
+						"fcntl"
+					);
+				}
+
+				if (::fcntl(GetHandle(), F_SETFL, (!value ? (flags | O_NONBLOCK) : (flags & ~O_NONBLOCK))) == -1)
+				{
+
+					throw OS::SystemException(
+						"fcntl"
+					);
+				}
 #elif defined(AL_PLATFORM_WINDOWS)
-				// TODO: implement
-				throw NotImplementedException();
+				::u_long arg = value ? 0 : 1;
+
+				if (::ioctlsocket(GetHandle(), FIONBIO, &arg) == SOCKET_ERROR)
+				{
+
+					throw SocketException(
+						"ioctlsocket"
+					);
+				}
 #else
 				throw NotImplementedException();
 #endif
@@ -521,19 +508,12 @@ namespace AL::Network
 			isBound = udpSocket.isBound;
 			udpSocket.isBound = False;
 
-			isConnected = udpSocket.isConnected;
-			udpSocket.isConnected = False;
+#if defined(AL_PLATFORM_WINDOWS)
+			isWinSockLoaded = udpSocket.isWinSockLoaded;
+			udpSocket.isWinSockLoaded = False;
+#endif
 
-			type = udpSocket.type;
-
-			localEP = Move(
-				udpSocket.localEP
-			);
-
-			remoteEP = Move(
-				udpSocket.remoteEP
-			);
-
+			type          = udpSocket.type;
 			addressFamily = udpSocket.addressFamily;
 
 			socket = Move(
