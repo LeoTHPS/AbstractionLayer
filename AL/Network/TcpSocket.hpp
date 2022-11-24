@@ -832,7 +832,9 @@ namespace AL::Network
 
 			if ((_numberOfBytesSent = ::send(GetHandle(), reinterpret_cast<const char*>(lpBuffer), static_cast<int>(size & Integer<int>::SignedCastMask), 0)) == SOCKET_ERROR)
 			{
-				switch (auto errorCode = GetLastError())
+				ErrorCode errorCode;
+
+				switch (errorCode = GetLastError())
 				{
 					case WSAEWOULDBLOCK:
 						numberOfBytesSent = 0;
@@ -846,13 +848,12 @@ namespace AL::Network
 					case WSAEHOSTUNREACH:
 						Close();
 						return False;
-
-					default:
-						throw SocketException(
-							"send",
-							errorCode
-						);
 				}
+
+				throw SocketException(
+					"send",
+					errorCode
+				);
 			}
 			else if (_numberOfBytesSent == 0)
 			{
@@ -952,7 +953,9 @@ namespace AL::Network
 
 			if ((_numberOfBytesReceived = ::recv(GetHandle(), reinterpret_cast<char*>(lpBuffer), static_cast<int>(size & Integer<int>::SignedCastMask), 0)) == SOCKET_ERROR)
 			{
-				switch (auto errorCode = GetLastError())
+				ErrorCode errorCode;
+
+				switch (errorCode = GetLastError())
 				{
 					case WSAEWOULDBLOCK:
 						numberOfBytesReceived = 0;
@@ -965,13 +968,12 @@ namespace AL::Network
 					case WSAECONNABORTED:
 						Close();
 						return False;
-
-					default:
-						throw SocketException(
-							"recv",
-							errorCode
-						);
 				}
+
+				throw SocketException(
+					"recv",
+					errorCode
+				);
 			}
 			else if (_numberOfBytesReceived == 0)
 			{
