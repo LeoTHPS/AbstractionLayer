@@ -293,7 +293,7 @@ namespace AL::Network
 			);
 
 	#if defined(AL_PLATFORM_LINUX)
-			if (::bind(GetHandle(), &address.Address.addr, address.Size) == -1)
+			if (::bind(GetHandle(), reinterpret_cast<::sockaddr*>(&address.Address.Storage), address.Size) == -1)
 			{
 
 				throw SocketException(
@@ -301,7 +301,7 @@ namespace AL::Network
 				);
 			}
 	#elif defined(AL_PLATFORM_WINDOWS)
-			if (::bind(GetHandle(), &address.Address.addr, address.Size) == SOCKET_ERROR)
+			if (::bind(GetHandle(), reinterpret_cast<::sockaddr*>(&address.Address.Storage), address.Size) == SOCKET_ERROR)
 			{
 
 				throw SocketException(
@@ -576,7 +576,7 @@ namespace AL::Network
 			);
 
 	#if defined(AL_PLATFORM_LINUX)
-			if (::connect(GetHandle(), &address.Address.addr, address.Size) == -1)
+			if (::connect(GetHandle(), reinterpret_cast<::sockaddr*>(&address.Address.Storage), address.Size) == -1)
 			{
 				auto errorCode = GetLastError();
 
@@ -595,7 +595,7 @@ namespace AL::Network
 				);
 			}
 	#elif defined(AL_PLATFORM_WINDOWS)
-			if (::connect(GetHandle(), &address.Address.addr, address.Size) == SOCKET_ERROR)
+			if (::connect(GetHandle(), reinterpret_cast<::sockaddr*>(&address.Address.Storage), address.Size) == SOCKET_ERROR)
 			{
 				auto lastError = GetLastError();
 

@@ -51,13 +51,13 @@ namespace AL::Network
 #if defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
 		struct NativeSocketAddress
 		{
-			socklen_t          Size;
+			socklen_t              Size;
 			union
 			{
-				::sockaddr_in  V4;
-				::sockaddr_in6 V6;
-				::sockaddr     addr;
-			}                  Address;
+				::sockaddr_in      V4;
+				::sockaddr_in6     V6;
+				::sockaddr_storage Storage;
+			}                      Address;
 		};
 
 		static NativeSocketAddress GetNativeSocketAddress(const IPEndPoint& ep)
