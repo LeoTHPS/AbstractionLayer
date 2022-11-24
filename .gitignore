@@ -3,7 +3,6 @@
 
 # Build results
 *.o
+/build/
 /Test/Test
 /Test/Test.exe
-/Test.Pico/Build/
-/Test.PicoW/Build/
