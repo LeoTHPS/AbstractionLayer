@@ -24,11 +24,14 @@ namespace AL::Network
 	class TcpSocket
 		: public ISocket
 	{
-		Bool            isOpen      = False;
-		Bool            isBound     = False;
-		Bool            isBlocking  = True;
-		Bool            isConnected = False;
-		Bool            isListening = False;
+		Bool            isOpen          = False;
+		Bool            isBound         = False;
+		Bool            isBlocking      = True;
+		Bool            isConnected     = False;
+		Bool            isListening     = False;
+#if defined(AL_PLATFORM_WINDOWS)
+		Bool            isWinSockLoaded = False;
+#endif
 
 		SocketTypes     type;
 
@@ -76,6 +79,11 @@ namespace AL::Network
 			isListening(
 				tcpSocket.isListening
 			),
+#if defined(AL_PLATFORM_WINDOWS)
+			isWinSockLoaded(
+				tcpSocket.isWinSockLoaded
+			),
+#endif
 			type(
 				tcpSocket.type
 			),
@@ -92,14 +100,21 @@ namespace AL::Network
 				Move(tcpSocket.socket)
 			)
 		{
-			tcpSocket.isOpen      = False;
-			tcpSocket.isBound     = False;
-			tcpSocket.isBlocking  = True;
-			tcpSocket.isConnected = False;
+			tcpSocket.isOpen          = False;
+			tcpSocket.isBound         = False;
+			tcpSocket.isBlocking      = True;
+			tcpSocket.isConnected     = False;
+			tcpSocket.isWinSockLoaded = False;
 		}
 
 		explicit TcpSocket(AddressFamilies addressFamily)
-			: type(
+			:
+#if defined(AL_PLATFORM_WINDOWS)
+			isWinSockLoaded(
+				WinSock::TryLoad()
+			),
+#endif
+			type(
 				SocketTypes::TCP
 			),
 			addressFamily(
@@ -120,6 +135,12 @@ namespace AL::Network
 			{
 
 				Close();
+			}
+
+			if (isWinSockLoaded)
+			{
+
+				WinSock::Unload();
 			}
 		}
 
@@ -1054,6 +1075,11 @@ namespace AL::Network
 
 			isListening = tcpSocket.isListening;
 			tcpSocket.isListening = False;
+
+#if defined(AL_PLATFORM_WINDOWS)
+			isWinSockLoaded = tcpSocket.isWinSockLoaded;
+			tcpSocket.isWinSockLoaded = False;
+#endif
 
 			type = tcpSocket.type;
 
