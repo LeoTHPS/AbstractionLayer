@@ -293,24 +293,27 @@ namespace AL::Network
 		}
 
 		// @throw AL::Exception
-		// @return AL::False on no route to host
-		virtual Bool Send(const Void* lpBuffer, size_t size, size_t& numberOfBytesSent, const IPEndPoint& ep)
+		// @return number of bytes sent
+		virtual size_t Send(const Void* lpBuffer, size_t size, const IPEndPoint& ep)
 		{
 			AL_ASSERT(
 				IsOpen(),
 				"UdpSocket not open"
 			);
 
-#if defined(AL_PLATFORM_PICO_W)
-			// TODO: emulate blocking state
+			size_t numberOfBytesSent = 0;
 
+#if defined(AL_PLATFORM_PICO_W)
 			try
 			{
-				if (!socket.SendTo(lpBuffer, size, numberOfBytesSent, ep))
+				do
 				{
+					if (!socket.SendTo(lpBuffer, size, numberOfBytesSent, ep))
+					{
 
-					return False;
-				}
+						return 0;
+					}
+				} while (IsBlocking() && (numberOfBytesSent == 0));
 			}
 			catch (Exception& exception)
 			{
@@ -334,20 +337,13 @@ namespace AL::Network
 			{
 				ErrorCode errorCode;
 
-				switch (errorCode = GetLastError())
+				if ((errorCode = GetLastError()) == WSAEWOULDBLOCK)
 				{
-					case WSAEWOULDBLOCK:
-						numberOfBytesSent = 0;
-						return True;
 
-					case WSAENETDOWN:
-					case WSAETIMEDOUT:
-					case WSAECONNRESET:
-					case WSAECONNABORTED:
-					case WSAEHOSTUNREACH:
-						Close();
-						return False;
+					return 0;
 				}
+
+				Close();
 
 				throw SocketException(
 					"sendto",
@@ -360,28 +356,26 @@ namespace AL::Network
 			throw NotImplementedException();
 #endif
 
-			return True;
+			return numberOfBytesSent;
 		}
 
 		// @throw AL::Exception
-		// @return AL::False on timeout
-		virtual Bool Receive(Void* lpBuffer, size_t size, size_t& numberOfBytesReceived, IPEndPoint& ep)
+		// @return number of bytes received
+		virtual size_t Receive(Void* lpBuffer, size_t size, IPEndPoint& ep)
 		{
 			AL_ASSERT(
 				IsOpen(),
 				"UdpSocket not open"
 			);
 
-#if defined(AL_PLATFORM_PICO_W)
-			// TODO: emulate blocking state
+			size_t numberOfBytesReceived;
 
+#if defined(AL_PLATFORM_PICO_W)
 			try
 			{
-				numberOfBytesReceived = socket.Receive(
-					lpBuffer,
-					size,
-					ep
-				);
+				while (((numberOfBytesReceived = socket.Receive(lpBuffer, size, ep)) == 0) && IsBlocking())
+				{
+				}
 			}
 			catch (Exception& exception)
 			{
@@ -408,15 +402,8 @@ namespace AL::Network
 
 				if ((errorCode = GetLastError()) == WSAEWOULDBLOCK)
 				{
-					ep = IPEndPoint
-					{
-						.Host = IPAddress::Any(),
-						.Port = 0
-					};
 
-					numberOfBytesReceived = 0;
-
-					return True;
+					return 0;
 				}
 
 				Close();
@@ -448,7 +435,7 @@ namespace AL::Network
 			throw NotImplementedException();
 #endif
 
-			return True;
+			return numberOfBytesReceived;
 		}
 
 		// @throw AL::Exception
