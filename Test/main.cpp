@@ -140,7 +140,10 @@ void main_display_thread_information()
 
 	auto lpTEB = AL::OS::GetThreadEnvironmentBlock();
 
-
+	AL::OS::Console::WriteLine(
+		"\tThread Environment Block: 0x%p",
+		lpTEB
+	);
 #endif
 }
 
@@ -162,7 +165,13 @@ void main_display_process_information()
 		"\tProcess ID: %lu",
 		AL::OS::GetCurrentProcessId()
 	);
+
 	auto lpPEB = AL::OS::GetProcessEnvironmentBlock();
+
+	AL::OS::Console::WriteLine(
+		"\tProcess Environment Block: 0x%p",
+		lpPEB
+	);
 
 	AL::OS::Console::WriteLine(
 		"\tSession ID: %lu",
