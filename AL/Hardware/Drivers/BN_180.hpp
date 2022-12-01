@@ -27,12 +27,12 @@ namespace AL::Hardware::Drivers
 		}
 
 #if defined(AL_PLATFORM_PICO)
-		BN_180(::uart_inst_t* uart, GPIOPin rx, GPIOPin tx)
+		BN_180(::uart_inst_t* uart, GPIOPin rx, GPIOPin tx, UARTDeviceSpeeds speed = UARTDeviceSpeeds::Baud_9600)
 			: device(
 				uart,
 				rx,
 				tx,
-				UARTDeviceSpeeds::Baud_9600,
+				speed,
 				UARTDeviceFlags::None
 			)
 		{
