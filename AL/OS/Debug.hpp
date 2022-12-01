@@ -4,7 +4,7 @@
 #include "Mutex.hpp"
 
 #if defined(AL_PLATFORM_PICO)
-	#warning Platform not supported
+	#include "Console.hpp"
 #elif defined(AL_PLATFORM_LINUX)
 	#include <cstdio>
 #endif
@@ -30,7 +30,15 @@ namespace AL::OS
 		static Void Write(String::Char value)
 		{
 #if defined(AL_DEBUG)
-	#if defined(AL_PLATFORM_LINUX)
+			MutexGuard lock(
+				mutex
+			);
+
+	#if defined(AL_PLATFORM_PICO)
+			Console::Write(
+				value
+			);
+	#elif defined(AL_PLATFORM_LINUX)
 			::std::fprintf(
 				stderr,
 				"%c",
@@ -52,7 +60,16 @@ namespace AL::OS
 		static Void Write(const String& format, TArgs ... args)
 		{
 #if defined(AL_DEBUG)
-	#if defined(AL_PLATFORM_LINUX)
+			MutexGuard lock(
+				mutex
+			);
+
+	#if defined(AL_PLATFORM_PICO)
+			Console::Write(
+				format,
+				Forward<TArgs>(args) ...
+			);
+	#elif defined(AL_PLATFORM_LINUX)
 			::std::fprintf(
 				stderr,
 				format.GetCString(),
@@ -74,7 +91,16 @@ namespace AL::OS
 		static Void Write(const String::Char* format, TArgs ... args)
 		{
 #if defined(AL_DEBUG)
-	#if defined(AL_PLATFORM_LINUX)
+			MutexGuard lock(
+				mutex
+			);
+
+	#if defined(AL_PLATFORM_PICO)
+			Console::Write(
+				format,
+				Forward<TArgs>(args) ...
+			);
+	#elif defined(AL_PLATFORM_LINUX)
 			::std::fprintf(
 				stderr,
 				format,
@@ -96,7 +122,13 @@ namespace AL::OS
 		static Void WriteLine()
 		{
 #if defined(AL_DEBUG)
-	#if defined(AL_PLATFORM_LINUX)
+			MutexGuard lock(
+				mutex
+			);
+
+	#if defined(AL_PLATFORM_PICO)
+			Console::WriteLine();
+	#elif defined(AL_PLATFORM_LINUX)
 			::std::fprintf(
 				stderr,
 				"\n"
@@ -112,12 +144,22 @@ namespace AL::OS
 		static Void WriteLine(const String& format, TArgs ... args)
 		{
 #if defined(AL_DEBUG)
-	#if defined(AL_PLATFORM_LINUX)
+			MutexGuard lock(
+				mutex
+			);
+
+	#if defined(AL_PLATFORM_PICO)
+			Console::WriteLine(
+				format,
+				Forward<TArgs>(args) ...
+			);
+	#elif defined(AL_PLATFORM_LINUX)
 			::std::fprintf(
 				stderr,
 				format.GetCString(),
 				args ...
 			);
+
 			::std::fprintf(
 				stderr,
 				"\n"
@@ -131,6 +173,7 @@ namespace AL::OS
 			::OutputDebugStringA(
 				string.GetCString()
 			);
+
 			::OutputDebugStringA(
 				"\n"
 			);
@@ -141,12 +184,22 @@ namespace AL::OS
 		static Void WriteLine(const String::Char* format, TArgs ... args)
 		{
 #if defined(AL_DEBUG)
-	#if defined(AL_PLATFORM_LINUX)
+			MutexGuard lock(
+				mutex
+			);
+
+	#if defined(AL_PLATFORM_PICO)
+			Console::WriteLine(
+				format,
+				Forward<TArgs>(args) ...
+			);
+	#elif defined(AL_PLATFORM_LINUX)
 			::std::fprintf(
 				stderr,
 				format,
 				args ...
 			);
+
 			::std::fprintf(
 				stderr,
 				"\n"
