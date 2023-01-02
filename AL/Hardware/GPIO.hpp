@@ -1,6 +1,7 @@
 #pragma once
 #include "AL/Common.hpp"
 
+#include "AL/OS/Timer.hpp"
 #include "AL/OS/SystemException.hpp"
 
 #if defined(AL_PLATFORM_PICO)
@@ -385,6 +386,44 @@ namespace AL::Hardware
 		}
 
 		// @throw AL::Exception
+		Void SetPullUp()
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"GPIO not open"
+			);
+
+#if defined(AL_PLATFORM_PICO)
+			::gpio_pull_up(
+				GetPin()
+			);
+#elif defined(AL_PLATFORM_LINUX)
+			throw NotImplementedException();
+#else
+			throw NotImplementedException();
+#endif
+		}
+
+		// @throw AL::Exception
+		Void SetPullDown()
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"GPIO not open"
+			);
+
+#if defined(AL_PLATFORM_PICO)
+			::gpio_pull_down(
+				GetPin()
+			);
+#elif defined(AL_PLATFORM_LINUX)
+			throw NotImplementedException();
+#else
+			throw NotImplementedException();
+#endif
+		}
+
+		// @throw AL::Exception
 		Void SetDirection(GPIOPinDirections direction)
 		{
 			AL_ASSERT(
@@ -519,8 +558,78 @@ namespace AL::Hardware
 			);
 
 #if defined(AL_PLATFORM_PICO)
-			// TODO: implement
-			throw NotImplementedException();
+			OS::Timer timer;
+
+			bool value, prevValue = ::gpio_get(GetPin());
+
+			switch (edge)
+			{
+				case GPIOPinEdges::Both:
+				{
+					while ((value = ::gpio_get(GetPin())) == prevValue)
+					{
+						if (timer.GetElapsed() >= maxWaitTime)
+						{
+
+							return False;
+						}
+					}
+				}
+				break;
+
+				case GPIOPinEdges::Rising:
+				{
+					if (prevValue)
+					{
+						while (value = ::gpio_get(GetPin()))
+						{
+							if (timer.GetElapsed() >= maxWaitTime)
+							{
+
+								return False;
+							}
+						}
+					}
+
+					while (!(value = ::gpio_get(GetPin())))
+					{
+						if (timer.GetElapsed() >= maxWaitTime)
+						{
+
+							return False;
+						}
+					}
+				}
+				break;
+
+				case GPIOPinEdges::Falling:
+				{
+					if (!prevValue)
+					{
+						while (!(value = ::gpio_get(GetPin())))
+						{
+							if (timer.GetElapsed() >= maxWaitTime)
+							{
+
+								return False;
+							}
+						}
+					}
+
+					while (value = ::gpio_get(GetPin()))
+					{
+						if (timer.GetElapsed() >= maxWaitTime)
+						{
+
+							return False;
+						}
+					}
+				}
+				break;
+
+				default:
+					throw NotImplementedException();
+			}
 #elif defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_GPIOD)
 			// TODO: remove this when libgpiod2 is released
