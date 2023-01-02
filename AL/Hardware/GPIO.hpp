@@ -398,7 +398,7 @@ namespace AL::Hardware
 				GetPin()
 			);
 #elif defined(AL_PLATFORM_LINUX)
-			throw NotImplementedException();
+			// TODO: implement
 #else
 			throw NotImplementedException();
 #endif
@@ -417,7 +417,7 @@ namespace AL::Hardware
 				GetPin()
 			);
 #elif defined(AL_PLATFORM_LINUX)
-			throw NotImplementedException();
+			// TODO: implement
 #else
 			throw NotImplementedException();
 #endif
