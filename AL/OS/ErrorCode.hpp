@@ -2,7 +2,7 @@
 #include "AL/Common.hpp"
 
 #if defined(AL_PLATFORM_PICO)
-
+	#include <pico/error.h>
 #elif defined(AL_PLATFORM_LINUX)
 	#include <errno.h>
 #elif defined(AL_PLATFORM_WINDOWS)
@@ -14,25 +14,44 @@
 namespace AL::OS
 {
 #if defined(AL_PLATFORM_PICO)
-	typedef int32                                                                                                ErrorCode;
+	typedef typename Get_Enum_Or_Integer_Base<::pico_error_codes>::Type                                          ErrorCode;
 #elif defined(AL_PLATFORM_LINUX)
 	typedef typename Get_Enum_Or_Integer_Base<typename Remove_Modifiers<decltype(errno)>::Type>::Type            ErrorCode;
 #elif defined(AL_PLATFORM_WINDOWS)
 	typedef typename Get_Enum_Or_Integer_Base<typename Remove_Modifiers<decltype(::GetLastError())>::Type>::Type ErrorCode;
 #endif
 
+#if defined(AL_PLATFORM_PICO)
+	namespace Pico
+	{
+		inline static ErrorCode LastErrorCode = ::PICO_ERROR_NONE;
+	}
+#endif
+
 	inline ErrorCode GetLastError()
 	{
 #if defined(AL_PLATFORM_PICO)
-		return 0;
+		return Pico::LastErrorCode;
 #elif defined(AL_PLATFORM_LINUX)
 		return static_cast<ErrorCode>(
 			errno
-		);		
+		);
 #elif defined(AL_PLATFORM_WINDOWS)
 		return static_cast<ErrorCode>(
 			::GetLastError()
 		);
+#endif
+	}
+
+	inline Void SetLastError(ErrorCode errorCode)
+	{
+#if defined(AL_PLATFORM_PICO)
+		Pico::LastErrorCode = errorCode;
+#elif defined(AL_PLATFORM_LINUX)
+		*_errno() = errorCode;
+		*__errno() = errorCode;
+#elif defined(AL_PLATFORM_WINDOWS)
+		::SetLastError(errorCode);
 #endif
 	}
 
