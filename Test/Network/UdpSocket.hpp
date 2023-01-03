@@ -40,6 +40,10 @@ static void AL_Network_UdpSocket()
 		IPEndPoint { .Host = IPAddress::Loopback(), .Port = 10000 }
 	);
 
+	socket.SetBlocking(
+		False
+	);
+
 	while ((numberOfBytesReceived = socket.Receive(&buffer[0], buffer.GetCapacity(), remoteEP)) != 0)
 	{
 #if defined(AL_TEST_SHOW_CONSOLE_OUTPUT)
