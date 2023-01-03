@@ -16,7 +16,8 @@ static void AL_Hardware_Drivers_AT24C256()
 	using namespace AL::Hardware::Drivers;
 
 	AT24C256 at24c256(
-		FileSystem::Path("/dev/i2c-1")
+		FileSystem::Path("/dev/i2c-1"),
+		100000
 	);
 
 	try

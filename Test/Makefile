@@ -6,7 +6,7 @@ OBJECT_FILES = $(SOURCE_FILES:.cpp=.o)
 
 AL_INCLUDE   ?= ..
 
-CPPFLAGS     += -D_DEBUG
+#CPPFLAGS     += -DNDEBUG
 CPPFLAGS     += -DAL_TEST_SHOW_CONSOLE_OUTPUT
 CXXFLAGS     += -Wall -Wfatal-errors -g -std=c++20 -I. -I"$(AL_INCLUDE)"
 #CXXFLAGS     += -Wno-unused-function -Wno-unused-variable -Wno-unused-lambda-capture -Wno-unused-private-field
@@ -24,9 +24,11 @@ endif
 
 ifdef PLATFORM
 	ifeq ($(PLATFORM), LINUX)
+#		libusb-1.0-0-dev libi2c-dev libgpiod-dev libgl-dev libglu1-mesa-dev liblua5.4-dev libsqlite3-dev
+
 		LDLIBS += -ldl -lpthread -lusb-1.0 -li2c -lgpiod
 		LDLIBS += -lGL -lGLU
-		LDLIBS += -llua
+		LDLIBS += -llua5.4
 		LDLIBS += -lsqlite3
 	endif
 

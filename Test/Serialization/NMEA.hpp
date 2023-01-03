@@ -13,14 +13,16 @@ static void AL_Serialization_NMEA()
 	using namespace AL;
 	using namespace AL::Serialization;
 
-	size_t       i = 0;
+	AL::size_t   i = 0;
 	NMEASentence sentence;
 
 	for (auto message : AL_Serialization_NMEA_Messages)
 	{
+#if defined(AL_TEST_SHOW_CONSOLE_OUTPUT)
 		OS::Console::WriteLine(
-			ToString(++i)
+			ToString(i++ + 6)
 		);
+#endif
 
 		if (!NMEA::FromString(sentence, message))
 		{
@@ -131,7 +133,7 @@ static void AL_Serialization_NMEA()
 				);
 
 				OS::Console::WriteLine(
-					"Time: [%lu:%lu:%lu.%lu]",
+					"Time: %lu:%lu:%lu.%lu",
 					sentence.GGA.Time.Hours,
 					sentence.GGA.Time.Minutes,
 					sentence.GGA.Time.Seconds,
@@ -171,7 +173,7 @@ static void AL_Serialization_NMEA()
 				);
 
 				OS::Console::WriteLine(
-					"Time: [%lu:%lu:%lu.%lu]",
+					"Time: %lu:%lu:%lu.%lu",
 					sentence.GLL.Time.Hours,
 					sentence.GLL.Time.Minutes,
 					sentence.GLL.Time.Seconds,
@@ -225,7 +227,7 @@ static void AL_Serialization_NMEA()
 				);
 
 				OS::Console::WriteLine(
-					"Time: [%lu:%lu:%lu.%lu]",
+					"Time: %lu:%lu:%lu.%lu",
 					sentence.RMC.Time.Hours,
 					sentence.RMC.Time.Minutes,
 					sentence.RMC.Time.Seconds,
