@@ -79,7 +79,9 @@ namespace AL::Network
 			udpSocket.isOpen          = False;
 			udpSocket.isBound         = False;
 			udpSocket.isBlocking      = True;
+#if defined(AL_PLATFORM_WINDOWS)
 			udpSocket.isWinSockLoaded = True;
+#endif
 		}
 
 		explicit UdpSocket(AddressFamilies addressFamily)
@@ -112,11 +114,13 @@ namespace AL::Network
 				Close();
 			}
 
+#if defined(AL_PLATFORM_WINDOWS)
 			if (isWinSockLoaded)
 			{
 
 				WinSock::Unload();
 			}
+#endif
 		}
 
 		virtual Bool IsOpen() const override

@@ -104,7 +104,9 @@ namespace AL::Network
 			tcpSocket.isBound         = False;
 			tcpSocket.isBlocking      = True;
 			tcpSocket.isConnected     = False;
+#if defined(AL_PLATFORM_WINDOWS)
 			tcpSocket.isWinSockLoaded = False;
+#endif
 		}
 
 		explicit TcpSocket(AddressFamilies addressFamily)
@@ -137,11 +139,13 @@ namespace AL::Network
 				Close();
 			}
 
+#if defined(AL_PLATFORM_WINDOWS)
 			if (isWinSockLoaded)
 			{
 
 				WinSock::Unload();
 			}
+#endif
 		}
 
 		virtual Bool IsOpen() const override

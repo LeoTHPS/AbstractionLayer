@@ -327,7 +327,7 @@ namespace AL::Hardware
 			throw NotImplementedException();
 	#endif
 
-			this->value = value;
+			this->value = value ? GPIOPinValues::High : GPIOPinValues::Low;
 #else
 			throw NotImplementedException();
 #endif
@@ -387,7 +387,7 @@ namespace AL::Hardware
 			throw NotImplementedException();
 	#endif
 
-			this->value = value;
+			this->value = value ? GPIOPinValues::High : GPIOPinValues::Low;
 #else
 			throw NotImplementedException();
 #endif
@@ -544,7 +544,7 @@ namespace AL::Hardware
 			if ((this->direction = direction) == GPIOPinDirections::Out)
 			{
 
-				this->value = value;
+				this->value = value ? GPIOPinValues::High : GPIOPinValues::Low;
 			}
 #else
 			throw NotImplementedException();
