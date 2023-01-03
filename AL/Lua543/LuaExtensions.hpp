@@ -3,41 +3,11 @@
 
 #include "LuaException.hpp"
 
-#if AL_HAS_INCLUDE(<lua.hpp>)
-	#define AL_DEPENDENCY_LUA
-
-	#include <lua.hpp>
-#else
-	#define LUA_INT_INT             1
-	#define LUA_INT_LONG            2
-	#define LUA_INT_LONGLONG        3
-	#define LUA_INT_TYPE            LUA_INT_LONGLONG
-
-	#if LUA_INT_TYPE == LUA_INT_INT
-		typedef int                 lua_Integer;
-	#elif LUA_INT_TYPE == LUA_INT_LONG
-		typedef long                lua_Integer;
-	#elif LUA_INT_TYPE == LUA_INT_LONGLONG
-		typedef long long           lua_Integer;
-	#endif
-
-	#define LUA_FLOAT_FLOAT         1
-	#define LUA_FLOAT_DOUBLE        2
-	#define LUA_FLOAT_LONGDOUBLE    3
-	#define LUA_FLOAT_TYPE          LUA_FLOAT_DOUBLE
-
-	#if LUA_FLOAT_TYPE == LUA_FLOAT_FLOAT
-		typedef float               lua_Number;
-	#elif LUA_FLOAT_TYPE == LUA_FLOAT_DOUBLE
-		typedef double              lua_Number;
-	#elif LUA_FLOAT_TYPE == LUA_FLOAT_LONGDOUBLE
-		typedef long double         lua_Number;
-	#endif
-
-	typedef int(*                   lua_CFunction)(lua_State*);
-
-	#define AL_DEPENDENCY_LUA_MISSING_VERSION "Lua 5.4.3"
+#if !AL_HAS_INCLUDE(<lua.hpp>)
+	#error Missing lua.hpp
 #endif
+
+#include <lua.hpp>
 
 #define AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(__type__, __get__, __push__, __pop__) \
 	template<> \
@@ -99,7 +69,6 @@ namespace AL::Lua543::Extensions
 	}
 	static char             getchar(::lua_State* lua, size_t index)
 	{
-#if defined(AL_DEPENDENCY_LUA)
 		auto value = ::lua_tointeger(
 			lua,
 			static_cast<int>(index & Integer<int>::SignedCastMask)
@@ -108,26 +77,15 @@ namespace AL::Lua543::Extensions
 		return static_cast<char>(
 			value
 		);
-#else
-		throw DependencyMissingException(
-			AL_DEPENDENCY_LUA_MISSING_VERSION
-		);
-#endif
 	}
 	static const char*      getstring(::lua_State* lua, size_t index)
 	{
-#if defined(AL_DEPENDENCY_LUA)
 		auto value = ::lua_tostring(
 			lua,
 			static_cast<int>(index & Integer<int>::SignedCastMask)
 		);
 
 		return value;
-#else
-		throw DependencyMissingException(
-			AL_DEPENDENCY_LUA_MISSING_VERSION
-		);
-#endif
 	}
 	static String           getString(::lua_State* lua, size_t index)
 	{
@@ -142,117 +100,69 @@ namespace AL::Lua543::Extensions
 	}
 	static Bool             getboolean(::lua_State* lua, size_t index)
 	{
-#if defined(AL_DEPENDENCY_LUA)
 		auto value = ::lua_toboolean(
 			lua,
 			static_cast<int>(index & Integer<int>::SignedCastMask)
 		);
 
 		return value == 1;
-#else
-		throw DependencyMissingException(
-			AL_DEPENDENCY_LUA_MISSING_VERSION
-		);
-#endif
 	}
 	static Void*            getlightuserdata(::lua_State* lua, size_t index)
 	{
-#if defined(AL_DEPENDENCY_LUA)
 		auto value = ::lua_touserdata(
 			lua,
 			static_cast<int>(index & Integer<int>::SignedCastMask)
 		);
 
 		return value;
-#else
-		throw DependencyMissingException(
-			AL_DEPENDENCY_LUA_MISSING_VERSION
-		);
-#endif
 	}
 	static ::lua_Number     getnumber(::lua_State* lua, size_t index)
 	{
-#if defined(AL_DEPENDENCY_LUA)
 		auto value = ::lua_tonumber(
 			lua,
 			static_cast<int>(index & Integer<int>::SignedCastMask)
 		);
 
 		return value;
-#else
-		throw DependencyMissingException(
-			AL_DEPENDENCY_LUA_MISSING_VERSION
-		);
-#endif
 	}
 	static ::lua_Integer    getinteger(::lua_State* lua, size_t index)
 	{
-#if defined(AL_DEPENDENCY_LUA)
 		auto value = ::lua_tointeger(
 			lua,
 			static_cast<int>(index & Integer<int>::SignedCastMask)
 		);
 
 		return value;
-#else
-		throw DependencyMissingException(
-			AL_DEPENDENCY_LUA_MISSING_VERSION
-		);
-#endif
 	}
 	static lua_CFunction    getcfunction(::lua_State* lua, size_t index)
 	{
-#if defined(AL_DEPENDENCY_LUA)
 		auto value = ::lua_tocfunction(
 			lua,
 			static_cast<int>(index & Integer<int>::SignedCastMask)
 		);
 
 		return value;
-#else
-		throw DependencyMissingException(
-			AL_DEPENDENCY_LUA_MISSING_VERSION
-		);
-#endif
 	}
 
 	static Void             pushnil(::lua_State* lua, ::std::nullptr_t)
 	{
-#if defined(AL_DEPENDENCY_LUA)
 		::lua_pushnil(
 			lua
 		);
-#else
-		throw DependencyMissingException(
-			AL_DEPENDENCY_LUA_MISSING_VERSION
-		);
-#endif
 	}
 	static Void             pushchar(::lua_State* lua, char value)
 	{
-#if defined(AL_DEPENDENCY_LUA)
 		::lua_pushinteger(
 			lua,
 			static_cast<::lua_Integer>(value)
 		);
-#else
-		throw DependencyMissingException(
-			AL_DEPENDENCY_LUA_MISSING_VERSION
-		);
-#endif
 	}
 	static Void             pushstring(::lua_State* lua, const char* value)
 	{
-#if defined(AL_DEPENDENCY_LUA)
 		::lua_pushstring(
 			lua,
 			value
 		);
-#else
-		throw DependencyMissingException(
-			AL_DEPENDENCY_LUA_MISSING_VERSION
-		);
-#endif
 	}
 	static Void             pushString(::lua_State* lua, const String& value)
 	{
@@ -263,87 +173,50 @@ namespace AL::Lua543::Extensions
 	}
 	static Void             pushboolean(::lua_State* lua, Bool value)
 	{
-#if defined(AL_DEPENDENCY_LUA)
 		::lua_pushboolean(
 			lua,
 			value ? 1 : 0
 		);
-#else
-		throw DependencyMissingException(
-			AL_DEPENDENCY_LUA_MISSING_VERSION
-		);
-#endif
 	}
 	static Void             pushlightuserdata(::lua_State* lua, Void* value)
 	{
-#if defined(AL_DEPENDENCY_LUA)
 		::lua_pushlightuserdata(
 			lua,
 			value
 		);
-#else
-		throw DependencyMissingException(
-			AL_DEPENDENCY_LUA_MISSING_VERSION
-		);
-#endif
 	}
 	static Void             pushnumber(::lua_State* lua, ::lua_Number value)
 	{
-#if defined(AL_DEPENDENCY_LUA)
 		::lua_pushnumber(
 			lua,
 			value
 		);
-#else
-		throw DependencyMissingException(
-			AL_DEPENDENCY_LUA_MISSING_VERSION
-		);
-#endif
 	}
 	static Void             pushinteger(::lua_State* lua, ::lua_Integer value)
 	{
-#if defined(AL_DEPENDENCY_LUA)
 		::lua_pushinteger(
 			lua,
 			value
 		);
-#else
-		throw DependencyMissingException(
-			AL_DEPENDENCY_LUA_MISSING_VERSION
-		);
-#endif
 	}
 	static Void             pushcfunction(::lua_State* lua, lua_CFunction value)
 	{
-#if defined(AL_DEPENDENCY_LUA)
 		::lua_pushcfunction(
 			lua,
 			value
 		);
-#else
-		throw DependencyMissingException(
-			AL_DEPENDENCY_LUA_MISSING_VERSION
-		);
-#endif
 	}
 
 	static Void             pop(::lua_State* lua, size_t count)
 	{
-#if defined(AL_DEPENDENCY_LUA)
 		::lua_pop(
 			lua,
 			static_cast<int>(count & Integer<int>::SignedCastMask)
 		);
-#else
-		throw DependencyMissingException(
-			AL_DEPENDENCY_LUA_MISSING_VERSION
-		);
-#endif
 	}
 	template<typename T>
 	static T                pop(::lua_State* lua, size_t count)
 	{
-#if defined(AL_DEPENDENCY_LUA)
 		auto value = Type_Functions<T>::Get(
 			lua,
 			1
@@ -355,17 +228,11 @@ namespace AL::Lua543::Extensions
 		);
 
 		return value;
-#else
-		throw DependencyMissingException(
-			AL_DEPENDENCY_LUA_MISSING_VERSION
-		);
-#endif
 	}
 
 	// @throw AL::Exception
 	static ::lua_State*     newstate()
 	{
-#if defined(AL_DEPENDENCY_LUA)
 		::lua_State* lua;
 
 		if ((lua = ::luaL_newstate()) == nullptr)
@@ -377,30 +244,18 @@ namespace AL::Lua543::Extensions
 		}
 
 		return lua;
-#else
-		throw DependencyMissingException(
-			AL_DEPENDENCY_LUA_MISSING_VERSION
-		);
-#endif
 	}
 
 	static Void             close(::lua_State* lua)
 	{
-#if defined(AL_DEPENDENCY_LUA)
 		::lua_close(
 			lua
 		);
-#else
-		throw DependencyMissingException(
-			AL_DEPENDENCY_LUA_MISSING_VERSION
-		);
-#endif
 	}
 
 	// @throw AL::Exception
 	static Void             dostring(::lua_State* lua, const char* string)
 	{
-#if defined(AL_DEPENDENCY_LUA)
 		if (luaL_dostring(lua, string) != LUA_OK)
 		{
 
@@ -409,11 +264,6 @@ namespace AL::Lua543::Extensions
 				"luaL_dostring"
 			);
 		}
-#else
-		throw DependencyMissingException(
-			AL_DEPENDENCY_LUA_MISSING_VERSION
-		);
-#endif
 	}
 	// @throw AL::Exception
 	static Void             doString(::lua_State* lua, const String& string)
@@ -427,7 +277,6 @@ namespace AL::Lua543::Extensions
 	// @throw AL::Exception
 	static Void             dofile(::lua_State* lua, const char* path)
 	{
-#if defined(AL_DEPENDENCY_LUA)
 		if (luaL_dofile(lua, path) != LUA_OK)
 		{
 
@@ -436,11 +285,6 @@ namespace AL::Lua543::Extensions
 				"luaL_dofile"
 			);
 		}
-#else
-		throw DependencyMissingException(
-			AL_DEPENDENCY_LUA_MISSING_VERSION
-		);
-#endif
 	}
 	// @throw AL::Exception
 	static Void             doFile(::lua_State* lua, const String& path)
@@ -453,16 +297,10 @@ namespace AL::Lua543::Extensions
 
 	static Void             getglobal(::lua_State* lua, const char* name)
 	{
-#if defined(AL_DEPENDENCY_LUA)
 		::lua_getglobal(
 			lua,
 			name
 		);
-#else
-		throw DependencyMissingException(
-			AL_DEPENDENCY_LUA_MISSING_VERSION
-		);
-#endif
 	}
 	static Void             getGlobal(::lua_State* lua, const String& name)
 	{
@@ -474,16 +312,10 @@ namespace AL::Lua543::Extensions
 
 	static Void             setglobal(::lua_State* lua, const char* name)
 	{
-#if defined(AL_DEPENDENCY_LUA)
 		::lua_setglobal(
 			lua,
 			name
 		);
-#else
-		throw DependencyMissingException(
-			AL_DEPENDENCY_LUA_MISSING_VERSION
-		);
-#endif
 	}
 	static Void             setGlobal(::lua_State* lua, const String& name)
 	{
@@ -495,17 +327,11 @@ namespace AL::Lua543::Extensions
 
 	static Void             call(::lua_State* lua, size_t argCount, size_t returnCount)
 	{
-#if defined(AL_DEPENDENCY_LUA)
 		::lua_call(
 			lua,
 			static_cast<int>(argCount & Integer<int>::SignedCastMask),
 			static_cast<int>(returnCount & Integer<int>::SignedCastMask)
 		);
-#else
-		throw DependencyMissingException(
-			AL_DEPENDENCY_LUA_MISSING_VERSION
-		);
-#endif
 	}
 }
 
