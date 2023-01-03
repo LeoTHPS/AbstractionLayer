@@ -132,7 +132,7 @@ namespace AL::Hardware::Drivers::RP2040
 				"SPI already open"
 			);
 
-			::spi_init(
+			baud = ::spi_init(
 				GetSPI(),
 				GetBaud()
 			);
@@ -194,20 +194,6 @@ namespace AL::Hardware::Drivers::RP2040
 				size
 			);
 		}
-		Void Read16(Void* lpBuffer, size_t size)
-		{
-			AL_ASSERT(
-				IsOpen(),
-				"SPI not open"
-			);
-
-			::spi_read16_blocking(
-				GetSPI(),
-				0,
-				reinterpret_cast<::uint16_t*>(lpBuffer),
-				size
-			);
-		}
 
 		Void Write(const Void* lpBuffer, size_t size)
 		{
@@ -219,19 +205,6 @@ namespace AL::Hardware::Drivers::RP2040
 			::spi_write_blocking(
 				GetSPI(),
 				reinterpret_cast<const ::uint8_t*>(lpBuffer),
-				size
-			);
-		}
-		Void Write16(const Void* lpBuffer, size_t size)
-		{
-			AL_ASSERT(
-				IsOpen(),
-				"SPI not open"
-			);
-
-			::spi_write16_blocking(
-				GetSPI(),
-				reinterpret_cast<const ::uint16_t*>(lpBuffer),
 				size
 			);
 		}
@@ -247,20 +220,6 @@ namespace AL::Hardware::Drivers::RP2040
 				GetSPI(),
 				reinterpret_cast<const ::uint8_t*>(lpTX),
 				reinterpret_cast<::uint8_t*>(lpRX),
-				size
-			);
-		}
-		Void WriteRead16(const Void* lpTX, Void* lpRX, size_t size)
-		{
-			AL_ASSERT(
-				IsOpen(),
-				"SPI not open"
-			);
-
-			::spi_write16_read16_blocking(
-				GetSPI(),
-				reinterpret_cast<const ::uint16_t*>(lpTX),
-				reinterpret_cast<::uint16_t*>(lpRX),
 				size
 			);
 		}

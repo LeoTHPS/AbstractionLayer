@@ -102,7 +102,7 @@ namespace AL::Hardware::Drivers::RP2040
 				"UART already open"
 			);
 
-			::uart_init(
+			baud = ::uart_init(
 				GetUART(),
 				GetBaud()
 			);

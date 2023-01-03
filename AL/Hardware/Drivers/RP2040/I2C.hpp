@@ -7,6 +7,8 @@
 
 #include "GPIO.hpp"
 
+#include "AL/OS/SystemException.hpp"
+
 #include <hardware/i2c.h>
 
 namespace AL::Hardware::Drivers::RP2040
@@ -123,7 +125,7 @@ namespace AL::Hardware::Drivers::RP2040
 				"I2C already open"
 			);
 
-			::i2c_init(
+			baud = ::i2c_init(
 				GetI2C(),
 				GetBaud()
 			);
@@ -170,7 +172,7 @@ namespace AL::Hardware::Drivers::RP2040
 			}
 		}
 
-		Void Read(Void* lpBuffer, size_t size)
+		Void Read(Void* lpBuffer, size_t size) const
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -183,20 +185,21 @@ namespace AL::Hardware::Drivers::RP2040
 				size
 			);
 		}
-		Void Read(Void* lpBuffer, size_t size, Address address, Bool nostop = False)
+		// @throw AL::Exception
+		Void Read(Void* lpBuffer, size_t size, Address address, Bool nostop = False) const
 		{
 			AL_ASSERT(
 				IsOpen(),
 				"I2C not open"
 			);
 
-			::i2c_read_blocking(
-				GetI2C(),
-				address,
-				reinterpret_cast<::uint8_t*>(lpBuffer),
-				size,
-				nostop
-			);
+			if (::i2c_read_blocking(GetI2C(), address, reinterpret_cast<::uint8_t*>(lpBuffer), size, nostop) == ::PICO_ERROR_GENERIC)
+			{
+
+				throw OS::SystemException(
+					"i2c_read_blocking"
+				);
+			}
 		}
 
 		Void Write(const Void* lpBuffer, size_t size)
@@ -212,6 +215,7 @@ namespace AL::Hardware::Drivers::RP2040
 				size
 			);
 		}
+		// @throw AL::Exception
 		Void Write(const Void* lpBuffer, size_t size, Address address, Bool nostop = False)
 		{
 			AL_ASSERT(
@@ -219,13 +223,13 @@ namespace AL::Hardware::Drivers::RP2040
 				"I2C not open"
 			);
 
-			::i2c_write_blocking(
-				GetI2C(),
-				address,
-				reinterpret_cast<const ::uint8_t*>(lpBuffer),
-				size,
-				nostop
-			);
+			if (::i2c_write_blocking(GetI2C(), address, reinterpret_cast<const ::uint8_t*>(lpBuffer), size, nostop) != ::PICO_ERROR_GENERIC)
+			{
+
+				throw OS::SystemException(
+					"i2c_write_blocking"
+				);
+			}
 		}
 
 		Void SetSlaveMode(Bool set, uint8 address)

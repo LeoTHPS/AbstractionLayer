@@ -329,7 +329,13 @@ namespace AL::Hardware::Drivers::RP2040
 				value == PinDirections::Output
 			);
 
-			direction = value;
+			if ((direction = value) == PinDirections::Output)
+			{
+				::gpio_put(
+					GetPin(),
+					Get() == PinValues::High
+				);
+			}
 		}
 
 		GPIO& operator = (GPIO&& gpio)
