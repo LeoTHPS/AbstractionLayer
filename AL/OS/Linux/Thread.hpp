@@ -2,7 +2,7 @@
 #include "AL/Common.hpp"
 
 #if !defined(AL_PLATFORM_LINUX)
-	#warning Platform not supported
+	#error Platform not supported
 #endif
 
 #include "AL/OS/Timer.hpp"
@@ -10,14 +10,14 @@
 
 #include <unistd.h>
 
-#if AL_HAS_INCLUDE(<pthread.h>)
-	#define AL_DEPENDENCY_PTHREAD
-
-	extern "C"
-	{
-		#include <pthread.h>
-	}
+#if !AL_HAS_INCLUDE(<pthread.h>)
+	#error Missing pthread.h
 #endif
+
+extern "C"
+{
+	#include <pthread.h>
+}
 
 #include <sys/syscall.h>
 
@@ -45,11 +45,7 @@ namespace AL::OS::Linux
 
 			virtual Bool IsDetatched() const = 0;
 
-#if defined(AL_DEPENDENCY_PTHREAD)
 			virtual ::pthread_t* GetHandle() const = 0;
-#else
-			virtual Void* GetHandle() const = 0;
-#endif
 
 			// @throw AL::Exception
 			virtual Void Start() = 0;
@@ -74,9 +70,7 @@ namespace AL::OS::Linux
 
 			F function;
 
-#if defined(AL_DEPENDENCY_PTHREAD)
 			::pthread_t pthread;
-#endif
 
 		public:
 			explicit NativeThread(F&& function)
@@ -100,19 +94,12 @@ namespace AL::OS::Linux
 				return isDetatched;
 			}
 
-#if defined(AL_DEPENDENCY_PTHREAD)
 			virtual ::pthread_t* GetHandle() const override
 			{
 				return const_cast<::pthread_t*>(
 					&pthread
 				);
 			}
-#else
-			virtual Void* GetHandle() const override
-			{
-				return nullptr;
-			}
-#endif
 
 			// @throw AL::Exception
 			virtual Void Start() override
@@ -141,7 +128,6 @@ namespace AL::OS::Linux
 					return (Void*)(nullptr);
 				};
 
-#if defined(AL_DEPENDENCY_PTHREAD)
 				ErrorCode errorCode;
 
 				if ((errorCode = ::pthread_create(&pthread, nullptr, function_detour, this)) != 0)
@@ -152,11 +138,6 @@ namespace AL::OS::Linux
 						errorCode
 					);
 				}
-#else
-				throw DependencyMissingException(
-					"pthread"
-				);
-#endif
 
 				isRunning = True;
 			}
@@ -169,7 +150,6 @@ namespace AL::OS::Linux
 					"NativeThread not running"
 				);
 
-#if defined(AL_DEPENDENCY_PTHREAD)
 				ErrorCode errorCode;
 
 				if ((errorCode = ::pthread_detach(pthread)) != 0)
@@ -180,9 +160,6 @@ namespace AL::OS::Linux
 						errorCode
 					);
 				}
-#else
-				throw NotImplementedException();
-#endif
 
 				isDetatched = True;
 			}
@@ -195,7 +172,6 @@ namespace AL::OS::Linux
 					"NativeThread not running"
 				);
 
-#if defined(AL_DEPENDENCY_PTHREAD)
 				ErrorCode errorCode;
 
 				if ((errorCode = ::pthread_cancel(pthread)) != 0)
@@ -206,9 +182,6 @@ namespace AL::OS::Linux
 						errorCode
 					);
 				}
-#else
-				throw NotImplementedException();
-#endif
 
 				isRunning = False;
 			}
@@ -226,7 +199,6 @@ namespace AL::OS::Linux
 
 				while (timer.GetElapsed() < maxWaitTime)
 				{
-#if defined(AL_DEPENDENCY_PTHREAD)
 					ErrorCode errorCode;
 					Void*     threadRetValue;
 
@@ -243,9 +215,6 @@ namespace AL::OS::Linux
 							errorCode
 						);
 					}
-#else
-					throw NotImplementedException();
-#endif
 				}
 
 				return !IsRunning();
@@ -468,14 +437,8 @@ namespace AL::OS::Linux
 
 	inline ThreadId GetCurrentThreadId()
 	{
-#if defined(AL_DEPENDENCY_PTHREAD)
 		return static_cast<uint32>(
 			::syscall(SYS_gettid)
 		);
-#else
-		throw DependencyMissingException(
-			"pthread"
-		);
-#endif
 	}
 }
