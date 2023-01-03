@@ -2,7 +2,7 @@
 #include "AL/Common.hpp"
 
 #if !defined(AL_PLATFORM_RP2040)
-	#warning Platform not supported
+	#error Platform not supported
 #endif
 
 namespace AL::Hardware::Drivers::RP2040

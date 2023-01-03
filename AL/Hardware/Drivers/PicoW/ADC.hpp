@@ -2,7 +2,7 @@
 #include "AL/Common.hpp"
 
 #if !defined(AL_PLATFORM_PICO_W)
-	#warning Platform not supported
+	#error Platform not supported
 #endif
 
 #include "AL/Hardware/Drivers/RP2040/ADC.hpp"

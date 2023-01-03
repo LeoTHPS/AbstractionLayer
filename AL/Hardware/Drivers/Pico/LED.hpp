@@ -2,14 +2,12 @@
 #include "AL/Common.hpp"
 
 #if !defined(AL_PLATFORM_PICO)
-	#warning Platform not supported
+	#error Platform not supported
 #endif
 
-#if defined(AL_PLATFORM_PICO)
-	#include "Pins.hpp"
+#include "Pins.hpp"
 
-	#include <hardware/gpio.h>
-#endif
+#include <hardware/gpio.h>
 
 namespace AL::Hardware::Drivers::Pico
 {
@@ -33,7 +31,6 @@ namespace AL::Hardware::Drivers::Pico
 				"LED already open"
 			);
 
-#if defined(AL_PLATFORM_PICO)
 			::gpio_init(
 				PINS_LED
 			);
@@ -47,9 +44,6 @@ namespace AL::Hardware::Drivers::Pico
 				PINS_LED,
 				false
 			);
-#else
-			throw PlatformNotSupportedException();
-#endif
 
 			isOpen = True;
 		}
@@ -58,11 +52,9 @@ namespace AL::Hardware::Drivers::Pico
 		{
 			if (IsOpen())
 			{
-#if defined(AL_PLATFORM_PICO)
 				::gpio_deinit(
 					PINS_LED
 				);
-#endif
 
 				isOpen = False;
 			}
@@ -76,9 +68,7 @@ namespace AL::Hardware::Drivers::Pico
 				"LED not open"
 			);
 
-#if defined(AL_PLATFORM_PICO)
 			value = ::gpio_get(PINS_LED);
-#endif
 		}
 
 		// @throw AL::Exception
@@ -89,12 +79,10 @@ namespace AL::Hardware::Drivers::Pico
 				"LED not open"
 			);
 
-#if defined(AL_PLATFORM_PICO)
 			::gpio_put(
 				PINS_LED,
 				value
 			);
-#endif
 		}
 	};
 }

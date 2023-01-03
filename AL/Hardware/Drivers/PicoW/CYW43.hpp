@@ -2,35 +2,35 @@
 #include "AL/Common.hpp"
 
 #if !defined(AL_PLATFORM_PICO_W)
-	#warning Platform not supported
+	#error Platform not supported
 #endif
 
 #include "AL/OS/SystemException.hpp"
 
-#if AL_HAS_INCLUDE(<pico/cyw43_arch.h>)
-	#define AL_DEPENDENCY_PICO_CYW43
+#if !AL_HAS_INCLUDE(<pico/cyw43_arch.h>)
+	#error Missing pico/cyw43_arch.h
+#endif
 
-	#include <pico/cyw43_arch.h>
+#include <boards/pico_w.h>
 
-	#include <boards/pico_w.h>
+#include <pico/cyw43_arch.h>
 
-	#if defined(CYW43_LWIP)
-		#define AL_DEPENDENCY_PICO_CYW43_LWIP CYW43_LWIP
+#if defined(CYW43_LWIP)
+	#define AL_DEPENDENCY_PICO_CYW43_LWIP CYW43_LWIP
 
-		#if defined(LWIP_IPV4) && LWIP_IPV4
-			#define AL_DEPENDENCY_PICO_CYW43_LWIP_IPV4
-		#endif
-
-		#if defined(LWIP_IPV6) && LWIP_IPV6
-			#define AL_DEPENDENCY_PICO_CYW43_LWIP_IPV6
-		#endif
+	#if defined(LWIP_IPV4) && LWIP_IPV4
+		#define AL_DEPENDENCY_PICO_CYW43_LWIP_IPV4
 	#endif
 
-	#if defined(PICO_CYW43_ARCH_POLL)
-		#define AL_DEPENDENCY_PICO_CYW43_ARCH_POLL
-	#elif defined(PICO_CYW43_ARCH_THREADSAFE_BACKGROUND)
-		#define AL_DEPENDENCY_PICO_CYW43_ARCH_THREADSAFE_BACKGROUND
+	#if defined(LWIP_IPV6) && LWIP_IPV6
+		#define AL_DEPENDENCY_PICO_CYW43_LWIP_IPV6
 	#endif
+#endif
+
+#if defined(PICO_CYW43_ARCH_POLL)
+	#define AL_DEPENDENCY_PICO_CYW43_ARCH_POLL
+#elif defined(PICO_CYW43_ARCH_THREADSAFE_BACKGROUND)
+	#define AL_DEPENDENCY_PICO_CYW43_ARCH_THREADSAFE_BACKGROUND
 #endif
 
 namespace AL::Hardware::Drivers::PicoW
@@ -210,7 +210,6 @@ namespace AL::Hardware::Drivers::PicoW
 				"CYW43 already open"
 			);
 
-#if defined(AL_DEPENDENCY_PICO_CYW43)
 			OS::ErrorCode errorCode;
 
 			if ((errorCode = ::cyw43_arch_init_with_country(static_cast<typename Get_Enum_Or_Integer_Base<CYW43Countries>::Type>(country))) != PICO_ERROR_NONE)
@@ -237,11 +236,6 @@ namespace AL::Hardware::Drivers::PicoW
 					"Error disabling LED"
 				);
 			}
-#else
-			throw DependencyMissingException(
-				"CYW43"
-			);
-#endif
 
 			isOpen = True;
 		}
@@ -250,7 +244,6 @@ namespace AL::Hardware::Drivers::PicoW
 		{
 			if (IsOpen())
 			{
-#if defined(AL_DEPENDENCY_PICO_CYW43)
 				try
 				{
 					LED::Write(
@@ -262,7 +255,6 @@ namespace AL::Hardware::Drivers::PicoW
 				}
 
 				::cyw43_arch_deinit();
-#endif
 
 				isOpen      = False;
 				isConnected = False;
@@ -278,7 +270,6 @@ namespace AL::Hardware::Drivers::PicoW
 				"CYW43 already open"
 			);
 
-#if defined(AL_DEPENDENCY_PICO_CYW43)
 			OS::ErrorCode errorCode;
 
 			ScanContext context =
@@ -312,9 +303,6 @@ namespace AL::Hardware::Drivers::PicoW
 			{
 				Poll();
 			}
-#else
-			throw NotImplementedException();
-#endif
 		}
 
 		// @throw AL::Exception
@@ -325,7 +313,6 @@ namespace AL::Hardware::Drivers::PicoW
 				"CYW43 not open"
 			);
 
-#if defined(AL_DEPENDENCY_PICO_CYW43)
 			OS::ErrorCode errorCode;
 
 			::cyw43_arch_enable_sta_mode();
@@ -338,9 +325,6 @@ namespace AL::Hardware::Drivers::PicoW
 					errorCode
 				);
 			}
-#else
-			throw NotImplementedException();
-#endif
 
 			isConnected = True;
 			isListening = False;
@@ -353,7 +337,6 @@ namespace AL::Hardware::Drivers::PicoW
 				"CYW43 not open"
 			);
 
-#if defined(AL_DEPENDENCY_PICO_CYW43)
 			OS::ErrorCode errorCode;
 
 			::cyw43_arch_enable_sta_mode();
@@ -366,9 +349,6 @@ namespace AL::Hardware::Drivers::PicoW
 					errorCode
 				);
 			}
-#else
-			throw NotImplementedException();
-#endif
 
 			isConnected = True;
 			isListening = False;
@@ -383,7 +363,6 @@ namespace AL::Hardware::Drivers::PicoW
 				"CYW43 not open"
 			);
 
-#if defined(AL_DEPENDENCY_PICO_CYW43)
 			OS::ErrorCode errorCode;
 
 			::cyw43_arch_enable_sta_mode();
@@ -401,9 +380,6 @@ namespace AL::Hardware::Drivers::PicoW
 					errorCode
 				);
 			}
-#else
-			throw NotImplementedException();
-#endif
 
 			isConnected = True;
 			isListening = False;
@@ -419,7 +395,6 @@ namespace AL::Hardware::Drivers::PicoW
 				"CYW43 not open"
 			);
 
-#if defined(AL_DEPENDENCY_PICO_CYW43)
 			OS::ErrorCode errorCode;
 
 			::cyw43_arch_enable_sta_mode();
@@ -437,9 +412,6 @@ namespace AL::Hardware::Drivers::PicoW
 					errorCode
 				);
 			}
-#else
-			throw NotImplementedException();
-#endif
 
 			isConnected = True;
 			isListening = False;
@@ -455,15 +427,11 @@ namespace AL::Hardware::Drivers::PicoW
 				"CYW43 not open"
 			);
 
-#if defined(AL_DEPENDENCY_PICO_CYW43)
 			::cyw43_arch_enable_ap_mode(
 				ssid.GetCString(),
 				nullptr,
 				CYW43_AUTH_OPEN
 			);
-#else
-			throw NotImplementedException();
-#endif
 
 			isConnected = False;
 			isListening = True;
@@ -476,15 +444,11 @@ namespace AL::Hardware::Drivers::PicoW
 				"CYW43 not open"
 			);
 
-#if defined(AL_DEPENDENCY_PICO_CYW43)
 			::cyw43_arch_enable_ap_mode(
 				ssid.GetCString(),
 				password.GetCString(),
 				static_cast<uint32_t>(authType)
 			);
-#else
-			throw NotImplementedException();
-#endif
 
 			isConnected = False;
 			isListening = True;

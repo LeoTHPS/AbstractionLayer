@@ -2,7 +2,7 @@
 #include "AL/Common.hpp"
 
 #if !defined(AL_PLATFORM_PICO)
-	#warning Platform not supported
+	#error Platform not supported
 #endif
 
 #include <boards/pico.h>
