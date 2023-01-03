@@ -5,6 +5,10 @@
 	#error Platform not supported
 #endif
 
+#if defined(AL_PLATFORM_PICO_W)
+	#error Platform not supported - Use AL::Hardware::PicoW::CYW43::LED instead
+#endif
+
 #include "Pins.hpp"
 
 #include <hardware/gpio.h>
