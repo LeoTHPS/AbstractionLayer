@@ -7,7 +7,7 @@
 
 namespace AL::Hardware
 {
-	enum class MouseEvents
+	enum class MouseEvents : uint8
 	{
 		Move,
 		ButtonUp,
@@ -16,7 +16,7 @@ namespace AL::Hardware
 		ScrollDown
 	};
 
-	enum class MouseButtons
+	enum class MouseButtons : uint8
 	{
 		Left,
 		Right,

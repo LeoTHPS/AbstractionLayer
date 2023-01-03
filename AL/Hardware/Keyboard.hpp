@@ -5,7 +5,7 @@
 
 namespace AL::Hardware
 {
-	enum class Keys
+	enum class Keys : uint8
 	{
 		A,
 		B,
@@ -100,7 +100,7 @@ namespace AL::Hardware
 		COUNT
 	};
 
-	enum class KeyboardEvents
+	enum class KeyboardEvents : uint8
 	{
 		Char,
 		KeyUp,
