@@ -9,9 +9,7 @@
 
 #include "AL/Collections/Array.hpp"
 
-#if defined(AL_PLATFORM_PICO)
-	#warning Platform not supported
-#elif defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_LINUX)
 
 #elif defined(AL_PLATFORM_WINDOWS)
 	#include "WinSock.hpp"
@@ -21,6 +19,8 @@
 	#if defined(AL_COMPILER_MSVC)
 		#pragma comment(lib, "Iphlpapi.lib")
 	#endif
+#else
+	#error Platform not supported
 #endif
 
 namespace AL::Network
@@ -385,6 +385,8 @@ namespace AL::Network
 					break;
 				}
 			}
+#else
+			throw NotImplementedException();
 #endif
 		}
 	};

@@ -5,8 +5,6 @@
 
 #if defined(AL_PLATFORM_PICO_W)
 	#include "LWIP.hpp"
-#elif defined(AL_PLATFORM_PICO)
-	#warning Platform not supported
 #elif defined(AL_PLATFORM_LINUX)
 	#include <fcntl.h>
 	#include <unistd.h>
@@ -17,6 +15,8 @@
 	#include <sys/socket.h>
 #elif defined(AL_PLATFORM_WINDOWS)
 	#include <mstcpip.h>
+#else
+	#error Platform not supported
 #endif
 
 namespace AL::Network

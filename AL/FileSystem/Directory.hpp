@@ -7,14 +7,16 @@
 #include "AL/OS/ErrorCode.hpp"
 #include "AL/OS/SystemException.hpp"
 
-#if defined(AL_PLATFORM_PICO)
-	#warning Platform not supported
-#elif defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_LINUX)
 	#include <fcntl.h>
 	#include <dirent.h>
 
 	#include <sys/stat.h>
 	#include <sys/types.h>
+#elif defined(AL_PLATFORM_WINDOWS)
+
+#else
+	#error Platform not supported
 #endif
 
 namespace AL::FileSystem
@@ -106,6 +108,8 @@ namespace AL::FileSystem
 					"CreateDirectoryA"
 				);
 			}
+#else
+			throw NotImplementedException();
 #endif
 
 			return True;
@@ -291,6 +295,8 @@ namespace AL::FileSystem
 			::FindClose(
 				hFind
 			);
+#else
+			throw NotImplementedException();
 #endif
 		}
 
@@ -420,6 +426,8 @@ namespace AL::FileSystem
 			::FindClose(
 				hFind
 			);
+#else
+			throw NotImplementedException();
 #endif
 		}
 
@@ -549,6 +557,8 @@ namespace AL::FileSystem
 			::FindClose(
 				hFind
 			);
+#else
+			throw NotImplementedException();
 #endif
 		}
 

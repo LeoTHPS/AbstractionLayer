@@ -8,14 +8,14 @@
 
 #if defined(AL_PLATFORM_PICO_W)
 	#include <lwip/dns.h>
-#elif defined(AL_PLATFORM_PICO)
-	#warning Platform not supported
 #elif defined(AL_PLATFORM_LINUX)
 	#include <netdb.h>
 
 	#include <arpa/inet.h>
 #elif defined(AL_PLATFORM_WINDOWS)
 	#include "WinSock.hpp"
+#else
+	#error Platform not supported
 #endif
 
 namespace AL::Network
@@ -49,6 +49,8 @@ namespace AL::Network
 				// throw NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
 				WinSock::Load();
+#else
+				throw NotImplementedException();
 #endif
 			}
 

@@ -4,9 +4,7 @@
 #include "AL/OS/ErrorCode.hpp"
 #include "AL/OS/SystemException.hpp"
 
-#if defined(AL_PLATFORM_PICO)
-	#warning Platform not supported
-#elif defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_LINUX)
 	#include <fcntl.h>
 	#include <unistd.h>
 
@@ -18,6 +16,8 @@
 	#if defined(AL_COMPILER_MSVC)
 		#pragma comment(lib, "Shlwapi.lib")
 	#endif
+#else
+	#error Platform not supported
 #endif
 
 #define AL_MAX_PATH FILENAME_MAX
@@ -212,6 +212,8 @@ namespace AL::FileSystem
 
 				return False;
 			}
+#else
+			throw NotImplementedException();
 #endif
 
 			return True;
@@ -252,6 +254,8 @@ namespace AL::FileSystem
 
 				return False;
 			}
+#else
+			throw NotImplementedException();
 #endif
 
 			return True;
@@ -295,6 +299,8 @@ namespace AL::FileSystem
 			}
 
 			return False;
+#else
+			throw NotImplementedException();
 #endif
 		}
 

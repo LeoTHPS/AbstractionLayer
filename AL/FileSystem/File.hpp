@@ -8,9 +8,7 @@
 
 #include <cstdio>
 
-#if defined(AL_PLATFORM_PICO)
-	#warning Platform not supported
-#elif defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_LINUX)
 	#include <fcntl.h>
 	#include <unistd.h>
 
@@ -18,6 +16,8 @@
 	#include <sys/types.h>
 #elif defined(AL_PLATFORM_WINDOWS)
 	#include <fileapi.h>
+#else
+	#error Platform not supported
 #endif
 
 namespace AL::FileSystem
@@ -90,6 +90,8 @@ namespace AL::FileSystem
 			integer.High.Value = fileInfo.nFileSizeHigh;
 
 			return integer.Value;
+#else
+			throw NotImplementedException();
 #endif
 		}
 
@@ -166,7 +168,10 @@ namespace AL::FileSystem
 			::CloseHandle(
 				hFile
 			);
+#else
+			throw NotImplementedException();
 #endif
+
 			return True;
 		}
 
@@ -196,6 +201,8 @@ namespace AL::FileSystem
 					"DeleteFileA"
 				);
 			}
+#else
+			throw NotImplementedException();
 #endif
 		}
 
@@ -360,6 +367,8 @@ namespace AL::FileSystem
 					"MoveFileA"
 				);
 			}
+#else
+			throw NotImplementedException();
 #endif
 
 			return True;
