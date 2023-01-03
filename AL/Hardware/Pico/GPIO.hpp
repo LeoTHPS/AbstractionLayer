@@ -7,7 +7,7 @@
 
 #include <hardware/gpio.h>
 
-namespace AL::Hardware::Drivers::RP2040
+namespace AL::Hardware::Pico
 {
 	typedef uint8 GPIOPin;
 

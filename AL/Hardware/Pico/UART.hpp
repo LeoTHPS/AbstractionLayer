@@ -9,7 +9,7 @@
 
 #include <hardware/uart.h>
 
-namespace AL::Hardware::Drivers::RP2040
+namespace AL::Hardware::Pico
 {
 	enum class UARTFlags : uint8
 	{

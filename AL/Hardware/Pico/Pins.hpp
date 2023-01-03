@@ -1,16 +1,20 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#if !defined(AL_PLATFORM_PICO_W)
+#if !defined(AL_PLATFORM_PICO)
 	#error Platform not supported
 #endif
 
-#include <boards/pico_w.h>
+#include <boards/pico.h>
 
-namespace AL::Hardware::Drivers::PicoW
+namespace AL::Hardware::Pico
 {
 	enum PINS : uint8
 	{
+		PINS_LED      = PICO_DEFAULT_LED_PIN,
+
+		PINS_SMPS     = PICO_SMPS_MODE_PIN,
+
 		PINS_UART_RX  = PICO_DEFAULT_UART_RX_PIN,
 		PINS_UART_TX  = PICO_DEFAULT_UART_TX_PIN,
 

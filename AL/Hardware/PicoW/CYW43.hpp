@@ -29,7 +29,7 @@
 	#define AL_DEPENDENCY_PICO_CYW43_ARCH_THREADSAFE_BACKGROUND
 #endif
 
-namespace AL::Hardware::Drivers::PicoW
+namespace AL::Hardware::PicoW
 {
 	enum class CYW43AuthTypes : uint32
 	{

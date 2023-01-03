@@ -5,7 +5,7 @@
 #include "AL/OS/SystemException.hpp"
 
 #if defined(AL_PLATFORM_PICO)
-	#include "Drivers/Pico/GPIO.hpp"
+	#include "Pico/GPIO.hpp"
 #elif defined(AL_PLATFORM_LINUX)
 	#if AL_HAS_INCLUDE(<wiringPi.h>)
 		#define AL_DEPENDENCY_WIRINGPI
@@ -63,7 +63,7 @@ namespace AL::Hardware
 		GPIOPinDirections    direction = GPIOPinDirections::Out;
 
 #if defined(AL_PLATFORM_PICO)
-		Drivers::Pico::GPIO  gpio;
+		Pico::GPIO           gpio;
 #elif defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_GPIOD)
 		::gpiod_chip*        lpChip;
@@ -129,8 +129,8 @@ namespace AL::Hardware
 			,
 			gpio(
 				pin,
-				Drivers::Pico::GPIOPinDirections::Output,
-				Drivers::Pico::GPIOPinValues::Low
+				Pico::GPIOPinDirections::Output,
+				Pico::GPIOPinValues::Low
 			)
 #endif
 		{
@@ -268,13 +268,13 @@ namespace AL::Hardware
 			);
 
 #if defined(AL_PLATFORM_PICO)
-			Drivers::Pico::GPIOPinValues _value;
+			Pico::GPIOPinValues _value;
 
 			gpio.Read(
 				_value
 			);
 
-			value = _value == Drivers::Pico::GPIOPinValues::High;
+			value = _value == Pico::GPIOPinValues::High;
 #elif defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_GPIOD)
 			if ((value = ::gpiod_line_get_value(lpLine)) == GPIOPinValue(-1))
@@ -334,7 +334,7 @@ namespace AL::Hardware
 
 #if defined(AL_PLATFORM_PICO)
 			gpio.Write(
-				value ? Drivers::Pico::GPIOPinValues::High : Drivers::Pico::GPIOPinValues::Low
+				value ? Pico::GPIOPinValues::High : Pico::GPIOPinValues::Low
 			);
 #elif defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_GPIOD)
@@ -436,12 +436,12 @@ namespace AL::Hardware
 			switch (direction)
 			{
 				case GPIOPinDirections::In:
-					gpio.SetDirection(Drivers::Pico::GPIOPinDirections::Input);
+					gpio.SetDirection(Pico::GPIOPinDirections::Input);
 					break;
 
 				case GPIOPinDirections::Out:
-					gpio.SetDirection(Drivers::Pico::GPIOPinDirections::Output);
-					gpio.Write(value ? Drivers::Pico::GPIOPinValues::High : Drivers::Pico::GPIOPinValues::Low);
+					gpio.SetDirection(Pico::GPIOPinDirections::Output);
+					gpio.Write(value ? Pico::GPIOPinValues::High : Pico::GPIOPinValues::Low);
 					break;
 
 				default:
@@ -549,13 +549,13 @@ namespace AL::Hardware
 			switch (edge)
 			{
 				case GPIOPinEdges::Both:
-					return gpio.WaitForEdge(Drivers::Pico::GPIOPinEdges::Both);
+					return gpio.WaitForEdge(Pico::GPIOPinEdges::Both);
 
 				case GPIOPinEdges::Rising:
-					return gpio.WaitForEdge(Drivers::Pico::GPIOPinEdges::Rising);
+					return gpio.WaitForEdge(Pico::GPIOPinEdges::Rising);
 
 				case GPIOPinEdges::Falling:
-					return gpio.WaitForEdge(Drivers::Pico::GPIOPinEdges::Falling);
+					return gpio.WaitForEdge(Pico::GPIOPinEdges::Falling);
 
 				default:
 					throw NotImplementedException();

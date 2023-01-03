@@ -9,7 +9,7 @@
 
 #include <hardware/spi.h>
 
-namespace AL::Hardware::Drivers::RP2040
+namespace AL::Hardware::Pico
 {
 	enum class SPIModes : uint8
 	{

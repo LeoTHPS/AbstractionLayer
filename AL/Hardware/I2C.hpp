@@ -8,7 +8,7 @@
 #if defined(AL_PLATFORM_PICO)
 	#include "GPIO.hpp"
 
-	#include "Drivers/Pico/I2C.hpp"
+	#include "Pico/I2C.hpp"
 #elif defined(AL_PLATFORM_LINUX)
 	#include "AL/FileSystem/Path.hpp"
 
@@ -57,13 +57,13 @@ namespace AL::Hardware
 
 	class I2CBus
 	{
-		Bool               isOpen = False;
+		Bool             isOpen = False;
 
 #if defined(AL_PLATFORM_PICO)
-		Drivers::Pico::I2C i2c;
+		Pico::I2C        i2c;
 #elif defined(AL_PLATFORM_LINUX)
-		int                fd;
-		FileSystem::Path   path;
+		int              fd;
+		FileSystem::Path path;
 #endif
 
 		I2CBus(const I2CBus&) = delete;

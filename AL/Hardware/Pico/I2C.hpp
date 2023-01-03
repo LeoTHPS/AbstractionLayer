@@ -11,7 +11,7 @@
 
 #include <hardware/i2c.h>
 
-namespace AL::Hardware::Drivers::RP2040
+namespace AL::Hardware::Pico
 {
 	typedef uint8 I2CAddress;
 

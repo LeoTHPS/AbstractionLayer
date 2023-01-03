@@ -10,7 +10,7 @@
 #include <hardware/adc.h>
 #include <hardware/gpio.h>
 
-namespace AL::Hardware::Drivers::RP2040
+namespace AL::Hardware::Pico
 {
 	enum class ADCChannels : uint8
 	{

@@ -4,7 +4,7 @@
 #include "AL/OS/SystemException.hpp"
 
 #if defined(AL_PLATFORM_PICO)
-	#include "Drivers/Pico/UART.hpp"
+	#include "Pico/UART.hpp"
 #elif defined(AL_PLATFORM_LINUX)
 	#include "AL/FileSystem/Path.hpp"
 
@@ -36,16 +36,16 @@ namespace AL::Hardware
 
 	class UARTDevice
 	{
-		Bool                     isOpen = False;
+		Bool             isOpen = False;
 
 #if defined(AL_PLATFORM_PICO)
-		Drivers::Pico::UART      uart;
+		Pico::UART       uart;
 #elif defined(AL_PLATFORM_LINUX)
-		FileSystem::Path         path;
-		int                      fd;
+		FileSystem::Path path;
+		int              fd;
 #elif defined(AL_PLATFORM_WINDOWS)
-		FileSystem::Path         path;
-		::HANDLE                 hFile;
+		FileSystem::Path path;
+		::HANDLE         hFile;
 #endif
 
 		BitMask<UARTDeviceFlags> flags;
@@ -96,10 +96,10 @@ namespace AL::Hardware
 				speed,
 				[flags]()
 				{
-					BitMask<Drivers::Pico::UARTFlags> mask;
-					mask.Set(Drivers::Pico::UARTFlags::Parity_Odd, BitMask<UARTDeviceFlags>::IsSet(flags, UARTDeviceFlags::Parity_Odd));
-					mask.Set(Drivers::Pico::UARTFlags::Parity_Even, BitMask<UARTDeviceFlags>::IsSet(flags, UARTDeviceFlags::Parity_Even));
-					mask.Set(Drivers::Pico::UARTFlags::Use2StopBits, BitMask<UARTDeviceFlags>::IsSet(flags, UARTDeviceFlags::Use2StopBits));
+					BitMask<Pico::UARTFlags> mask;
+					mask.Set(Pico::UARTFlags::Parity_Odd, BitMask<UARTDeviceFlags>::IsSet(flags, UARTDeviceFlags::Parity_Odd));
+					mask.Set(Pico::UARTFlags::Parity_Even, BitMask<UARTDeviceFlags>::IsSet(flags, UARTDeviceFlags::Parity_Even));
+					mask.Set(Pico::UARTFlags::Use2StopBits, BitMask<UARTDeviceFlags>::IsSet(flags, UARTDeviceFlags::Use2StopBits));
 
 					return mask.Value;
 				}()

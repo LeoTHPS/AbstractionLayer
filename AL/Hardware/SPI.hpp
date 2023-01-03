@@ -6,7 +6,7 @@
 #include "AL/OS/SystemException.hpp"
 
 #if defined(AL_PLATFORM_PICO)
-	#include "Drivers/Pico/SPI.hpp"
+	#include "Pico/SPI.hpp"
 #elif defined(AL_PLATFORM_LINUX)
 	#include "AL/FileSystem/Path.hpp"
 
@@ -40,18 +40,18 @@ namespace AL::Hardware
 
 	class SPIDevice
 	{
-		Bool               isOpen = False;
+		Bool             isOpen = False;
 
 #if defined(AL_PLATFORM_PICO)
-		Drivers::Pico::SPI spi;
+		Pico::SPI        spi;
 #elif defined(AL_PLATFORM_LINUX)
-		int                fd;
-		FileSystem::Path   path;
+		int              fd;
+		FileSystem::Path path;
 #endif
 
-		SPIModes           mode;
-		uint32             speed;
-		uint8              bitCount;
+		SPIModes         mode;
+		uint32           speed;
+		uint8            bitCount;
 
 	public:
 		SPIDevice(SPIDevice&& device)
@@ -96,16 +96,16 @@ namespace AL::Hardware
 					switch (mode)
 					{
 						case SPIModes::Zero:
-							return Drivers::Pico::SPIModes::Zero;
+							return Pico::SPIModes::Zero;
 							
 						case SPIModes::One:
-							return Drivers::Pico::SPIModes::One;
+							return Pico::SPIModes::One;
 							
 						case SPIModes::Two:
-							return Drivers::Pico::SPIModes::Two;
+							return Pico::SPIModes::Two;
 							
 						case SPIModes::Three:
-							return Drivers::Pico::SPIModes::Three;
+							return Pico::SPIModes::Three;
 					}
 
 					throw NotImplementedException();

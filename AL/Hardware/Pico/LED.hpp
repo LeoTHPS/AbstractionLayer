@@ -9,7 +9,7 @@
 
 #include <hardware/gpio.h>
 
-namespace AL::Hardware::Drivers::Pico
+namespace AL::Hardware::Pico
 {
 	class LED
 	{
