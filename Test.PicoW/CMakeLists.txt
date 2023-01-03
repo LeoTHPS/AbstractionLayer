@@ -28,6 +28,7 @@ target_link_libraries(
 #[[	pico_cyw43_arch_lwip_threadsafe_background ]]
 	hardware_adc
 	hardware_i2c
+	hardware_pwm
 	hardware_spi
 	hardware_gpio
 	hardware_uart
