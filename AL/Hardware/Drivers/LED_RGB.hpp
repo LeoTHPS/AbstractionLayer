@@ -39,21 +39,48 @@ namespace AL::Hardware::Drivers
 			led_rgb.isOpen = False;
 		}
 
-		LED_RGB(GPIOBus bus1, GPIOPin pin1, GPIOBus bus2, GPIOPin pin2, GPIOBus bus3, GPIOPin pin3)
+#if defined(AL_PLATFORM_PICO)
+		LED_RGB(GPIOPin pin1, GPIOPin pin2, GPIOPin pin3)
 			: gpioR(
-				bus1,
-				pin1
+				pin1,
+				GPIOPinDirections::Out,
+				GPIOPinValues::Low
 			),
 			gpioG(
-				bus2,
-				pin2
+				pin2,
+				GPIOPinDirections::Out,
+				GPIOPinValues::Low
 			),
 			gpioB(
-				bus3,
-				pin3
+				pin3,
+				GPIOPinDirections::Out,
+				GPIOPinValues::Low
 			)
 		{
 		}
+#elif defined(AL_PLATFORM_LINUX)
+		LED_RGB(GPIOBus bus1, GPIOPin pin1, GPIOBus bus2, GPIOPin pin2, GPIOBus bus3, GPIOPin pin3)
+			: gpioR(
+				bus1,
+				pin1,
+				GPIOPinDirections::Out,
+				GPIOPinValues::Low
+			),
+			gpioG(
+				bus2,
+				pin2,
+				GPIOPinDirections::Out,
+				GPIOPinValues::Low
+			),
+			gpioB(
+				bus3,
+				pin3,
+				GPIOPinDirections::Out,
+				GPIOPinValues::Low
+			)
+		{
+		}
+#endif
 
 		virtual ~LED_RGB()
 		{
@@ -77,87 +104,44 @@ namespace AL::Hardware::Drivers
 				"LED_RGB already open"
 			);
 
-			auto GPIO_Open = [](GPIO& _gpio)
-			{
-				try
-				{
-					_gpio.Open();
-				}
-				catch (Exception& exception)
-				{
-
-					throw Exception(
-						Move(exception),
-						"Error opening GPIO [Bus: %u, Pin: %u]",
-						_gpio.GetBus(),
-						_gpio.GetPin()
-					);
-				}
-
-				try
-				{
-					_gpio.SetDirection(
-						GPIOPinDirections::Out,
-						GPIOPinValues::Low
-					);
-				}
-				catch (Exception& exception)
-				{
-					_gpio.Close();
-
-					throw Exception(
-						Move(exception),
-						"Error setting GPIO direction [Bus: %u, Pin: %u]",
-						_gpio.GetBus(),
-						_gpio.GetPin()
-					);
-				}
-			};
-
 			try
 			{
-				GPIO_Open(
-					gpioR
-				);
+				gpioR.Open();
 			}
 			catch (AL::Exception& exception)
 			{
 
-				throw AL::Exception(
-					AL::Move(exception),
+				throw Exception(
+					Move(exception),
 					"Error opening GPIO (Red)"
 				);
 			}
 
 			try
 			{
-				GPIO_Open(
-					gpioG
-				);
+				gpioG.Open();
 			}
 			catch (AL::Exception& exception)
 			{
 				gpioR.Close();
 
-				throw AL::Exception(
-					AL::Move(exception),
+				throw Exception(
+					Move(exception),
 					"Error opening GPIO (Green)"
 				);
 			}
 
 			try
 			{
-				GPIO_Open(
-					gpioB
-				);
+				gpioB.Open();
 			}
 			catch (AL::Exception& exception)
 			{
 				gpioG.Close();
 				gpioR.Close();
 
-				throw AL::Exception(
-					AL::Move(exception),
+				throw Exception(
+					Move(exception),
 					"Error opening GPIO (Blue)"
 				);
 			}
@@ -180,74 +164,45 @@ namespace AL::Hardware::Drivers
 		// @throw AL::Exception
 		virtual Void Read(ReadData& data) override
 		{
-			auto GPIO_Read = [](GPIO& _gpio, GPIOPinValues& _value)
-			{
-				try
-				{
-					_gpio.Read(
-						_value
-					);
-				}
-				catch (Exception& exception)
-				{
-
-					throw Exception(
-						Move(exception),
-						"Error reading GPIO [Bus: %u, Pin: %u]",
-						_gpio.GetBus(),
-						_gpio.GetPin()
-					);
-				}
-			};
-
 			GPIOPinValues r;
 			GPIOPinValues g;
 			GPIOPinValues b;
 
 			try
 			{
-				GPIO_Read(
-					gpioR,
-					r
-				);
+				gpioR.Read(r);
 			}
-			catch (AL::Exception& exception)
+			catch (Exception& exception)
 			{
 
-				throw AL::Exception(
-					AL::Move(exception),
+				throw Exception(
+					Move(exception),
 					"Error reading GPIO (Red)"
 				);
 			}
 
 			try
 			{
-				GPIO_Read(
-					gpioG,
-					g
-				);
+				gpioG.Read(g);
 			}
-			catch (AL::Exception& exception)
+			catch (Exception& exception)
 			{
 
-				throw AL::Exception(
-					AL::Move(exception),
+				throw Exception(
+					Move(exception),
 					"Error reading GPIO (Green)"
 				);
 			}
 
 			try
 			{
-				GPIO_Read(
-					gpioB,
-					b
-				);
+				gpioB.Read(b);
 			}
-			catch (AL::Exception& exception)
+			catch (Exception& exception)
 			{
 
-				throw AL::Exception(
-					AL::Move(exception),
+				throw Exception(
+					Move(exception),
 					"Error reading GPIO (Blue)"
 				);
 			}
@@ -261,71 +216,48 @@ namespace AL::Hardware::Drivers
 		// @throw AL::Exception
 		virtual Void Write(const WriteData& data) override
 		{
-			auto GPIO_Write = [](GPIO& _gpio, GPIOPinValues _value)
-			{
-				try
-				{
-					_gpio.Write(
-						_value
-					);
-				}
-				catch (Exception& exception)
-				{
-
-					throw Exception(
-						Move(exception),
-						"Error writing GPIO [Bus: %u, Pin: %u]",
-						_gpio.GetBus(),
-						_gpio.GetPin()
-					);
-				}
-			};
-
 			try
 			{
-				GPIO_Write(
-					gpioR,
+				gpioR.Write(
 					(data.A && data.R) ? GPIOPinValues::High : GPIOPinValues::Low
 				);
 			}
-			catch (AL::Exception& exception)
+			catch (Exception& exception)
 			{
 
-				throw AL::Exception(
-					AL::Move(exception),
-					"Error reading GPIO (Red)"
+				throw Exception(
+					Move(exception),
+					"Error writing GPIO (Red)"
 				);
 			}
 
 			try
 			{
-				GPIO_Write(
-					gpioG,
+				gpioG.Write(
 					(data.A && data.G) ? GPIOPinValues::High : GPIOPinValues::Low
 				);
 			}
-			catch (AL::Exception& exception)
+			catch (Exception& exception)
 			{
 
-				throw AL::Exception(
-					AL::Move(exception),
-					"Error reading GPIO (Green)"
+				throw Exception(
+					Move(exception),
+					"Error writing GPIO (Green)"
 				);
 			}
 
 			try
 			{
-				GPIO_Write(
-					gpioB,
+				gpioB.Write(
 					(data.A && data.B) ? GPIOPinValues::High : GPIOPinValues::Low
 				);
 			}
-			catch (AL::Exception& exception)
+			catch (Exception& exception)
 			{
 
-				throw AL::Exception(
-					AL::Move(exception),
-					"Error reading GPIO (Blue)"
+				throw Exception(
+					Move(exception),
+					"Error writing GPIO (Blue)"
 				);
 			}
 		}

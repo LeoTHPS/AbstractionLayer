@@ -91,13 +91,14 @@ namespace AL::Hardware::Drivers
 		{
 		}
 #elif defined(AL_PLATFORM_LINUX)
-		AHT10(FileSystem::Path&& path, I2CAddress address = DEVICE_ADDRESS)
+		AHT10(FileSystem::Path&& path, uint32 baud, I2CAddress address = DEVICE_ADDRESS)
 			: isBusAllocated(
 				True
 			),
 			lpBus(
 				new I2CBus(
-					Move(path)
+					Move(path),
+					baud
 				)
 			),
 			device(
@@ -106,9 +107,10 @@ namespace AL::Hardware::Drivers
 			)
 		{
 		}
-		AHT10(const FileSystem::Path& path, I2CAddress address = DEVICE_ADDRESS)
+		AHT10(const FileSystem::Path& path, uint32 baud, I2CAddress address = DEVICE_ADDRESS)
 			: AHT10(
 				FileSystem::Path(path),
+				baud,
 				address
 			)
 		{

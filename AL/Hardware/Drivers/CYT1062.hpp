@@ -47,20 +47,42 @@ namespace AL::Hardware::Drivers
 			cyt1062.clkValue = GPIOPinValues::Low;
 		}
 
-		CYT1062(GPIOBus clkBus, GPIOPin clk, GPIOBus dtBus, GPIOPin dt, GPIOBus swBus, GPIOPin sw)
+#if defined(AL_PLATFORM_PICO)
+		CYT1062(GPIOPin clk, GPIOPin dt, GPIOPin sw)
 			: dt(
-				dtBus, dt
+				dt,
+				GPIOPinDirections::In
 			),
 			sw(
-				swBus,
-				sw
+				sw,
+				GPIOPinDirections::In
 			),
 			clk(
-				clkBus,
-				clk
+				clk,
+				GPIOPinDirections::In
 			)
 		{
 		}
+#elif defined(AL_PLATFORM_LINUX)
+		CYT1062(GPIOBus clkBus, GPIOPin clk, GPIOBus dtBus, GPIOPin dt, GPIOBus swBus, GPIOPin sw)
+			: dt(
+				dtBus,
+				dt,
+				GPIOPinDirections::In
+			),
+			sw(
+				swBus,
+				sw,
+				GPIOPinDirections::In
+			),
+			clk(
+				clkBus,
+				clk,
+				GPIOPinDirections::In
+			)
+		{
+		}
+#endif
 
 		virtual ~CYT1062()
 		{
@@ -94,18 +116,12 @@ namespace AL::Hardware::Drivers
 
 					throw Exception(
 						Move(exception),
-						"Error opening DT [Bus: %u, Pin: %u]",
-						dt.GetBus(),
-						dt.GetPin()
+						"Error opening DT"
 					);
 				}
 
 				try
 				{
-					dt.SetDirection(
-						GPIOPinDirections::In
-					);
-
 					dt.SetPullUp();
 				}
 				catch (Exception& exception)
@@ -114,9 +130,7 @@ namespace AL::Hardware::Drivers
 
 					throw Exception(
 						Move(exception),
-						"Error configuring DT [Bus: %u, Pin: %u]",
-						dt.GetBus(),
-						dt.GetPin()
+						"Error configuring DT"
 					);
 				}
 			}
@@ -132,18 +146,12 @@ namespace AL::Hardware::Drivers
 
 					throw Exception(
 						Move(exception),
-						"Error opening SW [Bus: %u, Pin: %u]",
-						sw.GetBus(),
-						sw.GetPin()
+						"Error opening SW"
 					);
 				}
 
 				try
 				{
-					sw.SetDirection(
-						GPIOPinDirections::In
-					);
-
 					sw.SetPullUp();
 				}
 				catch (Exception& exception)
@@ -153,9 +161,7 @@ namespace AL::Hardware::Drivers
 
 					throw Exception(
 						Move(exception),
-						"Error configuring SW [Bus: %u, Pin: %u]",
-						sw.GetBus(),
-						sw.GetPin()
+						"Error configuring SW"
 					);
 				}
 			}
@@ -172,18 +178,12 @@ namespace AL::Hardware::Drivers
 
 					throw Exception(
 						Move(exception),
-						"Error opening CLK [Bus: %u, Pin: %u]",
-						clk.GetBus(),
-						clk.GetPin()
+						"Error opening CLK"
 					);
 				}
 
 				try
 				{
-					clk.SetDirection(
-						GPIOPinDirections::In
-					);
-
 					clk.SetPullUp();
 				}
 				catch (Exception& exception)
@@ -194,9 +194,7 @@ namespace AL::Hardware::Drivers
 
 					throw Exception(
 						Move(exception),
-						"Error configuring CLK [Bus: %u, Pin: %u]",
-						clk.GetBus(),
-						clk.GetPin()
+						"Error configuring CLK"
 					);
 				}
 			}
@@ -314,9 +312,7 @@ namespace AL::Hardware::Drivers
 
 				throw Exception(
 					Move(exception),
-					"Error reading SW [Bus: %u, Pin: %u]",
-					sw.GetBus(),
-					sw.GetPin()
+					"Error reading SW"
 				);
 			}
 		}
@@ -333,9 +329,7 @@ namespace AL::Hardware::Drivers
 
 				throw Exception(
 					Move(exception),
-					"Error reading DT [Bus: %u, Pin: %u]",
-					dt.GetBus(),
-					dt.GetPin()
+					"Error reading DT"
 				);
 			}
 		}
@@ -370,9 +364,7 @@ namespace AL::Hardware::Drivers
 
 				throw Exception(
 					Move(exception),
-					"Error reading CLK [Bus: %u, Pin: %u]",
-					clk.GetBus(),
-					clk.GetPin()
+					"Error reading CLK"
 				);
 			}
 		}

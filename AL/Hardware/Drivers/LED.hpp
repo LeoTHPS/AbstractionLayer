@@ -26,13 +26,26 @@ namespace AL::Hardware::Drivers
 			led.isOpen = False;
 		}
 
-		LED(GPIOBus bus, GPIOPin pin)
+#if defined(AL_PLATFORM_PICO)
+		explicit LED(GPIOPin pin)
 			: gpio(
-				bus,
-				pin
+				pin,
+				GPIOPinDirections::Out,
+				GPIOPinValues::Low
 			)
 		{
 		}
+#elif defined(AL_PLATFORM_LINUX)
+		LED(GPIOBus bus, GPIOPin pin)
+			: gpio(
+				bus,
+				pin,
+				GPIOPinDirections::Out,
+				GPIOPinValues::Low
+			)
+		{
+		}
+#endif
 
 		virtual ~LED()
 		{
@@ -65,28 +78,7 @@ namespace AL::Hardware::Drivers
 
 				throw Exception(
 					Move(exception),
-					"Error opening GPIO [Bus: %u, Pin: %u]",
-					gpio.GetBus(),
-					gpio.GetPin()
-				);
-			}
-
-			try
-			{
-				gpio.SetDirection(
-					GPIOPinDirections::Out,
-					GPIOPinValues::Low
-				);
-			}
-			catch (Exception& exception)
-			{
-				gpio.Close();
-
-				throw Exception(
-					Move(exception),
-					"Error setting GPIO direction [Bus: %u, Pin: %u]",
-					gpio.GetBus(),
-					gpio.GetPin()
+					"Error opening GPIO"
 				);
 			}
 
@@ -119,9 +111,7 @@ namespace AL::Hardware::Drivers
 
 				throw Exception(
 					Move(exception),
-					"Error reading GPIO [Bus: %u, Pin: %u]",
-					gpio.GetBus(),
-					gpio.GetPin()
+					"Error reading GPIO"
 				);
 			}
 
@@ -142,9 +132,7 @@ namespace AL::Hardware::Drivers
 
 				throw Exception(
 					Move(exception),
-					"Error writing GPIO [Bus: %u, Pin: %u]",
-					gpio.GetBus(),
-					gpio.GetPin()
+					"Error writing GPIO"
 				);
 			}
 		}

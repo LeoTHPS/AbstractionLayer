@@ -79,13 +79,14 @@ namespace AL::Hardware::Drivers
 		{
 		}
 #elif defined(AL_PLATFORM_LINUX)
-		AT24C256(FileSystem::Path&& path, I2CAddress address = DEVICE_ADDRESS)
+		AT24C256(FileSystem::Path&& path, uint32 baud, I2CAddress address = DEVICE_ADDRESS)
 			: isBusAllocated(
 				True
 			),
 			lpBus(
 				new I2CBus(
-					Move(path)
+					Move(path),
+					baud
 				)
 			),
 			device(
@@ -94,9 +95,10 @@ namespace AL::Hardware::Drivers
 			)
 		{
 		}
-		AT24C256(const FileSystem::Path& path, I2CAddress address = DEVICE_ADDRESS)
+		AT24C256(const FileSystem::Path& path, uint32 baud, I2CAddress address = DEVICE_ADDRESS)
 			: AT24C256(
 				FileSystem::Path(path),
+				baud,
 				address
 			)
 		{

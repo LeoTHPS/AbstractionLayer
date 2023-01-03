@@ -26,13 +26,24 @@ namespace AL::Hardware::Drivers
 			rcwl.isOpen = False;
 		}
 
-		RCWL_0516(GPIOBus bus, GPIOPin pin)
+#if defined(AL_PLATFORM_PICO)
+		explicit RCWL_0516(GPIOPin pin)
 			: pin(
-				bus,
-				pin
+				pin,
+				GPIOPinDirections::In
 			)
 		{
 		}
+#elif defined(AL_PLATFORM_LINUX)
+		RCWL_0516(GPIOBus bus, GPIOPin pin)
+			: pin(
+				bus,
+				pin,
+				GPIOPinDirections::In
+			)
+		{
+		}
+#endif
 
 		virtual ~RCWL_0516()
 		{
