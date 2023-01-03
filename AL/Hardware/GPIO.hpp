@@ -25,7 +25,7 @@
 		#include <sys/ioctl.h>
 	#endif
 #else
-	#warning Platform not supported
+	#error Platform not supported
 #endif
 
 namespace AL::Hardware
