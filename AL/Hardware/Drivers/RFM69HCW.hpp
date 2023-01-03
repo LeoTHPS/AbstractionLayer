@@ -777,10 +777,10 @@ namespace AL::Hardware::Drivers
 
 		typedef RFM69HCWRXCallback       RXCallback;
 
-		static constexpr SPISpeed DEFAULT_SPEED           = 10000000;
+		static constexpr uint32 DEFAULT_SPEED           = 10000000;
 
-		static constexpr size_t   PACKET_SIZE_MAXIMUM     = 255 - sizeof(_FrameHeader);
-		static constexpr size_t   PACKET_SIZE_MAXIMUM_AES = 64 - sizeof(_FrameHeader);
+		static constexpr size_t PACKET_SIZE_MAXIMUM     = 255 - sizeof(_FrameHeader);
+		static constexpr size_t PACKET_SIZE_MAXIMUM_AES = 64 - sizeof(_FrameHeader);
 
 		RFM69HCW(RFM69HCW&& rfm69hcw)
 			: isLnaEnabled(
@@ -835,7 +835,7 @@ namespace AL::Hardware::Drivers
 		}
 
 #if defined(AL_PLATFORM_PICO)
-		RFM69HCW(::spi_inst_t* spi, GPIOPin miso, GPIOPin mosi, GPIOPin sclk, GPIOPin cs, Network network, NetworkAddress networkAddress, Frequency frequency = RFM69HCW_FREQUENCY_DEFAULT, SPISpeed speed = DEFAULT_SPEED)
+		RFM69HCW(::spi_inst* spi, GPIOPin miso, GPIOPin mosi, GPIOPin sclk, GPIOPin cs, Network network, NetworkAddress networkAddress, Frequency frequency = RFM69HCW_FREQUENCY_DEFAULT, uint32 speed = DEFAULT_SPEED)
 			: device(
 				spi,
 				miso,
@@ -857,8 +857,8 @@ namespace AL::Hardware::Drivers
 			)
 		{
 		}
-#else
-		RFM69HCW(FileSystem::Path&& path, Network network, NetworkAddress networkAddress, Frequency frequency = RFM69HCW_FREQUENCY_DEFAULT, SPISpeed speed = DEFAULT_SPEED)
+#elif defined(AL_PLATFORM_LINUX)
+		RFM69HCW(FileSystem::Path&& path, Network network, NetworkAddress networkAddress, Frequency frequency = RFM69HCW_FREQUENCY_DEFAULT, uint32 speed = DEFAULT_SPEED)
 			: device(
 				Move(path),
 				SPIModes::Zero,
@@ -876,7 +876,7 @@ namespace AL::Hardware::Drivers
 			)
 		{
 		}
-		RFM69HCW(const FileSystem::Path& path, Network network, NetworkAddress networkAddress, Frequency frequency = RFM69HCW_FREQUENCY_DEFAULT, SPISpeed speed = DEFAULT_SPEED)
+		RFM69HCW(const FileSystem::Path& path, Network network, NetworkAddress networkAddress, Frequency frequency = RFM69HCW_FREQUENCY_DEFAULT, uint32 speed = DEFAULT_SPEED)
 			: RFM69HCW(
 				FileSystem::Path(
 					path

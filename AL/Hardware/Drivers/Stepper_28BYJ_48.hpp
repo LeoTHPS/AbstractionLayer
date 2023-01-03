@@ -219,7 +219,8 @@ namespace AL::Hardware::Drivers
 
 			if (steps > 0)
 			{
-				auto lpSleepOrSpin = (delay.ToMicroseconds() > 1000) ? &Sleep : &Spin;
+				Void(*lpSleepOrSpin)(TimeSpan);
+				if (delay.ToMicroseconds() > 1000) lpSleepOrSpin = &Sleep; else lpSleepOrSpin = &Spin;
 
 				auto lpStepper_28BYJ_48_Phases_NextOrPrevious =
 					forward ? &Stepper_28BYJ_48_Phases_Next : &Stepper_28BYJ_48_Phases_Previous;

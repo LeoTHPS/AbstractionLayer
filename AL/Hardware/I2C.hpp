@@ -6,6 +6,8 @@
 #include "AL/OS/SystemException.hpp"
 
 #if defined(AL_PLATFORM_PICO)
+	#include "GPIO.hpp"
+
 	#include "Drivers/Pico/I2C.hpp"
 #elif defined(AL_PLATFORM_LINUX)
 	#include "AL/FileSystem/Path.hpp"
@@ -31,100 +33,7 @@
 
 namespace AL::Hardware
 {
-	class I2CAddress
-	{
-	public:
-		typedef uint8  Type8;
-		typedef uint16 Type16;
-
-		I2CAddress(Type8 value)
-			: value(
-				value
-			)
-		{
-			AL_ASSERT(
-				!IsReserved(value),
-				"I2CAddress is reserved"
-			);
-		}
-		I2CAddress(Type16 value)
-			: value(
-				value
-			)
-		{
-			AL_ASSERT(
-				!IsReserved(value),
-				"I2CAddress is reserved"
-			);
-		}
-
-		virtual ~I2CAddress()
-		{
-		}
-
-		operator Type8 () const
-		{
-			return static_cast<Type8>(
-				value & 0x00FF
-			);
-		}
-		operator Type16 () const
-		{
-			return value;
-		}
-
-		I2CAddress& operator = (Type8 value)
-		{
-			AL_ASSERT(
-				!IsReserved(value),
-				"I2CAddress is reserved"
-			);
-
-			this->value = value;
-
-			return *this;
-		}
-		I2CAddress& operator = (Type16 value)
-		{
-			AL_ASSERT(
-				!IsReserved(value),
-				"I2CAddress is reserved"
-			);
-
-			this->value = value;
-
-			return *this;
-		}
-
-		Bool operator == (const I2CAddress& address) const
-		{
-			if (value != address.value)
-			{
-
-				return False;
-			}
-
-			return True;
-		}
-		Bool operator != (const I2CAddress& address) const
-		{
-			if (operator==(address))
-			{
-
-				return False;
-			}
-
-			return True;
-		}
-
-	private:
-		Type16 value;
-
-		static constexpr Bool IsReserved(Type16 value)
-		{
-			return (value >= 0x08) && (value <= 0x77);
-		}
-	};
+	typedef uint16 I2CAddress;
 
 	enum class I2CTransactionFlags : uint16
 	{
@@ -186,7 +95,7 @@ namespace AL::Hardware
 		}
 
 #if defined(AL_PLATFORM_PICO)
-		I2CBus(::i2c_inst_t* i2c, GPIOPin scl, GPIOPin sda, uint32 baud)
+		I2CBus(::i2c_inst* i2c, GPIOPin scl, GPIOPin sda, uint32 baud)
 			: i2c(
 				i2c,
 				scl,

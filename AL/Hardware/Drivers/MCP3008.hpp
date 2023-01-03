@@ -15,7 +15,7 @@ namespace AL::Hardware::Drivers
 		SPIDevice device;
 
 	public:
-		static constexpr SPISpeed DEFAULT_SPEED = 1350000;
+		static constexpr uint32   DEFAULT_SPEED = 1350000;
 
 		static constexpr ReadData DATA_MAX      = 0x3FF;
 
@@ -40,7 +40,7 @@ namespace AL::Hardware::Drivers
 		}
 
 #if defined(AL_PLATFORM_PICO)
-		MCP3008(::spi_inst_t* spi, GPIOPin miso, GPIOPin mosi, GPIOPin sclk, GPIOPin cs, SPISpeed speed = DEFAULT_SPEED)
+		MCP3008(::spi_inst* spi, GPIOPin miso, GPIOPin mosi, GPIOPin sclk, GPIOPin cs, uint32 speed = DEFAULT_SPEED)
 			: device(
 				spi,
 				miso,
@@ -53,8 +53,8 @@ namespace AL::Hardware::Drivers
 			)
 		{
 		}
-#else
-		MCP3008(FileSystem::Path&& path, SPISpeed speed = DEFAULT_SPEED)
+#elif defined(AL_PLATFORM_LINUX)
+		MCP3008(FileSystem::Path&& path, uint32 speed = DEFAULT_SPEED)
 			: device(
 				Move(path),
 				SPIModes::Zero,
@@ -63,7 +63,7 @@ namespace AL::Hardware::Drivers
 			)
 		{
 		}
-		MCP3008(const FileSystem::Path& path, SPISpeed speed = DEFAULT_SPEED)
+		MCP3008(const FileSystem::Path& path, uint32 speed = DEFAULT_SPEED)
 			: MCP3008(
 				FileSystem::Path(path),
 				speed

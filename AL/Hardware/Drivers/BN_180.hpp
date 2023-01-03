@@ -27,7 +27,7 @@ namespace AL::Hardware::Drivers
 		}
 
 #if defined(AL_PLATFORM_PICO)
-		BN_180(::uart_inst_t* uart, GPIOPin rx, GPIOPin tx, UARTDeviceSpeeds speed = UARTDeviceSpeeds::Baud_9600)
+		BN_180(::uart_inst* uart, GPIOPin rx, GPIOPin tx, uint32 speed = 9600)
 			: device(
 				uart,
 				rx,
@@ -37,18 +37,35 @@ namespace AL::Hardware::Drivers
 			)
 		{
 		}
-#else
-		explicit BN_180(FileSystem::Path&& path)
+#elif defined(AL_PLATFORM_LINUX)
+		BN_180(FileSystem::Path&& path, uint32 speed = 9600)
 			: device(
 				Move(path),
-				UARTDeviceSpeeds::Baud_9600,
+				speed,
 				UARTDeviceFlags::None
 			)
 		{
 		}
-		explicit BN_180(const FileSystem::Path& path)
+		BN_180(const FileSystem::Path& path, uint32 speed = 9600)
 			: BN_180(
-				FileSystem::Path(path)
+				FileSystem::Path(path),
+				speed
+			)
+		{
+		}
+#elif defined(AL_PLATFORM_WINDOWS)
+		BN_180(FileSystem::Path&& path, uint32 speed = 9600)
+			: device(
+				Move(path),
+				speed,
+				UARTDeviceFlags::None
+			)
+		{
+		}
+		BN_180(const FileSystem::Path& path, uint32 speed = 9600)
+			: BN_180(
+				FileSystem::Path(path),
+				speed
 			)
 		{
 		}

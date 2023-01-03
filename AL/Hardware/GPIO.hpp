@@ -35,11 +35,12 @@ namespace AL::Hardware
 	// BCM format
 	typedef uint8 GPIOPin;
 
-	typedef uint32 GPIOPinValue;
+	typedef Bool GPIOPinValue;
 
 	enum class GPIOPinValues : GPIOPinValue
 	{
-		Low, High
+		Low  = False,
+		High = True
 	};
 
 	enum class GPIOPinEdges
@@ -440,6 +441,7 @@ namespace AL::Hardware
 
 				case GPIOPinDirections::Out:
 					gpio.SetDirection(Drivers::Pico::GPIOPinDirections::Output);
+					gpio.Write(value ? Drivers::Pico::GPIOPinValues::High : Drivers::Pico::GPIOPinValues::Low);
 					break;
 
 				default:
@@ -733,12 +735,12 @@ namespace AL::Hardware
 	private:
 		static constexpr GPIOPinValue PinValues_ToValue(GPIOPinValues value)
 		{
-			return (value == GPIOPinValues::Low) ? 0 : 1;
+			return (value == GPIOPinValues::High) ? True : False;
 		}
 
 		static constexpr GPIOPinValues PinValue_ToValues(GPIOPinValue value)
 		{
-			return (value == 0) ? GPIOPinValues::Low : GPIOPinValues::High;
+			return (value == False) ? GPIOPinValues::Low : GPIOPinValues::High;
 		}
 	};
 }

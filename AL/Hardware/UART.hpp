@@ -112,7 +112,28 @@ namespace AL::Hardware
 			)
 		{
 		}
-#else
+#elif defined(AL_PLATFORM_LINUX)
+		UARTDevice(FileSystem::Path&& path, uint32 speed, UARTDeviceFlags flags)
+			: path(
+				Move(path)
+			),
+			flags(
+				flags
+			),
+			speed(
+				speed
+			)
+		{
+		}
+		UARTDevice(const FileSystem::Path& path, uint32 speed, UARTDeviceFlags flags)
+			: UARTDevice(
+				FileSystem::Path(path),
+				speed,
+				flags
+			)
+		{
+		}
+#elif defined(AL_PLATFORM_WINDOWS)
 		UARTDevice(FileSystem::Path&& path, uint32 speed, UARTDeviceFlags flags)
 			: path(
 				Move(path)

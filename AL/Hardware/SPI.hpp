@@ -26,8 +26,6 @@
 
 namespace AL::Hardware
 {
-	typedef uint32 SPISpeed;
-
 	enum class SPIModes : uint8
 	{
 		Zero, One, Two, Three
@@ -52,7 +50,7 @@ namespace AL::Hardware
 #endif
 
 		SPIModes           mode;
-		SPISpeed           speed;
+		uint32             speed;
 		uint8              bitCount;
 
 	public:
@@ -86,7 +84,7 @@ namespace AL::Hardware
 		}
 
 #if defined(AL_PLATFORM_PICO)
-		SPIDevice(::spi_inst_t* spi, GPIOPin miso, GPIOPin mosi, GPIOPin sclk, GPIOPin cs, SPIModes mode, SPISpeed speed, uint8 bitCount)
+		SPIDevice(::spi_inst* spi, GPIOPin miso, GPIOPin mosi, GPIOPin sclk, GPIOPin cs, SPIModes mode, uint32 speed, uint8 bitCount)
 			: spi(
 				spi,
 				miso,
@@ -127,7 +125,7 @@ namespace AL::Hardware
 		{
 		}
 #elif defined(AL_PLATFORM_LINUX)
-		SPIDevice(FileSystem::Path&& path, SPIModes mode, SPISpeed speed, uint8 bitCount)
+		SPIDevice(FileSystem::Path&& path, SPIModes mode, uint32 speed, uint8 bitCount)
 			: path(
 				Move(path)
 			),
@@ -142,7 +140,7 @@ namespace AL::Hardware
 			)
 		{
 		}
-		SPIDevice(const FileSystem::Path& path, SPIModes mode, SPISpeed speed, uint8 bitCount)
+		SPIDevice(const FileSystem::Path& path, SPIModes mode, uint32 speed, uint8 bitCount)
 			: SPIDevice(
 				FileSystem::Path(path),
 				mode,

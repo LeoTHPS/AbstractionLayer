@@ -124,7 +124,7 @@ namespace AL::Hardware::Drivers
 		}
 
 #if defined(AL_PLATFORM_PICO)
-		BMP180(::i2c_inst_t* i2c, GPIOPin scl, GPIOPin sda, I2CBaudRate baud, I2CAddress address = DEVICE_ADDRESS)
+		BMP180(::i2c_inst* i2c, GPIOPin scl, GPIOPin sda, uint32 baud, I2CAddress address = DEVICE_ADDRESS)
 			: isBusAllocated(
 				True
 			),
@@ -145,7 +145,7 @@ namespace AL::Hardware::Drivers
 				1013.25
 			);
 		}
-#else
+#elif defined(AL_PLATFORM_LINUX)
 		BMP180(FileSystem::Path&& path, I2CAddress address = DEVICE_ADDRESS)
 			: isBusAllocated(
 				True
