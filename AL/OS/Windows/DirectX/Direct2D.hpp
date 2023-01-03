@@ -2,7 +2,7 @@
 #include "AL/Common.hpp"
 
 #if !defined(AL_PLATFORM_WINDOWS)
-	#warning Platform not supported
+	#error Platform not supported
 #endif
 
 #include "Resource.hpp"
@@ -19,62 +19,36 @@
 
 #if AL_HAS_INCLUDE(<d2d1_3.h>)
 	#include <d2d1_3.h>
-
-	#define AL_DEPENDENCY_DIRECT2D
-	#define AL_DEPENDENCY_DIRECT2D_3
 #elif AL_HAS_INCLUDE(<d2d1_2.h>)
 	#include <d2d1_2.h>
-
-	#define AL_DEPENDENCY_DIRECT2D
-	#define AL_DEPENDENCY_DIRECT2D_2
 #elif AL_HAS_INCLUDE(<d2d1_1.h>)
 	#include <d2d1_1.h>
-
-	#define AL_DEPENDENCY_DIRECT2D
-	#define AL_DEPENDENCY_DIRECT2D_1
 #elif AL_HAS_INCLUDE(<d2d1.h>)
 	#include <d2d1.h>
-
-	#define AL_DEPENDENCY_DIRECT2D
 #else
-
+	#error Missing d2d1.h
 #endif
 
 #if AL_HAS_INCLUDE(<dwrite_3.h>)
 	#include <dwrite_3.h>
-
-	#define AL_DEPENDENCY_DWRITE
-	#define AL_DEPENDENCY_DWRITE_3
 #elif AL_HAS_INCLUDE(<dwrite_2.h>)
 	#include <dwrite_2.h>
-
-	#define AL_DEPENDENCY_DWRITE
-	#define AL_DEPENDENCY_DWRITE_2
 #elif AL_HAS_INCLUDE(<dwrite_1.h>)
 	#include <dwrite_1.h>
-
-	#define AL_DEPENDENCY_DWRITE
-	#define AL_DEPENDENCY_DWRITE_1
 #elif AL_HAS_INCLUDE(<dwrite.h>)
 	#include <dwrite.h>
-
-	#define AL_DEPENDENCY_DWRITE
 #else
-
+	#error Missing dwrite.h
 #endif
 
 #include <wincodec.h>
 
 #if defined(AL_COMPILER_MSVC)
-	#if defined(AL_DEPENDENCY_DIRECT2D)
-		#pragma comment(lib, "d2d1.lib")
-		#pragma comment(lib, "winmm.lib")
-		#pragma comment(lib, "windowscodecs.lib")
-	#endif
+	#pragma comment(lib, "d2d1.lib")
+	#pragma comment(lib, "winmm.lib")
+	#pragma comment(lib, "windowscodecs.lib")
 
-	#if defined(AL_DEPENDENCY_DWRITE)
-		#pragma comment(lib, "dwrite.lib")
-	#endif
+	#pragma comment(lib, "dwrite.lib")
 #endif
 
 namespace AL::OS::Windows::DirectX

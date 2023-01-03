@@ -2,7 +2,7 @@
 #include "AL/Common.hpp"
 
 #if !defined(AL_PLATFORM_WINDOWS)
-	#warning Platform not supported
+	#error Platform not supported
 #endif
 
 #include "Resource.hpp"
@@ -11,15 +11,15 @@
 
 #include "AL/FileSystem/File.hpp"
 
-#if AL_HAS_INCLUDE(<dsound.h>)
-	#define AL_DEPENDENCY_DSOUND
+#if !AL_HAS_INCLUDE(<dsound.h>)
+	#error Missing dsound.h
+#endif
 
-	#include <MMSystem.h>
-	#include <dsound.h>
+#include <MMSystem.h>
+#include <dsound.h>
 
-	#if !defined(DS_INCOMPLETE)
-		#define DS_INCOMPLETE 0x08780014
-	#endif
+#if !defined(DS_INCOMPLETE)
+	#define DS_INCOMPLETE 0x08780014
 #endif
 
 namespace AL::OS::Windows::DirectX

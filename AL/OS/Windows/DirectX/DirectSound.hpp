@@ -2,7 +2,7 @@
 #include "AL/Common.hpp"
 
 #if !defined(AL_PLATFORM_WINDOWS)
-	#warning Platform not supported
+	#error Platform not supported
 #endif
 
 #include "Resource.hpp"
@@ -12,22 +12,17 @@
 
 #include "AL/FileSystem/File.hpp"
 
-#if AL_HAS_INCLUDE(<dsound.h>)
-	#define AL_DEPENDENCY_DSOUND
-
-	#include <MMSystem.h>
-	#include <dsound.h>
-#else
-	typedef void IDirectSound8;
-	typedef void IDirectSoundBuffer;
+#if !AL_HAS_INCLUDE(<dsound.h>)
+	#error Missing dsound.h
 #endif
 
+#include <MMSystem.h>
+#include <dsound.h>
+
 #if defined(AL_COMPILER_MSVC)
-	#if defined(AL_DEPENDENCY_DSOUND)
-		#pragma comment(lib, "winmm.lib")
-		#pragma comment(lib, "dsound.lib")
-		#pragma comment(lib, "windowscodecs.lib")
-	#endif
+	#pragma comment(lib, "winmm.lib")
+	#pragma comment(lib, "dsound.lib")
+	#pragma comment(lib, "windowscodecs.lib")
 #endif
 
 namespace AL::OS::Windows::DirectX
@@ -72,7 +67,6 @@ namespace AL::OS::Windows::DirectX
 				"Resource not created"
 			);
 
-#if defined(AL_DEPENDENCY_DSOUND)
 			::LONG volume;
 			::HRESULT hResult;
 
@@ -86,9 +80,6 @@ namespace AL::OS::Windows::DirectX
 			}
 
 			return static_cast<float>(volume) / DSBVOLUME_MIN;
-#else
-			throw NotImplementedException();
-#endif
 		}
 
 		// @throw AL::Exception
@@ -101,7 +92,6 @@ namespace AL::OS::Windows::DirectX
 				"Resource not created"
 			);
 
-#if defined(AL_DEPENDENCY_DSOUND)
 			::HRESULT hResult;
 			::DWORD currentRead, currentWrite;
 
@@ -117,9 +107,6 @@ namespace AL::OS::Windows::DirectX
 			return static_cast<uint32>(
 				currentRead
 			);
-#else
-			throw NotImplementedException();
-#endif
 		}
 
 		// @throw AL::Exception
@@ -132,7 +119,6 @@ namespace AL::OS::Windows::DirectX
 				"Resource not created"
 			);
 
-#if defined(AL_DEPENDENCY_DSOUND)
 			auto _volume = static_cast<::LONG>(
 				DSBVOLUME_MIN - (DSBVOLUME_MIN * volume)
 			);
@@ -147,9 +133,6 @@ namespace AL::OS::Windows::DirectX
 					hResult
 				);
 			}
-#else
-			throw NotImplementedException();
-#endif
 		}
 
 		// @throw AL::Exception
@@ -162,7 +145,6 @@ namespace AL::OS::Windows::DirectX
 				"Resource not created"
 			);
 
-#if defined(AL_DEPENDENCY_DSOUND)
 			::HRESULT hResult;
 
 			if ((hResult = lpResource->SetCurrentPosition(static_cast<::DWORD>(position))) != DS_OK)
@@ -173,9 +155,6 @@ namespace AL::OS::Windows::DirectX
 					hResult
 				);
 			}
-#else
-			throw NotImplementedException();
-#endif
 		}
 
 		// @throw AL::Exception
@@ -196,7 +175,6 @@ namespace AL::OS::Windows::DirectX
 				);
 			}
 
-#if defined(AL_DEPENDENCY_DSOUND)
 			::HRESULT hResult;
 
 			if ((hResult = lpResource->Play(0, 0, repeat ? DSBPLAY_LOOPING : 0)) != DS_OK)
@@ -207,9 +185,6 @@ namespace AL::OS::Windows::DirectX
 					hResult
 				);
 			}
-#else
-			throw NotImplementedException();
-#endif
 
 			isPaused = False;
 			isPlaying = True;
@@ -226,7 +201,6 @@ namespace AL::OS::Windows::DirectX
 				"Resource not created"
 			);
 
-#if defined(AL_DEPENDENCY_DSOUND)
 			::HRESULT hResult;
 			pausePosition = GetPosition();
 
@@ -238,9 +212,6 @@ namespace AL::OS::Windows::DirectX
 					hResult
 				);
 			}
-#else
-			throw NotImplementedException();
-#endif
 
 			isPaused = True;
 			isPlaying = False;
@@ -256,7 +227,6 @@ namespace AL::OS::Windows::DirectX
 				"Resource not created"
 			);
 
-#if defined(AL_DEPENDENCY_DSOUND)
 			::HRESULT hResult;
 
 			if ((hResult = lpResource->Stop()) != DS_OK)
@@ -267,9 +237,6 @@ namespace AL::OS::Windows::DirectX
 					hResult
 				);
 			}
-#else
-			throw NotImplementedException();
-#endif
 
 			isPaused = False;
 			isPlaying = False;
@@ -299,7 +266,6 @@ namespace AL::OS::Windows::DirectX
 		// @throw AL::Exception
 		static Void EnumerateDevices(const DirectSoundDeviceEnumCallback& callback)
 		{
-#if defined(AL_DEPENDENCY_DSOUND)
 			::HRESULT hResult;
 
 			if ((hResult = ::DirectSoundEnumerateA(&DirectSound::EnumDevicesProc, const_cast<DirectSoundDeviceEnumCallback*>(&callback))) != DS_OK)
@@ -310,11 +276,6 @@ namespace AL::OS::Windows::DirectX
 					hResult
 				);
 			}
-#else
-			throw DependencyMissingException(
-				"DSound"
-			);
-#endif
 		}
 
 		DirectSound()
@@ -334,7 +295,6 @@ namespace AL::OS::Windows::DirectX
 				"DirectSound already created"
 			);
 
-#if defined(AL_DEPENDENCY_DSOUND)
 			::HRESULT           hResult;
 			OutputDevice::Type* lpOutputDevice;
 
@@ -358,11 +318,6 @@ namespace AL::OS::Windows::DirectX
 			}
 
 			output = lpOutputDevice;
-#else
-			throw DependencyMissingException(
-				"DSound"
-			);
-#endif
 		}
 		// @throw AL::Exception
 		Void Create(HWND hWnd, const DirectSoundDevice& device)
@@ -372,7 +327,6 @@ namespace AL::OS::Windows::DirectX
 				"DirectSound already created"
 			);
 
-#if defined(AL_DEPENDENCY_DSOUND)
 			::HRESULT hResult;
 			OutputDevice::Type* lpOutputDevice;
 
@@ -396,11 +350,6 @@ namespace AL::OS::Windows::DirectX
 			}
 
 			output = lpOutputDevice;
-#else
-			throw DependencyMissingException(
-				"DSound"
-			);
-#endif
 		}
 
 		Void Destroy()
@@ -475,7 +424,6 @@ namespace AL::OS::Windows::DirectX
 				"DirectSound not created"
 			);
 
-#if defined(AL_DEPENDENCY_DSOUND)
 			struct FileHeader
 			{
 				char   ChunkID[4];     // RIFF
@@ -611,13 +559,9 @@ namespace AL::OS::Windows::DirectX
 			}
 
 			buffer = _buffer;
-#else
-			throw NotImplementedException();
-#endif
 		}
 
 	private:
-#if defined(AL_DEPENDENCY_DSOUND)
 		// Return FALSE to stop enumerating drivers
 		static ::BOOL CALLBACK EnumDevicesProc(::LPGUID lpGuid, ::LPCSTR lpDescription, ::LPCSTR lpModule, ::LPVOID lpParam)
 		{
@@ -644,6 +588,5 @@ namespace AL::OS::Windows::DirectX
 
 			return (*lpCallback)(device) ? TRUE : FALSE;
 		}
-#endif
 	};
 }

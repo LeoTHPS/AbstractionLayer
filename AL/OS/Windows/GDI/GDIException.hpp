@@ -2,7 +2,7 @@
 #include "AL/Common.hpp"
 
 #if !defined(AL_PLATFORM_WINDOWS)
-	#warning Platform not supported
+	#error Platform not supported
 #endif
 
 namespace AL::OS::Windows::GDI

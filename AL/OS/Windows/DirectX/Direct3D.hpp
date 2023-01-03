@@ -2,7 +2,7 @@
 #include "AL/Common.hpp"
 
 #if !defined(AL_PLATFORM_WINDOWS)
-	#warning Platform not supported
+	#error Platform not supported
 #endif
 
 #include "Resource.hpp"
@@ -15,56 +15,21 @@
 
 #if AL_HAS_INCLUDE(<d3d11_4.h>)
 	#include <d3d11_4.h>
-
-	#define AL_DEPENDENCY_DIRECT3D
-	#define AL_DEPENDENCY_DIRECT3D_11
-	#define AL_DEPENDENCY_DIRECT3D_11_4
-
-	#define AL_DEPENDENCY_DIRECT3D_VERSION 11.4
 #elif AL_HAS_INCLUDE(<d3d11_3.h>)
 	#include <d3d11_3.h>
-
-	#define AL_DEPENDENCY_DIRECT3D
-	#define AL_DEPENDENCY_DIRECT3D_11
-	#define AL_DEPENDENCY_DIRECT3D_11_3
-
-	#define AL_DEPENDENCY_DIRECT3D_VERSION 11.3
 #elif AL_HAS_INCLUDE(<d3d11_2.h>)
 	#include <d3d11_2.h>
-
-	#define AL_DEPENDENCY_DIRECT3D
-	#define AL_DEPENDENCY_DIRECT3D_11
-	#define AL_DEPENDENCY_DIRECT3D_11_2
-
-	#define AL_DEPENDENCY_DIRECT3D_VERSION 11.2
 #elif AL_HAS_INCLUDE(<d3d11_1.h>)
 	#include <d3d11_1.h>
-
-	#define AL_DEPENDENCY_DIRECT3D
-	#define AL_DEPENDENCY_DIRECT3D_11
-	#define AL_DEPENDENCY_DIRECT3D_11_1
-
-	#define AL_DEPENDENCY_DIRECT3D_VERSION 11.1
 #elif AL_HAS_INCLUDE(<d3d11.h>)
 	#include <d3d11.h>
-
-	#define AL_DEPENDENCY_DIRECT3D
-	#define AL_DEPENDENCY_DIRECT3D_11
-
-	#define AL_DEPENDENCY_DIRECT3D_VERSION 11.0
 #else
-	typedef void ID3D11Device;
-	typedef void ID3D11DeviceContext;
-
-	typedef void IDXGISwapChain;
-	typedef void ID3D11RenderTargetView;
+	#error Missing d3d11.h
 #endif
 
 #if defined(AL_COMPILER_MSVC)
-	#if defined(AL_DEPENDENCY_DIRECT3D_11)
-		#pragma comment(lib, "d3d11.lib")
-		#pragma comment(lib, "dxguid.lib")
-	#endif
+	#pragma comment(lib, "d3d11.lib")
+	#pragma comment(lib, "dxguid.lib")
 #endif
 
 namespace AL::OS::Windows::DirectX
@@ -182,7 +147,6 @@ namespace AL::OS::Windows::DirectX
 				"Direct3D target already created"
 			);
 
-#if defined(AL_DEPENDENCY_DIRECT3D_11)
 			if (FAILED(GetSwapChain()->ResizeBuffers(0, static_cast<::UINT>(width), static_cast<::UINT>(height), ::DXGI_FORMAT_UNKNOWN, 0)))
 			{
 
@@ -190,9 +154,6 @@ namespace AL::OS::Windows::DirectX
 					"Error resizing swap chain buffer(s)"
 				);
 			}
-#else
-			throw NotImplementedException();
-#endif
 		}
 
 		// @throw AL::Exception
@@ -203,7 +164,6 @@ namespace AL::OS::Windows::DirectX
 				"Direct3D already created"
 			);
 
-#if defined(AL_DEPENDENCY_DIRECT3D_11)
 			BitMask<::UINT> flags;
 			flags.Add(::D3D11_CREATE_DEVICE_BGRA_SUPPORT);
 			flags.Set(::D3D11_CREATE_DEVICE_SINGLETHREADED, !multithreaded);
@@ -378,11 +338,6 @@ namespace AL::OS::Windows::DirectX
 			device        = lpDevice;
 			swapChain     = lpSwapChain;
 			deviceContext = lpDeviceContext;
-#else
-			throw DependencyMissingException(
-				"Direct3D"
-			);
-#endif
 		}
 
 		Void Destroy()
@@ -410,7 +365,6 @@ namespace AL::OS::Windows::DirectX
 				"Direct3D target already created"
 			);
 
-#if defined(AL_DEPENDENCY_DIRECT3D_11)
 			::ID3D11Texture2D* lpTexture;
 
 			if (FAILED(GetSwapChain()->GetBuffer(0, IID_PPV_ARGS(&lpTexture))))
@@ -441,22 +395,17 @@ namespace AL::OS::Windows::DirectX
 			);
 
 			targetView = lpTargetView;
-#else
-			throw NotImplementedException();
-#endif
 		}
 
 		Void DestroyTarget()
 		{
 			if (IsTargetCreated())
 			{
-#if defined(AL_DEPENDENCY_DIRECT3D_11)
 				GetDeviceContext()->OMSetRenderTargets(
 					0,
 					nullptr,
 					nullptr
 				);
-#endif
 
 				targetView.Release();
 			}
@@ -474,7 +423,6 @@ namespace AL::OS::Windows::DirectX
 				"Direct3D target not created"
 			);
 
-#if defined(AL_DEPENDENCY_DIRECT3D_11)
 			::FLOAT rgba[4];
 			rgba[0] = color.R / 255.0f;
 			rgba[1] = color.G / 255.0f;
@@ -485,7 +433,6 @@ namespace AL::OS::Windows::DirectX
 				GetTargetView(),
 				rgba
 			);
-#endif
 		}
 
 		// @throw AL::Exception
@@ -501,7 +448,6 @@ namespace AL::OS::Windows::DirectX
 				"Direct3D target not created"
 			);
 
-#if defined(AL_DEPENDENCY_DIRECT3D_11)
 			auto hResult = GetSwapChain()->Present(
 				vsync ? 1 : 0,
 				0
@@ -514,9 +460,6 @@ namespace AL::OS::Windows::DirectX
 					"Error presenting swap chain"
 				);
 			}
-#else
-			throw NotImplementedException();
-#endif
 		}
 	};
 }
