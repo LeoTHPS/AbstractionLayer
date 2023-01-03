@@ -9,13 +9,11 @@
 #include "AL/Collections/Tuple.hpp"
 #include "AL/Collections/LinkedList.hpp"
 
-#if AL_HAS_INCLUDE(<sqlite3.h>)
-	#define AL_DEPENDENCY_SQLITE3
-
-	#include <sqlite3.h>
-#else
-	typedef void* sqlite3;
+#if !AL_HAS_INCLUDE(<sqlite3.h>)
+	#error Missing sqlite3.h
 #endif
+
+#include <sqlite3.h>
 
 namespace AL::SQLite3
 {
@@ -68,9 +66,7 @@ namespace AL::SQLite3
 		FileSystem::Path       path;
 		BitMask<DatabaseFlags> flags;
 
-#if defined(AL_DEPENDENCY_SQLITE3)
 		::sqlite3*             db = nullptr;
-#endif
 
 		Database(const Database&) = delete;
 
@@ -84,18 +80,13 @@ namespace AL::SQLite3
 			),
 			flags(
 				Move(database.flags)
-			)
-#if defined(AL_DEPENDENCY_SQLITE3)
-			,
+			),
 			db(
 				database.db
 			)
-#endif
 		{
 			database.isOpen = False;
-#if defined(AL_DEPENDENCY_SQLITE3)
 			database.db     = nullptr;
-#endif
 		}
 
 		Database(FileSystem::Path&& path, DatabaseFlags flags = DatabaseFlags::Create | DatabaseFlags::ReadWrite)
@@ -141,9 +132,7 @@ namespace AL::SQLite3
 
 		auto GetHandle() const
 		{
-#if defined(AL_DEPENDENCY_SQLITE3)
 			return db;
-#endif
 		}
 
 		// @throw AL::Exception
@@ -154,7 +143,6 @@ namespace AL::SQLite3
 				"Database already open"
 			);
 
-#if defined(AL_DEPENDENCY_SQLITE3)
 			int flags = 0;
 
 			if (GetFlags().IsSet(DatabaseFlags::URI))          flags |= SQLITE_OPEN_URI;
@@ -179,11 +167,6 @@ namespace AL::SQLite3
 					"sqlite3_open_v2"
 				);
 			}
-#else
-			throw DependencyMissingException(
-				"SQLite3"
-			);
-#endif
 
 			isOpen = True;
 		}
@@ -192,13 +175,11 @@ namespace AL::SQLite3
 		{
 			if (IsOpen())
 			{
-#if defined(AL_DEPENDENCY_SQLITE3)
 				::sqlite3_close(
 					db
 				);
 
 				db = nullptr;
-#endif
 
 				isOpen = False;
 			}
@@ -217,16 +198,13 @@ namespace AL::SQLite3
 			{
 				String              Query;
 				DatabaseQueryResult Result;
-#if defined(AL_DEPENDENCY_SQLITE3)
 				::sqlite3_callback  Callback;
-#endif
 				Database*           lpDatabase;
 			};
 
 			Context context =
 			{
 				.Query      = String::Format(format, Forward<TArgs>(args) ...),
-#if defined(AL_DEPENDENCY_SQLITE3)
 				.Callback   = [](void* _lpParam, int _column_count, char** _column_values, char** _column_names)->int
 				{
 					auto lpContext = reinterpret_cast<Context*>(
@@ -256,11 +234,9 @@ namespace AL::SQLite3
 
 					return SQLITE_OK;
 				},
-#endif
 				.lpDatabase = this
 			};
 
-#if defined(AL_DEPENDENCY_SQLITE3)
 			if (::sqlite3_exec(GetHandle(), context.Query.GetCString(), context.Callback, &context, nullptr) != SQLITE_OK)
 			{
 
@@ -269,7 +245,6 @@ namespace AL::SQLite3
 					"sqlite3_exec"
 				);
 			}
-#endif
 
 			return context.Result;
 		}
@@ -293,10 +268,8 @@ namespace AL::SQLite3
 				database.flags
 			);
 
-#if defined(AL_DEPENDENCY_SQLITE3)
 			db = database.db;
 			database.db = nullptr;
-#endif
 
 			return *this;
 		}
@@ -309,13 +282,11 @@ namespace AL::SQLite3
 				return False;
 			}
 
-#if defined(AL_DEPENDENCY_SQLITE3)
 			if (GetHandle() != database.GetHandle())
 			{
 
 				return False;
 			}
-#endif
 
 			return True;
 		}
