@@ -23,10 +23,12 @@ target_link_libraries(
 	pico_multicore
 	hardware_adc
 	hardware_i2c
+	hardware_irq
 	hardware_spi
 	hardware_gpio
 	hardware_uart
 	hardware_timer
+	hardware_resets
 )
 
 target_include_directories(
