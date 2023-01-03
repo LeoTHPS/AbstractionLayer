@@ -10,6 +10,10 @@
 	#include <cstdio>
 
 	#include <unistd.h>
+#elif defined(AL_PLATFORM_WINDOWS)
+
+#else
+	#error Platform not supported
 #endif
 
 namespace AL::OS

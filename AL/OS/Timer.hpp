@@ -1,8 +1,14 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+
+#elif defined(AL_PLATFORM_LINUX)
 	#include <time.h>
+#elif defined(AL_PLATFORM_WINDOWS)
+
+#else
+	#error Platform not supported
 #endif
 
 namespace AL::OS

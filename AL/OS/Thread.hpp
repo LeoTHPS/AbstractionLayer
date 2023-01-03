@@ -1,12 +1,12 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#if defined(AL_PLATFORM_PICO)
-	#warning Platform not supported
-#elif defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_LINUX)
 	#include "Linux/Thread.hpp"
 #elif defined(AL_PLATFORM_WINDOWS)
 	#include "Windows/Thread.hpp"
+#else
+	#error Platform not supported
 #endif
 
 namespace AL::OS

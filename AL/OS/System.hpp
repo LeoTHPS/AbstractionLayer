@@ -18,6 +18,8 @@
 #elif defined(AL_PLATFORM_WINDOWS)
 	#include <lmcons.h>
 	#include <sysinfoapi.h>
+#else
+	#error Platform not supported
 #endif
 
 namespace AL::OS

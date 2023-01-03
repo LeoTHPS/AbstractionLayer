@@ -5,6 +5,10 @@
 	#include <pico/mutex.h>
 #elif defined(AL_PLATFORM_LINUX)
 	#include <mutex>
+#elif defined(AL_PLATFORM_WINDOWS)
+
+#else
+	#error Platform not supported
 #endif
 
 namespace AL::OS

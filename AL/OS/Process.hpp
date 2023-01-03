@@ -9,9 +9,7 @@
 
 #include "AL/FileSystem/Path.hpp"
 
-#if defined(AL_PLATFORM_PICO)
-	#warning Platform not supported
-#elif defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_LINUX)
 	#include "Linux/DLException.hpp"
 
 	#include "AL/FileSystem/Directory.hpp"
@@ -23,6 +21,8 @@
 #elif defined(AL_PLATFORM_WINDOWS)
 	#include <TlHelp32.h>
 	#include <winternl.h>
+#else
+	#error Platform not supported
 #endif
 
 namespace AL::OS

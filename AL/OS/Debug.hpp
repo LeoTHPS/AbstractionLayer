@@ -7,6 +7,10 @@
 	#include "Console.hpp"
 #elif defined(AL_PLATFORM_LINUX)
 	#include <cstdio>
+#elif defined(AL_PLATFORM_WINDOWS)
+
+#else
+	#error Platform not supported
 #endif
 
 namespace AL::OS
