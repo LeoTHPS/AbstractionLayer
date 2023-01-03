@@ -6,9 +6,7 @@
 #include "AL/OS/SystemException.hpp"
 
 #if defined(AL_PLATFORM_PICO)
-	#include "GPIO.hpp"
-
-	#include <hardware/i2c.h>
+	#include "Drivers/Pico/I2C.hpp"
 #elif defined(AL_PLATFORM_LINUX)
 	#include "AL/FileSystem/Path.hpp"
 
@@ -18,19 +16,17 @@
 
 	#include <sys/ioctl.h>
 
-	#if AL_HAS_INCLUDE(<linux/i2c-dev.h>)
-		#define AL_DEPENDENCY_LIBI2C_DEV
-
-		extern "C"
-		{
-			#include <linux/i2c.h>
-			#include <linux/i2c-dev.h>
-		}
+	#if !AL_HAS_INCLUDE(<linux/i2c-dev.h>)
+		#error Missing linux/i2c-dev.h
 	#endif
-#elif defined(AL_PLATFORM_WINDOWS)
-	#include "AL/FileSystem/Path.hpp"
 
-	#warning Platform not supported
+	extern "C"
+	{
+		#include <linux/i2c.h>
+		#include <linux/i2c-dev.h>
+	}
+#else
+	#error Platform not supported
 #endif
 
 namespace AL::Hardware
@@ -38,9 +34,20 @@ namespace AL::Hardware
 	class I2CAddress
 	{
 	public:
-		typedef uint16 Type;
+		typedef uint8  Type8;
+		typedef uint16 Type16;
 
-		I2CAddress(Type value)
+		I2CAddress(Type8 value)
+			: value(
+				value
+			)
+		{
+			AL_ASSERT(
+				!IsReserved(value),
+				"I2CAddress is reserved"
+			);
+		}
+		I2CAddress(Type16 value)
 			: value(
 				value
 			)
@@ -55,12 +62,29 @@ namespace AL::Hardware
 		{
 		}
 
-		operator Type () const
+		operator Type8 () const
+		{
+			return static_cast<Type8>(
+				value & 0x00FF
+			);
+		}
+		operator Type16 () const
 		{
 			return value;
 		}
 
-		I2CAddress& operator = (Type value)
+		I2CAddress& operator = (Type8 value)
+		{
+			AL_ASSERT(
+				!IsReserved(value),
+				"I2CAddress is reserved"
+			);
+
+			this->value = value;
+
+			return *this;
+		}
+		I2CAddress& operator = (Type16 value)
 		{
 			AL_ASSERT(
 				!IsReserved(value),
@@ -94,17 +118,13 @@ namespace AL::Hardware
 		}
 
 	private:
-		Type value;
+		Type16 value;
 
-		static constexpr Bool IsReserved(Type value)
+		static constexpr Bool IsReserved(Type16 value)
 		{
 			return (value >= 0x08) && (value <= 0x77);
 		}
 	};
-
-#if defined(AL_PLATFORM_PICO)
-	typedef ::uint I2CBaudRate;
-#endif
 
 	enum class I2CTransactionFlags : uint16
 	{
@@ -128,21 +148,13 @@ namespace AL::Hardware
 
 	class I2CBus
 	{
-		Bool          isOpen = False;
+		Bool               isOpen = False;
 
 #if defined(AL_PLATFORM_PICO)
-		::i2c_inst_t* i2c;
-		GPIOPin       scl;
-		GPIOPin       sda;
-		I2CBaudRate   baud;
+		Drivers::Pico::I2C i2c;
 #elif defined(AL_PLATFORM_LINUX)
-	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
-		int           fd;
-	#endif
-#endif
-
-#if !defined(AL_PLATFORM_PICO)
-		FileSystem::Path path;
+		int                fd;
+		FileSystem::Path   path;
 #endif
 
 		I2CBus(const I2CBus&) = delete;
@@ -155,24 +167,13 @@ namespace AL::Hardware
 #if defined(AL_PLATFORM_PICO)
 			,
 			i2c(
-				bus.i2c
-			),
-			scl(
-				bus.scl
-			),
-			sda(
-				bus.sda
-			),
-			baud(
-				bus.baud
+				Move(bus.i2c)
 			)
 #elif defined(AL_PLATFORM_LINUX)
-	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
 			,
 			fd(
 				bus.fd
 			)
-	#endif
 #endif
 #if !defined(AL_PLATFORM_PICO)
 			,
@@ -182,29 +183,19 @@ namespace AL::Hardware
 #endif
 		{
 			bus.isOpen = False;
-
-#if defined(AL_PLATFORM_PICO)
-			bus.i2c = nullptr;
-#endif
 		}
 
 #if defined(AL_PLATFORM_PICO)
-		I2CBus(::i2c_inst_t* i2c, GPIOPin scl, GPIOPin sda, I2CBaudRate baud)
+		I2CBus(::i2c_inst_t* i2c, GPIOPin scl, GPIOPin sda, uint32 baud)
 			: i2c(
-				i2c
-			),
-			scl(
-				scl
-			),
-			sda(
-				sda
-			),
-			baud(
+				i2c,
+				scl,
+				sda,
 				baud
 			)
 		{
 		}
-#else
+#elif defined(AL_PLATFORM_LINUX)
 		explicit I2CBus(FileSystem::Path&& path)
 			: path(
 				Move(path)
@@ -236,22 +227,17 @@ namespace AL::Hardware
 #if defined(AL_PLATFORM_PICO)
 		auto GetSCL() const
 		{
-			return scl;
+			return i2c.GetSCL();
 		}
 
 		auto GetSDA() const
 		{
-			return sda;
+			return i2c.GetSDA();
 		}
 
 		auto GetBaud() const
 		{
-			return baud;
-		}
-
-		auto GetHandle() const
-		{
-			return i2c;
+			return i2c.GetBaud();
 		}
 #elif defined(AL_PLATFORM_LINUX)
 		auto& GetPath() const
@@ -269,30 +255,8 @@ namespace AL::Hardware
 			);
 
 #if defined(AL_PLATFORM_PICO)
-			::i2c_init(
-				GetHandle(),
-				GetBaud()
-			);
-
-			::gpio_set_function(
-				GetSDA(),
-				::GPIO_FUNC_I2C
-			);
-
-			::gpio_set_function(
-				GetSCL(),
-				::GPIO_FUNC_I2C
-			);
-
-			::gpio_pull_up(
-				GetSDA()
-			);
-
-			::gpio_pull_up(
-				GetSCL()
-			);
+			i2c.Open();
 #elif defined(AL_PLATFORM_LINUX)
-	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
 			if ((fd = ::open(GetPath().GetString().GetCString(), O_RDWR)) == -1)
 			{
 
@@ -300,11 +264,6 @@ namespace AL::Hardware
 					"open"
 				);
 			}
-	#else
-			throw DependencyMissingException(
-				"libi2c-dev"
-			);
-	#endif
 #else
 			throw PlatformNotSupportedException();
 #endif
@@ -317,15 +276,11 @@ namespace AL::Hardware
 			if (IsOpen())
 			{
 #if defined(AL_PLATFORM_PICO)
-				::i2c_deinit(
-					GetHandle()
-				);
+				i2c.Close();
 #elif defined(AL_PLATFORM_LINUX)
-	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
 				::close(
 					fd
 				);
-	#endif
 #endif
 
 				isOpen = False;
@@ -356,15 +311,12 @@ namespace AL::Hardware
 			);
 
 #if defined(AL_PLATFORM_PICO)
-			if (::i2c_read_blocking(GetHandle(), address, reinterpret_cast<::uint8_t*>(lpBuffer), size, false) == PICO_ERROR_GENERIC)
-			{
-
-				throw OS::SystemException(
-					"i2c_read_blocking"
-				);
-			}
+			i2c.Read(
+				lpBuffer,
+				size,
+				address
+			);
 #elif defined(AL_PLATFORM_LINUX)
-	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
 			::i2c_msg i2c_message =
 			{
 				.addr  = static_cast<__u16>(address),
@@ -386,9 +338,6 @@ namespace AL::Hardware
 					"ioctl"
 				);
 			}
-	#else
-			throw NotImplementedException();
-	#endif
 #else
 			throw NotImplementedException();
 #endif
@@ -418,15 +367,12 @@ namespace AL::Hardware
 			);
 
 #if defined(AL_PLATFORM_PICO)
-			if (::i2c_write_blocking(GetHandle(), address, reinterpret_cast<const ::uint8_t*>(lpBuffer), size, false) == PICO_ERROR_GENERIC)
-			{
-
-				throw OS::SystemException(
-					"i2c_write_blocking"
-				);
-			}
+			i2c.Write(
+				lpBuffer,
+				size,
+				address
+			);
 #elif defined(AL_PLATFORM_LINUX)
-	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
 			::i2c_msg i2c_message =
 			{
 				.addr  = static_cast<__u16>(address),
@@ -448,9 +394,6 @@ namespace AL::Hardware
 					"ioctl"
 				);
 			}
-	#else
-			throw NotImplementedException();
-	#endif
 #else
 			throw NotImplementedException();
 #endif
@@ -482,23 +425,19 @@ namespace AL::Hardware
 			);
 
 #if defined(AL_PLATFORM_PICO)
-			if (::i2c_write_blocking(GetHandle(), address, reinterpret_cast<const ::uint8_t*>(lpTX), txSize, true) == PICO_ERROR_GENERIC)
-			{
+			i2c.Write(
+				lpTX,
+				txSize,
+				address,
+				True
+			);
 
-				throw OS::SystemException(
-					"i2c_write_blocking"
-				);
-			}
-
-			if (::i2c_read_blocking(GetHandle(), address, reinterpret_cast<::uint8_t*>(lpRX), rxSize, false) == PICO_ERROR_GENERIC)
-			{
-
-				throw OS::SystemException(
-					"i2c_write_blocking"
-				);
-			}
+			i2c.Read(
+				lpRX,
+				rxSize,
+				address
+			);
 #elif defined(AL_PLATFORM_LINUX)
-	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
 			::i2c_msg i2c_messages[2] =
 			{
 				// TX
@@ -530,9 +469,6 @@ namespace AL::Hardware
 					"ioctl"
 				);
 			}
-	#else
-			throw NotImplementedException();
-	#endif
 #else
 			throw NotImplementedException();
 #endif
@@ -595,27 +531,22 @@ namespace AL::Hardware
 
 				if (lpTransactions->Flags.IsSet(I2CTransactionFlags::Read))
 				{
-					if (::i2c_read_blocking(GetHandle(), lpTransactions->Address, reinterpret_cast<::uint8_t*>(lpTransactions->lpBuffer), lpTransactions->BufferSize, false) == PICO_ERROR_GENERIC)
-					{
-
-						throw OS::SystemException(
-							"i2c_read_blocking"
-						);
-					}
+					i2c.Read(
+						lpTransactions->lpBuffer,
+						lpTransactions->BufferSize,
+						lpTransactions->Address
+					);
 				}
 				else
 				{
-					if (::i2c_write_blocking(GetHandle(), lpTransactions->Address, reinterpret_cast<const ::uint8_t*>(lpTransactions->lpBuffer), lpTransactions->BufferSize, false) == PICO_ERROR_GENERIC)
-					{
-
-						throw OS::SystemException(
-							"i2c_write_blocking"
-						);
-					}
+					i2c.Write(
+						lpTransactions->lpBuffer,
+						lpTransactions->BufferSize,
+						lpTransactions->Address
+					);
 				}
 			}
 #elif defined(AL_PLATFORM_LINUX)
-	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
 			Collections::Array<::i2c_msg> i2c_messages(
 				count
 			);
@@ -687,9 +618,6 @@ namespace AL::Hardware
 					"ioctl"
 				);
 			}
-	#else
-			throw NotImplementedException();
-	#endif
 #else
 			throw NotImplementedException();
 #endif
@@ -703,18 +631,12 @@ namespace AL::Hardware
 			bus.isOpen = False;
 
 #if defined(AL_PLATFORM_PICO)
-			i2c = bus.i2c;
-			bus.i2c = nullptr;
-
-			scl = bus.scl;
-			sda = bus.sda;
+			i2c = Move(
+				bus.i2c
+			);
 #elif defined(AL_PLATFORM_LINUX)
-	#if defined(AL_DEPENDENCY_LIBI2C_DEV)
 			fd = bus.fd;
-	#endif
-#endif
 
-#if !defined(AL_PLATFORM_PICO)
 			path = Move(
 				bus.path
 			);
@@ -726,19 +648,7 @@ namespace AL::Hardware
 		Bool operator == (const I2CBus& bus) const
 		{
 #if defined(AL_PLATFORM_PICO)
-			if (GetSCL() != bus.GetSCL())
-			{
-
-				return False;
-			}
-
-			if (GetSDA() != bus.GetSDA())
-			{
-
-				return False;
-			}
-
-			if (GetHandle() != bus.GetHandle())
+			if (i2c != bus.i2c)
 			{
 
 				return False;

@@ -18,6 +18,8 @@
 		#pragma comment(lib, "Ole32.lib")
 		#pragma comment(lib, "wlanapi.lib")
 	#endif
+#else
+	#error Platform not supported
 #endif
 
 namespace AL::Hardware

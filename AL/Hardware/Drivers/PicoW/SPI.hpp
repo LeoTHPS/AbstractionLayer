@@ -9,5 +9,6 @@
 
 namespace AL::Hardware::Drivers::PicoW
 {
-	typedef Hardware::Drivers::Pico::SPI SPI;
+	typedef Hardware::Drivers::Pico::SPI      SPI;
+	typedef Hardware::Drivers::Pico::SPIModes SPIModes;
 }

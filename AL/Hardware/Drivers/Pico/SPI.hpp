@@ -9,5 +9,6 @@
 
 namespace AL::Hardware::Drivers::Pico
 {
-	typedef Drivers::RP2040::SPI SPI;
+	typedef Drivers::RP2040::SPI      SPI;
+	typedef Drivers::RP2040::SPIModes SPIModes;
 }

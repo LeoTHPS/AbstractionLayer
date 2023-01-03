@@ -4,9 +4,7 @@
 #include "AL/OS/SystemException.hpp"
 
 #if defined(AL_PLATFORM_PICO)
-	#include "GPIO.hpp"
-
-	#include <hardware/uart.h>
+	#include "Drivers/Pico/UART.hpp"
 #elif defined(AL_PLATFORM_LINUX)
 	#include "AL/FileSystem/Path.hpp"
 
@@ -17,131 +15,41 @@
 	#include <sys/ioctl.h>
 #elif defined(AL_PLATFORM_WINDOWS)
 	#include "AL/FileSystem/Path.hpp"
-
-	#warning Platform not supported
+#else
+	#error Platform not supported
 #endif
 
 namespace AL::Hardware
 {
 	enum class UARTDeviceFlags : uint8
 	{
-		None         = 0x0,
+		None         = 0x00,
 
-		Parity       = 0x1,
-		Parity_Odd   = 0x2 | Parity,
-		Parity_Even  = 0x4 | Parity,
+		Parity       = 0x01,
+		Parity_Odd   = 0x02 | Parity,
+		Parity_Even  = 0x04 | Parity,
 
-		Use2StopBits = 0x8
+		Use2StopBits = 0x08
 	};
 
 	AL_DEFINE_ENUM_FLAG_OPERATORS(UARTDeviceFlags);
-
-	enum class UARTDeviceSpeeds
-#if defined(AL_PLATFORM_PICO)
-		: ::uint
-#elif defined(AL_PLATFORM_LINUX)
-		: ::speed_t
-#elif defined(AL_PLATFORM_WINDOWS)
-		: ::DWORD
-#endif
-	{
-#if defined(AL_PLATFORM_PICO)
-		Baud_50      = 50,
-		Baud_75      = 75,
-		Baud_110     = 110,
-		Baud_134     = 134,
-		Baud_150     = 150,
-		Baud_200     = 200,
-		Baud_300     = 300,
-		Baud_600     = 600,
-		Baud_1200    = 1200,
-		Baud_1800    = 1800,
-		Baud_2400    = 2400,
-		Baud_4800    = 4800,
-		Baud_9600    = 9600,
-		Baud_19200   = 19200,
-		Baud_38400   = 38400,
-		Baud_57600   = 57600,
-		Baud_115200  = 115200,
-		Baud_230400  = 230400,
-		Baud_460800  = 460800,
-		Baud_500000  = 500000,
-		Baud_576000  = 576000,
-		Baud_921600  = 921600,
-		Baud_1000000 = 1000000,
-		Baud_1152000 = 1152000,
-#elif defined(AL_PLATFORM_LINUX)
-		Baud_50      = B50,
-		Baud_75      = B75,
-		Baud_110     = B110,
-		Baud_134     = B134,
-		Baud_150     = B150,
-		Baud_200     = B200,
-		Baud_300     = B300,
-		Baud_600     = B600,
-		Baud_1200    = B1200,
-		Baud_1800    = B1800,
-		Baud_2400    = B2400,
-		Baud_4800    = B4800,
-		Baud_9600    = B9600,
-		Baud_19200   = B19200,
-		Baud_38400   = B38400,
-		Baud_57600   = B57600,
-		Baud_115200  = B115200,
-		Baud_230400  = B230400,
-		Baud_460800  = B460800,
-		Baud_500000  = B500000,
-		Baud_576000  = B576000,
-		Baud_921600  = B921600,
-		Baud_1000000 = B1000000,
-		Baud_1152000 = B1152000,
-		Baud_1500000 = B1500000,
-		Baud_2000000 = B2000000,
-		Baud_2500000 = B2500000,
-		Baud_3000000 = B3000000,
-		Baud_3500000 = B3500000,
-		Baud_4000000 = B4000000,
-#elif defined(AL_PLATFORM_WINDOWS)
-		Baud_110     = CBR_110,
-		Baud_300     = CBR_300,
-		Baud_600     = CBR_600,
-		Baud_1200    = CBR_1200,
-		Baud_2400    = CBR_2400,
-		Baud_4800    = CBR_4800,
-		Baud_9600    = CBR_9600,
-		Baud_14400   = CBR_14400,
-		Baud_19200   = CBR_19200,
-		Baud_38400   = CBR_38400,
-		Baud_56000   = CBR_56000,
-		Baud_57600   = CBR_57600,
-		Baud_115200  = CBR_115200,
-		Baud_128000  = CBR_128000,
-		Baud_256000  = CBR_256000,
-#endif
-
-		Default      = Baud_9600
-	};
 
 	class UARTDevice
 	{
 		Bool                     isOpen = False;
 
 #if defined(AL_PLATFORM_PICO)
-		::uart_inst_t*           uart;
+		Drivers::Pico::UART      uart;
 #elif defined(AL_PLATFORM_LINUX)
+		FileSystem::Path         path;
 		int                      fd;
 #elif defined(AL_PLATFORM_WINDOWS)
+		FileSystem::Path         path;
 		::HANDLE                 hFile;
 #endif
 
-#if defined(AL_PLATFORM_PICO)
-		GPIOPin                  rx;
-		GPIOPin                  tx;
-#else
-		FileSystem::Path         path;
-#endif
 		BitMask<UARTDeviceFlags> flags;
-		UARTDeviceSpeeds         speed;
+		uint32                   speed;
 
 		UARTDevice(const UARTDevice&) = delete;
 
@@ -152,27 +60,21 @@ namespace AL::Hardware
 			),
 #if defined(AL_PLATFORM_PICO)
 			uart(
-				device.uart
+				Move(device.uart)
 			),
 #elif defined(AL_PLATFORM_LINUX)
 			fd(
 				device.fd
 			),
-#elif defined(AL_PLATFORM_WINDOWS)
-			hFile(
-				device.hFile
-			),
-#endif
-#if defined(AL_PLATFORM_PICO)
-			rx(
-				device.rx
-			),
-			tx(
-				device.tx
-			),
-#else
 			path(
 				Move(device.path)
+			),
+#elif defined(AL_PLATFORM_WINDOWS)
+			path(
+				Move(device.path)
+			),
+			hFile(
+				device.hFile
 			),
 #endif
 			flags(
@@ -183,22 +85,24 @@ namespace AL::Hardware
 			)
 		{
 			device.isOpen = False;
-
-#if defined(AL_PLATFORM_PICO)
-			device.uart = nullptr;
-#endif
 		}
 
 #if defined(AL_PLATFORM_PICO)
-		UARTDevice(::uart_inst_t* uart, GPIOPin rx, GPIOPin tx, UARTDeviceSpeeds speed, UARTDeviceFlags flags)
+		UARTDevice(::uart_inst_t* uart, GPIOPin rx, GPIOPin tx, uint32 speed, UARTDeviceFlags flags)
 			: uart(
-				uart
-			),
-			rx(
-				rx
-			),
-			tx(
-				tx
+				uart,
+				rx,
+				tx,
+				speed,
+				[flags]()
+				{
+					BitMask<Drivers::Pico::UARTFlags> mask;
+					mask.Set(Drivers::Pico::UARTFlags::Parity_Odd, BitMask<UARTDeviceFlags>::IsSet(flags, UARTDeviceFlags::Parity_Odd));
+					mask.Set(Drivers::Pico::UARTFlags::Parity_Even, BitMask<UARTDeviceFlags>::IsSet(flags, UARTDeviceFlags::Parity_Even));
+					mask.Set(Drivers::Pico::UARTFlags::Use2StopBits, BitMask<UARTDeviceFlags>::IsSet(flags, UARTDeviceFlags::Use2StopBits));
+
+					return mask.Value;
+				}()
 			),
 			flags(
 				flags
@@ -209,7 +113,7 @@ namespace AL::Hardware
 		{
 		}
 #else
-		UARTDevice(FileSystem::Path&& path, UARTDeviceSpeeds speed, UARTDeviceFlags flags)
+		UARTDevice(FileSystem::Path&& path, uint32 speed, UARTDeviceFlags flags)
 			: path(
 				Move(path)
 			),
@@ -221,7 +125,7 @@ namespace AL::Hardware
 			)
 		{
 		}
-		UARTDevice(const FileSystem::Path& path, UARTDeviceSpeeds speed, UARTDeviceFlags flags)
+		UARTDevice(const FileSystem::Path& path, uint32 speed, UARTDeviceFlags flags)
 			: UARTDevice(
 				FileSystem::Path(path),
 				speed,
@@ -248,19 +152,24 @@ namespace AL::Hardware
 #if defined(AL_PLATFORM_PICO)
 		auto GetRX() const
 		{
-			return rx;
+			return uart.GetRX();
 		}
 
 		auto GetTX() const
 		{
-			return tx;
+			return uart.GetTX();
 		}
 
 		auto GetHandle() const
 		{
-			return uart;
+			return uart.GetUART();
 		}
-#else
+#elif defined(AL_PLATFORM_LINUX)
+		auto& GetPath() const
+		{
+			return path;
+		}
+#elif defined(AL_PLATFORM_WINDOWS)
 		auto& GetPath() const
 		{
 			return path;
@@ -286,33 +195,7 @@ namespace AL::Hardware
 			);
 
 #if defined(AL_PLATFORM_PICO)
-			::uart_init(
-				GetHandle(),
-				static_cast<::uint>(GetSpeed())
-			);
-
-			::gpio_set_function(
-				GetTX(),
-				::GPIO_FUNC_UART
-			);
-
-			::gpio_set_function(
-				GetRX(),
-				::GPIO_FUNC_UART
-			);
-
-			::uart_set_hw_flow(
-				GetHandle(),
-				false,
-				false
-			);
-
-			::uart_set_format(
-				GetHandle(),
-				8,
-				flags.IsSet(UARTDeviceFlags::Use2StopBits) ? 2 : 1,
-				flags.IsSet(UARTDeviceFlags::Parity) ? (flags.IsSet(UARTDeviceFlags::Parity_Odd) ? ::UART_PARITY_ODD : ::UART_PARITY_EVEN) : ::UART_PARITY_NONE
-			);
+			uart.Open();
 #elif defined(AL_PLATFORM_LINUX)
 			if ((fd = ::open(GetPath().GetString().GetCString(), O_RDWR | O_NOCTTY | O_NDELAY)) == -1)
 			{
@@ -474,9 +357,7 @@ namespace AL::Hardware
 			if (IsOpen())
 			{
 #if defined(AL_PLATFORM_PICO)
-				::uart_deinit(
-					GetHandle()
-				);
+				uart.Close();
 #elif defined(AL_PLATFORM_LINUX)
 				::close(
 					fd
@@ -514,9 +395,8 @@ namespace AL::Hardware
 			);
 
 #if defined(AL_PLATFORM_PICO)
-			::uart_read_blocking(
-				GetHandle(),
-				reinterpret_cast<::uint8_t*>(lpBuffer),
+			uart.Read(
+				lpBuffer,
 				size
 			);
 #else
@@ -574,9 +454,8 @@ namespace AL::Hardware
 			);
 
 #if defined(AL_PLATFORM_PICO)
-			::uart_write_blocking(
-				GetHandle(),
-				reinterpret_cast<const ::uint8_t*>(lpBuffer),
+			uart.Write(
+				lpBuffer,
 				size
 			);
 #else
@@ -640,11 +519,10 @@ namespace AL::Hardware
 #if defined(AL_PLATFORM_PICO)
 			size_t bytesRead = 0;
 
-			for (size_t i = 0; (i < size) && ::uart_is_readable(GetHandle()); ++i, ++bytesRead)
+			for (size_t i = 0; (i < size) && uart.IsReadable(); ++i, ++bytesRead)
 			{
-				::uart_read_blocking(
-					GetHandle(),
-					&reinterpret_cast<::uint8_t*>(lpBuffer)[i],
+				uart.Read(
+					&reinterpret_cast<uint8*>(lpBuffer)[i],
 					1
 				);
 			}
@@ -695,18 +573,21 @@ namespace AL::Hardware
 			device.isOpen = False;
 
 #if defined(AL_PLATFORM_PICO)
-			uart = device.uart;
-			device.uart = nullptr;
+			uart = Move(
+				device.uart
+			);
 #elif defined(AL_PLATFORM_LINUX)
-			fd = device.fd;
-#elif defined(AL_PLATFORM_WINDOWS)
-			hFile = device.hFile;
-#endif
-
-#if !defined(AL_PLATFORM_PICO)
 			path = Move(
 				device.path
 			);
+
+			fd = device.fd;
+#elif defined(AL_PLATFORM_WINDOWS)
+			path = Move(
+				device.path
+			);
+
+			hFile = device.hFile;
 #endif
 
 			flags = device.flags;
@@ -718,27 +599,21 @@ namespace AL::Hardware
 		Bool operator == (const UARTDevice& device) const
 		{
 #if defined(AL_PLATFORM_PICO)
-			if (GetRX() != device.GetRX())
+			if (uart != device.uart)
 			{
 
 				return False;
 			}
-
-			if (GetTX() != device.GetTX())
-			{
-
-				return False;
-			}
-
-			if (GetHandle() != device.GetHandle())
-			{
-
-				return False;
-			}
-#else
+#elif defined(AL_PLATFORM_LINUX)
 			if (GetPath() != device.GetPath())
 			{
-					
+
+				return False;
+			}
+#elif defined(AL_PLATFORM_WINDOWS)
+			if (GetPath() != device.GetPath())
+			{
+
 				return False;
 			}
 #endif

@@ -11,19 +11,33 @@
 
 namespace AL::Hardware::Drivers::RP2040
 {
+	enum class UARTFlags : uint8
+	{
+		None         = 0x00,
+
+		Parity       = 0x01,
+		Parity_Odd   = 0x02 | Parity,
+		Parity_Even  = 0x04 | Parity,
+
+		Use2StopBits = 0x08
+	};
+
+	AL_DEFINE_ENUM_FLAG_OPERATORS(UARTFlags);
+
 	class UART
 	{
-		Bool         isOpen = False;
+		Bool               isOpen = False;
 
-		::uart_inst* uart;
-		GPIOPin      rx;
-		GPIOPin      tx;
-		uint32       baud;
+		::uart_inst*       uart;
+		GPIOPin            rx;
+		GPIOPin            tx;
+		uint32             baud;
+		BitMask<UARTFlags> flags;
 
 		UART(const UART&) = delete;
 
 	public:
-		typedef I2CAddress Address;
+		typedef UARTFlags Flags;
 
 		UART(UART&& uart)
 			: isOpen(
@@ -40,12 +54,15 @@ namespace AL::Hardware::Drivers::RP2040
 			),
 			baud(
 				uart.baud
+			),
+			flags(
+				Move(uart.flags)
 			)
 		{
 			uart.isOpen = False;
 		}
 
-		UART(::uart_inst* uart, GPIOPin rx, GPIOPin tx, uint32 baud)
+		UART(::uart_inst* uart, GPIOPin rx, GPIOPin tx, uint32 baud, Flags flags)
 			: uart(
 				uart
 			),
@@ -57,6 +74,9 @@ namespace AL::Hardware::Drivers::RP2040
 			),
 			baud(
 				baud
+			),
+			flags(
+				flags
 			)
 		{
 		}
@@ -73,6 +93,28 @@ namespace AL::Hardware::Drivers::RP2040
 		Bool IsOpen() const
 		{
 			return isOpen;
+		}
+
+		Bool IsReadable() const
+		{
+			if (!::uart_is_readable(uart))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+
+		Bool IsWritable() const
+		{
+			if (!::uart_is_writable(uart))
+			{
+
+				return False;
+			}
+
+			return True;
 		}
 
 		auto GetUART() const
@@ -93,6 +135,11 @@ namespace AL::Hardware::Drivers::RP2040
 		auto GetBaud() const
 		{
 			return baud;
+		}
+
+		auto& GetFlags() const
+		{
+			return flags;
 		}
 
 		Void Open()
@@ -117,6 +164,19 @@ namespace AL::Hardware::Drivers::RP2040
 				::GPIO_FUNC_UART
 			);
 
+			::uart_set_hw_flow(
+				GetUART(),
+				false,
+				false
+			);
+
+			::uart_set_format(
+				GetUART(),
+				8,
+				flags.IsSet(Flags::Use2StopBits) ? 2 : 1,
+				flags.IsSet(Flags::Parity) ? (flags.IsSet(Flags::Parity_Odd) ? ::UART_PARITY_ODD : ::UART_PARITY_EVEN) : ::UART_PARITY_NONE
+			);
+
 			isOpen = True;
 		}
 
@@ -132,7 +192,7 @@ namespace AL::Hardware::Drivers::RP2040
 			}
 		}
 
-		Void Read(Void* lpBuffer, size_t size)
+		Void Read(Void* lpBuffer, size_t size) const
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -175,6 +235,7 @@ namespace AL::Hardware::Drivers::RP2040
 			rx         = uart.rx;
 			tx         = uart.tx;
 			baud       = uart.baud;
+			flags      = Move(uart.flags);
 
 			return *this;
 		}

@@ -9,5 +9,6 @@
 
 namespace AL::Hardware::Drivers::Pico
 {
-	typedef Drivers::RP2040::UART UART;
+	typedef Drivers::RP2040::UART      UART;
+	typedef Drivers::RP2040::UARTFlags UARTFlags;
 }

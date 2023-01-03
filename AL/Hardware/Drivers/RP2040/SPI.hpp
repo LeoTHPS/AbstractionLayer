@@ -11,22 +11,29 @@
 
 namespace AL::Hardware::Drivers::RP2040
 {
+	enum class SPIModes : uint8
+	{
+		Zero, One, Two, Three
+	};
+
 	class SPI
 	{
-		Bool        isOpen  = False;
-		Bool        isSlave = False;
+		Bool         isOpen  = False;
+		Bool         isSlave = False;
 
-		::spi_inst* spi;
-		GPIOPin     cs;
-		GPIOPin     miso;
-		GPIOPin     mosi;
-		GPIOPin     sclk;
-		uint32      baud;
+		::spi_inst*  spi;
+		mutable GPIO cs;
+		GPIOPin      miso;
+		GPIOPin      mosi;
+		GPIOPin      sclk;
+		SPIModes     mode;
+		uint32       baud;
+		uint8        bitCount;
 
 		SPI(const SPI&) = delete;
 
 	public:
-		typedef I2CAddress Address;
+		typedef SPIModes Modes;
 
 		SPI(SPI&& spi)
 			: isOpen(
@@ -36,7 +43,7 @@ namespace AL::Hardware::Drivers::RP2040
 				spi.spi
 			),
 			cs(
-				spi.cs
+				Move(spi.cs)
 			),
 			miso(
 				spi.miso
@@ -47,19 +54,27 @@ namespace AL::Hardware::Drivers::RP2040
 			sclk(
 				spi.sclk
 			),
+			mode(
+				spi.mode
+			),
 			baud(
 				spi.baud
+			),
+			bitCount(
+				spi.bitCount
 			)
 		{
 			spi.isOpen  = False;
 		}
 
-		SPI(::spi_inst* spi, GPIOPin miso, GPIOPin mosi, GPIOPin sclk, GPIOPin cs, uint32 baud)
+		SPI(::spi_inst* spi, GPIOPin miso, GPIOPin mosi, GPIOPin sclk, GPIOPin cs, Modes mode, uint32 baud, uint8 bitCount)
 			: spi(
 				spi
 			),
 			cs(
-				cs
+				cs,
+				GPIOPinDirections::Output,
+				GPIOPinValues::High
 			),
 			miso(
 				miso
@@ -70,8 +85,14 @@ namespace AL::Hardware::Drivers::RP2040
 			sclk(
 				sclk
 			),
+			mode(
+				mode
+			),
 			baud(
 				baud
+			),
+			bitCount(
+				bitCount
 			)
 		{
 		}
@@ -102,7 +123,7 @@ namespace AL::Hardware::Drivers::RP2040
 
 		auto GetCS() const
 		{
-			return cs;
+			return cs.GetPin();
 		}
 
 		auto GetMISO() const
@@ -120,9 +141,19 @@ namespace AL::Hardware::Drivers::RP2040
 			return sclk;
 		}
 
+		auto GetMode() const
+		{
+			return mode;
+		}
+
 		auto GetBaud() const
 		{
 			return baud;
+		}
+
+		auto GetBitCount() const
+		{
+			return bitCount;
 		}
 
 		Void Open()
@@ -152,9 +183,14 @@ namespace AL::Hardware::Drivers::RP2040
 				::GPIO_FUNC_SPI
 			);
 
-			::gpio_set_function(
-				GetCS(),
-				::GPIO_FUNC_SPI
+			cs.Open();
+
+			::spi_set_format(
+				GetSPI(),
+				GetBitCount(),
+				GetClockPolarityFromMode(GetMode()),
+				GetClockPhaseFromMode(GetMode()),
+				::SPI_MSB_FIRST
 			);
 
 			if (IsSlave())
@@ -172,6 +208,8 @@ namespace AL::Hardware::Drivers::RP2040
 		{
 			if (IsOpen())
 			{
+				cs.Close();
+
 				::spi_deinit(
 					GetSPI()
 				);
@@ -180,12 +218,19 @@ namespace AL::Hardware::Drivers::RP2040
 			}
 		}
 
-		Void Read(Void* lpBuffer, size_t size)
+		Void Read(Void* lpBuffer, size_t size, Bool changeCS = True) const
 		{
 			AL_ASSERT(
 				IsOpen(),
 				"SPI not open"
 			);
+
+			if (changeCS)
+			{
+				cs.Write(
+					GPIOPinValues::Low
+				);
+			}
 
 			::spi_read_blocking(
 				GetSPI(),
@@ -193,34 +238,77 @@ namespace AL::Hardware::Drivers::RP2040
 				reinterpret_cast<::uint8_t*>(lpBuffer),
 				size
 			);
+
+			if (changeCS)
+			{
+				cs.Write(
+					GPIOPinValues::High
+				);
+			}
 		}
 
-		Void Write(const Void* lpBuffer, size_t size)
+		Void Write(const Void* lpBuffer, size_t size, Bool changeCS = True)
 		{
 			AL_ASSERT(
 				IsOpen(),
 				"SPI not open"
 			);
+
+			if (changeCS)
+			{
+
+				SetCSActive();
+			}
 
 			::spi_write_blocking(
 				GetSPI(),
 				reinterpret_cast<const ::uint8_t*>(lpBuffer),
 				size
 			);
+
+			if (changeCS)
+			{
+
+				SetCSActive(False);
+			}
 		}
 
-		Void WriteRead(const Void* lpTX, Void* lpRX, size_t size)
+		Void WriteRead(const Void* lpTX, Void* lpRX, size_t size, Bool changeCS = True)
 		{
 			AL_ASSERT(
 				IsOpen(),
 				"SPI not open"
 			);
 
+			if (changeCS)
+			{
+
+				SetCSActive();
+			}
+
 			::spi_write_read_blocking(
 				GetSPI(),
 				reinterpret_cast<const ::uint8_t*>(lpTX),
 				reinterpret_cast<::uint8_t*>(lpRX),
 				size
+			);
+
+			if (changeCS)
+			{
+
+				SetCSActive(False);
+			}
+		}
+
+		Void SetCSActive(Bool set = True)
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"SPI not open"
+			);
+
+			cs.Write(
+				set ? GPIOPinValues::Low : GPIOPinValues::High
 			);
 		}
 
@@ -251,11 +339,13 @@ namespace AL::Hardware::Drivers::RP2040
 			isSlave = spi.isSlave;
 
 			this->spi = spi.spi;
-			cs        = spi.cs;
+			cs        = Move(spi.cs);
 			miso      = spi.miso;
 			mosi      = spi.mosi;
 			sclk      = spi.sclk;
+			mode      = spi.mode;
 			baud      = spi.baud;
+			bitCount  = spi.bitCount;
 
 			return *this;
 		}
@@ -303,6 +393,67 @@ namespace AL::Hardware::Drivers::RP2040
 			}
 
 			return True;
+		}
+
+	private:
+		static Void GetClockEdgeFromMode(Modes value)
+		{
+			switch (value)
+			{
+				case SPIModes::Zero:
+					return ;
+
+				case SPIModes::One:
+					return ;
+
+				case SPIModes::Two:
+					return ;
+
+				case SPIModes::Three:
+					return ;
+			}
+
+			throw NotImplementedException();
+		}
+
+		static ::spi_cpha_t GetClockPhaseFromMode(Modes value)
+		{
+			switch (value)
+			{
+				case SPIModes::Zero:
+					return ::SPI_CPHA_0;
+
+				case SPIModes::One:
+					return ::SPI_CPHA_1;
+
+				case SPIModes::Two:
+					return ::SPI_CPHA_0;
+
+				case SPIModes::Three:
+					return ::SPI_CPHA_1;
+			}
+
+			throw NotImplementedException();
+		}
+
+		static ::spi_cpol_t GetClockPolarityFromMode(Modes value)
+		{
+			switch (value)
+			{
+				case SPIModes::Zero:
+					return ::SPI_CPOL_0;
+
+				case SPIModes::One:
+					return ::SPI_CPOL_0;
+
+				case SPIModes::Two:
+					return ::SPI_CPOL_1;
+
+				case SPIModes::Three:
+					return ::SPI_CPOL_1;
+			}
+
+			throw NotImplementedException();
 		}
 	};
 }

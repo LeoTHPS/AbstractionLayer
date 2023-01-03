@@ -6,9 +6,7 @@
 #include "AL/OS/SystemException.hpp"
 
 #if defined(AL_PLATFORM_PICO)
-	#include "GPIO.hpp"
-
-	#include <hardware/spi.h>
+	#include "Drivers/Pico/SPI.hpp"
 #elif defined(AL_PLATFORM_LINUX)
 	#include "AL/FileSystem/Path.hpp"
 
@@ -17,15 +15,13 @@
 
 	#include <sys/ioctl.h>
 
-	#if AL_HAS_INCLUDE(<linux/spi/spidev.h>)
-		#define AL_DEPENDENCY_SPIDEV
-
-		#include <linux/spi/spidev.h>
+	#if !AL_HAS_INCLUDE(<linux/spi/spidev.h>)
+		#error Missing linux/spi/spidev.h
 	#endif
-#elif defined(AL_PLATFORM_WINDOWS)
-	#include "AL/FileSystem/Path.hpp"
 
-	#warning Platform not supported
+	#include <linux/spi/spidev.h>
+#else
+	#error Platform not supported
 #endif
 
 namespace AL::Hardware
@@ -46,58 +42,32 @@ namespace AL::Hardware
 
 	class SPIDevice
 	{
-		Bool             isOpen = False;
-		Bool             isCSChangeEnabled = False;
+		Bool               isOpen = False;
 
 #if defined(AL_PLATFORM_PICO)
-		::spi_inst_t*    spi;
-
-		GPIOPin          cs;
-		GPIOPin          miso;
-		GPIOPin          mosi;
-		GPIOPin          sclk;
+		Drivers::Pico::SPI spi;
 #elif defined(AL_PLATFORM_LINUX)
-	#if defined(AL_DEPENDENCY_SPIDEV)
-		int              fd;
-	#endif
+		int                fd;
+		FileSystem::Path   path;
 #endif
 
-#if !defined(AL_PLATFORM_PICO)
-		FileSystem::Path path;
-#endif
-		SPIModes         mode;
-		SPISpeed         speed;
-		size_t           bitCount;
+		SPIModes           mode;
+		SPISpeed           speed;
+		uint8              bitCount;
 
 	public:
 		SPIDevice(SPIDevice&& device)
 			: isOpen(
 				device.isOpen
 			),
-			isCSChangeEnabled(
-				device.isCSChangeEnabled
-			),
 #if defined(AL_PLATFORM_PICO)
-			cs(
-				device.cs
-			),
-			miso(
-				device.miso
-			),
-			mosi(
-				device.mosi
-			),
-			sclk(
-				device.sclk
+			spi(
+				Move(device.spi)
 			),
 #elif defined(AL_PLATFORM_LINUX)
-	#if defined(AL_DEPENDENCY_SPIDEV)
 			fd(
 				device.fd
 			),
-	#endif
-#endif
-#if !defined(AL_PLATFORM_PICO)
 			path(
 				Move(device.path)
 			),
@@ -116,21 +86,34 @@ namespace AL::Hardware
 		}
 
 #if defined(AL_PLATFORM_PICO)
-		SPIDevice(::spi_inst_t* spi, GPIOPin miso, GPIOPin mosi, GPIOPin sclk, GPIOPin cs, SPIModes mode, SPISpeed speed, size_t bitCount)
+		SPIDevice(::spi_inst_t* spi, GPIOPin miso, GPIOPin mosi, GPIOPin sclk, GPIOPin cs, SPIModes mode, SPISpeed speed, uint8 bitCount)
 			: spi(
-				spi
-			),
-			cs(
-				cs
-			),
-			miso(
-				miso
-			),
-			mosi(
-				mosi
-			),
-			sclk(
-				sclk
+				spi,
+				miso,
+				mosi,
+				sclk,
+				cs,
+				[mode]()
+				{
+					switch (mode)
+					{
+						case SPIModes::Zero:
+							return Drivers::Pico::SPIModes::Zero;
+							
+						case SPIModes::One:
+							return Drivers::Pico::SPIModes::One;
+							
+						case SPIModes::Two:
+							return Drivers::Pico::SPIModes::Two;
+							
+						case SPIModes::Three:
+							return Drivers::Pico::SPIModes::Three;
+					}
+
+					throw NotImplementedException();
+				}(),
+				speed,
+				bitCount
 			),
 			mode(
 				mode
@@ -143,8 +126,8 @@ namespace AL::Hardware
 			)
 		{
 		}
-#else
-		SPIDevice(FileSystem::Path&& path, SPIModes mode, SPISpeed speed, size_t bitCount)
+#elif defined(AL_PLATFORM_LINUX)
+		SPIDevice(FileSystem::Path&& path, SPIModes mode, SPISpeed speed, uint8 bitCount)
 			: path(
 				Move(path)
 			),
@@ -159,7 +142,7 @@ namespace AL::Hardware
 			)
 		{
 		}
-		SPIDevice(const FileSystem::Path& path, SPIModes mode, SPISpeed speed, size_t bitCount)
+		SPIDevice(const FileSystem::Path& path, SPIModes mode, SPISpeed speed, uint8 bitCount)
 			: SPIDevice(
 				FileSystem::Path(path),
 				mode,
@@ -184,37 +167,32 @@ namespace AL::Hardware
 			return isOpen;
 		}
 
-		Bool IsCSChangeEnabled() const
-		{
-			return isCSChangeEnabled;
-		}
-
 #if defined(AL_PLATFORM_PICO)
 		auto GetHandle() const
 		{
-			return spi;
+			return spi.GetSPI();
 		}
 
 		auto GetCS() const
 		{
-			return cs;
+			return spi.GetCS();
 		}
 
 		auto GetMISO() const
 		{
-			return miso;
+			return spi.GetMISO();
 		}
 
 		auto GetMOSI() const
 		{
-			return mosi;
+			return spi.GetMOSI();
 		}
 
 		auto GetSCLK() const
 		{
-			return sclk;
+			return spi.GetSCLK();
 		}
-#else
+#elif defined(AL_PLATFORM_LINUX)
 		auto& GetPath() const
 		{
 			return path;
@@ -245,49 +223,8 @@ namespace AL::Hardware
 			);
 
 #if defined(AL_PLATFORM_PICO)
-			::spi_init(
-				GetHandle(),
-				GetSpeed()
-			);
-
-			::gpio_set_function(
-				GetMISO(),
-				::GPIO_FUNC_SPI
-			);
-
-			::gpio_set_function(
-				GetSCLK(),
-				::GPIO_FUNC_SPI
-			);
-
-			::gpio_set_function(
-				GetMOSI(),
-				::GPIO_FUNC_SPI
-			);
-
-			::gpio_init(
-				GetCS()
-			);
-
-			::gpio_set_dir(
-				GetCS(),
-				true
-			);
-
-			::gpio_put(
-				GetCS(),
-				true
-			);
-
-			::spi_set_format(
-				GetHandle(),
-				8,
-				GetClockPolarityFromMode(GetMode()),
-				GetClockPhaseFromMode(GetMode()),
-				::SPI_MSB_FIRST
-			);
+			spi.Open();
 #elif defined(AL_PLATFORM_LINUX)
-	#if defined(AL_DEPENDENCY_SPIDEV)
 			if ((fd = ::open(GetPath().GetString().GetCString(), O_RDWR)) == -1)
 			{
 
@@ -368,11 +305,6 @@ namespace AL::Hardware
 					"Error setting speed"
 				);
 			}
-	#else
-			throw DependencyMissingException(
-				"spidev"
-			);
-	#endif
 #else
 			throw PlatformNotSupportedException();
 #endif
@@ -385,43 +317,34 @@ namespace AL::Hardware
 			if (IsOpen())
 			{
 #if defined(AL_PLATFORM_PICO)
-				::spi_deinit(
-					GetHandle()
-				);
+				spi.Close();
 #elif defined(AL_PLATFORM_LINUX)
-	#if defined(AL_DEPENDENCY_SPIDEV)
 				::close(
 					fd
 				);
-	#endif
 #endif
 
 				isOpen = False;
 			}
 		}
 
-		// Set True to deselect CS pin between each transfer
-		Void SetCSChange(Bool set = True)
-		{
-			isCSChangeEnabled = set;
-		}
-
 		// @throw AL::Exception
 		template<typename T>
-		Void Read(T& value) const
+		Void Read(T& value, Bool changeCS = False) const
 		{
 			AL_ASSERT(
 				IsOpen(),
 				"SPIDevice not open"
 			);
-			
+
 			Read(
 				&value,
-				sizeof(T)
+				sizeof(T),
+				changeCS
 			);
 		}
 		// @throw AL::Exception
-		Void Read(Void* lpBuffer, size_t size) const
+		Void Read(Void* lpBuffer, size_t size, Bool changeCS = False) const
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -429,30 +352,18 @@ namespace AL::Hardware
 			);
 
 #if defined(AL_PLATFORM_PICO)
-			::gpio_put(
-				GetCS(),
-				false
-			);
-
-			::spi_read_blocking(
-				GetHandle(),
-				0,
-				reinterpret_cast<::uint8_t*>(lpBuffer),
-				size
-			);
-
-			::gpio_put(
-				GetCS(),
-				true
+			spi.Read(
+				lpBuffer,
+				size,
+				changeCS
 			);
 #elif defined(AL_PLATFORM_LINUX)
-	#if defined(AL_DEPENDENCY_SPIDEV)
 			::spi_ioc_transfer transfer = { };
 			transfer.len           = static_cast<decltype(transfer.len)>(size);
 			transfer.rx_buf        = reinterpret_cast<decltype(::spi_ioc_transfer::rx_buf)>(lpBuffer);
 			transfer.tx_buf        = nullptr;
 			transfer.speed_hz      = static_cast<decltype(transfer.speed_hz)>(GetSpeed());
-			transfer.cs_change     = IsCSChangeEnabled() ? 1 : 0;
+			transfer.cs_change     = changeCS ? 1 : 0;
 			transfer.bits_per_word = static_cast<decltype(transfer.bits_per_word)>(GetBitCount());
 
 			if (::ioctl(fd, SPI_IOC_MESSAGE(1), &transfer) == -1)
@@ -462,9 +373,6 @@ namespace AL::Hardware
 					"ioctl"
 				);
 			}
-	#else
-			throw NotImplementedException();
-	#endif
 #else
 			throw NotImplementedException();
 #endif
@@ -472,7 +380,7 @@ namespace AL::Hardware
 
 		// @throw AL::Exception
 		template<typename T>
-		Void Write(const T& value)
+		Void Write(const T& value, Bool changeCS = False)
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -481,11 +389,12 @@ namespace AL::Hardware
 			
 			Write(
 				&value,
-				sizeof(T)
+				sizeof(T),
+				changeCS
 			);
 		}
 		// @throw AL::Exception
-		Void Write(const Void* lpBuffer, size_t size)
+		Void Write(const Void* lpBuffer, size_t size, Bool changeCS = False)
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -495,13 +404,14 @@ namespace AL::Hardware
 			ReadWrite(
 				nullptr,
 				lpBuffer,
-				size
+				size,
+				changeCS
 			);
 		}
 
 		// @throw AL::Exception
 		template<typename T>
-		Void ReadWrite(T& rx, const T& tx)
+		Void ReadWrite(T& rx, const T& tx, Bool changeCS = False)
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -511,11 +421,12 @@ namespace AL::Hardware
 			ReadWrite(
 				&rx,
 				&tx,
-				sizeof(T)
+				sizeof(T),
+				changeCS
 			);
 		}
 		// @throw AL::Exception
-		Void ReadWrite(Void* lpRX, const Void* lpTX, size_t size)
+		Void ReadWrite(Void* lpRX, const Void* lpTX, size_t size, Bool changeCS = False)
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -523,50 +434,38 @@ namespace AL::Hardware
 			);
 
 #if defined(AL_PLATFORM_PICO)
-			::gpio_put(
-				GetCS(),
-				false
-			);
-
 			if (lpRX && lpTX)
 			{
-				::spi_write_read_blocking(
-					GetHandle(),
-					reinterpret_cast<const ::uint8_t*>(lpTX),
-					reinterpret_cast<::uint8_t*>(lpRX),
-					size
+				spi.WriteRead(
+					lpTX,
+					lpRX,
+					size,
+					changeCS
 				);
 			}
 			else if (lpRX)
 			{
-				::spi_read_blocking(
-					GetHandle(),
-					0,
-					reinterpret_cast<::uint8_t*>(lpRX),
-					size
+				spi.Read(
+					lpRX,
+					size,
+					changeCS
 				);
 			}
 			else if (lpTX)
 			{
-				::spi_write_blocking(
-					GetHandle(),
-					reinterpret_cast<const ::uint8_t*>(lpTX),
-					size
+				spi.Write(
+					lpTX,
+					size,
+					changeCS
 				);
 			}
-
-			::gpio_put(
-				GetCS(),
-				true
-			);
 #elif defined(AL_PLATFORM_LINUX)
-	#if defined(AL_DEPENDENCY_SPIDEV)
 			::spi_ioc_transfer transfer = { };
 			transfer.len           = static_cast<decltype(transfer.len)>(size);
 			transfer.rx_buf        = reinterpret_cast<decltype(::spi_ioc_transfer::rx_buf)>(lpRX);
 			transfer.tx_buf        = reinterpret_cast<decltype(::spi_ioc_transfer::tx_buf)>(lpTX);
 			transfer.speed_hz      = static_cast<decltype(transfer.speed_hz)>(GetSpeed());
-			transfer.cs_change     = IsCSChangeEnabled() ? 1 : 0;
+			transfer.cs_change     = changeCS ? 1 : 0;
 			transfer.bits_per_word = static_cast<decltype(transfer.bits_per_word)>(GetBitCount());
 
 			if (::ioctl(fd, SPI_IOC_MESSAGE(1), &transfer) == -1)
@@ -576,9 +475,6 @@ namespace AL::Hardware
 					"ioctl"
 				);
 			}
-	#else
-			throw NotImplementedException();
-	#endif
 #else
 			throw NotImplementedException();
 #endif
@@ -607,47 +503,41 @@ namespace AL::Hardware
 			);
 
 #if defined(AL_PLATFORM_PICO)
-			::gpio_put(
-				GetCS(),
-				false
-			);
+			spi.SetCSActive();
 
 			for (size_t i = 0; i < count; ++i, ++lpTransactions)
 			{
 				if (lpTransactions->lpRX && lpTransactions->lpTX)
 				{
-					::spi_write_read_blocking(
-						GetHandle(),
-						reinterpret_cast<const ::uint8_t*>(lpTransactions->lpTX),
-						reinterpret_cast<::uint8_t*>(lpTransactions->lpRX),
-						lpTransactions->BufferSize
+					spi.WriteRead(
+						lpTransactions->lpTX,
+						lpTransactions->lpRX,
+						lpTransactions->BufferSize,
+						False
 					);
 				}
 				else if (lpTransactions->lpRX)
 				{
-					::spi_read_blocking(
-						GetHandle(),
-						0,
-						reinterpret_cast<::uint8_t*>(lpTransactions->lpRX),
-						lpTransactions->BufferSize
+					spi.Read(
+						lpTransactions->lpRX,
+						lpTransactions->BufferSize,
+						False
 					);
 				}
 				else if (lpTransactions->lpTX)
 				{
-					::spi_write_blocking(
-						GetHandle(),
-						reinterpret_cast<const ::uint8_t*>(lpTransactions->lpTX),
-						lpTransactions->BufferSize
+					spi.Write(
+						lpTransactions->lpTX,
+						lpTransactions->BufferSize,
+						False
 					);
 				}
 			}
 
-			::gpio_put(
-				GetCS(),
-				true
+			spi.SetCSActive(
+				False
 			);
 #elif defined(AL_PLATFORM_LINUX)
-	#if defined(AL_DEPENDENCY_SPIDEV)
 			Collections::Array<::spi_ioc_transfer> transfers(
 				count
 			);
@@ -666,7 +556,7 @@ namespace AL::Hardware
 				lpTransfers->rx_buf        = reinterpret_cast<decltype(::spi_ioc_transfer::rx_buf)>  (lpTransactions->lpRX);
 				lpTransfers->tx_buf        = reinterpret_cast<decltype(::spi_ioc_transfer::tx_buf)>  (lpTransactions->lpTX);
 				lpTransfers->speed_hz      = static_cast<decltype(::spi_ioc_transfer::speed_hz)>     (GetSpeed());
-				lpTransfers->cs_change     = IsCSChangeEnabled() ?                                   1 : 0;
+				lpTransfers->cs_change     = changeCS ?                                              1 : 0;
 				lpTransfers->bits_per_word = static_cast<decltype(::spi_ioc_transfer::bits_per_word)>(GetBitCount());
 			}
 
@@ -677,9 +567,6 @@ namespace AL::Hardware
 					"ioctl"
 				);
 			}
-	#else
-			throw NotImplementedException();
-	#endif
 #else
 			throw NotImplementedException();
 #endif
@@ -693,27 +580,19 @@ namespace AL::Hardware
 			device.isOpen = False;
 
 #if defined(AL_PLATFORM_PICO)
-			spi = device.spi;
-			device.spi = nullptr;
-
-			cs = device.cs;
-			miso = device.miso;
-			mosi = device.mosi;
-			sclk = device.sclk;
+			spi = Move(
+				device.spi
+			);
 #elif defined(AL_PLATFORM_LINUX)
-	#if defined(AL_DEPENDENCY_SPIDEV)
 			fd = device.fd;
-	#endif
-#endif
 
-#if !defined(AL_PLATFORM_PICO)
 			path = Move(
 				device.path
 			);
 #endif
 
-			mode = device.mode;
-			speed = device.speed;
+			mode     = device.mode;
+			speed    = device.speed;
 			bitCount = device.bitCount;
 
 			return *this;
@@ -728,36 +607,12 @@ namespace AL::Hardware
 			}
 
 #if defined(AL_PLATFORM_PICO)
-			if (GetCS() != device.GetCS())
+			if (spi != device.spi)
 			{
 
 				return False;
 			}
-
-			if (GetMISO() != device.GetMISO())
-			{
-
-				return False;
-			}
-
-			if (GetMOSI() != device.GetMOSI())
-			{
-
-				return False;
-			}
-
-			if (GetSCLK() != device.GetSCLK())
-			{
-
-				return False;
-			}
-
-			if (GetHandle() != device.GetHandle())
-			{
-
-				return False;
-			}
-#else
+#elif defined(AL_PLATFORM_LINUX)
 			if (GetPath() != device.GetPath())
 			{
 
@@ -795,68 +650,5 @@ namespace AL::Hardware
 
 			return True;
 		}
-
-	private:
-#if defined(AL_PLATFORM_PICO)
-		Void GetClockEdgeFromMode(SPIModes value)
-		{
-			switch (value)
-			{
-				case SPIModes::Zero:
-					return ;
-
-				case SPIModes::One:
-					return ;
-
-				case SPIModes::Two:
-					return ;
-
-				case SPIModes::Three:
-					return ;
-			}
-
-			throw NotImplementedException();
-		}
-
-		::spi_cpha_t GetClockPhaseFromMode(SPIModes value)
-		{
-			switch (value)
-			{
-				case SPIModes::Zero:
-					return ::SPI_CPHA_0;
-
-				case SPIModes::One:
-					return ::SPI_CPHA_1;
-
-				case SPIModes::Two:
-					return ::SPI_CPHA_0;
-
-				case SPIModes::Three:
-					return ::SPI_CPHA_1;
-			}
-
-			throw NotImplementedException();
-		}
-
-		::spi_cpol_t GetClockPolarityFromMode(SPIModes value)
-		{
-			switch (value)
-			{
-				case SPIModes::Zero:
-					return ::SPI_CPOL_0;
-
-				case SPIModes::One:
-					return ::SPI_CPOL_0;
-
-				case SPIModes::Two:
-					return ::SPI_CPOL_1;
-
-				case SPIModes::Three:
-					return ::SPI_CPOL_1;
-			}
-
-			throw NotImplementedException();
-		}
-#endif
 	};
 }

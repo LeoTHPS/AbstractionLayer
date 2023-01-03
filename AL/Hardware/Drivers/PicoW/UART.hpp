@@ -9,5 +9,6 @@
 
 namespace AL::Hardware::Drivers::PicoW
 {
-	typedef Hardware::Drivers::Pico::UART UART;
+	typedef Hardware::Drivers::Pico::UART      UART;
+	typedef Hardware::Drivers::Pico::UARTFlags UARTFlags;
 }
