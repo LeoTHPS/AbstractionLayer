@@ -5,7 +5,7 @@
 #include "AL/OS/SystemException.hpp"
 
 #if defined(AL_PLATFORM_PICO)
-	#include <hardware/gpio.h>
+	#include "Drivers/Pico/GPIO.hpp"
 #elif defined(AL_PLATFORM_LINUX)
 	#if AL_HAS_INCLUDE(<wiringPi.h>)
 		#define AL_DEPENDENCY_WIRINGPI
@@ -24,7 +24,7 @@
 		#include <sys/stat.h>
 		#include <sys/ioctl.h>
 	#endif
-#elif defined(AL_PLATFORM_WINDOWS)
+#else
 	#warning Platform not supported
 #endif
 
@@ -61,7 +61,9 @@ namespace AL::Hardware
 		mutable GPIOPinValue value     = 0;
 		GPIOPinDirections    direction = GPIOPinDirections::Out;
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+		Drivers::Pico::GPIO  gpio;
+#elif defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_GPIOD)
 		::gpiod_chip*        lpChip;
 		::gpiod_line*        lpLine;
@@ -91,7 +93,12 @@ namespace AL::Hardware
 			direction(
 				gpio.direction
 			)
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			,
+			gpio(
+				Move(gpio.gpio)
+			)
+#elif defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_GPIOD)
 			,
 			lpChip(
@@ -117,6 +124,14 @@ namespace AL::Hardware
 			pin(
 				pin
 			)
+#if defined(AL_PLATFORM_PICO)
+			,
+			gpio(
+				pin,
+				Drivers::Pico::GPIOPinDirections::Output,
+				Drivers::Pico::GPIOPinValues::Low
+			)
+#endif
 		{
 		}
 
@@ -158,28 +173,7 @@ namespace AL::Hardware
 			);
 
 #if defined(AL_PLATFORM_PICO)
-			if (GetBus() != 0)
-			{
-
-				throw Exception(
-					"Bus not found"
-				);
-			}
-
-			::gpio_init(
-				GetPin()
-			);
-
-			switch (GetDirection())
-			{
-				case GPIOPinDirections::In:
-					SetDirection(GPIOPinDirections::In);
-					break;
-
-				case GPIOPinDirections::Out:
-					SetDirection(GPIOPinDirections::Out, value);
-					break;
-			}
+			gpio.Open();
 #elif defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_GPIOD)
 			if ((lpChip = ::gpiod_chip_open_by_number(static_cast<unsigned int>(GetBus()))) == nullptr)
@@ -243,15 +237,7 @@ namespace AL::Hardware
 			if (IsOpen())
 			{
 #if defined(AL_PLATFORM_PICO)
-				::gpio_set_dir(
-					GetPin(),
-					true
-				);
-
-				::gpio_put(
-					GetPin(),
-					false
-				);
+				gpio.Close();
 #elif defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_GPIOD)
 				::gpiod_line_release(
@@ -281,7 +267,13 @@ namespace AL::Hardware
 			);
 
 #if defined(AL_PLATFORM_PICO)
-			value = ::gpio_get(GetPin()) ? 1 : 0;
+			Drivers::Pico::GPIOPinValues _value;
+
+			gpio.Read(
+				_value
+			);
+
+			value = _value == Drivers::Pico::GPIOPinValues::High;
 #elif defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_GPIOD)
 			if ((value = ::gpiod_line_get_value(lpLine)) == GPIOPinValue(-1))
@@ -340,9 +332,8 @@ namespace AL::Hardware
 			);
 
 #if defined(AL_PLATFORM_PICO)
-			::gpio_put(
-				GetPin(),
-				value != 0
+			gpio.Write(
+				value ? Drivers::Pico::GPIOPinValues::High : Drivers::Pico::GPIOPinValues::Low
 			);
 #elif defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_GPIOD)
@@ -394,9 +385,7 @@ namespace AL::Hardware
 			);
 
 #if defined(AL_PLATFORM_PICO)
-			::gpio_pull_up(
-				GetPin()
-			);
+			gpio.SetPullUp();
 #elif defined(AL_PLATFORM_LINUX)
 			// TODO: implement
 #else
@@ -413,9 +402,7 @@ namespace AL::Hardware
 			);
 
 #if defined(AL_PLATFORM_PICO)
-			::gpio_pull_down(
-				GetPin()
-			);
+			gpio.SetPullDown();
 #elif defined(AL_PLATFORM_LINUX)
 			// TODO: implement
 #else
@@ -448,12 +435,11 @@ namespace AL::Hardware
 			switch (direction)
 			{
 				case GPIOPinDirections::In:
-					::gpio_set_dir(GetPin(), false);
+					gpio.SetDirection(Drivers::Pico::GPIOPinDirections::Input);
 					break;
 
 				case GPIOPinDirections::Out:
-					::gpio_set_dir(GetPin(), true);
-					::gpio_put(GetPin(), value != 0);
+					gpio.SetDirection(Drivers::Pico::GPIOPinDirections::Output);
 					break;
 
 				default:
@@ -558,74 +544,16 @@ namespace AL::Hardware
 			);
 
 #if defined(AL_PLATFORM_PICO)
-			OS::Timer timer;
-
-			bool value, prevValue = ::gpio_get(GetPin());
-
 			switch (edge)
 			{
 				case GPIOPinEdges::Both:
-				{
-					while ((value = ::gpio_get(GetPin())) == prevValue)
-					{
-						if (timer.GetElapsed() >= maxWaitTime)
-						{
-
-							return False;
-						}
-					}
-				}
-				break;
+					return gpio.WaitForEdge(Drivers::Pico::GPIOPinEdges::Both);
 
 				case GPIOPinEdges::Rising:
-				{
-					if (prevValue)
-					{
-						while (value = ::gpio_get(GetPin()))
-						{
-							if (timer.GetElapsed() >= maxWaitTime)
-							{
-
-								return False;
-							}
-						}
-					}
-
-					while (!(value = ::gpio_get(GetPin())))
-					{
-						if (timer.GetElapsed() >= maxWaitTime)
-						{
-
-							return False;
-						}
-					}
-				}
-				break;
+					return gpio.WaitForEdge(Drivers::Pico::GPIOPinEdges::Rising);
 
 				case GPIOPinEdges::Falling:
-				{
-					if (!prevValue)
-					{
-						while (!(value = ::gpio_get(GetPin())))
-						{
-							if (timer.GetElapsed() >= maxWaitTime)
-							{
-
-								return False;
-							}
-						}
-					}
-
-					while (value = ::gpio_get(GetPin()))
-					{
-						if (timer.GetElapsed() >= maxWaitTime)
-						{
-
-							return False;
-						}
-					}
-				}
-				break;
+					return gpio.WaitForEdge(Drivers::Pico::GPIOPinEdges::Falling);
 
 				default:
 					throw NotImplementedException();
@@ -748,7 +676,11 @@ namespace AL::Hardware
 			value = gpio.value;
 			direction = gpio.direction;
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			this->gpio = Move(
+				gpio.gpio
+			);
+#elif defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_GPIOD)
 			lpChip = gpio.lpChip;
 			gpio.lpChip = nullptr;
