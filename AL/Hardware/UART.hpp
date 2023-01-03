@@ -171,6 +171,11 @@ namespace AL::Hardware
 		}
 
 #if defined(AL_PLATFORM_PICO)
+		auto GetHandle() const
+		{
+			return uart.GetUART();
+		}
+
 		auto GetRX() const
 		{
 			return uart.GetRX();
@@ -179,11 +184,6 @@ namespace AL::Hardware
 		auto GetTX() const
 		{
 			return uart.GetTX();
-		}
-
-		auto GetHandle() const
-		{
-			return uart.GetUART();
 		}
 #elif defined(AL_PLATFORM_LINUX)
 		auto& GetPath() const

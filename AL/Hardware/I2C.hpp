@@ -64,6 +64,7 @@ namespace AL::Hardware
 #elif defined(AL_PLATFORM_LINUX)
 		int              fd;
 		FileSystem::Path path;
+		uint32           baud;
 #endif
 
 		I2CBus(const I2CBus&) = delete;
@@ -82,12 +83,12 @@ namespace AL::Hardware
 			,
 			fd(
 				bus.fd
-			)
-#endif
-#if !defined(AL_PLATFORM_PICO)
-			,
+			),
 			path(
 				Move(path)
+			),
+			baud(
+				bus.baud
 			)
 #endif
 		{
@@ -105,15 +106,19 @@ namespace AL::Hardware
 		{
 		}
 #elif defined(AL_PLATFORM_LINUX)
-		explicit I2CBus(FileSystem::Path&& path)
+		I2CBus(FileSystem::Path&& path, uint32 baud)
 			: path(
 				Move(path)
+			),
+			baud(
+				baud
 			)
 		{
 		}
-		explicit I2CBus(const FileSystem::Path& path)
+		I2CBus(const FileSystem::Path& path, uint32 baud)
 			: I2CBus(
-				FileSystem::Path(path)
+				FileSystem::Path(path),
+				baud
 			)
 		{
 		}
@@ -134,14 +139,19 @@ namespace AL::Hardware
 		}
 
 #if defined(AL_PLATFORM_PICO)
+		auto GetHandle() const
+		{
+			return i2c.GetI2C();
+		}
+
 		auto GetSCL() const
 		{
-			return i2c.GetSCL();
+			return static_cast<GPIOPin>(i2c.GetSCL());
 		}
 
 		auto GetSDA() const
 		{
-			return i2c.GetSDA();
+			return static_cast<GPIOPin>(i2c.GetSDA());
 		}
 
 		auto GetBaud() const
@@ -152,6 +162,11 @@ namespace AL::Hardware
 		auto& GetPath() const
 		{
 			return path;
+		}
+
+		auto GetBaud() const
+		{
+			return baud;
 		}
 #endif
 
@@ -173,6 +188,8 @@ namespace AL::Hardware
 					"open"
 				);
 			}
+
+			// TODO: set baud
 #else
 			throw PlatformNotSupportedException();
 #endif
@@ -549,6 +566,8 @@ namespace AL::Hardware
 			path = Move(
 				bus.path
 			);
+
+			baud = bus.baud;
 #endif
 
 			return *this;

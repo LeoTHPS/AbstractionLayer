@@ -55,19 +55,19 @@ namespace AL::Hardware
 
 	class GPIO
 	{
-		Bool                 isOpen = False;
-
-		GPIOBus              bus;
-		GPIOPin              pin;
-		mutable GPIOPinValue value     = 0;
-		GPIOPinDirections    direction = GPIOPinDirections::Out;
+		Bool                  isOpen = False;
 
 #if defined(AL_PLATFORM_PICO)
-		Pico::GPIO           gpio;
+		Pico::GPIO            gpio;
 #elif defined(AL_PLATFORM_LINUX)
+		GPIOBus               bus;
+		GPIOPin               pin;
+		mutable GPIOPinValues value;
+		GPIOPinDirections     direction;
+
 	#if defined(AL_DEPENDENCY_GPIOD)
-		::gpiod_chip*        lpChip;
-		::gpiod_line*        lpLine;
+		::gpiod_chip*         lpChip;
+		::gpiod_line*         lpLine;
 	#elif defined(AL_DEPENDENCY_WIRINGPI)
 
 	#else
@@ -81,7 +81,14 @@ namespace AL::Hardware
 		GPIO(GPIO&& gpio)
 			: isOpen(
 				gpio.isOpen
-			),
+			)
+#if defined(AL_PLATFORM_PICO)
+			,
+			gpio(
+				Move(gpio.gpio)
+			)
+#elif defined(AL_PLATFORM_LINUX)
+			,
 			bus(
 				gpio.bus
 			),
@@ -94,12 +101,6 @@ namespace AL::Hardware
 			direction(
 				gpio.direction
 			)
-#if defined(AL_PLATFORM_PICO)
-			,
-			gpio(
-				Move(gpio.gpio)
-			)
-#elif defined(AL_PLATFORM_LINUX)
 	#if defined(AL_DEPENDENCY_GPIOD)
 			,
 			lpChip(
@@ -118,23 +119,32 @@ namespace AL::Hardware
 			gpio.isOpen = False;
 		}
 
-		GPIO(GPIOBus bus, GPIOPin pin)
+#if defined(AL_PLATFORM_PICO)
+		GPIO(GPIOPin pin, GPIOPinDirections direction = GPIOPinDirections::In, GPIOPinValues value = GPIOPinValues::Low)
+			: gpio(
+				pin,
+				(direction == GPIOPinDirections::In) ? Pico::GPIOPinDirections::Input : Pico::GPIOPinDirections::Output,
+				(value == GPIOPinValues::Low) ? Pico::GPIOPinValues::Low : Pico::GPIOPinValues::High
+			)
+		{
+		}
+#elif defined(AL_PLATFORM_LINUX)
+		GPIO(GPIOBus bus, GPIOPin pin, GPIOPinDirections direction = GPIOPinDirections::In, GPIOPinValues value = GPIOPinValues::Low)
 			: bus(
 				bus
 			),
 			pin(
 				pin
+			),
+			value(
+				value
+			),
+			direction(
+				direction
 			)
-#if defined(AL_PLATFORM_PICO)
-			,
-			gpio(
-				pin,
-				Pico::GPIOPinDirections::Output,
-				Pico::GPIOPinValues::Low
-			)
-#endif
 		{
 		}
+#endif
 
 		virtual ~GPIO()
 		{
@@ -148,6 +158,27 @@ namespace AL::Hardware
 		Bool IsOpen() const
 		{
 			return isOpen;
+		}
+
+#if defined(AL_PLATFORM_PICO)
+		auto Get() const
+		{
+			return (gpio.Get() == Pico::GPIOPinValues::Low) ? GPIOPinValues::Low : GPIOPinValues::High;
+		}
+
+		auto GetPin() const
+		{
+			return static_cast<GPIOPin>(gpio.GetPin());
+		}
+
+		auto GetDirection() const
+		{
+			return (gpio.GetDirection() == Pico::GPIOPinDirections::Input) ? GPIOPinDirections::In : GPIOPinDirections::Out;
+		}
+#elif defined(AL_PLATFORM_LINUX)
+		auto Get() const
+		{
+			return value;
 		}
 
 		auto GetBus() const
@@ -164,6 +195,7 @@ namespace AL::Hardware
 		{
 			return direction;
 		}
+#endif
 
 		// @throw AL::Exception
 		Void Open()
@@ -294,11 +326,11 @@ namespace AL::Hardware
 			// TODO: implement
 			throw NotImplementedException();
 	#endif
+
+			this->value = value;
 #else
 			throw NotImplementedException();
 #endif
-
-			this->value = value;
 		}
 		// @throw AL::Exception
 		Void Read(GPIOPinValues& value) const
@@ -354,11 +386,11 @@ namespace AL::Hardware
 			// TODO: implement
 			throw NotImplementedException();
 	#endif
+
+			this->value = value;
 #else
 			throw NotImplementedException();
 #endif
-
-			this->value = value;
 		}
 		// @throw AL::Exception
 		Void Write(GPIOPinValues value)
@@ -508,15 +540,15 @@ namespace AL::Hardware
 			// TODO: implement
 			throw NotImplementedException();
 	#endif
-#else
-			throw NotImplementedException();
-#endif
 
 			if ((this->direction = direction) == GPIOPinDirections::Out)
 			{
 
 				this->value = value;
 			}
+#else
+			throw NotImplementedException();
+#endif
 		}
 		// @throw AL::Exception
 		Void SetDirection(GPIOPinDirections direction, GPIOPinValues value)
@@ -673,16 +705,16 @@ namespace AL::Hardware
 			isOpen = gpio.isOpen;
 			gpio.isOpen = False;
 
-			bus = gpio.bus;
-			pin = gpio.pin;
-			value = gpio.value;
-			direction = gpio.direction;
-
 #if defined(AL_PLATFORM_PICO)
 			this->gpio = Move(
 				gpio.gpio
 			);
 #elif defined(AL_PLATFORM_LINUX)
+			bus       = gpio.bus;
+			pin       = gpio.pin;
+			value     = gpio.value;
+			direction = gpio.direction;
+
 	#if defined(AL_DEPENDENCY_GPIOD)
 			lpChip = gpio.lpChip;
 			gpio.lpChip = nullptr;
@@ -707,6 +739,13 @@ namespace AL::Hardware
 				return False;
 			}
 
+#if defined(AL_PLATFORM_PICO)
+			if (this->gpio != gpio.gpio)
+			{
+
+				return False;
+			}
+#elif defined(AL_PLATFORM_LINUX)
 			if (GetBus() != gpio.GetBus())
 			{
 
@@ -718,6 +757,7 @@ namespace AL::Hardware
 
 				return False;
 			}
+#endif
 
 			return True;
 		}
