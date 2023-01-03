@@ -8,24 +8,22 @@
 #if defined(AL_PLATFORM_PICO_W)
 	#include "AL/Hardware/Drivers/PicoW/CYW43.hpp"
 
-	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
-		#include <lwip/ip_addr.h>
-	#endif
-#elif defined(AL_PLATFORM_PICO)
-	#warning Platform not supported
+	#include <lwip/ip_addr.h>
 #elif defined(AL_PLATFORM_LINUX)
 	#include <netdb.h>
 
 	#include <arpa/inet.h>
 #elif defined(AL_PLATFORM_WINDOWS)
 	#include "WinSock.hpp"
+#else
+	#error Platform not supported
 #endif
 
 namespace AL::Network
 {
 	enum class AddressFamilies : uint8
 	{
-#if defined(AL_PLATFORM_PICO_W) && defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
+#if defined(AL_PLATFORM_PICO_W)
 		IPv4         = ::IPADDR_TYPE_V4,
 		IPv6         = ::IPADDR_TYPE_V6,
 		NotSpecified = ::IPADDR_TYPE_ANY
@@ -221,15 +219,9 @@ namespace AL::Network
 			IPAddress address;
 
 #if defined(AL_PLATFORM_PICO_W)
-	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 			address = ::ipaddr_addr(
 				value.GetCString()
 			);
-	#else
-			throw DependencyMissingException(
-				"CYW43_LWIP"
-			);
-	#endif
 #elif defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
 			int result;
 

@@ -17,11 +17,9 @@
 
 #include "AL/Hardware/Drivers/PicoW/CYW43.hpp"
 
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
-	#include <lwip/tcp.h>
-	#include <lwip/udp.h>
-	#include <lwip/pbuf.h>
-#endif
+#include <lwip/tcp.h>
+#include <lwip/udp.h>
+#include <lwip/pbuf.h>
 
 namespace AL::Network
 {
@@ -135,10 +133,8 @@ namespace AL::Network
 			size_t           txBufferSize     = 0;
 			size_t           txBufferCapacity = 0;
 
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 			::tcp_pcb*       pcb;
 			::err_t          errorCode;
-#endif
 
 		public:
 			typedef Void* Handle;
@@ -172,16 +168,13 @@ namespace AL::Network
 				),
 				txBufferCapacity(
 					tcpSocket.txBufferCapacity
-				)
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
-				,
+				),
 				pcb(
 					tcpSocket.pcb
 				),
 				errorCode(
 					tcpSocket.errorCode
 				)
-#endif
 			{
 				tcpSocket.txBufferSize     = 0;
 				tcpSocket.txBufferCapacity = 0;
@@ -236,20 +229,12 @@ namespace AL::Network
 
 			virtual Handle GetHandle() const override
 			{
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				return IsOpen() ? pcb : nullptr;
-#else
-				return nullptr;
-#endif
 			}
 
 			virtual ErrorCode GetLastErrorCode() const
 			{
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				return errorCode;
-#else
-				return 0;
-#endif
 			}
 
 			virtual const IPEndPoint& GetLocalEndPoint() const
@@ -270,7 +255,6 @@ namespace AL::Network
 					"TcpSocket already open"
 				);
 
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				if ((pcb = ::tcp_new_ip_type(IP_GET_TYPE(static_cast<typename Get_Enum_Or_Integer_Base<AddressFamilies>::Type>(GetAddressFamily())))) == nullptr)
 				{
 					SetLastErrorCode(
@@ -288,11 +272,6 @@ namespace AL::Network
 				);
 
 				RegisterEventHandlers();
-#else
-				throw DependencyMissingException(
-					"CYW43_LWIP"
-				);
-#endif
 
 				localEP =
 				{
@@ -317,7 +296,6 @@ namespace AL::Network
 				{
 					if (!flags.IsSet(IOFlags::Aborted))
 					{
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 						Sync(
 							::tcp_close,
 							pcb
@@ -326,7 +304,6 @@ namespace AL::Network
 						SetLastErrorCode(
 							::ERR_OK
 						);
-#endif
 					}
 
 					flags.Clear();
@@ -346,7 +323,6 @@ namespace AL::Network
 					"TcpSocket already bound"
 				);
 
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				ErrorCode errorCode;
 
 				auto address = ep.Host.ToNative();
@@ -359,9 +335,6 @@ namespace AL::Network
 						errorCode
 					);
 				}
-#else
-				throw NotImplementedException();
-#endif
 
 				localEP = ep;
 
@@ -389,7 +362,6 @@ namespace AL::Network
 					backlog = BACKLOG_MAX;
 				}
 
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				::tcp_pcb* pcb;
 				::err_t    errorCode;
 
@@ -410,9 +382,6 @@ namespace AL::Network
 						errorCode
 					);
 				}
-#else
-				throw NotImplementedException();
-#endif
 
 				flags.Add(
 					IOFlags::Listening
@@ -445,12 +414,8 @@ namespace AL::Network
 					"TcpSocket not listening"
 				);
 
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				// TODO: implement
 				throw NotImplementedException();
-#else
-				throw NotImplementedException();
-#endif
 
 				return True;
 			}
@@ -476,7 +441,6 @@ namespace AL::Network
 					"TcpSocket already connected"
 				);
 
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				Sync([this, &ep, timeout]()
 				{
 					ErrorCode errorCode;
@@ -555,9 +519,6 @@ namespace AL::Network
 					.Host = IPAddress::FromNative(pcb->remote_ip),
 					.Port = pcb->remote_port
 				};
-#else
-				throw NotImplementedException();
-#endif
 
 				return True;
 			}
@@ -567,7 +528,6 @@ namespace AL::Network
 			{
 				if (IsConnected() && !flags.IsSet(IOFlags::ConnectionClosed))
 				{
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 					Sync([this, rx, tx]()
 					{
 						ErrorCode errorCode;
@@ -594,9 +554,6 @@ namespace AL::Network
 						.Host = IPAddress::Any(),
 						.Port = 0
 					};
-#else
-					throw NotImplementedException();
-#endif
 				}
 			}
 
@@ -632,7 +589,6 @@ namespace AL::Network
 					return False;
 				}
 
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				if (size > Integer<::u16_t>::Maximum)
 				{
 
@@ -712,9 +668,6 @@ namespace AL::Network
 				}
 
 				numberOfBytesSent = txBufferSize;
-#else
-				throw NotImplementedException();
-#endif
 
 				return True;
 			}
@@ -751,7 +704,6 @@ namespace AL::Network
 					return False;
 				}
 
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				if (size > Integer<::u16_t>::Maximum)
 				{
 
@@ -803,9 +755,6 @@ namespace AL::Network
 						return False;
 					}
 				} while ((numberOfBytesReceived == 0) && (timer.GetElapsed() < _timeout));
-#else
-				throw NotImplementedException();
-#endif
 
 				return True;
 			}
@@ -846,10 +795,8 @@ namespace AL::Network
 				txBufferCapacity = tcpSocket.txBufferCapacity;
 				tcpSocket.txBufferCapacity = 0;
 
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				pcb       = tcpSocket.pcb;
 				errorCode = tcpSocket.errorCode;
-#endif
 
 				return *this;
 			}
@@ -857,11 +804,9 @@ namespace AL::Network
 		private:
 			Void Abort()
 			{
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				::tcp_abort(
 					pcb
 				);
-#endif
 
 				flags.Add(
 					IOFlags::Aborted
@@ -872,20 +817,16 @@ namespace AL::Network
 
 			Void SetLastErrorCode(ErrorCode value)
 			{
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				errorCode = value;
-#endif
 			}
 
 			Void RegisterEventHandlers()
 			{
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				::tcp_arg(pcb, this);
 				::tcp_err(pcb, &TcpSocket::OnError);
 				::tcp_poll(pcb, &TcpSocket::OnPoll, 1);
 				::tcp_sent(pcb, &TcpSocket::OnSend);
 				::tcp_recv(pcb, &TcpSocket::OnReceive);
-#endif
 			}
 
 			Void CloseConnection()
@@ -909,7 +850,6 @@ namespace AL::Network
 			}
 
 		private:
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 			static ::err_t OnPoll(void* lpParam, ::tcp_pcb* pcb)
 			{
 				auto lpSocket = reinterpret_cast<TcpSocket*>(
@@ -1120,7 +1060,6 @@ namespace AL::Network
 
 				return ::ERR_OK;
 			}
-#endif
 		};
 
 		class UdpSocket
@@ -1146,9 +1085,7 @@ namespace AL::Network
 			IPEndPoint remoteEP;
 			RXContexts rxContexts;
 
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 			::udp_pcb* pcb;
-#endif
 
 		public:
 			typedef Void* Handle;
@@ -1171,13 +1108,10 @@ namespace AL::Network
 				),
 				rxContexts(
 					Move(udpSocket.rxContexts)
-				)
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
-				,
+				),
 				pcb(
 					udpSocket.pcb
 				)
-#endif
 			{
 				udpSocket.isOpen = False;
 				udpSocket.isConnected = False;
@@ -1212,11 +1146,7 @@ namespace AL::Network
 
 			virtual Handle GetHandle() const override
 			{
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				return IsOpen() ? pcb : nullptr;
-#else
-				return nullptr;
-#endif
 			}
 
 			virtual const IPEndPoint& GetLocalEndPoint() const
@@ -1237,7 +1167,6 @@ namespace AL::Network
 					"UdpSocket already open"
 				);
 
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				if ((pcb = ::udp_new_ip_type(IP_GET_TYPE(static_cast<typename Get_Enum_Or_Integer_Base<AddressFamilies>::Type>(GetAddressFamily())))) == nullptr)
 				{
 
@@ -1248,11 +1177,6 @@ namespace AL::Network
 				}
 
 				RegisterEventHandlers();
-#else
-				throw DependencyMissingException(
-					"CYW43_LWIP"
-				);
-#endif
 
 				localEP =
 				{
@@ -1279,14 +1203,12 @@ namespace AL::Network
 						Disconnect();
 					}
 
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 					Sync([this]()
 					{
 						::udp_remove(
 							pcb
 						);
 					});
-#endif
 
 					isOpen = False;
 				}
@@ -1305,7 +1227,6 @@ namespace AL::Network
 					"UdpSocket already bound"
 				);
 
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				ErrorCode errorCode;
 
 				auto address = ep.Host.ToNative();
@@ -1318,9 +1239,6 @@ namespace AL::Network
 						errorCode
 					);
 				}
-#else
-				throw NotImplementedException();
-#endif
 
 				localEP = ep;
 
@@ -1340,7 +1258,6 @@ namespace AL::Network
 					"UdpSocket already connected"
 				);
 
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				Sync([this, &ep]()
 				{
 					ErrorCode errorCode;
@@ -1356,9 +1273,6 @@ namespace AL::Network
 						);
 					}
 				});
-#else
-				throw NotImplementedException();
-#endif
 
 				remoteEP = ep;
 
@@ -1369,14 +1283,12 @@ namespace AL::Network
 			{
 				if (IsConnected())
 				{
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 					Sync([this]()
 					{
 						::udp_disconnect(
 							pcb
 						);
 					});
-#endif
 
 					remoteEP =
 					{
@@ -1402,7 +1314,6 @@ namespace AL::Network
 					"UdpSocket not connected"
 				);
 
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				if (size > Integer<::u16_t>::Maximum)
 				{
 
@@ -1447,9 +1358,6 @@ namespace AL::Network
 				);
 
 				numberOfBytesSent = size;
-#else
-				throw NotImplementedException();
-#endif
 
 				return True;
 			}
@@ -1463,7 +1371,6 @@ namespace AL::Network
 					"UdpSocket not open"
 				);
 
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				if (size > Integer<::u16_t>::Maximum)
 				{
 
@@ -1510,9 +1417,6 @@ namespace AL::Network
 				);
 
 				numberOfBytesSent = size;
-#else
-				throw NotImplementedException();
-#endif
 
 				return True;
 			}
@@ -1528,7 +1432,6 @@ namespace AL::Network
 
 				size_t numberOfBytesReceived = 0;
 
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				if (size > Integer<::u16_t>::Maximum)
 				{
 
@@ -1569,9 +1472,6 @@ namespace AL::Network
 						}
 					}
 				});
-#else
-				throw NotImplementedException();
-#endif
 
 				return numberOfBytesReceived;
 			}
@@ -1600,9 +1500,7 @@ namespace AL::Network
 					udpSocket.rxContexts
 				);
 
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				pcb = udpSocket.pcb;
-#endif
 
 				return *this;
 			}
@@ -1610,13 +1508,10 @@ namespace AL::Network
 		private:
 			Void RegisterEventHandlers()
 			{
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 				::udp_recv(pcb, &UdpSocket::OnReceive, this);
-#endif
 			}
 
 		private:
-#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP)
 			static void OnReceive(void* lpParam, ::udp_pcb* pcb, ::pbuf* buffer, const ::ip_addr_t* lpAddress, ::u16_t port)
 			{
 				auto lpSocket = reinterpret_cast<UdpSocket*>(
@@ -1670,7 +1565,6 @@ namespace AL::Network
 					buffer
 				);
 			}
-#endif
 		};
 
 		static Void Poll()
@@ -1701,14 +1595,14 @@ namespace AL::Network
 
 		static AL_INLINE Void Sync_Begin()
 		{
-#if defined(PICO_CYW43_ARCH_THREADSAFE_BACKGROUND)
+#if defined(AL_DEPENDENCY_PICO_CYW43_ARCH_THREADSAFE_BACKGROUND)
 			::cyw43_arch_lwip_begin();
 #endif
 		}
 
 		static AL_INLINE Void Sync_End()
 		{
-#if defined(PICO_CYW43_ARCH_THREADSAFE_BACKGROUND)
+#if defined(AL_DEPENDENCY_PICO_CYW43_ARCH_THREADSAFE_BACKGROUND)
 			::cyw43_arch_lwip_end();
 #endif
 		}
