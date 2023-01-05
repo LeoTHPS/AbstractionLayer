@@ -1,6 +1,8 @@
 #pragma once
 #include "AL/Common.hpp"
 
+#include "GPIO.hpp"
+
 #include "AL/OS/SystemException.hpp"
 
 #if defined(AL_PLATFORM_PICO)
