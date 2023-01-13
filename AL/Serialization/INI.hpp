@@ -341,8 +341,8 @@ namespace AL::Serialization
 		{
 			if (hexadecimal)
 			{
-				this->value = String::Format(
-					"0x%s",
+				this->value = WString::Format(
+					L"0x%S",
 					HexConverter::Encode(value).GetCString()
 				);
 			}
