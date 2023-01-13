@@ -270,7 +270,7 @@ namespace AL::Serialization
 				"INIField type is not integer"
 			);
 
-			return FromString<T>(
+			return FromWString<T>(
 				GetValue()
 			);
 		}
@@ -283,7 +283,7 @@ namespace AL::Serialization
 				"INIField type is not decimal"
 			);
 
-			return FromString<T>(
+			return FromWString<T>(
 				GetValue()
 			);
 		}
@@ -348,7 +348,7 @@ namespace AL::Serialization
 			}
 			else
 			{
-				this->value = ToString(
+				this->value = ToWString(
 					value
 				);
 			}
@@ -362,7 +362,7 @@ namespace AL::Serialization
 		template<typename T>
 		Void SetDecimal(T value)
 		{
-			this->value = ToString(
+			this->value = ToWString(
 				value
 			);
 
