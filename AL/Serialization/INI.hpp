@@ -637,12 +637,26 @@ namespace AL::Serialization
 			}
 		}
 
-		INI();
+		INI()
+		{
+		}
 
-		INI(INI&& ini);
-		INI(const INI& ini);
+		INI(INI&& ini)
+			: sections(
+				Move(ini.sections)
+			)
+		{
+		}
+		INI(const INI& ini)
+			: sections(
+				ini.sections
+			)
+		{
+		}
 
-		virtual ~INI();
+		virtual ~INI()
+		{
+		}
 
 		auto GetSectionCount() const
 		{
