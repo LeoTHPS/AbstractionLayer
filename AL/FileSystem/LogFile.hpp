@@ -4,6 +4,7 @@
 #include "TextFile.hpp"
 
 #include "AL/OS/Mutex.hpp"
+#include "AL/OS/System.hpp"
 
 namespace AL::FileSystem
 {
