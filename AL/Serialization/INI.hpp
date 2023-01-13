@@ -320,7 +320,7 @@ namespace AL::Serialization
 		Void SetString(const String& value)
 		{
 			this->value = WString::Format(
-				L"\"%S\"",
+				L"\"%s\"",
 				value.GetCString()
 			);
 
@@ -329,7 +329,7 @@ namespace AL::Serialization
 		Void SetString(const WString& value)
 		{
 			this->value = WString::Format(
-				L"\"%s\"",
+				L"\"%S\"",
 				value.GetCString()
 			);
 
@@ -677,7 +677,7 @@ namespace AL::Serialization
 			{
 				text.WriteLine(
 					WString::Format(
-						L"[%s]",
+						L"[%S]",
 						section.GetName().GetCString()
 					)
 				);
@@ -686,7 +686,7 @@ namespace AL::Serialization
 				{
 					text.WriteLine(
 						WString::Format(
-							L"%s = %s",
+							L"%S = %S",
 							field.GetName().GetCString(),
 							field.GetValue().GetCString()
 						)
