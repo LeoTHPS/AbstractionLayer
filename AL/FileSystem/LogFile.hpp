@@ -5,6 +5,7 @@
 
 #include "AL/OS/Mutex.hpp"
 #include "AL/OS/System.hpp"
+#include "AL/OS/Thread.hpp"
 
 namespace AL::FileSystem
 {
