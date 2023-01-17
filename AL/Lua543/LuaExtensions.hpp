@@ -61,9 +61,9 @@ namespace AL::Lua543::Extensions
 	struct Type_Functions
 	{
 		static constexpr Bool IsAlias   = False;
-		static constexpr Bool IsDefined = Is_Enum<T>::Value;
+		static constexpr Bool IsDefined = Is_Enum_Or_Integer<T>::Value;
 
-		template<typename _T = typename Enable_If<Is_Enum<T>::Value, T>::Type>
+		template<typename _T = typename Enable_If<Is_Enum_Or_Integer<T>::Value, T>::Type>
 		static _T Get(::lua_State* lua, size_t index)
 		{
 			return static_cast<_T>(
@@ -74,7 +74,7 @@ namespace AL::Lua543::Extensions
 			);
 		}
 
-		template<typename _T = typename Enable_If<Is_Enum<T>::Value, T>::Type>
+		template<typename _T = typename Enable_If<Is_Enum_Or_Integer<T>::Value, T>::Type>
 		static Void Push(::lua_State* lua, _T value)
 		{
 			Type_Functions<typename Get_Enum_Or_Integer_Base<_T>::Type>::Push(
@@ -83,7 +83,7 @@ namespace AL::Lua543::Extensions
 			);
 		}
 
-		template<typename _T = typename Enable_If<Is_Enum<T>::Value, T>::Type>
+		template<typename _T = typename Enable_If<Is_Enum_Or_Integer<T>::Value, T>::Type>
 		static _T Pop(::lua_State* lua, size_t count)
 		{
 			return static_cast<_T>(
