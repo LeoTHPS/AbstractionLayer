@@ -6,7 +6,9 @@
 
 #include "AL/Collections/Tuple.hpp"
 
-#include "AL/FileSystem/Path.hpp"
+#if !defined(AL_PLATFORM_PICO)
+	#include "AL/FileSystem/Path.hpp"
+#endif
 
 namespace AL::Lua543
 {
@@ -741,6 +743,7 @@ namespace AL::Lua543
 			);
 		}
 
+#if !defined(AL_PLATFORM_PICO)
 		// @throw AL::Exception
 		Void RunFile(const FileSystem::Path& path)
 		{
@@ -754,6 +757,7 @@ namespace AL::Lua543
 				path.GetString()
 			);
 		}
+#endif
 
 		State& operator = (State&& state)
 		{
