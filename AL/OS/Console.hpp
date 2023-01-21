@@ -231,22 +231,29 @@ namespace AL::OS
 		template<typename ... TArgs>
 		static Bool Write(const String::Char* format, TArgs ... args)
 		{
+#if defined(AL_PLATFORM_PICO)
+			MutexGuard lock(
+				mutex
+			);
+
+			::printf(
+				format,
+				Forward<TArgs>(args) ...
+			);
+#else
 			auto string = String::Format(
 				format,
 				Forward<TArgs>(args) ...
 			);
 
-#if defined(AL_PLATFORM_PICO)
-			size_t numberOfCharsWritten = 1;
-#elif defined(AL_PLATFORM_LINUX)
+	#if defined(AL_PLATFORM_LINUX)
 			::ssize_t numberOfCharsWritten;
-#elif defined(AL_PLATFORM_WINDOWS)
+	#elif defined(AL_PLATFORM_WINDOWS)
 			auto hOutput = ::GetStdHandle(
 				STD_OUTPUT_HANDLE
 			);
 
 			::DWORD numberOfCharsWritten;
-#endif
 
 			MutexGuard lock(
 				mutex
@@ -254,26 +261,24 @@ namespace AL::OS
 
 			for (size_t totalCharsWritten = 0; totalCharsWritten < string.GetLength(); )
 			{
-#if defined(AL_PLATFORM_PICO)
-				::putchar(
-					static_cast<int>(string[totalCharsWritten])
-				);
-#elif defined(AL_PLATFORM_LINUX)
+		#if defined(AL_PLATFORM_LINUX)
 				if ((numberOfCharsWritten = ::write(STDOUT_FILENO, &string[totalCharsWritten], string.GetLength() - totalCharsWritten)) == -1)
 				{
 
 					return False;
 				}
-#elif defined(AL_PLATFORM_WINDOWS)
+		#elif defined(AL_PLATFORM_WINDOWS)
 				if (!::WriteConsoleA(hOutput, &string[totalCharsWritten], static_cast<::DWORD>(string.GetLength() - totalCharsWritten), &numberOfCharsWritten, nullptr))
 				{
 
 					return False;
 				}
-#endif
+		#endif
 
 				totalCharsWritten += numberOfCharsWritten;
 			}
+	#endif
+#endif
 
 			return True;
 		}
