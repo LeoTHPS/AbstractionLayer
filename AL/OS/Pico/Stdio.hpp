@@ -30,5 +30,65 @@ namespace AL::OS::Pico
 				isInitialized = True;
 			}
 		}
+
+		static Bool Flush()
+		{
+			if (!IsInitialized())
+			{
+
+				return False;
+			}
+
+			::stdio_flush();
+
+			return True;
+		}
+
+		static Bool Filter(::stdio_driver& driver)
+		{
+			if (!IsInitialized())
+			{
+
+				return False;
+			}
+
+			::stdio_filter_driver(
+				&driver
+			);
+
+			return True;
+		}
+
+		static Bool SetDriverEnabled(::stdio_driver& driver, Bool set = True)
+		{
+			if (!IsInitialized())
+			{
+
+				return False;
+			}
+
+			::stdio_set_driver_enabled(
+				&driver,
+				set
+			);
+
+			return True;
+		}
+
+		static Bool SetTranslateCRLF(::stdio_driver& driver, Bool set = True)
+		{
+			if (!IsInitialized())
+			{
+
+				return False;
+			}
+
+			::stdio_set_translate_crlf(
+				&driver,
+				set
+			);
+
+			return True;
+		}
 	};
 }
