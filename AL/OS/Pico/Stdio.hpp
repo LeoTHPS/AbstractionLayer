@@ -7,6 +7,18 @@
 
 #include <pico/stdio.h>
 
+#if defined(LIB_PICO_STDIO_USB)
+	#include <pico/stdio_usb.h>
+#endif
+
+#if defined(LIB_PICO_STDIO_UART)
+	#include <pico/stdio_uart.h>
+#endif
+
+#if defined(LIB_PICO_STDIO_SEMIHOSTING)
+	#include <pico/stdio_semihosting.h>
+#endif
+
 namespace AL::OS::Pico
 {
 	class Stdio
