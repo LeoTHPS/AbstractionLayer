@@ -11,7 +11,7 @@
 		typedef AL::Get_Enum_Or_Integer_Base<type>::Type BaseType; \
 		return static_cast<type>(static_cast<BaseType>(a) | static_cast<BaseType>(b)); \
 	} \
-	constexpr type& operator |= (type& a, type b) \
+	inline type& operator |= (type& a, type b) \
 	{ \
 		typedef AL::Get_Enum_Or_Integer_Base<type>::Type BaseType; \
 		return reinterpret_cast<type&>(reinterpret_cast<BaseType&>(a) |= static_cast<BaseType>(b)); \
@@ -23,7 +23,7 @@
 		typedef AL::Get_Enum_Or_Integer_Base<type>::Type BaseType; \
 		return static_cast<type>(static_cast<BaseType>(a) & static_cast<BaseType>(b)); \
 	} \
-	constexpr type& operator &= (type& a, type b) \
+	inline type& operator &= (type& a, type b) \
 	{ \
 		typedef AL::Get_Enum_Or_Integer_Base<type>::Type BaseType; \
 		return reinterpret_cast<type&>(reinterpret_cast<BaseType&>(a) &= static_cast<BaseType>(b)); \
@@ -42,7 +42,7 @@
 		typedef AL::Get_Enum_Or_Integer_Base<type>::Type BaseType; \
 		return static_cast<type>(static_cast<BaseType>(a) ^ static_cast<BaseType>(b)); \
 	} \
-	constexpr type& operator ^= (type& a, type b) \
+	inline type& operator ^= (type& a, type b) \
 	{ \
 		typedef AL::Get_Enum_Or_Integer_Base<type>::Type BaseType; \
 		return reinterpret_cast<type&>(reinterpret_cast<BaseType&>(a) ^= static_cast<BaseType>(b)); \
@@ -54,7 +54,7 @@
 		typedef AL::Get_Enum_Or_Integer_Base<type>::Type BaseType; \
 		return static_cast<type>(static_cast<BaseType>(a) << static_cast<BaseType>(b)); \
 	} \
-	constexpr type& operator <<= (type& a, type b) \
+	inline type& operator <<= (type& a, type b) \
 	{ \
 		typedef AL::Get_Enum_Or_Integer_Base<type>::Type BaseType; \
 		return reinterpret_cast<type&>(reinterpret_cast<BaseType&>(a) <<= static_cast<BaseType>(b)); \
@@ -66,7 +66,7 @@
 		typedef AL::Get_Enum_Or_Integer_Base<type>::Type BaseType; \
 		return static_cast<type>(static_cast<BaseType>(a) >> static_cast<BaseType>(b)); \
 	} \
-	constexpr type& operator >>= (type& a, type b) \
+	inline type& operator >>= (type& a, type b) \
 	{ \
 		typedef AL::Get_Enum_Or_Integer_Base<type>::Type BaseType; \
 		return reinterpret_cast<type&>(reinterpret_cast<BaseType&>(a) >>= static_cast<BaseType>(b)); \
