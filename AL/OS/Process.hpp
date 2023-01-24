@@ -765,7 +765,7 @@ namespace AL::OS
 			return path;
 		}
 
-		auto GetHandle() const
+		Handle GetHandle() const
 		{
 			return hLibrary;
 		}
@@ -1080,9 +1080,13 @@ namespace AL::OS
 			{
 				do
 				{
+					String fileName(
+						process.szExeFile
+					);
+
 					try
 					{
-						if (!callback(static_cast<ProcessId>(process.th32ProcessID), String(process.szExeFile)))
+						if (!callback(static_cast<ProcessId>(process.th32ProcessID), fileName))
 						{
 
 							break;
