@@ -43,8 +43,8 @@ namespace AL::Hardware
 #if defined(AL_PLATFORM_PICO)
 		Pico::UART       uart;
 #elif defined(AL_PLATFORM_LINUX)
-		FileSystem::Path path;
 		int              fd;
+		FileSystem::Path path;
 #elif defined(AL_PLATFORM_WINDOWS)
 		FileSystem::Path path;
 		::HANDLE         hFile;
@@ -247,7 +247,7 @@ namespace AL::Hardware
 
 			::cfsetspeed(
 				&options,
-				static_cast<typename Get_Enum_Or_Integer_Base<UARTDeviceSpeeds>::Type>(GetSpeed())
+				static_cast<::speed_t>(GetSpeed())
 			);
 
 			options.c_cc[VMIN] = 1;
@@ -600,11 +600,11 @@ namespace AL::Hardware
 				device.uart
 			);
 #elif defined(AL_PLATFORM_LINUX)
+			fd = device.fd;
+
 			path = Move(
 				device.path
 			);
-
-			fd = device.fd;
 #elif defined(AL_PLATFORM_WINDOWS)
 			path = Move(
 				device.path
