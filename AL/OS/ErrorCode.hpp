@@ -48,8 +48,11 @@ namespace AL::OS
 #if defined(AL_PLATFORM_PICO)
 		Pico::LastErrorCode = errorCode;
 #elif defined(AL_PLATFORM_LINUX)
+	#if defined(_errno)
 		*_errno() = errorCode;
+	#elif defined(__errno)
 		*__errno() = errorCode;
+	#endif
 #elif defined(AL_PLATFORM_WINDOWS)
 		::SetLastError(errorCode);
 #endif
