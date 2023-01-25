@@ -870,6 +870,12 @@ namespace AL::OS
 		}
 	};
 
+#if defined(AL_PLATFORM_LINUX)
+	typedef typename Get_Enum_Or_Integer_Base<int>::Type     ProcessExitCode;
+#elif defined(AL_PLATFORM_WINDOWS)
+	typedef typename Get_Enum_Or_Integer_Base<::DWORD>::Type ProcessExitCode;
+#endif
+
 	// @throw AL::Exception
 	// @return AL::False to stop enumeration
 	typedef Function<Bool(ProcessId processId, const String& processName)> ProcessEnumCallback;
@@ -1195,6 +1201,17 @@ namespace AL::OS
 			return isOpen;
 		}
 
+		// @throw AL::Exception
+		Bool IsRunning() const
+		{
+#if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
+			throw NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
+			return GetExitCode() == STILL_ACTIVE;
+#endif
+		}
+
 		Bool IsCurrentProcess() const
 		{
 			return isCurrentProcess;
@@ -1211,6 +1228,29 @@ namespace AL::OS
 			
 #elif defined(AL_PLATFORM_WINDOWS)
 			return hProcess;
+#endif
+		}
+
+		// @throw AL::Exception
+		ProcessExitCode GetExitCode() const
+		{
+#if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
+			throw NotImplementedException();
+#elif defined(AL_PLATFORM_WINDOWS)
+			::DWORD exitCode;
+
+			if (!::GetExitCodeProcess(GetHandle(), &exitCode))
+			{
+
+				throw SystemException(
+					"GetExitCodeProcess"
+				);
+			}
+
+			return static_cast<ProcessExitCode>(
+				exitCode
+			);
 #endif
 		}
 
