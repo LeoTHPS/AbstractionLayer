@@ -254,6 +254,7 @@ namespace AL::OS
 			);
 
 			::DWORD numberOfCharsWritten;
+	#endif
 
 			MutexGuard lock(
 				mutex
@@ -261,23 +262,22 @@ namespace AL::OS
 
 			for (size_t totalCharsWritten = 0; totalCharsWritten < string.GetLength(); )
 			{
-		#if defined(AL_PLATFORM_LINUX)
+	#if defined(AL_PLATFORM_LINUX)
 				if ((numberOfCharsWritten = ::write(STDOUT_FILENO, &string[totalCharsWritten], string.GetLength() - totalCharsWritten)) == -1)
 				{
 
 					return False;
 				}
-		#elif defined(AL_PLATFORM_WINDOWS)
+	#elif defined(AL_PLATFORM_WINDOWS)
 				if (!::WriteConsoleA(hOutput, &string[totalCharsWritten], static_cast<::DWORD>(string.GetLength() - totalCharsWritten), &numberOfCharsWritten, nullptr))
 				{
 
 					return False;
 				}
-		#endif
+	#endif
 
 				totalCharsWritten += numberOfCharsWritten;
 			}
-	#endif
 #endif
 
 			return True;
