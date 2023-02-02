@@ -153,14 +153,13 @@ namespace AL::Lua543
 				{
 					return Execute(
 						lua,
-						F,
 						typename Make_Index_Sequence<sizeof ...(TArgs)>::Type {}
 					);
 				}
 				template<size_t ... INDEXES>
-				static int Execute(::lua_State* lua, Void(*lpFunction)(TArgs ...), Index_Sequence<INDEXES ...>)
+				static int Execute(::lua_State* lua, Index_Sequence<INDEXES ...>)
 				{
-					lpFunction(
+					F(
 						Get<INDEXES>(lua) ...
 					);
 
@@ -185,21 +184,18 @@ namespace AL::Lua543
 				{
 					return Execute(
 						lua,
-						F,
+						typename Make_Index_Sequence<sizeof ...(T)>::Type {},
 						typename Make_Index_Sequence<sizeof ...(TArgs)>::Type {}
 					);
 				}
-				template<size_t ... INDEXES>
-				static int Execute(::lua_State* lua, Collections::Tuple<T ...>(*lpFunction)(TArgs ...), Index_Sequence<INDEXES ...>)
+				template<size_t ... I_RETURN, size_t ... I_ARGS>
+				static int Execute(::lua_State* lua, Index_Sequence<I_RETURN ...>, Index_Sequence<I_ARGS ...>)
 				{
-					auto result = lpFunction(
-						Get<INDEXES>(lua) ...
+					auto result = F(
+						Get<I_ARGS>(lua) ...
 					);
 
-					PushReturnValues(
-						lua,
-						result
-					);
+					(Push<I_RETURN>(lua, result), ...);
 
 					return sizeof ...(T);
 				}
@@ -214,28 +210,12 @@ namespace AL::Lua543
 					);
 				}
 
-				static constexpr Void PushReturnValues(::lua_State* lua)
+				template<size_t INDEX>
+				static constexpr Void Push(::lua_State* lua, const Collections::Tuple<T ...>& tuple)
 				{
-				}
-				template<typename T_RETURN, typename ... T_RETURN_VALUES>
-				static constexpr Void PushReturnValues(::lua_State* lua, T_RETURN value, T_RETURN_VALUES ... values)
-				{
-					Push<T_RETURN>(
+					Function::Push<typename Get_Type_Sequence<INDEX, T ...>::Type>(
 						lua,
-						Forward<T_RETURN>(value)
-					);
-
-					PushReturnValues(
-						lua,
-						Forward<T_RETURN_VALUES>(values) ...
-					);
-				}
-				template<typename ... T_RETURN_VALUES, size_t ... INDEXES>
-				static constexpr Void PushReturnValues(::lua_State* lua, Collections::Tuple<T_RETURN_VALUES ...>& values, Index_Sequence<INDEXES ...>)
-				{
-					PushReturnValues(
-						lua,
-						values.template Get<INDEXES>() ...
+						tuple.template Get<INDEX>()
 					);
 				}
 			};
