@@ -61,37 +61,68 @@ namespace AL::Lua543::Extensions
 	struct Type_Functions
 	{
 		static constexpr Bool IsAlias   = False;
-		static constexpr Bool IsDefined = Is_Enum_Or_Integer<T>::Value;
+		static constexpr Bool IsDefined = Is_Pointer<T>::Value || Is_Enum_Or_Integer<T>::Value;
 
-		template<typename _T = typename Enable_If<Is_Enum_Or_Integer<T>::Value, T>::Type>
-		static _T Get(::lua_State* lua, size_t index)
+		static T Get(::lua_State* lua, size_t index)
 		{
-			return static_cast<_T>(
-				Type_Functions<typename Get_Enum_Or_Integer_Base<_T>::Type>::Get(
-					lua,
-					index
-				)
-			);
+			if constexpr (Is_Pointer<T>::Value)
+			{
+				return reinterpret_cast<T>(
+					Type_Functions<typename Conditional<Is_Const<T>::Value, const Void*, Void*>::Type>::Get(
+						lua,
+						index
+					)
+				);
+			}
+			else if constexpr (Is_Enum_Or_Integer<T>::Value)
+			{
+				return static_cast<T>(
+					Type_Functions<typename Get_Enum_Or_Integer_Base<T>::Type>::Get(
+						lua,
+						index
+					)
+				);
+			}
 		}
 
-		template<typename _T = typename Enable_If<Is_Enum_Or_Integer<T>::Value, T>::Type>
-		static Void Push(::lua_State* lua, _T value)
+		static Void Push(::lua_State* lua, T value)
 		{
-			Type_Functions<typename Get_Enum_Or_Integer_Base<_T>::Type>::Push(
-				lua,
-				static_cast<typename Get_Enum_Or_Integer_Base<_T>::Type>(value)
-			);
+			if constexpr (Is_Pointer<T>::Value)
+			{
+				Type_Functions<typename Conditional<Is_Const<T>::Value, const Void*, Void*>::Type>::Push(
+					lua,
+					reinterpret_cast<typename Conditional<Is_Const<T>::Value, const Void*, Void*>::Type>(value)
+				);
+			}
+			else if constexpr (Is_Enum_Or_Integer<T>::Value)
+			{
+				Type_Functions<typename Get_Enum_Or_Integer_Base<T>::Type>::Push(
+					lua,
+					static_cast<typename Get_Enum_Or_Integer_Base<T>::Type>(value)
+				);
+			}
 		}
 
-		template<typename _T = typename Enable_If<Is_Enum_Or_Integer<T>::Value, T>::Type>
-		static _T Pop(::lua_State* lua, size_t count)
+		static T Pop(::lua_State* lua, size_t count)
 		{
-			return static_cast<_T>(
-				Type_Functions<typename Get_Enum_Or_Integer_Base<_T>::Type>::Pop(
-					lua,
-					count
-				)
-			);
+			if constexpr (Is_Pointer<T>::Value)
+			{
+				return reinterpret_cast<T>(
+					Type_Functions<typename Conditional<Is_Const<T>::Value, const Void*, Void*>::Type>::Pop(
+						lua,
+						count
+					)
+				);
+			}
+			else if constexpr (Is_Enum_Or_Integer<T>::Value)
+			{
+				return static_cast<T>(
+					Type_Functions<typename Get_Enum_Or_Integer_Base<T>::Type>::Pop(
+						lua,
+						count
+					)
+				);
+			}
 		}
 	};
 
@@ -424,4 +455,4 @@ AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(::lua_CFunction,  &AL::Lua543::Extensions::ge
 	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::Double, ::lua_Number), static_cast;
 #endif
 
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(char*,          const char*,   const_cast);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(char*, const char*, const_cast);
