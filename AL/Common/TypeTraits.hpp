@@ -250,9 +250,31 @@ namespace AL
 	};
 
 	template<typename T>
+	struct Is_Const_Pointer
+	{
+		static constexpr Bool Value = False;
+	};
+	template<typename T>
+	struct Is_Const_Pointer<const T*>
+	{
+		static constexpr Bool Value = True;
+	};
+
+	template<typename T>
 	struct Is_Reference
 	{
 		static constexpr Bool Value = ::std::is_reference<T>::value;
+	};
+
+	template<typename T>
+	struct Is_Const_Reference
+	{
+		static constexpr Bool Value = False;
+	};
+	template<typename T>
+	struct Is_Const_Reference<const T&>
+	{
+		static constexpr Bool Value = True;
 	};
 
 	template<typename BASE, typename T>
@@ -423,12 +445,34 @@ namespace AL
 	};
 
 	template<typename T>
+	struct Remove_Const_Pointer
+	{
+		typedef T Type;
+	};
+	template<typename T>
+	struct Remove_Const_Pointer<const T*>
+	{
+		typedef T Type;
+	};
+
+	template<typename T>
 	struct Remove_Reference
 	{
 		typedef T Type;
 	};
 	template<typename T>
 	struct Remove_Reference<T&>
+	{
+		typedef T Type;
+	};
+
+	template<typename T>
+	struct Remove_Const_Reference
+	{
+		typedef T Type;
+	};
+	template<typename T>
+	struct Remove_Const_Reference<const T&>
 	{
 		typedef T Type;
 	};
