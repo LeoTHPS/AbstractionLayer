@@ -87,206 +87,25 @@ namespace AL::Lua543
 		}
 	};
 
-	class State
+	class Function
 	{
-		struct Function_Utils
+	public:
+		template<typename F>
+		class LuaCallback;
+
+		template<typename T>
+		struct Is_LuaCallback
 		{
-			template<typename T>
-			struct Is_Const_Pointer
-			{
-				static constexpr Bool Value = False;
-			};
-			template<typename T>
-			struct Is_Const_Pointer<const T*>
-			{
-				static constexpr Bool Value = True;
-			};
-
-			template<typename T>
-			struct Is_Const_Reference
-			{
-				static constexpr Bool Value = False;
-			};
-			template<typename T>
-			struct Is_Const_Reference<const T&>
-			{
-				static constexpr Bool Value = True;
-			};
-
-			template<typename T>
-			struct Remove_Const_Reference
-			{
-				typedef T Type;
-			};
-			template<typename T>
-			struct Remove_Const_Reference<const T&>
-			{
-				typedef T Type;
-			};
-
-			template<typename T_ARG, size_t I>
-			static constexpr auto Detour_Get(::lua_State* lua)
-			{
-				if constexpr (Extensions::Type_Functions<T_ARG>::IsDefined)
-				{
-					return Extensions::Type_Functions<T_ARG>::Get(
-						lua,
-						I + 1
-					);
-				}
-				else if constexpr (Is_Const_Pointer<T_ARG>::Value)
-				{
-					return reinterpret_cast<T_ARG>(
-						Extensions::Type_Functions<Void*>::Get(
-							lua,
-							I + 1
-						)
-					);
-				}
-				else if constexpr (Is_Pointer<T_ARG>::Value)
-				{
-					return reinterpret_cast<T_ARG>(
-						Extensions::Type_Functions<Void*>::Get(
-							lua,
-							I + 1
-						)
-					);
-				}
-				else if constexpr (Is_Const_Reference<T_ARG>::Value)
-				{
-					typedef typename Remove_Const_Reference<T_ARG>::Type T_ARG_NO_CONST_REF;
-
-					if constexpr (Extensions::Type_Functions<T_ARG_NO_CONST_REF>::IsDefined)
-					{
-						return Extensions::Type_Functions<T_ARG_NO_CONST_REF>::Get(
-							lua,
-							I + 1
-						);
-					}
-				}
-				else if constexpr (Is_Reference<T_ARG>::Value)
-				{
-					typedef typename Remove_Reference<T_ARG>::Type T_ARG_NO_REF;
-
-					if constexpr (Extensions::Type_Functions<T_ARG_NO_REF>::IsDefined)
-					{
-						return Extensions::Type_Functions<T_ARG_NO_REF>::Get(
-							lua,
-							I + 1
-						);
-					}
-				}
-			}
-
-			template<typename T_ARG>
-			static constexpr auto Detour_Pop(::lua_State* lua)
-			{
-				if constexpr (Extensions::Type_Functions<T_ARG>::IsDefined)
-				{
-					return Extensions::Type_Functions<T_ARG>::Pop(
-						lua,
-						1
-					);
-				}
-				else if constexpr (Is_Const_Pointer<T_ARG>::Value)
-				{
-					return reinterpret_cast<T_ARG>(
-						Extensions::Type_Functions<Void*>::Pop(
-							lua,
-							1
-						)
-					);
-				}
-				else if constexpr (Is_Pointer<T_ARG>::Value)
-				{
-					return reinterpret_cast<T_ARG>(
-						Extensions::Type_Functions<Void*>::Pop(
-							lua,
-							1
-						)
-					);
-				}
-				else if constexpr (Is_Const_Reference<T_ARG>::Value)
-				{
-					typedef typename Remove_Const_Reference<T_ARG>::Type T_ARG_NO_CONST_REF;
-
-					if constexpr (Extensions::Type_Functions<T_ARG_NO_CONST_REF>::IsDefined)
-					{
-						return Extensions::Type_Functions<T_ARG_NO_CONST_REF>::Pop(
-							lua,
-							1
-						);
-					}
-				}
-				else if constexpr (Is_Reference<T_ARG>::Value)
-				{
-					typedef typename Remove_Reference<T_ARG>::Type T_ARG_NO_REF;
-
-					if constexpr (Extensions::Type_Functions<T_ARG_NO_REF>::IsDefined)
-					{
-						return Extensions::Type_Functions<T_ARG_NO_REF>::Pop(
-							lua,
-							1
-						);
-					}
-				}
-			}
-
-			template<typename T_ARG>
-			static constexpr Void Detour_Push(::lua_State* lua, T_ARG value)
-			{
-				if constexpr (Extensions::Type_Functions<T_ARG>::IsDefined)
-				{
-					Extensions::Type_Functions<T_ARG>::Push(
-						lua,
-						Forward<T_ARG>(value)
-					);
-				}
-				else if constexpr (Is_Const_Pointer<T_ARG>::Value)
-				{
-					typedef typename Remove_Const<T_ARG>::Type T_NO_CONST;
-
-					Extensions::Type_Functions<Void*>::Push(
-						lua,
-						const_cast<T_NO_CONST>(value)
-					);
-				}
-				else if constexpr (Is_Pointer<T_ARG>::Value)
-				{
-					Extensions::Type_Functions<Void*>::Push(
-						lua,
-						value
-					);
-				}
-				else if constexpr (Is_Const_Reference<T_ARG>::Value)
-				{
-					typedef typename Remove_Const_Reference<T_ARG>::Type T_ARG_NO_CONST_REF;
-
-					if constexpr (Extensions::Type_Functions<T_ARG_NO_CONST_REF>::IsDefined)
-					{
-						Extensions::Type_Functions<T_ARG_NO_CONST_REF>::Push(
-							lua,
-							value
-						);
-					}
-				}
-				else if constexpr (Is_Reference<T_ARG>::Value)
-				{
-					typedef typename Remove_Reference<T_ARG>::Type T_ARG_NO_REF;
-
-					if constexpr (Extensions::Type_Functions<T_ARG_NO_REF>::IsDefined)
-					{
-						Extensions::Type_Functions<T_ARG_NO_REF>::Push(
-							lua,
-							value
-						);
-					}
-				}
-			}
+			static constexpr Bool Value = False;
+		};
+		template<typename F>
+		struct Is_LuaCallback<class LuaCallback<F>>
+		{
+			static constexpr Bool Value = True;
 		};
 
 		template<auto F>
-		class Function
+		class C
 		{
 			template<typename T>
 			class Detour;
@@ -298,20 +117,17 @@ namespace AL::Lua543
 				{
 					return Execute(
 						lua,
-						F,
-						typename Make_Index_Sequence<sizeof ...(TArgs)>::Type{}
+						typename Make_Index_Sequence<sizeof ...(TArgs)>::Type {}
 					);
 				}
-
-			private:
 				template<size_t ... INDEXES>
-				static constexpr int Execute(::lua_State* lua, T(*lpFunction)(TArgs ...), Index_Sequence<INDEXES ...>)
+				static int Execute(::lua_State* lua, Index_Sequence<INDEXES ...>)
 				{
-					auto result = lpFunction(
-						GetArg<INDEXES>(lua) ...
+					auto result = F(
+						Get<INDEXES>(lua) ...
 					);
 
-					Function_Utils::Detour_Push<T>(
+					Push<T>(
 						lua,
 						Forward<T>(result)
 					);
@@ -319,13 +135,13 @@ namespace AL::Lua543
 					return 1;
 				}
 
+			private:
 				template<size_t INDEX>
-				static constexpr auto GetArg(::lua_State* lua)
+				static constexpr auto Get(::lua_State* lua)
 				{
-					typedef typename Get_Type_Sequence<INDEX, TArgs ...>::Type T_ARG;
-
-					return Function_Utils::Detour_Get<T_ARG, INDEX>(
-						lua
+					return Function::Get<typename Get_Type_Sequence<INDEX, TArgs ...>::Type>(
+						lua,
+						1 + INDEX
 					);
 				}
 			};
@@ -338,28 +154,26 @@ namespace AL::Lua543
 					return Execute(
 						lua,
 						F,
-						typename Make_Index_Sequence<sizeof ...(TArgs)>::Type{}
+						typename Make_Index_Sequence<sizeof ...(TArgs)>::Type {}
 					);
 				}
-
-			private:
 				template<size_t ... INDEXES>
-				static constexpr int Execute(::lua_State* lua, Void(*lpFunction)(TArgs ...), Index_Sequence<INDEXES ...>)
+				static int Execute(::lua_State* lua, Void(*lpFunction)(TArgs ...), Index_Sequence<INDEXES ...>)
 				{
 					lpFunction(
-						GetArg<INDEXES>(lua) ...
+						Get<INDEXES>(lua) ...
 					);
 
 					return 0;
 				}
 
+			private:
 				template<size_t INDEX>
-				static constexpr auto GetArg(::lua_State* lua)
+				static constexpr auto Get(::lua_State* lua)
 				{
-					typedef typename Get_Type_Sequence<INDEX, TArgs ...>::Type T_ARG;
-
-					return Function_Utils::Detour_Get<T_ARG, INDEX>(
-						lua
+					return Function::Get<typename Get_Type_Sequence<INDEX, TArgs ...>::Type>(
+						lua,
+						1 + INDEX
 					);
 				}
 			};
@@ -372,34 +186,31 @@ namespace AL::Lua543
 					return Execute(
 						lua,
 						F,
-						typename Make_Index_Sequence<sizeof ...(T)>::Type{},
-						typename Make_Index_Sequence<sizeof ...(TArgs)>::Type{}
+						typename Make_Index_Sequence<sizeof ...(TArgs)>::Type {}
 					);
 				}
-
-			private:
-				template<size_t ... I_T, size_t ... I_TArgs>
-				static constexpr int Execute(::lua_State* lua, Collections::Tuple<T ...>(*lpFunction)(TArgs ...), Index_Sequence<I_T ...>, Index_Sequence<I_TArgs ...>)
+				template<size_t ... INDEXES>
+				static int Execute(::lua_State* lua, Collections::Tuple<T ...>(*lpFunction)(TArgs ...), Index_Sequence<INDEXES ...>)
 				{
 					auto result = lpFunction(
-						GetArg<I_TArgs>(lua) ...
+						Get<INDEXES>(lua) ...
 					);
 
 					PushReturnValues(
 						lua,
-						result.template Get<I_T>() ...
+						result
 					);
 
 					return sizeof ...(T);
 				}
 
+			private:
 				template<size_t INDEX>
-				static constexpr auto GetArg(::lua_State* lua)
+				static constexpr auto Get(::lua_State* lua)
 				{
-					typedef typename Get_Type_Sequence<INDEX, TArgs ...>::Type T_ARG;
-
-					return Function_Utils::Detour_Get<T_ARG, INDEX>(
-						lua
+					return Function::Get<typename Get_Type_Sequence<INDEX, TArgs ...>::Type>(
+						lua,
+						1 + INDEX
 					);
 				}
 
@@ -409,7 +220,7 @@ namespace AL::Lua543
 				template<typename T_RETURN, typename ... T_RETURN_VALUES>
 				static constexpr Void PushReturnValues(::lua_State* lua, T_RETURN value, T_RETURN_VALUES ... values)
 				{
-					Function_Utils::Detour_Push<T_RETURN>(
+					Push<T_RETURN>(
 						lua,
 						Forward<T_RETURN>(value)
 					);
@@ -419,9 +230,17 @@ namespace AL::Lua543
 						Forward<T_RETURN_VALUES>(values) ...
 					);
 				}
+				template<typename ... T_RETURN_VALUES, size_t ... INDEXES>
+				static constexpr Void PushReturnValues(::lua_State* lua, Collections::Tuple<T_RETURN_VALUES ...>& values, Index_Sequence<INDEXES ...>)
+				{
+					PushReturnValues(
+						lua,
+						values.template Get<INDEXES>() ...
+					);
+				}
 			};
 
-			Function() = delete;
+			C() = delete;
 
 		public:
 			static int Execute(::lua_State* lua)
@@ -433,9 +252,9 @@ namespace AL::Lua543
 		};
 
 		template<typename F>
-		class LuaFunction;
+		class Lua;
 		template<typename T, typename ... TArgs>
-		class LuaFunction<T(TArgs ...)>
+		class Lua<T(TArgs ...)>
 		{
 			template<typename F>
 			class Detour;
@@ -443,17 +262,9 @@ namespace AL::Lua543
 			class Detour<T_RETURN(T_ARGS ...)>
 			{
 			public:
-				static constexpr T_RETURN Execute(::lua_State* lua, const String& name, T_ARGS ... args)
+				static constexpr T_RETURN Execute(::lua_State* lua, T_ARGS ... args)
 				{
-					Extensions::getGlobal(
-						lua,
-						name
-					);
-
-					PushArgs(
-						lua,
-						Forward<T_ARGS>(args) ...
-					);
+					(Push<T_ARGS>(lua, Forward<T_ARGS>(args)), ...);
 
 					Extensions::call(
 						lua,
@@ -461,26 +272,8 @@ namespace AL::Lua543
 						1
 					);
 
-					return Function_Utils::Detour_Pop<T_RETURN>(
+					return Pop<T_RETURN>(
 						lua
-					);
-				}
-
-			private:
-				static constexpr Void PushArgs(::lua_State* lua)
-				{
-				}
-				template<typename _T_ARG, typename ... _T_ARGS>
-				static constexpr Void PushArgs(::lua_State* lua, _T_ARG arg, _T_ARGS ... args)
-				{
-					Function_Utils::Detour_Push<_T_ARG>(
-						lua,
-						Forward<_T_ARG>(arg)
-					);
-
-					PushArgs(
-						lua,
-						Forward<_T_ARGS>(args) ...
 					);
 				}
 			};
@@ -488,17 +281,9 @@ namespace AL::Lua543
 			class Detour<Void(T_ARGS ...)>
 			{
 			public:
-				static constexpr Void Execute(::lua_State* lua, const String& name, T_ARGS ... args)
+				static constexpr Void Execute(::lua_State* lua, T_ARGS ... args)
 				{
-					Extensions::getGlobal(
-						lua,
-						name
-					);
-
-					PushArgs(
-						lua,
-						Forward<T_ARGS>(args) ...
-					);
+					(Push<T_ARGS>(lua, Forward<T_ARGS>(args)), ...);
 
 					Extensions::call(
 						lua,
@@ -506,52 +291,14 @@ namespace AL::Lua543
 						0
 					);
 				}
-
-			private:
-				static constexpr Void PushArgs(::lua_State* lua)
-				{
-				}
-				template<typename _T_ARG, typename ... _T_ARGS>
-				static constexpr Void PushArgs(::lua_State* lua, _T_ARG arg, _T_ARGS ... args)
-				{
-					Function_Utils::Detour_Push<_T_ARG>(
-						lua,
-						Forward<_T_ARG>(arg)
-					);
-
-					PushArgs(
-						lua,
-						Forward<_T_ARGS>(args) ...
-					);
-				}
 			};
 			template<typename ... T_RETURN, typename ... T_ARGS>
 			class Detour<Collections::Tuple<T_RETURN ...>(T_ARGS ...)>
 			{
 			public:
-				static constexpr Collections::Tuple<T_RETURN ...> Execute(::lua_State* lua, const String& name, T_ARGS ... args)
+				static constexpr Collections::Tuple<T_RETURN ...> Execute(::lua_State* lua, T_ARGS ... args)
 				{
-					return Execute(
-						lua,
-						name,
-						Forward<T_ARGS>(args) ...,
-						typename Make_Index_Sequence<sizeof ...(T_RETURN)>::Type{}
-					);
-				}
-
-			private:
-				template<size_t ... INDEXES>
-				static constexpr Collections::Tuple<T_RETURN ...> Execute(::lua_State* lua, const String& name, T_ARGS ... args, Index_Sequence<INDEXES ...>)
-				{
-					Extensions::getGlobal(
-						lua,
-						name
-					);
-
-					PushArgs(
-						lua,
-						Forward<T_ARGS>(args) ...
-					);
+					(Push<T_ARGS>(lua, Forward<T_ARGS>(args)), ...);
 
 					Extensions::call(
 						lua,
@@ -560,51 +307,155 @@ namespace AL::Lua543
 					);
 
 					return Collections::Tuple<T_RETURN ...>(
-						PopReturnValue<INDEXES>(lua) ...
-					);
-				}
-
-				static constexpr Void PushArgs(::lua_State* lua)
-				{
-				}
-				template<typename _T_ARG, typename ... _T_ARGS>
-				static constexpr Void PushArgs(::lua_State* lua, _T_ARG arg, _T_ARGS ... args)
-				{
-					Function_Utils::Detour_Push<_T_ARG>(
-						lua,
-						Forward<_T_ARG>(arg)
-					);
-
-					PushArgs(
-						lua,
-						Forward<_T_ARGS>(args) ...
-					);
-				}
-
-				template<size_t INDEX>
-				static constexpr auto PopReturnValue(::lua_State* lua)
-				{
-					typedef typename Get_Type_Sequence<INDEX, T_RETURN ...>::Type _T_RETURN;
-
-					return Function_Utils::Detour_Pop<_T_RETURN>(
-						lua
+						Pop<T_RETURN>(lua) ...
 					);
 				}
 			};
 
-			LuaFunction() = delete;
+			Lua() = delete;
 
 		public:
-			static constexpr T Execute(::lua_State* lua, const String& name, TArgs ... args)
+			static constexpr T Execute(::lua_State* lua, TArgs ... args)
 			{
 				return Detour<T(TArgs ...)>::Execute(
 					lua,
-					name,
 					Forward<TArgs>(args) ...
 				);
 			}
 		};
 
+		template<typename T, typename ... TArgs>
+		class LuaCallback<T(TArgs ...)>
+		{
+			friend Function;
+
+			::lua_State* lua;
+			mutable int  reference;
+
+			LuaCallback(const LuaCallback&) = delete;
+
+			explicit LuaCallback(::lua_State* lua)
+				: lua(
+					lua
+				),
+				reference(
+					::luaL_ref(lua, LUA_REGISTRYINDEX)
+				)
+			{
+			}
+
+		public:
+			LuaCallback(LuaCallback&& callback)
+				: lua(
+					callback.lua
+				),
+				reference(
+					callback.reference
+				)
+			{
+				callback.lua = nullptr;
+			}
+
+			virtual ~LuaCallback()
+			{
+				if (lua != nullptr)
+				{
+					::luaL_unref(
+						lua,
+						LUA_REGISTRYINDEX,
+						reference
+					);
+
+					lua = nullptr;
+				}
+			}
+
+			T operator () (TArgs ... args) const
+			{
+				::lua_rawgeti(
+					lua,
+					LUA_REGISTRYINDEX,
+					reference
+				);
+
+				return Lua<T(TArgs ...)>::Execute(
+					lua,
+					Forward<TArgs>(args) ...
+				);
+			}
+
+			LuaCallback& operator = (LuaCallback&& callback)
+			{
+				if (lua != nullptr)
+				{
+					luaL_unref(
+						lua,
+						LUA_REGISTRYINDEX,
+						reference
+					);
+				}
+
+				lua = callback.lua;
+				callback.lua = nullptr;
+
+				reference = callback.reference;
+
+				return *this;
+			}
+		};
+
+	private:
+		template<typename T_ARG>
+		static constexpr T_ARG Get(::lua_State* lua, size_t index)
+		{
+			if constexpr (Extensions::Type_Functions<T_ARG>::IsDefined)
+			{
+				return Extensions::Type_Functions<T_ARG>::Get(
+					lua,
+					index
+				);
+			}
+			else if constexpr (Is_LuaCallback<T_ARG>::Value)
+			{
+				return T_ARG(
+					lua
+				);
+			}
+		}
+
+		template<typename T_ARG>
+		static constexpr T_ARG Pop(::lua_State* lua)
+		{
+			if constexpr (Extensions::Type_Functions<T_ARG>::IsDefined)
+			{
+				return Extensions::Type_Functions<T_ARG>::Pop(
+					lua,
+					1
+				);
+			}
+			else if constexpr (Is_LuaCallback<T_ARG>::Value)
+			{
+				return T_ARG(
+					lua
+				);
+			}
+		}
+
+		template<typename T_ARG>
+		static constexpr Void  Push(::lua_State* lua, T_ARG value)
+		{
+			if constexpr (Extensions::Type_Functions<T_ARG>::IsDefined)
+			{
+				Extensions::Type_Functions<T_ARG>::Push(
+					lua,
+					Forward<T_ARG>(value)
+				);
+			}
+		}
+	};
+
+	class State
+	{
 		Bool isCreated = False;
 
 		::lua_State* lua;
@@ -715,16 +566,20 @@ namespace AL::Lua543
 		{
 			SetGlobal(
 				name,
-				&Function<F>::Execute
+				&Function::C<F>::Execute
 			);
 		}
 
 		template<typename F, typename ... TArgs>
 		auto CallGlobalFunction(const String& name, TArgs ... args)
 		{
-			return LuaFunction<F>::Execute(
+			Extensions::getGlobal(
 				GetHandle(),
-				name,
+				name
+			);
+
+			return Function::Lua<F>::Execute(
+				GetHandle(),
 				Forward<TArgs>(args) ...
 			);
 		}
