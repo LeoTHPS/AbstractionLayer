@@ -27,7 +27,15 @@ namespace AL
 	template<typename T>
 	inline String ToString(T value)
 	{
-		if constexpr (Is_Enum_Or_Integer<T>::Value)
+		if constexpr (Is_Pointer<T>::Value)
+		{
+			auto string = ToString(
+				reinterpret_cast<size_t>(value)
+			);
+
+			return string;
+		}
+		else if constexpr (Is_Enum_Or_Integer<T>::Value)
 		{
 			typedef typename Get_Enum_Or_Integer_Base<T>::Type T_BASE;
 
@@ -61,7 +69,15 @@ namespace AL
 	template<typename T>
 	inline WString ToWString(T value)
 	{
-		if constexpr (Is_Enum_Or_Integer<T>::Value)
+		if constexpr (Is_Pointer<T>::Value)
+		{
+			auto wstring = ToWString(
+				reinterpret_cast<size_t>(value)
+			);
+
+			return wstring;
+		}
+		else if constexpr (Is_Enum_Or_Integer<T>::Value)
 		{
 			typedef typename Get_Enum_Or_Integer_Base<T>::Type T_BASE;
 
@@ -96,7 +112,17 @@ namespace AL
 	template<typename T>
 	inline T FromString(const String& string)
 	{
-		if constexpr (Is_Enum_Or_Integer<T>::Value)
+		if constexpr (Is_Pointer<T>::Value)
+		{
+			auto value = FromString<size_t>(
+				string
+			);
+
+			return reinterpret_cast<T>(
+				value
+			);
+		}
+		else if constexpr (Is_Enum_Or_Integer<T>::Value)
 		{
 			typedef typename Get_Enum_Or_Integer_Base<T>::Type T_BASE;
 
@@ -134,7 +160,17 @@ namespace AL
 	template<typename T>
 	inline T FromWString(const WString& wstring)
 	{
-		if constexpr (Is_Enum_Or_Integer<T>::Value)
+		if constexpr (Is_Pointer<T>::Value)
+		{
+			auto value = FromWString<size_t>(
+				wstring
+			);
+
+			return reinterpret_cast<T>(
+				value
+			);
+		}
+		else if constexpr (Is_Enum_Or_Integer<T>::Value)
 		{
 			typedef typename Get_Enum_Or_Integer_Base<T>::Type T_BASE;
 

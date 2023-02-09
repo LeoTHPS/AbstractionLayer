@@ -9,8 +9,18 @@ namespace AL::Collections
 	class _StringBuilder
 	{
 		_String<T_CHAR> buffer;
+		Bool            appendAsDecimal  = True;
+		size_t          appendAsHexCount = 0;
 
 	public:
+		struct _dec {};
+		struct _hex {};
+		struct _hex_once {};
+
+		inline static const _dec      dec;
+		inline static const _hex      hex;
+		inline static const _hex_once hex_once;
+
 		typedef T_CHAR        Char;
 		typedef _String<Char> String;
 
@@ -55,28 +65,77 @@ namespace AL::Collections
 			buffer.Clear();
 		}
 
+		Void SetHex(Bool set = True)
+		{
+			appendAsDecimal  = !set;
+			appendAsHexCount = 0;
+		}
+
 		template<typename T>
 		_StringBuilder& Append(T value)
 		{
-			if constexpr (Is_Type<Char, typename String::Char>::Value)
+			if ((appendAsHexCount != 0) && (--appendAsHexCount == 0))
 			{
-				auto string = AL::ToString<T>(
-					Forward<T>(value)
+				SetHex(
+					False
+				);
+			}
+
+			if constexpr (Is_Type<T, _dec>::Value || Is_Type<T, _hex>::Value || Is_Type<T, _hex_once>::Value)
+			{
+				SetHex(
+					Is_Type<T, _hex>::Value || Is_Type<T, _hex_once>::Value
 				);
 
-				buffer.Append(
-					string
-				);
+				appendAsHexCount = Is_Type<T, _hex_once>::Value ? 2 : 0;
+			}
+			else if constexpr (Is_Type<Char, typename AL::String::Char>::Value)
+			{
+				if (!appendAsDecimal && (Is_Pointer<T>::Value || Is_Enum_Or_Integer<T>::Value))
+				{
+					auto string = AL::String::Format(
+						"%X",
+						value
+					);
+
+					buffer.Append(
+						string
+					);
+				}
+				else
+				{
+					auto string = AL::ToString<T>(
+						Forward<T>(value)
+					);
+
+					buffer.Append(
+						string
+					);
+				}
 			}
 			else
 			{
-				auto string = AL::ToWString<T>(
-					Forward<T>(value)
-				);
+				if (!appendAsDecimal && (Is_Pointer<T>::Value || Is_Enum_Or_Integer<T>::Value))
+				{
+					auto string = AL::WString::Format(
+						L"%X",
+						value
+					);
 
-				buffer.Append(
-					string
-				);
+					buffer.Append(
+						string
+					);
+				}
+				else
+				{
+					auto string = AL::ToWString<T>(
+						Forward<T>(value)
+					);
+
+					buffer.Append(
+						string
+					);
+				}
 			}
 
 			return *this;
