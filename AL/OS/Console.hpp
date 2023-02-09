@@ -25,6 +25,48 @@ namespace AL::OS
 		Console() = delete;
 
 	public:
+		static Bool IsOpen()
+		{
+#if defined(AL_PLATFORM_PICO) || defined(AL_PLATFORM_LINUX)
+			// TODO: implement
+#elif defined(AL_PLATFORM_WINDOWS)
+			if (::GetConsoleWindow() == NULL)
+			{
+
+				return False;
+			}
+#endif
+
+			return True;
+		}
+
+		static Bool SetOpen(Bool set = True)
+		{
+#if defined(AL_PLATFORM_PICO) || defined(AL_PLATFORM_LINUX)
+			if (!set)
+			{
+				// TODO: implement
+				return False;
+			}
+#elif defined(AL_PLATFORM_WINDOWS)
+			if (set)
+			{
+				if (!IsOpen() && !::AllocConsole())
+				{
+
+					return False;
+				}
+			}
+			else if (IsOpen() && !::FreeConsole())
+			{
+
+				return False;
+			}
+#endif
+
+			return True;
+		}
+
 		static Bool SetTitle(const String& value)
 		{
 			if (!SetTitle(value.GetCString()))
