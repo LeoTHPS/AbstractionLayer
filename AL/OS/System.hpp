@@ -315,8 +315,6 @@ namespace AL::OS
 #if defined(AL_PLATFORM_PICO)
 			count = 1;
 #elif defined(AL_PLATFORM_LINUX)
-			// TODO: fix. cache 4 is returning != -1 when it doesn't exist
-
 			if (::sysconf(_SC_LEVEL1_DCACHE_SIZE) != -1)
 			{
 
@@ -525,7 +523,7 @@ namespace AL::OS
 			}
 
 			Collections::Array<::SYSTEM_LOGICAL_PROCESSOR_INFORMATION> buffer(
-				bufferSize
+				bufferSize / sizeof(::SYSTEM_LOGICAL_PROCESSOR_INFORMATION)
 			);
 
 			if (!::GetLogicalProcessorInformation(&buffer[0], &bufferSize))
@@ -535,7 +533,7 @@ namespace AL::OS
 					"GetLogicalProcessorInformation"
 				);
 			}
-			
+
 			for (size_t i = 0; i < bufferSize; ++i)
 			{
 				if (!callback(buffer[i]))
