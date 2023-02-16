@@ -42,7 +42,10 @@ namespace AL::OS
 
 		static Bool SetOpen(Bool set = True)
 		{
-#if defined(AL_PLATFORM_PICO) || defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			// not supported
+			return False;
+#elif defined(AL_PLATFORM_LINUX)
 			if (!set)
 			{
 				// TODO: implement
@@ -168,6 +171,10 @@ namespace AL::OS
 				::getchar()
 			);
 
+			::putchar(
+				value
+			);
+
 			return True;
 #elif defined(AL_PLATFORM_LINUX)
 			if (::read(STDIN_FILENO, &value, sizeof(String::Char)) == -1)
@@ -230,14 +237,45 @@ namespace AL::OS
 				}
 #endif
 
-				if (c == '\r')
+				if ((c == '\b') || (c == '\x7f'))
 				{
+					if (value.GetLength() != 0)
+					{
+#if defined(AL_PLATFORM_PICO)
+						::putchar_raw(
+							c
+						);
+#endif
+
+						value.Erase(
+							--value.end()
+						);
+					}
+				}
+				else if (c == '\r')
+				{
+#if defined(AL_PLATFORM_PICO)
+					c = '\n';
+
+					::putchar(
+						c
+					);
+#endif
 				}
 				else if (c != '\n')
 				{
-					value.Append(
+#if defined(AL_PLATFORM_PICO)
+					::putchar_raw(
 						c
 					);
+#endif
+
+					if (::isprint(c))
+					{
+						value.Append(
+							c
+						);
+					}
 				}
 			} while (c != '\n');
 
