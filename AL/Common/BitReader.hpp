@@ -38,7 +38,7 @@ namespace AL
 				for (size_t j = (offset - (i * 8)); j < 8; ++j, ++offset)
 				{
 					if constexpr (ENDIAN == Endians::Big)
-						bit = ((*lpByteBuffer >> (8 - j)) & 0x01) == 1;
+						bit = ((*lpByteBuffer >> (7 - j)) & 0x01) == 1;
 					else if constexpr (ENDIAN == Endians::Little)
 						bit = ((*lpByteBuffer >> j) & 0x01) == 1;
 
