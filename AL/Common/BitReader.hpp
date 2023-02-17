@@ -6,6 +6,7 @@ namespace AL
 	// @return AL::False to stop
 	typedef Function<Bool(size_t index, size_t offset, Bool value)> BitReaderEnumCallback;
 
+	template<Endians ENDIAN>
 	class BitReader
 	{
 		BitReader() = delete;
@@ -24,6 +25,8 @@ namespace AL
 		template<typename F>
 		static Void Enumerate(const Void* lpBuffer, size_t size, size_t offset, F&& callback)
 		{
+			Bool bit = False;
+
 			auto lpByteBuffer = reinterpret_cast<const uint8*>(
 				lpBuffer
 			);
@@ -34,15 +37,20 @@ namespace AL
 			{
 				for (size_t j = (offset - (i * 8)); j < 8; ++j, ++offset)
 				{
+					if constexpr (ENDIAN == Endians::Big)
+						bit = ((*lpByteBuffer >> (8 - j)) & 0x01) == 1;
+					else if constexpr (ENDIAN == Endians::Little)
+						bit = ((*lpByteBuffer >> j) & 0x01) == 1;
+
 					if constexpr (Is_Type<decltype(callback(0, 0, False)), Void>::Value)
 					{
 						callback(
 							i,
 							j,
-							(*lpByteBuffer >> j) & 0x01
+							bit
 						);
 					}
-					else if (!callback(i, j, (*lpByteBuffer >> j) & 0x01))
+					else if (!callback(i, j, bit))
 					{
 
 						break;
@@ -69,4 +77,8 @@ namespace AL
 			);
 		}
 	};
+
+	typedef BitReader<Endians::Big>     BigBitReader;
+	typedef BitReader<Endians::Little>  LittleBitReader;
+	typedef BitReader<Endians::Machine> MachineBitReader;
 }
