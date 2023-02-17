@@ -218,6 +218,7 @@
 #include "Common/Event.hpp"
 #include "Common/ScheduledEvent.hpp"
 
+#include "Common/BitReader.hpp"
 #include "Common/BaseConverter.hpp"
 #include "Common/HexConverter.hpp"
 
