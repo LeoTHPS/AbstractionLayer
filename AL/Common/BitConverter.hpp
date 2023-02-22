@@ -204,7 +204,7 @@ namespace AL
 		}
 
 		template<typename T>
-		static T FromFloat(Float value, Bool roundUp = true)
+		static T FromFloat(Float value, Bool roundUp = True)
 		{
 			Float fraction;
 
@@ -215,7 +215,7 @@ namespace AL
 			);
 		}
 		template<typename T>
-		static T FromFloat(Float value, Float& fraction, Bool roundUp = true)
+		static T FromFloat(Float value, Float& fraction, Bool roundUp = True)
 		{
 			Float baseValue;
 
@@ -238,7 +238,7 @@ namespace AL
 		}
 
 		template<typename T>
-		static T FromDouble(Double value, Bool roundUp = true)
+		static T FromDouble(Double value, Bool roundUp = True)
 		{
 			Double fraction;
 
@@ -249,7 +249,7 @@ namespace AL
 			);
 		}
 		template<typename T>
-		static T FromDouble(Double value, Double& fraction, Bool roundUp = true)
+		static T FromDouble(Double value, Double& fraction, Bool roundUp = True)
 		{
 			Double baseValue;
 
