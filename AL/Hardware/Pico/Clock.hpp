@@ -47,11 +47,22 @@ namespace AL::Hardware::Pico
 			}
 		}
 
+		// Get the current frequency of the specified clock
 		static uint32 GetFrequency(Clocks clock)
 		{
 			return ::clock_get_hz(
 				static_cast<::clock_index>(clock)
 			);
+		}
+
+		// Measure a clocks frequency using the Frequency counter
+		static uint32 GetCountedFrequency(Clocks clock)
+		{
+			auto frequencyKHz = ::frequency_count_khz(
+				static_cast<::clock_index>(clock)
+			);
+
+			return frequencyKHz * 1000;
 		}
 
 		// @param src The main clock source, can be 0
