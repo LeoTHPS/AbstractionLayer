@@ -226,6 +226,7 @@
 	#include <pico.h>
 
 	#include <pico/time.h> // sleep_us/busy_wait_us
+	#include <pico/stdlib.h>
 #elif defined(AL_PLATFORM_LINUX)
 	#include <time.h> // timespec/timespec_get
 	#include <unistd.h> // usleep
