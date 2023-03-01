@@ -84,7 +84,8 @@ namespace AL::Network::HTTP
 
 			// TODO: add message body
 			// TODO: add support for more than GET/POST/HEAD
-			// TODO: reuse socket if HTTP/1.1
+			// TODO: optionally reuse socket if HTTP/1.1
+			// TODO: do a better job at detecting ports
 
 			IPEndPoint serverEP =
 			{
@@ -93,8 +94,18 @@ namespace AL::Network::HTTP
 
 			if (serverEP.Port == 0)
 			{
-
-				serverEP.Port = 80;
+				if (uri.GetScheme().Compare("ftp", True))
+				{
+					serverEP.Port = 21;
+				}
+				else if (uri.GetScheme().Compare("http", True))
+				{
+					serverEP.Port = 80;
+				}
+				else
+				{
+					throw NotImplementedException();
+				}
 			}
 
 			Bool dns_IsInitialized;
@@ -332,12 +343,11 @@ namespace AL::Network::HTTP
 	private:
 		static Void Execute_AppendPath(StringBuilder& sb, const Uri& uri)
 		{
-			if (uri.GetPath().GetLength() == 0)
+			sb << '/';
+
+			if (uri.GetPath().GetLength() != 0)
 			{
-				sb << '/';
-			}
-			else
-			{
+
 				sb << uri.GetPath();
 			}
 		}
@@ -348,13 +358,13 @@ namespace AL::Network::HTTP
 
 			for (auto& pair : header)
 			{
-				sb << pair.Key << ": " << pair.Value;
-				sb << crlf;
-
 				if (pair.Key.Compare("Host", True))
 				{
+					sb << pair.Key << ": " << pair.Value << crlf;
 
 					isHostSet = True;
+
+					break;
 				}
 			}
 
@@ -369,6 +379,17 @@ namespace AL::Network::HTTP
 				}
 
 				sb << crlf;
+			}
+
+			for (auto& pair : header)
+			{
+				if (pair.Key.Compare("Host", True))
+				{
+
+					continue;
+				}
+
+				sb << pair.Key << ": " << pair.Value << crlf;
 			}
 		}
 
@@ -505,7 +526,7 @@ namespace AL::Network::HTTP
 		{
 			Regex::MatchCollection matches;
 
-			if (!Regex::Match(matches, "^HTTP\\/(\\d\\.\\d) (\\d+) (\\w+)$", chunk))
+			if (!Regex::Match(matches, "^HTTP\\/(\\d\\.\\d) (\\d+) ([a-zA-Z ]+)$", chunk))
 			{
 
 				throw Exception(
