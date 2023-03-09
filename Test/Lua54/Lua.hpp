@@ -29,6 +29,11 @@ static void AL_Lua54_do_the_thing()
 	);
 }
 
+static void AL_Lua54_call_the_thing(AL::Lua54::Function::LuaCallback<void()> callback)
+{
+	callback();
+}
+
 // @throw AL::Exception
 static void AL_Lua54()
 {
@@ -43,11 +48,15 @@ static void AL_Lua54()
 			"do_the_thing"
 		);
 
+		AL_Lua54_State.SetGlobalFunction<AL_Lua54_call_the_thing>(
+			"call_the_thing"
+		);
+
 		AL_Lua54_State.Run(
-			"the_thing = 0;"             "\n"
-			""                           "\n"
-			"while (the_thing ~= 10) do" "\n"
-			    "do_the_thing();"        "\n"
+			"the_thing = 0;"                    "\n"
+			""                                  "\n"
+			"while (the_thing ~= 10) do"        "\n"
+			    "call_the_thing(do_the_thing);" "\n"
 			"end"
 		);
 	}
