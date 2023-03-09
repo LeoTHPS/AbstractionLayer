@@ -5,14 +5,14 @@
 
 #include <AL/Lua54/Lua.hpp>
 
-static AL::Lua54::State AL_Lua543_State;
+static AL::Lua54::State AL_Lua54_State;
 
-static void AL_Lua543_do_the_thing()
+static void AL_Lua54_do_the_thing()
 {
 	using namespace AL;
 	using namespace AL::Lua54;
 
-	auto the_thing = AL_Lua543_State.GetGlobal<uint32>(
+	auto the_thing = AL_Lua54_State.GetGlobal<uint32>(
 		"the_thing"
 	);
 
@@ -23,27 +23,27 @@ static void AL_Lua543_do_the_thing()
 	);
 #endif
 
-	AL_Lua543_State.SetGlobal(
+	AL_Lua54_State.SetGlobal(
 		"the_thing",
 		the_thing + 1
 	);
 }
 
 // @throw AL::Exception
-static void AL_Lua543()
+static void AL_Lua54()
 {
 	using namespace AL;
 	using namespace AL::Lua54;
 
-	AL_Lua543_State.Create();
+	AL_Lua54_State.Create();
 
 	try
 	{
-		AL_Lua543_State.SetGlobalFunction<AL_Lua543_do_the_thing>(
+		AL_Lua54_State.SetGlobalFunction<AL_Lua54_do_the_thing>(
 			"do_the_thing"
 		);
 
-		AL_Lua543_State.Run(
+		AL_Lua54_State.Run(
 			"the_thing = 0;"             "\n"
 			""                           "\n"
 			"while (the_thing ~= 10) do" "\n"
@@ -53,10 +53,10 @@ static void AL_Lua543()
 	}
 	catch (Exception&)
 	{
-		AL_Lua543_State.Destroy();
+		AL_Lua54_State.Destroy();
 
 		throw;
 	}
 
-	AL_Lua543_State.Destroy();
+	AL_Lua54_State.Destroy();
 }

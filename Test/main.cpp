@@ -305,7 +305,7 @@ void main_execute_tests(AL::uint32& testCount, AL::uint32& testFailCount)
 	// main_execute_test(AL_Hardware_Drivers_AT24C256);
 	// main_execute_test(AL_Hardware_Drivers_MLX90640);
 
-	// main_execute_test(AL_Lua543);
+	// main_execute_test(AL_Lua54);
 
 	// main_execute_test(AL_Network_Adapter);
 	// main_execute_test(AL_Network_UdpSocket);
