@@ -534,9 +534,9 @@ namespace AL::OS
 				);
 			}
 
-			for (size_t i = 0; i < bufferSize; ++i)
+			for (auto& logicalProcessorInfo : buffer)
 			{
-				if (!callback(buffer[i]))
+				if (!callback(logicalProcessorInfo))
 				{
 
 					break;
