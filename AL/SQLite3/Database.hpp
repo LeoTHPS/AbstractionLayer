@@ -186,8 +186,8 @@ namespace AL::SQLite3
 		}
 
 		// @throw AL::Exception
-		template<size_t S, typename ... TArgs>
-		auto Query(const char(&format)[S], TArgs ... args)
+		template<typename ... TArgs>
+		auto Query(const String::Char* format, TArgs ... args)
 		{
 			AL_ASSERT(
 				IsOpen(),
