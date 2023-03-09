@@ -11,6 +11,40 @@
 
 namespace AL::Hardware::Pico
 {
+	namespace Extensions
+	{
+		static clock_index clock_gpio_get_index(uint gpio)
+		{
+			switch (gpio)
+			{
+				case 21: return clk_gpout0;
+				case 23: return clk_gpout1;
+				case 24: return clk_gpout2;
+				case 25: return clk_gpout3;
+			}
+
+			invalid_params_if(CLOCKS, true);
+
+			return CLK_COUNT;
+		}
+
+		inline void        clock_gpio_get_div(uint gpio, uint32_t& divider, uint8_t& dividerFraction)
+		{
+			auto index      = clock_gpio_get_index(gpio);
+			auto div        = clocks_hw->clk[index].div;
+			divider         = (div & CLOCKS_CLK_GPOUT0_DIV_INT_BITS) >> CLOCKS_CLK_GPOUT0_DIV_INT_LSB;
+			dividerFraction = (div & CLOCKS_CLK_GPOUT0_DIV_FRAC_BITS) >> CLOCKS_CLK_GPOUT0_DIV_FRAC_LSB;
+		}
+		inline void        clock_gpio_get_div(uint gpio, float& divider)
+		{
+			uint32_t div;
+			uint8_t  divFraction;
+			clock_gpio_get_div(gpio, div, divFraction);
+
+			divider = div + (divFraction / 256.0f);
+		}
+	}
+
 	enum class Clocks : Get_Enum_Or_Integer_Base<::clock_index>::Type
 	{
 		ADC        = ::clk_adc,
@@ -55,6 +89,39 @@ namespace AL::Hardware::Pico
 			);
 		}
 
+		// Get the current frequency of the specified gpio pin
+		static uint32 GetGPIOFrequency(Clocks clock, GPIOPin pin)
+		{
+			auto frequency = GetFrequency(
+				clock
+			);
+
+			return GetGPIOFrequency(
+				frequency,
+				pin
+			);
+		}
+		// Get the current frequency of the specified gpio pin
+		static uint32 GetGPIOFrequency(uint32 frequency, GPIOPin pin)
+		{
+			if (::gpio_get_function(pin) != ::GPIO_FUNC_GPCK)
+			{
+
+				return 0;
+			}
+
+			float divider;
+
+			Extensions::clock_gpio_get_div(
+				pin,
+				divider
+			);
+
+			return BitConverter::FromFloat<uint32>(
+				frequency / divider
+			);
+		}
+
 		// Measure a clocks frequency using the Frequency counter
 		static uint32 GetCountedFrequency(Clocks clock)
 		{
@@ -63,6 +130,19 @@ namespace AL::Hardware::Pico
 			);
 
 			return frequencyKHz * 1000;
+		}
+
+		// Measure a pin frequency using the Frequency counter
+		static uint32 GetCountedGPIOFrequency(Clocks clock, GPIOPin pin)
+		{
+			auto frequency = GetCountedFrequency(
+				clock
+			);
+
+			return GetGPIOFrequency(
+				frequency,
+				pin
+			);
 		}
 
 		// @param src The main clock source, can be 0
