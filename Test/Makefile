@@ -15,10 +15,10 @@ CXXFLAGS     += -Wall -Wfatal-errors -g -std=c++20 -I. -I"$(AL_INCLUDE)"
 ifdef COMPILER
 	ifeq ($(COMPILER), GNU)
 		CXX = g++
-	endif
-
-	ifeq ($(COMPILER), CLANG)
+	else ifeq ($(COMPILER), CLANG)
 		CXX = clang++
+	else
+		CXX = $(COMPILER)
 	endif
 endif
 
