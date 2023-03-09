@@ -7,7 +7,7 @@
 
 #include <lua.hpp>
 
-namespace AL::Lua543
+namespace AL::Lua54
 {
 	class LuaException
 		: public Exception

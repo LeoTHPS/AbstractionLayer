@@ -11,7 +11,7 @@
 
 #define AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(__type__, __get__, __push__, __pop__) \
 	template<> \
-	struct AL::Lua543::Extensions::Type_Functions<__type__> \
+	struct AL::Lua54::Extensions::Type_Functions<__type__> \
 	{ \
 		static constexpr Bool IsAlias    = False; \
 		static constexpr Bool IsDefined  = True; \
@@ -24,7 +24,7 @@
 
 #define AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(__type__, __alias__, __cast__) \
 	template<> \
-	struct AL::Lua543::Extensions::Type_Functions<__type__> \
+	struct AL::Lua54::Extensions::Type_Functions<__type__> \
 	{ \
 		static constexpr Bool IsAlias    = True; \
 		static constexpr Bool IsDefined  = True; \
@@ -57,7 +57,7 @@
 		}; \
 	}
 
-namespace AL::Lua543::Extensions
+namespace AL::Lua54::Extensions
 {
 	template<typename T>
 	class Type_Functions
@@ -362,15 +362,15 @@ namespace AL::Lua543::Extensions
 	}
 }
 
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(::std::nullptr_t, &AL::Lua543::Extensions::getnil,           &AL::Lua543::Extensions::pushnil,           &AL::Lua543::Extensions::pop<::std::nullptr_t>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(AL::Bool,         &AL::Lua543::Extensions::getboolean,       &AL::Lua543::Extensions::pushboolean,       &AL::Lua543::Extensions::pop<AL::Bool>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(AL::Void*,        &AL::Lua543::Extensions::getlightuserdata, &AL::Lua543::Extensions::pushlightuserdata, &AL::Lua543::Extensions::pop<AL::Void*>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(::lua_Number,     &AL::Lua543::Extensions::getnumber,        &AL::Lua543::Extensions::pushnumber,        &AL::Lua543::Extensions::pop<::lua_Number>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(::lua_Integer,    &AL::Lua543::Extensions::getinteger,       &AL::Lua543::Extensions::pushinteger,       &AL::Lua543::Extensions::pop<::lua_Integer>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(char,             &AL::Lua543::Extensions::getchar,          &AL::Lua543::Extensions::pushchar,          &AL::Lua543::Extensions::pop<char>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(const char*,      &AL::Lua543::Extensions::getstring,        &AL::Lua543::Extensions::pushstring,        &AL::Lua543::Extensions::pop<const char*>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(AL::String,       &AL::Lua543::Extensions::getString,        &AL::Lua543::Extensions::pushString,        &AL::Lua543::Extensions::pop<AL::String>);
-AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(::lua_CFunction,  &AL::Lua543::Extensions::getcfunction,     &AL::Lua543::Extensions::pushcfunction,     &AL::Lua543::Extensions::pop<::lua_CFunction>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(::std::nullptr_t, &AL::Lua54::Extensions::getnil,           &AL::Lua54::Extensions::pushnil,           &AL::Lua54::Extensions::pop<::std::nullptr_t>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(AL::Bool,         &AL::Lua54::Extensions::getboolean,       &AL::Lua54::Extensions::pushboolean,       &AL::Lua54::Extensions::pop<AL::Bool>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(AL::Void*,        &AL::Lua54::Extensions::getlightuserdata, &AL::Lua54::Extensions::pushlightuserdata, &AL::Lua54::Extensions::pop<AL::Void*>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(::lua_Number,     &AL::Lua54::Extensions::getnumber,        &AL::Lua54::Extensions::pushnumber,        &AL::Lua54::Extensions::pop<::lua_Number>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(::lua_Integer,    &AL::Lua54::Extensions::getinteger,       &AL::Lua54::Extensions::pushinteger,       &AL::Lua54::Extensions::pop<::lua_Integer>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(char,             &AL::Lua54::Extensions::getchar,          &AL::Lua54::Extensions::pushchar,          &AL::Lua54::Extensions::pop<char>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(const char*,      &AL::Lua54::Extensions::getstring,        &AL::Lua54::Extensions::pushstring,        &AL::Lua54::Extensions::pop<const char*>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(AL::String,       &AL::Lua54::Extensions::getString,        &AL::Lua54::Extensions::pushString,        &AL::Lua54::Extensions::pop<AL::String>);
+AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(::lua_CFunction,  &AL::Lua54::Extensions::getcfunction,     &AL::Lua54::Extensions::pushcfunction,     &AL::Lua54::Extensions::pop<::lua_CFunction>);
 
 #if LUA_INT_TYPE == LUA_INT_INT
 	AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(AL::int8,   ::lua_Integer, static_cast);
@@ -422,7 +422,7 @@ AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(::lua_CFunction,  &AL::Lua543::Extensions::ge
 AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS_ALIAS(char*, const char*, const_cast);
 
 template<typename T>
-inline T AL::Lua543::Extensions::Type_Functions<T>::Get(::lua_State* lua, size_t index)
+inline T AL::Lua54::Extensions::Type_Functions<T>::Get(::lua_State* lua, size_t index)
 {
 	if constexpr (IsPointer || IsReference)
 	{
@@ -441,7 +441,7 @@ inline T AL::Lua543::Extensions::Type_Functions<T>::Get(::lua_State* lua, size_t
 }
 
 template<typename T>
-inline AL::Void AL::Lua543::Extensions::Type_Functions<T>::Push(::lua_State* lua, T value)
+inline AL::Void AL::Lua54::Extensions::Type_Functions<T>::Push(::lua_State* lua, T value)
 {
 	if constexpr (IsConstPointer || IsConstReference)
 	{
@@ -469,7 +469,7 @@ inline AL::Void AL::Lua543::Extensions::Type_Functions<T>::Push(::lua_State* lua
 }
 
 template<typename T>
-inline T AL::Lua543::Extensions::Type_Functions<T>::Pop(::lua_State* lua, size_t count)
+inline T AL::Lua54::Extensions::Type_Functions<T>::Pop(::lua_State* lua, size_t count)
 {
 	if constexpr (IsPointer || IsReference)
 	{

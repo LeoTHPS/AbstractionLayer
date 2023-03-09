@@ -10,7 +10,7 @@
 	#include "AL/FileSystem/Path.hpp"
 #endif
 
-namespace AL::Lua543
+namespace AL::Lua54
 {
 	class State;
 
@@ -649,7 +649,7 @@ namespace AL::Lua543
 	};
 }
 
-inline ::lua_State* AL::Lua543::Stack::GetHandle() const
+inline ::lua_State* AL::Lua54::Stack::GetHandle() const
 {
 	return lpState->GetHandle();
 }
