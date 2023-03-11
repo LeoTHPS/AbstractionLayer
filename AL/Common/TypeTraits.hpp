@@ -645,7 +645,9 @@ namespace AL
 		typedef T                        Return;
 		typedef Type_Sequence<TArgs ...> Arguments;
 
-		static constexpr Bool IsMember = False;
+		static constexpr Bool   IsMember = False;
+
+		static constexpr size_t ArgCount = sizeof ...(TArgs);
 	};
 	template<typename T, typename ... TArgs>
 	struct Get_Function_Traits<T(*)(TArgs ...)>
@@ -653,7 +655,9 @@ namespace AL
 		typedef T                        Return;
 		typedef Type_Sequence<TArgs ...> Arguments;
 
-		static constexpr Bool IsMember = False;
+		static constexpr Bool   IsMember = False;
+
+		static constexpr size_t ArgCount = sizeof ...(TArgs);
 	};
 	template<typename T, typename C, typename ... TArgs>
 	struct Get_Function_Traits<T(C::*)(TArgs ...)>
@@ -661,7 +665,9 @@ namespace AL
 		typedef T                        Return;
 		typedef Type_Sequence<TArgs ...> Arguments;
 
-		static constexpr Bool IsMember = True;
+		static constexpr Bool   IsMember = True;
+
+		static constexpr size_t ArgCount = sizeof ...(TArgs);
 	};
 
 	template<typename F, size_t I>
