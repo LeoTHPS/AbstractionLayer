@@ -42,6 +42,10 @@ static void AL_Lua54()
 
 	AL_Lua54_State.Create();
 
+	AL_Lua54_State.LoadLibrary(
+		Libraries::All
+	);
+
 	try
 	{
 		AL_Lua54_State.SetGlobalFunction<AL_Lua54_do_the_thing>(

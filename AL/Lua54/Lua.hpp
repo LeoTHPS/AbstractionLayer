@@ -10,6 +10,10 @@
 	#include "AL/FileSystem/Path.hpp"
 #endif
 
+#if defined(AL_PLATFORM_WINDOWS)
+	#undef LoadLibrary
+#endif
+
 namespace AL::Lua54
 {
 	class State;
@@ -434,8 +438,56 @@ namespace AL::Lua54
 		}
 	};
 
+	enum class Libraries : uint8
+	{
+		IO,
+		OS,
+		Base,
+		Math,
+		UTF8,
+		Debug,
+		Table,
+		String,
+		Package,
+		CoRoutine,
+
+		COUNT,
+
+		All
+	};
+
 	class State
 	{
+		struct Library
+		{
+			String          Name;
+			::lua_CFunction Function;
+
+			Library(String&& name, ::lua_CFunction function)
+				: Name(
+					Move(name)
+				),
+				Function(
+					function
+				)
+			{
+			}
+		};
+
+		inline static const Library LUA_LIBRARIES[static_cast<size_t>(Libraries::COUNT)] =
+		{
+			Library(LUA_IOLIBNAME,   &luaopen_io),
+			Library(LUA_OSLIBNAME,   &luaopen_os),
+			Library(LUA_GNAME,       &luaopen_base),
+			Library(LUA_MATHLIBNAME, &luaopen_math),
+			Library(LUA_UTF8LIBNAME, &luaopen_utf8),
+			Library(LUA_DBLIBNAME,   &luaopen_debug),
+			Library(LUA_TABLIBNAME,  &luaopen_table),
+			Library(LUA_STRLIBNAME,  &luaopen_string),
+			Library(LUA_LOADLIBNAME, &luaopen_package),
+			Library(LUA_COLIBNAME,   &luaopen_coroutine)
+		};
+
 		Bool isCreated = False;
 
 		::lua_State* lua;
@@ -578,6 +630,61 @@ namespace AL::Lua54
 			);
 		}
 
+		// @throw AL::Exception
+		// @return AL::False if not found
+		Bool LoadLibrary(Libraries library)
+		{
+			if (library == Libraries::All)
+			{
+				for (auto& library : LUA_LIBRARIES)
+				{
+					try
+					{
+						LoadLibrary(
+							library
+						);
+					}
+					catch (Exception& exception)
+					{
+
+						throw Exception(
+							Move(exception),
+							"Error loading library '%s'",
+							library.Name.GetCString()
+						);
+					}
+				}
+
+				return True;
+			}
+
+			if (library >= Libraries::COUNT)
+			{
+
+				return False;
+			}
+
+			auto lpLibrary = &LUA_LIBRARIES[static_cast<size_t>(library)];
+
+			try
+			{
+				LoadLibrary(
+					*lpLibrary
+				);
+			}
+			catch (Exception& exception)
+			{
+
+				throw Exception(
+					Move(exception),
+					"Error loading library '%s'",
+					lpLibrary->Name.GetCString()
+				);
+			}
+
+			return True;
+		}
+
 #if !defined(AL_PLATFORM_PICO)
 		// @throw AL::Exception
 		Void RunFile(const FileSystem::Path& path)
@@ -645,6 +752,23 @@ namespace AL::Lua54
 			);
 
 			lua = nullptr;
+		}
+
+	private:
+		// @throw AL::Exception
+		Void LoadLibrary(const Library& library)
+		{
+			::luaL_requiref(
+				GetHandle(),
+				library.Name.GetCString(),
+				library.Function,
+				1
+			);
+
+			::lua_pop(
+				GetHandle(),
+				1
+			);
 		}
 	};
 }
