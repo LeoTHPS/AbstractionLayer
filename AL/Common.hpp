@@ -227,6 +227,12 @@
 
 	#include <pico/time.h> // sleep_us/busy_wait_us
 	#include <pico/stdlib.h>
+
+	#if !PICO_NO_FLASH
+		#define AL_PICO_FLASH
+	#else
+		#define AL_PICO_NO_FLASH
+	#endif
 #elif defined(AL_PLATFORM_LINUX)
 	#include <time.h> // timespec/timespec_get
 	#include <unistd.h> // usleep
