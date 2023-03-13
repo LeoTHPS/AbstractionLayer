@@ -233,6 +233,8 @@
 	#else
 		#define AL_PICO_NO_FLASH
 	#endif
+
+	#define AL_PICO_FLASH_SIZE PICO_FLASH_SIZE_BYTES
 #elif defined(AL_PLATFORM_LINUX)
 	#include <time.h> // timespec/timespec_get
 	#include <unistd.h> // usleep
