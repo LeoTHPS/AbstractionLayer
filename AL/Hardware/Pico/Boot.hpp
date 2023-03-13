@@ -14,7 +14,7 @@ namespace AL::Hardware::Pico
 		Boot() = delete;
 
 	public:
-		static Void Reset()
+		static Void RebootToMassStorage()
 		{
 			::reset_usb_boot(
 				0,
