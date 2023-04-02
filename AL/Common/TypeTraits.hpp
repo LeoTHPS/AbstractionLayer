@@ -673,6 +673,12 @@ namespace AL
 	template<typename F, size_t I>
 	using Get_Function_Arg_Type = Get_Type_Sequence<I, typename Get_Function_Traits<F>::Arguments>;
 
+	template<typename F>
+	struct Get_Function_Return_Type
+	{
+		typedef typename Get_Function_Traits<F>::Return Type;
+	};
+
 	typedef uint32 TypeHash;
 
 	template<typename T>
