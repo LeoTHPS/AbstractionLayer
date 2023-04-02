@@ -103,7 +103,7 @@ namespace AL::Lua54
 			static constexpr Bool Value = False;
 		};
 		template<typename F>
-		struct Is_LuaCallback<class LuaCallback<F>>
+		struct Is_LuaCallback<LuaCallback<F>>
 		{
 			static constexpr Bool Value = True;
 		};
@@ -329,6 +329,13 @@ namespace AL::Lua54
 			}
 
 		public:
+			LuaCallback()
+				: lua(
+					nullptr
+				)
+			{
+			}
+
 			LuaCallback(LuaCallback&& callback)
 				: lua(
 					callback.lua
@@ -488,11 +495,10 @@ namespace AL::Lua54
 			Library(LUA_COLIBNAME,   &luaopen_coroutine)
 		};
 
-		Bool isCreated = False;
+		Bool         isCreated = False;
 
 		::lua_State* lua;
-
-		Stack stack;
+		Stack        stack;
 
 		State(const State&) = delete;
 
