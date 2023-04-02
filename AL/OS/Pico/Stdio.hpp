@@ -33,6 +33,19 @@ namespace AL::OS::Pico
 			return isInitialized;
 		}
 
+		static Bool IsUsbConnected()
+		{
+#if defined(LIB_PICO_STDIO_USB)
+			if (::stdio_usb_connected())
+			{
+
+				return True;
+			}
+#endif
+
+			return False;
+		}
+
 		static Void Init()
 		{
 			if (!IsInitialized())
