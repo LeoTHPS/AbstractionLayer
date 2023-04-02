@@ -6,7 +6,7 @@
 #include "AL/Collections/Array.hpp"
 
 #if defined(AL_PLATFORM_PICO_W)
-	#include "AL/Hardware/Drivers/PicoW/CYW43.hpp"
+	#include "AL/Hardware/PicoW/CYW43.hpp"
 
 	#include <lwip/ip_addr.h>
 #elif defined(AL_PLATFORM_LINUX)

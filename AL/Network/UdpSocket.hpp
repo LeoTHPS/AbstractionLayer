@@ -267,8 +267,6 @@ namespace AL::Network
 					"Error binding LWIP::UdpSocket"
 				);
 			}
-
-			localEP = socket.GetLocalEndPoint();
 #elif defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
 			auto address = GetNativeSocketAddress(
 				ep
