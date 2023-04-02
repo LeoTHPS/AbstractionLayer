@@ -5,7 +5,8 @@
 
 #include <AL/Lua54/Lua.hpp>
 
-static AL::Lua54::State AL_Lua54_State;
+static AL::Lua54::State                         AL_Lua54_State;
+static AL::Lua54::Function::LuaCallback<void()> AL_Lua54_Callback;
 
 static void AL_Lua54_do_the_thing()
 {
@@ -29,9 +30,35 @@ static void AL_Lua54_do_the_thing()
 	);
 }
 
+static void AL_Lua54_say_the_thing(const char* message)
+{
+	AL::OS::Console::WriteLine(
+		message
+	);
+}
+
+static void AL_Lua54_say_the_thing2(const AL::String& message)
+{
+	AL::OS::Console::WriteLine(
+		message
+	);
+}
+
 static void AL_Lua54_call_the_thing(AL::Lua54::Function::LuaCallback<void()> callback)
 {
 	callback();
+}
+
+static void AL_Lua54_do_the_call()
+{
+	AL_Lua54_Callback();
+}
+
+static void AL_Lua54_prepare_the_call(AL::Lua54::Function::LuaCallback<void()> callback)
+{
+	AL_Lua54_Callback = AL::Move(
+		callback
+	);
 }
 
 // @throw AL::Exception
@@ -56,12 +83,31 @@ static void AL_Lua54()
 			"call_the_thing"
 		);
 
+		AL_Lua54_State.SetGlobalFunction<AL_Lua54_say_the_thing>(
+			"say_the_thing"
+		);
+
+		AL_Lua54_State.SetGlobalFunction<AL_Lua54_say_the_thing2>(
+			"say_the_thing2"
+		);
+
+		AL_Lua54_State.SetGlobalFunction<AL_Lua54_do_the_call>(
+			"do_the_call"
+		);
+
+		AL_Lua54_State.SetGlobalFunction<AL_Lua54_prepare_the_call>(
+			"prepare_the_call"
+		);
+
 		AL_Lua54_State.Run(
 			"the_thing = 0;"                    "\n"
 			""                                  "\n"
 			"while (the_thing ~= 10) do"        "\n"
 			    "call_the_thing(do_the_thing);" "\n"
-			"end"
+			"end"                               "\n"
+			                                    "\n"
+			"prepare_the_call(do_the_thing);"   "\n"
+			"do_the_call();"
 		);
 	}
 	catch (Exception&)
