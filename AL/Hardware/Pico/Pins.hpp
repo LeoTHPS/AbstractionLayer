@@ -41,6 +41,8 @@ namespace AL::Hardware::Pico
 		PINS_GPIO_27         = 27,
 		PINS_GPIO_28         = 28,
 
+		PINS_COUNT,
+
 		PINS_LED             = PICO_DEFAULT_LED_PIN,
 
 		PINS_SMPS            = PICO_SMPS_MODE_PIN,
