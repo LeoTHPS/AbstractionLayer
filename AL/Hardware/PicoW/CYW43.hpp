@@ -464,6 +464,13 @@ namespace AL::Hardware::PicoW
 					.AuthType = static_cast<CYW43AuthTypes>(lpResult->auth_mode)
 				};
 
+				// if (lpResult->auth_mode & 0x01)
+				// 	network.AuthType = CYW43AuthTypes::WEP_PSK;
+				if (lpResult->auth_mode & 0x02)
+					network.AuthType = CYW43AuthTypes::WPA_TKIP;
+				else if (lpResult->auth_mode & 0x04)
+					network.AuthType = CYW43AuthTypes::WPA2_AES;
+
 				if (!(*lpContext->lpCallback)(network))
 				{
 
