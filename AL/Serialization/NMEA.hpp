@@ -107,11 +107,19 @@ namespace AL::Serialization
 		// @return AL::False on not supported
 		static Bool FromString(NMEASentence& sentence, const String& string)
 		{
-			if (!string.StartsWith('$') || !string.EndsWith("\r\n"))
+			if (!string.StartsWith('$'))
 			{
 
 				throw Exception(
-					"Invalid input"
+					"Invalid first character"
+				);
+			}
+
+			if (!string.EndsWith("\r\n"))
+			{
+
+				throw Exception(
+					"Invalid last characters"
 				);
 			}
 
@@ -284,7 +292,7 @@ namespace AL::Serialization
 			{
 
 				throw Exception(
-					"Invalid format"
+					"Unexpected chunk count"
 				);
 			}
 
@@ -382,7 +390,7 @@ namespace AL::Serialization
 			{
 
 				throw Exception(
-					"Invalid format"
+					"Unexpected chunk count"
 				);
 			}
 
@@ -456,7 +464,7 @@ namespace AL::Serialization
 			{
 
 				throw Exception(
-					"Invalid format"
+					"Unexpected chunk count"
 				);
 			}
 
@@ -519,7 +527,7 @@ namespace AL::Serialization
 			{
 
 				throw Exception(
-					"Invalid format"
+					"Unexpected chunk count"
 				);
 			}
 
@@ -612,7 +620,7 @@ namespace AL::Serialization
 			{
 
 				throw Exception(
-					"Invalid format"
+					"Unexpected chunk count"
 				);
 			}
 
@@ -662,7 +670,7 @@ namespace AL::Serialization
 			{
 
 				throw Exception(
-					"Invalid format"
+					"Invalid latitude format"
 				);
 			}
 
@@ -697,7 +705,7 @@ namespace AL::Serialization
 			{
 
 				throw Exception(
-					"Invalid format"
+					"Invalid longitude format"
 				);
 			}
 
