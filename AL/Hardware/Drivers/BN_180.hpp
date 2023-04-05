@@ -129,7 +129,7 @@ namespace AL::Hardware::Drivers
 
 			ReadData::Char c;
 
-			if (data.GetSize())
+			if (data.GetSize() != 0)
 			{
 				data.SetCapacity(
 					0
@@ -177,7 +177,7 @@ namespace AL::Hardware::Drivers
 
 			ReadData::Char c;
 
-			if (data.GetSize())
+			if (data.GetSize() != 0)
 			{
 				data.SetCapacity(
 					0
