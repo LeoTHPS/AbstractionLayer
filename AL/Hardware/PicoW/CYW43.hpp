@@ -31,12 +31,16 @@
 
 namespace AL::Hardware::PicoW
 {
-	enum class CYW43AuthTypes : uint32
+	enum class CYW43AuthTypes : uint8
 	{
-		Open           = CYW43_AUTH_OPEN,
-		WPA_TKIP       = CYW43_AUTH_WPA_TKIP_PSK,
-		WPA2_AES       = CYW43_AUTH_WPA2_AES_PSK,
-		WPA2_MIXED_PSK = CYW43_AUTH_WPA2_MIXED_PSK
+		Open,
+
+		WEP_PSK,
+
+		WPA_TKIP_PSK,
+
+		WPA2_AES_PSK,
+		WPA2_MIXED_PSK
 	};
 
 	enum class CYW43Countries : uint32
@@ -124,6 +128,10 @@ namespace AL::Hardware::PicoW
 		CYW43() = delete;
 
 	public:
+		typedef CYW43Network   Network;
+		typedef CYW43AuthTypes AuthTypes;
+		typedef CYW43Countries Countries;
+
 		class LED
 		{
 			LED() = delete;
@@ -195,11 +203,11 @@ namespace AL::Hardware::PicoW
 			);
 
 			Open(
-				CYW43Countries::Worldwide
+				Countries::Worldwide
 			);
 		}
 		// @throw AL::Exception
-		static Void Open(CYW43Countries country)
+		static Void Open(Countries country)
 		{
 			AL_ASSERT(
 				!IsOpen(),
@@ -208,7 +216,7 @@ namespace AL::Hardware::PicoW
 
 			OS::ErrorCode errorCode;
 
-			if ((errorCode = ::cyw43_arch_init_with_country(static_cast<typename Get_Enum_Or_Integer_Base<CYW43Countries>::Type>(country))) != PICO_ERROR_NONE)
+			if ((errorCode = ::cyw43_arch_init_with_country(static_cast<typename Get_Enum_Or_Integer_Base<Countries>::Type>(country))) != PICO_ERROR_NONE)
 			{
 
 				throw OS::SystemException(
@@ -326,18 +334,27 @@ namespace AL::Hardware::PicoW
 			isListening = False;
 		}
 		// @throw AL::Exception
-		static Void Connect(const String& ssid, const String& password, CYW43AuthTypes authType)
+		static Void Connect(const String& ssid, const String& password, AuthTypes authType)
 		{
 			AL_ASSERT(
 				IsOpen(),
 				"CYW43 not open"
 			);
 
+			uint32        _authType;
 			OS::ErrorCode errorCode;
+
+			if (!AuthTypes_ToCYW43(_authType, authType))
+			{
+
+				throw Exception(
+					"AuthType not supported"
+				);
+			}
 
 			::cyw43_arch_enable_sta_mode();
 
-			if ((errorCode = ::cyw43_arch_wifi_connect_blocking(ssid.GetCString(), password.GetCString(), static_cast<typename Get_Enum_Or_Integer_Base<CYW43AuthTypes>::Type>(authType))) != PICO_ERROR_NONE)
+			if ((errorCode = ::cyw43_arch_wifi_connect_blocking(ssid.GetCString(), password.GetCString(), _authType)) != PICO_ERROR_NONE)
 			{
 
 				throw OS::SystemException(
@@ -384,18 +401,27 @@ namespace AL::Hardware::PicoW
 		}
 		// @throw AL::Exception
 		// @return AL::False on timeout
-		static Bool TryConnect(const String& ssid, const String& password, CYW43AuthTypes authType, TimeSpan timeout = TimeSpan::Infinite)
+		static Bool TryConnect(const String& ssid, const String& password, AuthTypes authType, TimeSpan timeout = TimeSpan::Infinite)
 		{
 			AL_ASSERT(
 				IsOpen(),
 				"CYW43 not open"
 			);
 
+			uint32        _authType;
 			OS::ErrorCode errorCode;
+
+			if (!AuthTypes_ToCYW43(_authType, authType))
+			{
+
+				throw Exception(
+					"AuthType not supported"
+				);
+			}
 
 			::cyw43_arch_enable_sta_mode();
 
-			if ((errorCode = ::cyw43_arch_wifi_connect_timeout_ms(ssid.GetCString(), password.GetCString(), static_cast<typename Get_Enum_Or_Integer_Base<CYW43AuthTypes>::Type>(authType), static_cast<::uint32_t>(timeout.ToMilliseconds()))) != PICO_ERROR_NONE)
+			if ((errorCode = ::cyw43_arch_wifi_connect_timeout_ms(ssid.GetCString(), password.GetCString(), _authType, static_cast<::uint32_t>(timeout.ToMilliseconds()))) != PICO_ERROR_NONE)
 			{
 				if (errorCode == PICO_ERROR_TIMEOUT)
 				{
@@ -433,17 +459,27 @@ namespace AL::Hardware::PicoW
 			isListening = True;
 		}
 		// @throw AL::Exception
-		static Void Listen(const String& ssid, const String& password, CYW43AuthTypes authType)
+		static Void Listen(const String& ssid, const String& password, AuthTypes authType)
 		{
 			AL_ASSERT(
 				IsOpen(),
 				"CYW43 not open"
 			);
 
+			uint32 _authType;
+
+			if (!AuthTypes_ToCYW43(_authType, authType))
+			{
+
+				throw Exception(
+					"AuthType not supported"
+				);
+			}
+
 			::cyw43_arch_enable_ap_mode(
 				ssid.GetCString(),
-				password.GetCString(),
-				static_cast<uint32_t>(authType)
+				(_authType == CYW43_AUTH_OPEN) ? nullptr : password.GetCString(),
+				_authType
 			);
 
 			isConnected = False;
@@ -455,26 +491,22 @@ namespace AL::Hardware::PicoW
 		{
 			if (auto lpContext = reinterpret_cast<ScanContext*>(lpParam); !lpContext->Stop)
 			{
-				CYW43Network network =
+				Network network =
 				{
 					.RSSI     = lpResult->rssi,
 					.SSID     = String(reinterpret_cast<const char*>(lpResult->ssid), lpResult->ssid_len),
 					.BSSID    = BSSID_ToString(lpResult->bssid),
 					.Channel  = lpResult->channel,
-					.AuthType = static_cast<CYW43AuthTypes>(lpResult->auth_mode)
+					.AuthType = AuthTypes::Open
 				};
 
-				// if (lpResult->auth_mode & 0x01)
-				// 	network.AuthType = CYW43AuthTypes::WEP_PSK;
-				if (lpResult->auth_mode & 0x02)
-					network.AuthType = CYW43AuthTypes::WPA_TKIP;
-				else if (lpResult->auth_mode & 0x04)
-					network.AuthType = CYW43AuthTypes::WPA2_AES;
-
-				if (!(*lpContext->lpCallback)(network))
+				if (AuthTypes_FromCYW43(network.AuthType, lpResult->auth_mode))
 				{
+					if (!(*lpContext->lpCallback)(network))
+					{
 
-					lpContext->Stop = True;
+						lpContext->Stop = True;
+					}
 				}
 			}
 
@@ -492,6 +524,69 @@ namespace AL::Hardware::PicoW
 				value[4],
 				value[5]
 			);
+		}
+
+		static Bool AuthTypes_ToCYW43(uint32& result, AuthTypes value)
+		{
+			switch (value)
+			{
+				case AuthTypes::Open:
+					result = CYW43_AUTH_OPEN;
+					return True;
+
+				case AuthTypes::WEP_PSK:
+					// TODO: implement this if/when the pico sdk supports it
+					return False;
+
+				case AuthTypes::WPA_TKIP_PSK:
+					result = CYW43_AUTH_WPA_TKIP_PSK;
+					return True;
+
+				case AuthTypes::WPA2_AES_PSK:
+					result = CYW43_AUTH_WPA2_AES_PSK;
+					return True;
+
+				case AuthTypes::WPA2_MIXED_PSK:
+					result = CYW43_AUTH_WPA2_MIXED_PSK;
+					return True;
+			}
+
+			return False;
+		}
+
+		static Bool AuthTypes_FromCYW43(AuthTypes& result, uint8 value)
+		{
+			// based on cyw43-driver/src/cyw43_ll.c:cyw43_ll_wifi_parse_scan_result
+
+			if (value == 0x00)
+			{
+				result = AuthTypes::Open;
+
+				return True;
+			}
+
+			if (value & 0x01)
+			{
+				result = AuthTypes::WEP_PSK;
+
+				return True;
+			}
+
+			if (value & 0x02)
+			{
+				result = AuthTypes::WPA_TKIP_PSK;
+
+				return True;
+			}
+
+			if (value & 0x04)
+			{
+				result = AuthTypes::WPA2_MIXED_PSK;
+
+				return True;
+			}
+
+			return False;
 		}
 	};
 }
