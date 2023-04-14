@@ -925,7 +925,7 @@ namespace AL::Network
 				else if (!socket.Receive(lpBuffer, size, numberOfBytesReceived, 0))
 				{
 
-					numberOfBytesReceived = 0;
+					return False;
 				}
 			}
 			catch (Exception& exception)
