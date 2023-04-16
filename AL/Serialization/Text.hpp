@@ -326,10 +326,35 @@ namespace AL::Serialization
 			{
 				case TextLineEndings::Auto:
 				{
-					auto i = string.IndexOfAt(
-						Get_Text_Line_Ending<WString, TextLineEndings::Auto>::Value,
-						stringReadOffset
-					);
+					auto   i         = WString::NPOS;
+					size_t eolLength = 0;
+
+					{
+						auto lpString = &string.GetCString()[stringReadOffset];
+
+						for (size_t j = stringReadOffset; j < string.GetLength(); ++j, ++lpString)
+						{
+							if (*lpString == L'\r')
+							{
+								if (*++lpString == L'\n')
+								{
+									i         = j;
+									eolLength = 2;
+
+									break;
+								}
+
+								++j;
+							}
+							else if (*lpString == L'\n')
+							{
+								i         = j;
+								eolLength = 1;
+
+								break;
+							}
+						}
+					}
 
 					if (i == WString::NPOS)
 					{
@@ -350,7 +375,7 @@ namespace AL::Serialization
 							)
 						);
 
-						stringReadOffset = (i + WString::GetLength_Const(Get_Text_Line_Ending<WString, TextLineEndings::Auto>::Value, 0));
+						stringReadOffset = i + eolLength;
 					}
 				}
 				break;
