@@ -304,6 +304,10 @@ namespace AL::FileSystem
 #endif
 		}
 
+		Path()
+		{
+		}
+
 		Path(Path&& path)
 			: string(
 				Move(path.string)
