@@ -30,7 +30,6 @@ namespace AL::OS
 	class Process;
 
 	typedef uint32 ProcessId;
-	typedef uint32 ProcessExitCode;
 
 	struct ProcessStartInfo
 	{
