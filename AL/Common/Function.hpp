@@ -169,6 +169,11 @@ namespace AL
 			}
 		}
 
+		Bool IsBound() const
+		{
+			return lpLambda != nullptr;
+		}
+
 		auto GetHash() const
 		{
 			return lpLambda ? lpLambda->GetHash() : Type<T(TArgs ...)>::Hash;
@@ -227,7 +232,7 @@ namespace AL
 
 		Void Unbind()
 		{
-			if (lpLambda != nullptr)
+			if (IsBound())
 			{
 				delete lpLambda;
 
@@ -237,7 +242,7 @@ namespace AL
 
 		operator Bool () const
 		{
-			return lpLambda != nullptr;
+			return IsBound();
 		}
 
 		T operator () (TArgs ... args) const
@@ -249,7 +254,7 @@ namespace AL
 
 		Function& operator = (Function&& function)
 		{
-			if (lpLambda != nullptr)
+			if (IsBound())
 			{
 
 				ILambda::Destroy(
