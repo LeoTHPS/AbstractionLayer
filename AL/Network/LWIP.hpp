@@ -769,7 +769,7 @@ namespace AL::Network
 				return True;
 			}
 
-			virtual Bool SetNoDelay(Bool value)
+			virtual Void SetNoDelay(Bool value)
 			{
 				if (IsOpen())
 				{
