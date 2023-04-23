@@ -13,6 +13,8 @@
 
 	#include <sys/types.h>
 	#include <sys/socket.h>
+
+	#include <netinet/tcp.h>
 #elif defined(AL_PLATFORM_WINDOWS)
 	#include <mstcpip.h>
 #else
@@ -21,33 +23,6 @@
 
 namespace AL::Network
 {
-	enum class TcpSocketFlags : AL::uint32
-	{
-		None,
-
-#if defined(AL_PLATFORM_PICO_W)
-		WaitAll   = 0x1,
-#elif defined(AL_PLATFORM_LINUX)
-		EOR       = MSG_EOR,
-		OOB       = MSG_OOB,
-		MORE      = MSG_MORE,
-		Peek      = MSG_PEEK,
-		Trunc     = MSG_TRUNC,
-		WaitAll   = MSG_WAITALL,
-		Confirm   = MSG_CONFIRM,
-		NoSignal  = MSG_NOSIGNAL,
-		DontWait  = MSG_DONTWAIT,
-		DontRoute = MSG_DONTROUTE
-#elif defined(AL_PLATFORM_WINDOWS)
-		OOB       = MSG_OOB,
-		Peek      = MSG_PEEK,
-		WaitAll   = MSG_WAITALL,
-		DontRoute = MSG_DONTROUTE
-#endif
-	};
-
-	AL_DEFINE_ENUM_FLAG_OPERATORS(TcpSocketFlags);
-
 	class TcpSocket
 		: public ISocket
 	{
@@ -822,7 +797,7 @@ namespace AL::Network
 
 		// @throw AL::Exception
 		// @return AL::False on connection closed
-		virtual Bool Send(const Void* lpBuffer, size_t size, size_t& numberOfBytesSent, TcpSocketFlags flags = TcpSocketFlags::None)
+		virtual Bool Send(const Void* lpBuffer, size_t size, size_t& numberOfBytesSent, SocketFlags flags = SocketFlags::None)
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -936,7 +911,7 @@ namespace AL::Network
 
 		// @throw AL::Exception
 		// @return AL::False on connection closed
-		virtual Bool Receive(Void* lpBuffer, size_t size, size_t& numberOfBytesReceived, TcpSocketFlags flags = TcpSocketFlags::None)
+		virtual Bool Receive(Void* lpBuffer, size_t size, size_t& numberOfBytesReceived, SocketFlags flags = SocketFlags::None)
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -951,7 +926,7 @@ namespace AL::Network
 #if defined(AL_PLATFORM_PICO_W)
 			try
 			{
-				if (IsBlocking() || BitMask<TcpSocketFlags>::IsSet(flags, TcpSocketFlags::WaitAll))
+				if (IsBlocking() || BitMask<SocketFlags>::IsSet(flags, SocketFlags::WaitAll))
 				{
 					if (!socket.Receive(lpBuffer, size, numberOfBytesReceived))
 					{
