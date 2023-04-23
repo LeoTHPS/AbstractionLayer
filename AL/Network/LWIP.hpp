@@ -41,6 +41,8 @@ namespace AL::Network
 			Socket(const Socket&) = delete;
 
 		public:
+			typedef Void* Handle;
+
 			Socket(Socket&& socket)
 				: type(
 					socket.type
@@ -72,7 +74,7 @@ namespace AL::Network
 				return type;
 			}
 
-			virtual Void* GetHandle() const = 0;
+			virtual Handle GetHandle() const = 0;
 
 			virtual AddressFamilies GetAddressFamily() const
 			{
@@ -138,7 +140,7 @@ namespace AL::Network
 			::err_t          errorCode;
 
 		public:
-			typedef Void* Handle;
+			typedef typename Socket::Handle Handle;
 
 			static constexpr size_t BACKLOG_MAX = 0xFF;
 
@@ -1103,7 +1105,7 @@ namespace AL::Network
 			::udp_pcb* pcb;
 
 		public:
-			typedef Void* Handle;
+			typedef typename Socket::Handle Handle;
 
 			UdpSocket(UdpSocket&& udpSocket)
 				: Socket(
