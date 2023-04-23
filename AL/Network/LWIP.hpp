@@ -102,11 +102,12 @@ namespace AL::Network
 			{
 				Open              = 0x01,
 				Bound             = 0x02,
-				Aborted           = 0x04,
-				Timeout           = 0x08,
-				Listening         = 0x10,
-				Connected         = 0x20,
-				ConnectionClosed  = 0x40,
+				NoDelay           = 0x04,
+				Aborted           = 0x08,
+				Timeout           = 0x10,
+				Listening         = 0x20,
+				Connected         = 0x40,
+				ConnectionClosed  = 0x80,
 
 				SendInProgress    = 0x100,
 				AcceptInProgress  = 0x200,
@@ -757,6 +758,20 @@ namespace AL::Network
 				} while ((numberOfBytesReceived == 0) && (timer.GetElapsed() < _timeout));
 
 				return True;
+			}
+
+			virtual Bool SetNoDelay(Bool value)
+			{
+				if (IsOpen())
+				{
+					if (value) tcp_nagle_disable(pcb);
+					else       tcp_nagle_enable(pcb);
+				}
+
+				flags.Set(
+					IOFlags::NoDelay,
+					value
+				);
 			}
 
 			TcpSocket& operator = (TcpSocket&& tcpSocket)
