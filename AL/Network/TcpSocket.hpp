@@ -21,11 +21,39 @@
 
 namespace AL::Network
 {
+	enum class TcpSocketFlags : AL::uint32
+	{
+		None,
+
+#if defined(AL_PLATFORM_PICO_W)
+		WaitAll   = 0x1,
+#elif defined(AL_PLATFORM_LINUX)
+		EOR       = MSG_EOR,
+		OOB       = MSG_OOB,
+		MORE      = MSG_MORE,
+		Peek      = MSG_PEEK,
+		Trunc     = MSG_TRUNC,
+		WaitAll   = MSG_WAITALL,
+		Confirm   = MSG_CONFIRM,
+		NoSignal  = MSG_NOSIGNAL,
+		DontWait  = MSG_DONTWAIT,
+		DontRoute = MSG_DONTROUTE
+#elif defined(AL_PLATFORM_WINDOWS)
+		OOB       = MSG_OOB,
+		Peek      = MSG_PEEK,
+		WaitAll   = MSG_WAITALL,
+		DontRoute = MSG_DONTROUTE
+#endif
+	};
+
+	AL_DEFINE_ENUM_FLAG_OPERATORS(TcpSocketFlags);
+
 	class TcpSocket
 		: public ISocket
 	{
 		Bool            isOpen          = False;
 		Bool            isBound         = False;
+		Bool            isNoDelay       = False;
 		Bool            isBlocking      = True;
 		Bool            isConnected     = False;
 		Bool            isListening     = False;
@@ -156,6 +184,15 @@ namespace AL::Network
 		virtual Bool IsBound() const
 		{
 			return isBound;
+		}
+
+		virtual Bool IsNoDelay() const
+		{
+#if defined(AL_PLATFORM_PICO_W)
+			return socket.IsNoDelay();
+#else
+			return isNoDelay;
+#endif
 		}
 
 		virtual Bool IsBlocking() const
@@ -785,7 +822,7 @@ namespace AL::Network
 
 		// @throw AL::Exception
 		// @return AL::False on connection closed
-		virtual Bool Send(const Void* lpBuffer, size_t size, size_t& numberOfBytesSent)
+		virtual Bool Send(const Void* lpBuffer, size_t size, size_t& numberOfBytesSent, TcpSocketFlags flags = TcpSocketFlags::None)
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -818,7 +855,7 @@ namespace AL::Network
 #elif defined(AL_PLATFORM_LINUX)
 			ssize_t _numberOfBytesSent;
 
-			if ((_numberOfBytesSent = ::send(GetHandle(), lpBuffer, size, 0)) == -1)
+			if ((_numberOfBytesSent = ::send(GetHandle(), lpBuffer, size, static_cast<int>(flags))) == -1)
 			{
 				auto errorCode = GetLastError();
 
@@ -855,7 +892,7 @@ namespace AL::Network
 #elif defined(AL_PLATFORM_WINDOWS)
 			int _numberOfBytesSent;
 
-			if ((_numberOfBytesSent = ::send(GetHandle(), reinterpret_cast<const char*>(lpBuffer), static_cast<int>(size & Integer<int>::SignedCastMask), 0)) == SOCKET_ERROR)
+			if ((_numberOfBytesSent = ::send(GetHandle(), reinterpret_cast<const char*>(lpBuffer), static_cast<int>(size & Integer<int>::SignedCastMask), static_cast<int>(flags))) == SOCKET_ERROR)
 			{
 				ErrorCode errorCode;
 
@@ -899,7 +936,7 @@ namespace AL::Network
 
 		// @throw AL::Exception
 		// @return AL::False on connection closed
-		virtual Bool Receive(Void* lpBuffer, size_t size, size_t& numberOfBytesReceived)
+		virtual Bool Receive(Void* lpBuffer, size_t size, size_t& numberOfBytesReceived, TcpSocketFlags flags = TcpSocketFlags::None)
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -914,7 +951,7 @@ namespace AL::Network
 #if defined(AL_PLATFORM_PICO_W)
 			try
 			{
-				if (IsBlocking())
+				if (IsBlocking() || BitMask<TcpSocketFlags>::IsSet(flags, TcpSocketFlags::WaitAll))
 				{
 					if (!socket.Receive(lpBuffer, size, numberOfBytesReceived))
 					{
@@ -939,7 +976,7 @@ namespace AL::Network
 #elif defined(AL_PLATFORM_LINUX)
 			ssize_t _numberOfBytesReceived;
 
-			if ((_numberOfBytesReceived = ::recv(GetHandle(), lpBuffer, size, 0)) == -1)
+			if ((_numberOfBytesReceived = ::recv(GetHandle(), lpBuffer, size, static_cast<int>(flags))) == -1)
 			{
 				auto errorCode = GetLastError();
 
@@ -976,7 +1013,7 @@ namespace AL::Network
 #elif defined(AL_PLATFORM_WINDOWS)
 			int _numberOfBytesReceived;
 
-			if ((_numberOfBytesReceived = ::recv(GetHandle(), reinterpret_cast<char*>(lpBuffer), static_cast<int>(size & Integer<int>::SignedCastMask), 0)) == SOCKET_ERROR)
+			if ((_numberOfBytesReceived = ::recv(GetHandle(), reinterpret_cast<char*>(lpBuffer), static_cast<int>(size & Integer<int>::SignedCastMask), static_cast<int>(flags))) == SOCKET_ERROR)
 			{
 				ErrorCode errorCode;
 
@@ -1015,6 +1052,43 @@ namespace AL::Network
 #endif
 
 			return True;
+		}
+
+		// @throw AL::Exception
+		virtual Void SetNoDelay(Bool value)
+		{
+			if (IsOpen())
+			{
+#if defined(AL_PLATFORM_PICO_W)
+				socket.SetNoDelay(
+					value
+				);
+#elif defined(AL_PLATFORM_LINUX)
+				int _value = value ? 1 : 0;
+
+				if (::setsockopt(GetHandle(), IPPROTO_TCP, TCP_NODELAY, &_value, sizeof(int)) == -1)
+				{
+
+					throw OS::SystemException(
+						"setsockopt"
+					);
+				}
+#elif defined(AL_PLATFORM_WINDOWS)
+				::DWORD _value = value ? 1 : 0;
+
+				if (::setsockopt(GetHandle(), IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<const char*>(&_value), sizeof(::DWORD)) == SOCKET_ERROR)
+				{
+
+					throw OS::SystemException(
+						"setsockopt"
+					);
+				}
+#else
+				throw NotImplementedException();
+#endif
+			}
+
+			isNoDelay = value;
 		}
 
 		// @throw AL::Exception
