@@ -25,6 +25,33 @@ namespace AL::Network
 		ReadWrite
 	};
 
+	enum class SocketFlags : AL::uint32
+	{
+		None      = 0x00000000,
+
+#if defined(AL_PLATFORM_PICO_W)
+		WaitAll   = 0x00000001,
+#elif defined(AL_PLATFORM_LINUX)
+		EOR       = MSG_EOR,
+		OOB       = MSG_OOB,
+		MORE      = MSG_MORE,
+		Peek      = MSG_PEEK,
+		Trunc     = MSG_TRUNC,
+		WaitAll   = MSG_WAITALL,
+		Confirm   = MSG_CONFIRM,
+		NoSignal  = MSG_NOSIGNAL,
+		DontWait  = MSG_DONTWAIT,
+		DontRoute = MSG_DONTROUTE
+#elif defined(AL_PLATFORM_WINDOWS)
+		OOB       = MSG_OOB,
+		Peek      = MSG_PEEK,
+		WaitAll   = MSG_WAITALL,
+		DontRoute = MSG_DONTROUTE
+#endif
+	};
+
+	AL_DEFINE_ENUM_FLAG_OPERATORS(SocketFlags);
+
 	class ISocket
 	{
 		ISocket(const ISocket&) = delete;
