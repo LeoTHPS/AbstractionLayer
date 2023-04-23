@@ -209,6 +209,13 @@ namespace AL::Network
 				);
 			}
 
+			virtual Bool IsNoDelay() const
+			{
+				return flags.IsSet(
+					IOFlags::NoDelay
+				);
+			}
+
 			virtual Bool IsConnected() const
 			{
 				return flags.IsSet(
