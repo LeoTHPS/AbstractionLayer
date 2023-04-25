@@ -6,7 +6,6 @@
 #include "AL/FileSystem/Path.hpp"
 
 #include "AL/Collections/Array.hpp"
-#include "AL/Collections/Tuple.hpp"
 #include "AL/Collections/LinkedList.hpp"
 
 #if !AL_HAS_INCLUDE(<sqlite3.h>)
