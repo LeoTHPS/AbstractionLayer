@@ -57,7 +57,6 @@ static void AL_SQLite3_Database()
 
 		OS::Console::WriteLine();
 	}
-
 #endif
 
 	db.Close();
