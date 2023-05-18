@@ -379,42 +379,27 @@ namespace AL::FileSystem
 			auto& path = GetString();
 			auto pathLength = path.GetLength();
 
-			size_t rootPathEnd = 0;
+			size_t rootPathLength = 0;
 
-			for (size_t i = 0; i < pathLength; ++i)
+			for (size_t i = pathLength; i > 0; )
 			{
-				auto c = path[i];
+				auto c = path[--i];
 
 				if ((c == '/') || (c == '\\'))
 				{
-					if ((rootPathEnd = i) > 0)
-					{
+					rootPathLength = i + 1;
 
-						--rootPathEnd;
-					}
-				}
-			}
-
-			size_t rootPathBegin = 0;
-
-			for (size_t i = rootPathEnd; i >= 0; --i)
-			{
-				auto c = path[i];
-
-				if ((c == '/') || (c == '\\'))
-				{
-
-					rootPathBegin = i + 1;
+					break;
 				}
 			}
 
 			auto rootPath = path.SubString(
-				rootPathBegin,
-				rootPathEnd - rootPathBegin
+				0,
+				rootPathLength
 			);
 
 			return Path(
-				Move(rootPath)
+				AL::Move(rootPath)
 			);
 		}
 
