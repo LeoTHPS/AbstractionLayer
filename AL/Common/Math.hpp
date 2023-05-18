@@ -50,6 +50,14 @@ namespace AL
 		}
 
 		template<typename T>
+		static constexpr T Cos(T value)
+		{
+			return ::std::cos(
+				value
+			);
+		}
+
+		template<typename T>
 		static constexpr T Pow(T value, T exponent)
 		{
 			return ::std::pow(
@@ -59,10 +67,27 @@ namespace AL
 		}
 
 		template<typename T>
+		static constexpr T Sin(T value)
+		{
+			return ::std::sin(
+				value
+			);
+		}
+
+		template<typename T>
 		static constexpr T Sqrt(T value)
 		{
 			return ::std::sqrt(
 				value
+			);
+		}
+
+		template<typename T>
+		static constexpr T Atan2(T y, T x)
+		{
+			return ::std::atan2(
+				y,
+				x
 			);
 		}
 
