@@ -97,6 +97,7 @@ namespace AL::Lua54
 		template<typename F>
 		class LuaCallback;
 
+	private:
 		template<typename T>
 		struct Is_LuaCallback
 		{
@@ -108,6 +109,7 @@ namespace AL::Lua54
 			static constexpr Bool Value = True;
 		};
 
+	public:
 		template<auto F>
 		class C
 		{
@@ -314,23 +316,34 @@ namespace AL::Lua54
 			friend Function;
 
 			::lua_State* lua;
-			mutable int  reference;
+			int          reference;
+			uint32*      lpReferenceCount;
 
-			LuaCallback(const LuaCallback&) = delete;
-
-			explicit LuaCallback(::lua_State* lua)
+			LuaCallback(::lua_State* lua, size_t index)
 				: lua(
 					lua
 				),
-				reference(
-					::luaL_ref(lua, LUA_REGISTRYINDEX)
+				lpReferenceCount(
+					new uint32(1)
 				)
 			{
+				::lua_pushvalue(
+					lua,
+					index
+				);
+
+				reference = ::luaL_ref(
+					lua,
+					LUA_REGISTRYINDEX
+				);
 			}
 
 		public:
 			LuaCallback()
 				: lua(
+					nullptr
+				),
+				lpReferenceCount(
 					nullptr
 				)
 			{
@@ -342,22 +355,57 @@ namespace AL::Lua54
 				),
 				reference(
 					callback.reference
+				),
+				lpReferenceCount(
+					callback.lpReferenceCount
 				)
 			{
 				callback.lua = nullptr;
+
+				if (lpReferenceCount != nullptr)
+				{
+
+					++(*lpReferenceCount);
+				}
+			}
+			LuaCallback(const LuaCallback& callback)
+				: lua(
+					callback.lua
+				),
+				reference(
+					callback.reference
+				),
+				lpReferenceCount(
+					callback.lpReferenceCount
+				)
+			{
+				if (lpReferenceCount != nullptr)
+				{
+
+					++(*lpReferenceCount);
+				}
 			}
 
 			virtual ~LuaCallback()
 			{
-				if (lua != nullptr)
-				{
-					::luaL_unref(
-						lua,
-						LUA_REGISTRYINDEX,
-						reference
-					);
+				Release();
+			}
 
-					lua = nullptr;
+			Void Release()
+			{
+				if (lpReferenceCount != nullptr)
+				{
+					if (--(*lpReferenceCount) == 0)
+					{
+						::luaL_unref(
+							lua,
+							LUA_REGISTRYINDEX,
+							reference
+						);
+					}
+
+					lua              = nullptr;
+					lpReferenceCount = nullptr;
 				}
 			}
 
@@ -377,19 +425,30 @@ namespace AL::Lua54
 
 			LuaCallback& operator = (LuaCallback&& callback)
 			{
-				if (lua != nullptr)
-				{
-					luaL_unref(
-						lua,
-						LUA_REGISTRYINDEX,
-						reference
-					);
-				}
+				Release();
 
 				lua = callback.lua;
 				callback.lua = nullptr;
 
 				reference = callback.reference;
+
+				lpReferenceCount = callback.lpReferenceCount;
+				callback.lpReferenceCount = nullptr;
+
+				return *this;
+			}
+			LuaCallback& operator = (const LuaCallback& callback)
+			{
+				Release();
+
+				lua       = callback.lua;
+				reference = callback.reference;
+
+				if ((lpReferenceCount = callback.lpReferenceCount) != nullptr)
+				{
+
+					++(*lpReferenceCount);
+				}
 
 				return *this;
 			}
@@ -409,13 +468,14 @@ namespace AL::Lua54
 			else if constexpr (Is_LuaCallback<T_ARG>::Value)
 			{
 				return T_ARG(
-					lua
+					lua,
+					index
 				);
 			}
 		}
 
 		template<typename T_ARG>
-		static constexpr T_ARG Pop(::lua_State* lua)
+		static constexpr T_ARG Pop(::lua_State* lua) 
 		{
 			if constexpr (Extensions::Type_Functions<T_ARG>::IsDefined)
 			{
@@ -427,7 +487,8 @@ namespace AL::Lua54
 			else if constexpr (Is_LuaCallback<T_ARG>::Value)
 			{
 				return T_ARG(
-					lua
+					lua,
+					1
 				);
 			}
 		}
