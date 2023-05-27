@@ -31,6 +31,8 @@ namespace AL::Collections
 		}
 
 	public:
+		typedef uint32 StringLengthType;
+
 		static constexpr Bool IsBigEndian()
 		{
 			return ENDIAN == Endians::Big;
@@ -348,6 +350,17 @@ namespace AL::Collections
 			return True;
 		}
 
+		Bool PeekStringLength(StringLengthType& value)
+		{
+			if (!Read(value))
+			{
+
+				return False;
+			}
+
+			return PopLastRead();
+		}
+
 		Bool ReadBool(Bool& value)
 		{
 			if (!Read(&value, sizeof(Bool)))
@@ -524,9 +537,9 @@ namespace AL::Collections
 
 		Bool ReadString(String& value)
 		{
-			uint32 length;
+			StringLengthType length;
 
-			if (!ReadUInt32(length))
+			if (!Read(length))
 			{
 
 				return False;
@@ -552,9 +565,9 @@ namespace AL::Collections
 		}
 		Bool ReadWString(WString& value)
 		{
-			uint32 length;
+			StringLengthType length;
 
-			if (!ReadUInt32(length))
+			if (!Read(length))
 			{
 
 				return False;
@@ -922,15 +935,15 @@ namespace AL::Collections
 		{
 			auto length = value.GetLength();
 
-			if constexpr (!Is_Type<size_t, uint32>::Value)
+			if constexpr (!Is_Type<size_t, StringLengthType>::Value)
 			{
-				if (length > Integer<uint32>::Maximum)
+				if (length > Integer<StringLengthType>::Maximum)
 				{
-					length = Integer<uint32>::Maximum;
+					length = Integer<StringLengthType>::Maximum;
 				}
 			}
 
-			if (!WriteUInt32(static_cast<uint32>(length)))
+			if (!Write(static_cast<StringLengthType>(length)))
 			{
 
 				return False;
@@ -949,15 +962,15 @@ namespace AL::Collections
 		{
 			auto length = value.GetLength();
 
-			if constexpr (!Is_Type<size_t, uint32>::Value)
+			if constexpr (!Is_Type<size_t, StringLengthType>::Value)
 			{
-				if (length > Integer<uint32>::Maximum)
+				if (length > Integer<StringLengthType>::Maximum)
 				{
-					length = Integer<uint32>::Maximum;
+					length = Integer<StringLengthType>::Maximum;
 				}
 			}
 
-			if (!WriteUInt32(static_cast<uint32>(length)))
+			if (!Write(static_cast<StringLengthType>(length)))
 			{
 
 				return False;
