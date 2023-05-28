@@ -545,6 +545,8 @@ namespace AL::Collections
 				return False;
 			}
 
+			auto lastReadSize = GetLastReadSize();
+
 			Array<String::Char> buffer(
 				length
 			);
@@ -555,6 +557,8 @@ namespace AL::Collections
 
 				return False;
 			}
+
+			bufferLastReadSize += lastReadSize;
 
 			value.Assign(
 				&buffer[0],
@@ -573,6 +577,8 @@ namespace AL::Collections
 				return False;
 			}
 
+			auto lastReadSize = GetLastReadSize();
+
 			Array<WString::Char> buffer(
 				length
 			);
@@ -583,6 +589,8 @@ namespace AL::Collections
 
 				return False;
 			}
+
+			bufferLastReadSize += lastReadSize;
 
 			value.Assign(
 				&buffer[0],
@@ -949,12 +957,16 @@ namespace AL::Collections
 				return False;
 			}
 
+			auto lastWriteSize = GetLastWriteSize();
+
 			if (!Write(value.GetCString(), length))
 			{
 				PopLastWrite();
 
 				return False;
 			}
+
+			bufferLastWriteSize += lastWriteSize;
 
 			return True;
 		}
@@ -976,12 +988,16 @@ namespace AL::Collections
 				return False;
 			}
 
+			auto lastWriteSize = GetLastWriteSize();
+
 			if (!Write(value.GetCString(), length * sizeof(WString::Char)))
 			{
 				PopLastWrite();
 
 				return False;
 			}
+
+			bufferLastWriteSize += lastWriteSize;
 
 			return True;
 		}
