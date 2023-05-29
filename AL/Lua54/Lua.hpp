@@ -635,6 +635,11 @@ namespace AL::Lua54
 		template<typename T>
 		auto GetGlobal(const String& name) const
 		{
+			AL_ASSERT(
+				IsCreated(),
+				"State not created"
+			);
+
 			Extensions::getGlobal(
 				GetHandle(),
 				name
@@ -649,6 +654,11 @@ namespace AL::Lua54
 		template<typename T>
 		Void SetGlobal(const String& name, T value)
 		{
+			AL_ASSERT(
+				IsCreated(),
+				"State not created"
+			);
+
 			Extensions::Type_Functions<T>::Push(
 				GetHandle(),
 				Forward<T>(value)
@@ -663,6 +673,11 @@ namespace AL::Lua54
 		template<auto F>
 		Void SetGlobalFunction(const String& name)
 		{
+			AL_ASSERT(
+				IsCreated(),
+				"State not created"
+			);
+
 			SetGlobal(
 				name,
 				&Function::C<F>::Execute
@@ -672,6 +687,11 @@ namespace AL::Lua54
 		template<typename F, typename ... TArgs>
 		auto CallGlobalFunction(const String& name, TArgs ... args)
 		{
+			AL_ASSERT(
+				IsCreated(),
+				"State not created"
+			);
+
 			Extensions::getGlobal(
 				GetHandle(),
 				name
@@ -701,6 +721,11 @@ namespace AL::Lua54
 		// @return AL::False if not found
 		Bool LoadLibrary(Libraries library)
 		{
+			AL_ASSERT(
+				IsCreated(),
+				"State not created"
+			);
+
 			if (library == Libraries::All)
 			{
 				for (auto& library : LUA_LIBRARIES)
