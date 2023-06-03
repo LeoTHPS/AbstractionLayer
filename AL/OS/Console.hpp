@@ -11,7 +11,7 @@
 
 	#include <unistd.h>
 #elif defined(AL_PLATFORM_WINDOWS)
-
+	#include "Windows/Console.hpp"
 #else
 	#error Platform not supported
 #endif
@@ -25,51 +25,6 @@ namespace AL::OS
 		Console() = delete;
 
 	public:
-		static Bool IsOpen()
-		{
-#if defined(AL_PLATFORM_PICO) || defined(AL_PLATFORM_LINUX)
-			// TODO: implement
-#elif defined(AL_PLATFORM_WINDOWS)
-			if (::GetConsoleWindow() == NULL)
-			{
-
-				return False;
-			}
-#endif
-
-			return True;
-		}
-
-		static Bool SetOpen(Bool set = True)
-		{
-#if defined(AL_PLATFORM_PICO)
-			// not supported
-			return False;
-#elif defined(AL_PLATFORM_LINUX)
-			if (!set)
-			{
-				// TODO: implement
-				return False;
-			}
-#elif defined(AL_PLATFORM_WINDOWS)
-			if (set)
-			{
-				if (!IsOpen() && !::AllocConsole())
-				{
-
-					return False;
-				}
-			}
-			else if (IsOpen() && !::FreeConsole())
-			{
-
-				return False;
-			}
-#endif
-
-			return True;
-		}
-
 		static Bool SetTitle(const String& value)
 		{
 			if (!SetTitle(value.GetCString()))
@@ -94,11 +49,13 @@ namespace AL::OS
 				return False;
 			}
 #elif defined(AL_PLATFORM_WINDOWS)
-			MutexGuard lock(
-				mutex
-			);
-
-			if (::SetConsoleTitleA(value) == 0)
+			try
+			{
+				Windows::Console::SetTitle(
+					value
+				);
+			}
+			catch (const Exception&)
 			{
 
 				return False;
@@ -119,38 +76,11 @@ namespace AL::OS
 				return False;
 			}
 #elif defined(AL_PLATFORM_WINDOWS)
-			MutexGuard lock(
-				mutex
-			);
-
-			::DWORD written = 0;
-			::COORD topLeft = { 0, 0 };
-
-			auto hOutput = ::GetStdHandle(
-				STD_OUTPUT_HANDLE
-			);
-
-			CONSOLE_SCREEN_BUFFER_INFO bufferInfo;
-
-			if (!GetConsoleScreenBufferInfo(hOutput, &bufferInfo))
+			try
 			{
-
-				return False;
+				Windows::Console::Clear();
 			}
-
-			if (!::FillConsoleOutputCharacterA(hOutput, ' ', bufferInfo.dwSize.X * bufferInfo.dwSize.Y, topLeft, &written))
-			{
-
-				return False;
-			}
-
-			if (!::FillConsoleOutputAttribute(hOutput, bufferInfo.wAttributes, bufferInfo.dwSize.X * bufferInfo.dwSize.Y, topLeft, &written))
-			{
-
-				return False;
-			}
-
-			if (!::SetConsoleCursorPosition(hOutput, topLeft))
+			catch (const Exception&)
 			{
 
 				return False;
@@ -183,13 +113,13 @@ namespace AL::OS
 				return False;
 			}
 #elif defined(AL_PLATFORM_WINDOWS)
-			auto hInput = ::GetStdHandle(
-				STD_INPUT_HANDLE
-			);
-
-			::DWORD numberOfCharsRead = 0;
-
-			if (::ReadConsoleA(hInput, &value, 1, &numberOfCharsRead, nullptr) == 0)
+			try
+			{
+				Windows::Console::Read(
+					value
+				);
+			}
+			catch (const Exception&)
 			{
 
 				return False;
@@ -201,15 +131,8 @@ namespace AL::OS
 
 		static Bool ReadLine(String& value)
 		{
+#if defined(AL_PLATFORM_PICO) || defined(AL_PLATFORM_LINUX)
 			value.Clear();
-
-#if defined(AL_PLATFORM_WINDOWS)
-			auto hInput = ::GetStdHandle(
-				STD_INPUT_HANDLE
-			);
-
-			::DWORD numberOfCharsRead = 0;
-#endif
 
 			String::Char c;
 
@@ -219,33 +142,27 @@ namespace AL::OS
 
 			do
 			{
-#if defined(AL_PLATFORM_PICO)
+	#if defined(AL_PLATFORM_PICO)
 				c = static_cast<typename String::Char>(
 					::getchar()
 				);
-#elif defined(AL_PLATFORM_LINUX)
+	#elif defined(AL_PLATFORM_LINUX)
 				if (::read(STDIN_FILENO, &c, sizeof(String::Char)) == -1)
 				{
 
 					return False;
 				}
-#elif defined(AL_PLATFORM_WINDOWS)
-				if (::ReadConsoleA(hInput, &c, 1, &numberOfCharsRead, nullptr) == 0)
-				{
-
-					return False;
-				}
-#endif
+	#endif
 
 				if ((c == '\b') || (c == '\x7f'))
 				{
 					if (value.GetLength() != 0)
 					{
-#if defined(AL_PLATFORM_PICO)
+	#if defined(AL_PLATFORM_PICO)
 						::putchar_raw(
 							c
 						);
-#endif
+	#endif
 
 						value.Erase(
 							--value.end()
@@ -254,21 +171,21 @@ namespace AL::OS
 				}
 				else if (c == '\r')
 				{
-#if defined(AL_PLATFORM_PICO)
+	#if defined(AL_PLATFORM_PICO)
 					c = '\n';
 
 					::putchar(
 						c
 					);
-#endif
+	#endif
 				}
 				else if (c != '\n')
 				{
-#if defined(AL_PLATFORM_PICO)
+	#if defined(AL_PLATFORM_PICO)
 					::putchar_raw(
 						c
 					);
-#endif
+	#endif
 
 					if (::isprint(c))
 					{
@@ -278,6 +195,19 @@ namespace AL::OS
 					}
 				}
 			} while (c != '\n');
+#elif defined(AL_PLATFORM_WINDOWS)
+			try
+			{
+				Windows::Console::ReadLine(
+					value
+				);
+			}
+			catch (const Exception&)
+			{
+
+				return False;
+			}
+#endif
 
 			return True;
 		}
@@ -297,10 +227,9 @@ namespace AL::OS
 
 			return True;
 		}
-		template<typename ... TArgs>
-		static Bool Write(const String& format, TArgs ... args)
+		static Bool Write(const String& value)
 		{
-			if (!Write(format.GetCString(), Forward<TArgs>(args) ...))
+			if (!Write(value.GetCString()))
 			{
 
 				return False;
@@ -311,7 +240,8 @@ namespace AL::OS
 		template<typename ... TArgs>
 		static Bool Write(const String::Char* format, TArgs ... args)
 		{
-#if defined(AL_PLATFORM_PICO)
+#if defined(AL_PLATFORM_PICO) || defined(AL_PLATFORM_LINUX)
+	#if defined(AL_PLATFORM_PICO)
 			MutexGuard lock(
 				mutex
 			);
@@ -320,21 +250,21 @@ namespace AL::OS
 				format,
 				Forward<TArgs>(args) ...
 			);
-#else
+	#else
 			auto string = String::Format(
 				format,
 				Forward<TArgs>(args) ...
 			);
 
-	#if defined(AL_PLATFORM_LINUX)
+		#if defined(AL_PLATFORM_LINUX)
 			::ssize_t numberOfCharsWritten;
-	#elif defined(AL_PLATFORM_WINDOWS)
+		#elif defined(AL_PLATFORM_WINDOWS)
 			auto hOutput = ::GetStdHandle(
 				STD_OUTPUT_HANDLE
 			);
 
 			::DWORD numberOfCharsWritten;
-	#endif
+		#endif
 
 			MutexGuard lock(
 				mutex
@@ -342,21 +272,35 @@ namespace AL::OS
 
 			for (size_t totalCharsWritten = 0; totalCharsWritten < string.GetLength(); )
 			{
-	#if defined(AL_PLATFORM_LINUX)
+		#if defined(AL_PLATFORM_LINUX)
 				if ((numberOfCharsWritten = ::write(STDOUT_FILENO, &string[totalCharsWritten], string.GetLength() - totalCharsWritten)) == -1)
 				{
 
 					return False;
 				}
-	#elif defined(AL_PLATFORM_WINDOWS)
+		#elif defined(AL_PLATFORM_WINDOWS)
 				if (!::WriteConsoleA(hOutput, &string[totalCharsWritten], static_cast<::DWORD>(string.GetLength() - totalCharsWritten), &numberOfCharsWritten, nullptr))
 				{
 
 					return False;
 				}
-	#endif
+		#endif
 
 				totalCharsWritten += numberOfCharsWritten;
+			}
+	#endif
+#elif defined(AL_PLATFORM_WINDOWS)
+			try
+			{
+				Windows::Console::Write<TArgs>(
+					format,
+					Forward<TArgs>(args) ...
+				);
+			}
+			catch (const Exception&)
+			{
+
+				return False;
 			}
 #endif
 
@@ -365,7 +309,7 @@ namespace AL::OS
 
 		static Bool WriteLine()
 		{
-			if (!Write("\n"))
+			if (!WriteLine(""))
 			{
 
 				return False;
@@ -373,15 +317,9 @@ namespace AL::OS
 
 			return True;
 		}
-		template<typename ... TArgs>
-		static Bool WriteLine(const String& format, TArgs ... args)
+		static Bool WriteLine(const String& value)
 		{
-			auto string = String::Format(
-				format,
-				Forward<TArgs>(args) ...
-			);
-
-			if (!Write("%s\n", string.GetCString()))
+			if (!WriteLine(value.GetCString()))
 			{
 
 				return False;
@@ -392,16 +330,41 @@ namespace AL::OS
 		template<typename ... TArgs>
 		static Bool WriteLine(const String::Char* format, TArgs ... args)
 		{
-			auto string = String::Format(
-				format,
-				Forward<TArgs>(args) ...
-			);
+#if defined(AL_PLATFORM_PICO) || defined(AL_PLATFORM_LINUX)
+			if (sizeof ...(TArgs) == 0)
+			{
+				Write(
+					"%s\n",
+					format
+				);
+			}
+			else
+			{
+				auto string = String::Format(
+					format,
+					Forward<TArgs>(args) ...
+				);
 
-			if (!Write("%s\n", string.GetCString()))
+				if (!Write("%s\n", string.GetCString()))
+				{
+
+					return False;
+				}
+			}
+#elif defined(AL_PLATFORM_WINDOWS)
+			try
+			{
+				Windows::Console::WriteLine(
+					format,
+					Forward<TArgs>(args) ...
+				);
+			}
+			catch (const Exception&)
 			{
 
 				return False;
 			}
+#endif
 
 			return True;
 		}
