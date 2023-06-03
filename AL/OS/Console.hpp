@@ -292,7 +292,7 @@ namespace AL::OS
 #elif defined(AL_PLATFORM_WINDOWS)
 			try
 			{
-				Windows::Console::Write<TArgs>(
+				Windows::Console::Write(
 					format,
 					Forward<TArgs>(args) ...
 				);

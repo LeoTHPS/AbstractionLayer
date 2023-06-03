@@ -335,7 +335,7 @@ namespace AL::OS::Windows
 
 				for (size_t totalCharsWritten = 0; totalCharsWritten < _length; )
 				{
-					if (!::WriteConsoleA(hOutput, &string[totalCharsWritten], static_cast<::DWORD>(_length - totalCharsWritten), &numberOfCharsWritten, nullptr))
+					if (!::WriteConsoleA(hOutput, &_value[totalCharsWritten], static_cast<::DWORD>(_length - totalCharsWritten), &numberOfCharsWritten, nullptr))
 					{
 
 						throw SystemException(
