@@ -443,18 +443,42 @@ inline T AL::Lua54::Extensions::Type_Functions<T>::Get(::lua_State* lua, size_t 
 template<typename T>
 inline AL::Void AL::Lua54::Extensions::Type_Functions<T>::Push(::lua_State* lua, T value)
 {
-	if constexpr (IsConstPointer || IsConstReference)
+	if constexpr (IsPointer || IsConstPointer)
+	{
+		if (value == nullptr)
+		{
+			Type_Functions<::std::nullptr_t>::Push(
+				lua,
+				nullptr
+			);
+		}
+		else if constexpr (IsPointer)
+		{
+			Type_Functions<Void*>::Push(
+				lua,
+				reinterpret_cast<Void*>(value)
+			);
+		}
+		else if constexpr (IsConstPointer)
+		{
+			Type_Functions<Void*>::Push(
+				lua,
+				const_cast<Void*>(reinterpret_cast<const Void*>(value))
+			);
+		}
+	}
+	else if constexpr (IsReference)
 	{
 		Type_Functions<Void*>::Push(
 			lua,
-			const_cast<Void*>(reinterpret_cast<const Void*>(value))
+			reinterpret_cast<Void*>(&value)
 		);
 	}
-	else if constexpr (IsPointer || IsReference)
+	else if constexpr (IsConstReference)
 	{
 		Type_Functions<Void*>::Push(
 			lua,
-			reinterpret_cast<Void*>(value)
+			const_cast<Void*>(reinterpret_cast<const Void*>(&value))
 		);
 	}
 	else if constexpr (IsEnumOrInteger)
