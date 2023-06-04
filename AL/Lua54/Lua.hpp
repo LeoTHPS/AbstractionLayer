@@ -703,6 +703,24 @@ namespace AL::Lua54
 			);
 		}
 
+		Void RemoveGlobal(const String& name)
+		{
+			AL_ASSERT(
+				IsCreated(),
+				"State not created"
+			);
+
+			Extensions::pushnil(
+				GetHandle(),
+				nullptr
+			);
+
+			Extensions::setGlobal(
+				GetHandle(),
+				name
+			);
+		}
+
 		// @throw AL::Exception
 		Void Run(const String& lua)
 		{
