@@ -111,6 +111,8 @@ namespace AL::FileSystem
 				return False;
 			}
 
+			lpValue[bytesRead] = String::END;
+
 			return True;
 		}
 
