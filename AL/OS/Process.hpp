@@ -1,26 +1,10 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#include "System.hpp"
-#include "ErrorCode.hpp"
-#include "SystemException.hpp"
-
-#include "AL/Collections/Array.hpp"
-
-#include "AL/FileSystem/Path.hpp"
-
 #if defined(AL_PLATFORM_LINUX)
-	#include "Linux/DLException.hpp"
-
-	#include "AL/FileSystem/Directory.hpp"
-
-	#include <dlfcn.h>
-	#include <fcntl.h>
-	#include <signal.h>
-	#include <unistd.h>
+	#include "Linux/Process.hpp"
 #elif defined(AL_PLATFORM_WINDOWS)
-	#include <TlHelp32.h>
-	#include <winternl.h>
+	#include "Windows/Process.hpp"
 #else
 	#error Platform not supported
 #endif
@@ -29,14 +13,17 @@ namespace AL::OS
 {
 	class Process;
 
-	typedef uint32 ProcessId;
-
-	struct ProcessStartInfo
-	{
-		String Path;
-		String CommandLine;
-		String WorkingDirectory;
-	};
+#if defined(AL_PLATFORM_LINUX)
+	typedef Linux::ProcessId             ProcessId;
+	typedef Linux::ProcessExitCode       ProcessExitCode;
+	typedef Linux::ProcessStartInfo      ProcessStartInfo;
+	typedef Linux::ProcessEnumCallback   ProcessEnumCallback;
+#elif defined(AL_PLATFORM_WINDOWS)
+	typedef Windows::ProcessId           ProcessId;
+	typedef Windows::ProcessExitCode     ProcessExitCode;
+	typedef Windows::ProcessStartInfo    ProcessStartInfo;
+	typedef Windows::ProcessEnumCallback ProcessEnumCallback;
+#endif
 
 #if defined(AL_X86) || defined(AL_ARM)
 	typedef uint32 ProcessMemoryAddress;
@@ -869,117 +856,30 @@ namespace AL::OS
 		}
 	};
 
-#if defined(AL_PLATFORM_LINUX)
-	typedef typename Get_Enum_Or_Integer_Base<int>::Type     ProcessExitCode;
-#elif defined(AL_PLATFORM_WINDOWS)
-	typedef typename Get_Enum_Or_Integer_Base<::DWORD>::Type ProcessExitCode;
-#endif
-
 	// @throw AL::Exception
 	// @return AL::False to stop enumeration
 	typedef Function<Bool(ProcessId processId, const String& processName)> ProcessEnumCallback;
 
 	class Process
 	{
-		Bool                    isOpen           = False;
-		Bool                    isCurrentProcess = False;
-
-		ProcessId               id;
-
 #if defined(AL_PLATFORM_LINUX)
-		int                     fdProcess;
-
-		Process(ProcessId id, int fdProcess, Bool isCurrentProcess)
-			: isOpen(
-				True
-			),
-			isCurrentProcess(
-				isCurrentProcess
-			),
-			id(
-				id
-			),
-			fdProcess(
-				fdProcess
-			)
-		{
-		}
+		typedef Linux::Process   _Process;
 #elif defined(AL_PLATFORM_WINDOWS)
-		::HANDLE                hProcess;
-
-		Process(ProcessId id, ::HANDLE hProcess, Bool isCurrentProcess)
-			: isOpen(
-				True
-			),
-			isCurrentProcess(
-				isCurrentProcess
-			),
-			id(
-				id
-			),
-			hProcess(
-				hProcess
-			)
-		{
-		}
+		typedef Windows::Process _Process;
 #endif
+
+		_Process                process;
 
 	public:
 		// @throw AL::Exception
 		// @return AL::False if not found
 		static Bool Open(Process& process, ProcessId id)
 		{
-#if defined(AL_PLATFORM_LINUX)
-			if (::kill(static_cast<::pid_t>(id), 0) == -1)
-			{
-				auto lastError = GetLastError();
-
-				switch (lastError)
-				{
-					case ESRCH:
-					case EPERM:
-						return False;
-				}
-
-				throw SystemException(
-					"kill",
-					lastError
-				);
-			}
-
-			process = Process(
-				id,
-				0,
-				(id == static_cast<ProcessId>(::getpid()))
-			);
-#elif defined(AL_PLATFORM_WINDOWS)
-			::HANDLE hProcess;
-			Bool     isCurrentProcess;
-
-			if ((isCurrentProcess = ((id == ::GetCurrentProcessId()) != 0)))
+			if (!_Process::Open(process.process, id))
 			{
 
-				hProcess = ::GetCurrentProcess();
+				return False;
 			}
-			else if (!(hProcess = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, static_cast<::DWORD>(id))))
-			{
-				if (id && (GetLastError() == ERROR_INVALID_PARAMETER))
-				{
-
-					return False;
-				}
-
-				throw SystemException(
-					"OpenProcess"
-				);
-			}
-
-			process = Process(
-				id,
-				hProcess,
-				isCurrentProcess
-			);
-#endif
 
 			return True;
 		}
@@ -987,41 +887,7 @@ namespace AL::OS
 		// @return AL::False if not found
 		static Bool Open(Process& process, const String& name)
 		{
-			ProcessId processId;
-			Bool      isProcessFound = False;
-
-			ProcessEnumCallback callback(
-				[&name, &processId, &isProcessFound](ProcessId _processId, const String& _processName)
-				{
-					if (!name.Compare(_processName, True))
-					{
-
-						return True;
-					}
-
-					processId = _processId;
-					isProcessFound = True;
-
-					return False;
-				}
-			);
-
-			try
-			{
-				Enumerate(
-					callback
-				);
-			}
-			catch (Exception& exception)
-			{
-
-				throw Exception(
-					Move(exception),
-					"Error enumerating processes"
-				);
-			}
-
-			if (!isProcessFound || !Open(process, processId))
+			if (!_Process::Open(process.process, name))
 			{
 
 				return False;
@@ -1031,132 +897,28 @@ namespace AL::OS
 		}
 
 		// @throw AL::Exception
-		static Void OpenCurrent(Process& process);
+		static Void OpenCurrent(Process& process)
+		{
+			_Process::OpenCurrent(
+				process.process
+			);
+		}
+
+		// @throw AL::Exception
+		static Void Create(Process& process, const ProcessStartInfo& startInfo)
+		{
+			_Process::Create(
+				process.process,
+				startInfo
+			);
+		}
 
 		// @throw AL::Exception
 		static Void Enumerate(const ProcessEnumCallback& callback)
 		{
-#if defined(AL_PLATFORM_LINUX)
-			FileSystem::DirectoryEnumDirectoriesCallback _callback(
-				[&callback](const FileSystem::Directory& _directory)
-				{
-					Regex::MatchCollection matches;
-
-					if (Regex::Match(matches, "^(\\d+)$", _directory.GetPath().GetFileOrDirectoryName()))
-					{
-						auto processId = FromString<ProcessId>(
-							matches[1]
-						);
-
-						auto processName = GetProcessName(
-							processId
-						);
-
-						if (!callback(processId, processName))
-						{
-
-							return False;
-						}
-					}
-
-					return True;
-				}
+			_Process::Enumerate(
+				callback
 			);
-
-			FileSystem::Directory::EnumerateDirectories(
-				"/proc/",
-				_callback
-			);
-#elif defined(AL_PLATFORM_WINDOWS)
-			::HANDLE hSnapshot;
-
-			if ((hSnapshot = ::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)) == INVALID_HANDLE_VALUE)
-			{
-
-				throw SystemException(
-					"CreateToolhelp32Snapshot"
-				);
-			}
-
-			::PROCESSENTRY32 process = { 0 };
-			process.dwSize = sizeof(::PROCESSENTRY32);
-
-			if (::Process32First(hSnapshot, &process))
-			{
-				do
-				{
-					String fileName(
-						process.szExeFile
-					);
-
-					try
-					{
-						if (!callback(static_cast<ProcessId>(process.th32ProcessID), fileName))
-						{
-
-							break;
-						}
-					}
-					catch (Exception&)
-					{
-						::CloseHandle(
-							hSnapshot
-						);
-
-						throw;
-					}
-				} while (::Process32Next(hSnapshot, &process));
-			}
-			else if (GetLastError() != ERROR_NO_MORE_FILES)
-			{
-				::CloseHandle(
-					hSnapshot
-				);
-
-				throw SystemException(
-					"Process32First"
-				);
-			}
-
-			::CloseHandle(
-				hSnapshot
-			);
-#endif
-		}
-
-		// @throw AL::Exception
-		static Void Create(Process& process, const ProcessStartInfo& info)
-		{
-#if defined(AL_PLATFORM_LINUX)
-			// TODO: implement
-			throw NotImplementedException();
-#elif defined(AL_PLATFORM_WINDOWS)
-			::STARTUPINFOA startup = { 0 };
-			startup.cb         = sizeof(::STARTUPINFOA);
-			startup.hStdError  = GetStdHandle(STD_ERROR_HANDLE);
-			startup.hStdInput  = GetStdHandle(STD_INPUT_HANDLE);
-			startup.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
-
-			::PROCESS_INFORMATION _info = { 0 };
-
-			if (!::CreateProcessA(info.Path.GetCString(), const_cast<::LPSTR>(info.CommandLine.GetCString()), nullptr, nullptr, FALSE, 0, nullptr, info.WorkingDirectory.GetCString(), &startup, &_info))
-			{
-
-				throw SystemException(
-					"CreateProcessA"
-				);
-			}
-
-			::CloseHandle(
-				_info.hThread
-			);
-
-			process = Process(
-				_info.dwProcessId,
-				_info.hProcess,
-				False
-			);
-#endif
 		}
 
 		Process()
@@ -1164,26 +926,10 @@ namespace AL::OS
 		}
 
 		Process(Process&& process)
-			: isOpen(
-				process.isOpen
-			),
-			isCurrentProcess(
-				process.isCurrentProcess
-			),
-			id(
-				process.id
-			),
-#if defined(AL_PLATFORM_LINUX)
-			fdProcess(
-				process.fdProcess
+			: process(
+				Move(process.process)
 			)
-#elif defined(AL_PLATFORM_WINDOWS)
-			hProcess(
-				process.hProcess
-			)
-#endif
 		{
-			process.isOpen = False;
 		}
 
 		virtual ~Process()
@@ -1197,113 +943,57 @@ namespace AL::OS
 
 		Bool IsOpen() const
 		{
-			return isOpen;
+			return process.IsOpen();
 		}
 
 		// @throw AL::Exception
 		Bool IsRunning() const
 		{
-#if defined(AL_PLATFORM_LINUX)
-			// TODO: implement
-			throw NotImplementedException();
-#elif defined(AL_PLATFORM_WINDOWS)
-			return GetExitCode() == STILL_ACTIVE;
-#endif
+			return process.IsRunning();
 		}
 
 		Bool IsCurrentProcess() const
 		{
-			return isCurrentProcess;
+			return process.IsCurrentProcess();
 		}
 
 		auto GetId() const
 		{
-			return id;
+			return process.GetId();
 		}
 
 		auto GetHandle() const
 		{
-#if defined(AL_PLATFORM_LINUX)
-			
-#elif defined(AL_PLATFORM_WINDOWS)
-			return hProcess;
-#endif
+			return process.GetHandle();
 		}
 
 		// @throw AL::Exception
 		ProcessExitCode GetExitCode() const
 		{
-#if defined(AL_PLATFORM_LINUX)
-			// TODO: implement
-			throw NotImplementedException();
-#elif defined(AL_PLATFORM_WINDOWS)
-			::DWORD exitCode;
-
-			if (!::GetExitCodeProcess(GetHandle(), &exitCode))
-			{
-
-				throw SystemException(
-					"GetExitCodeProcess"
-				);
-			}
-
-			return static_cast<ProcessExitCode>(
-				exitCode
-			);
-#endif
+			return process.GetExitCode();
 		}
 
 		Void Close()
 		{
 			if (IsOpen())
 			{
-#if defined(AL_PLATFORM_LINUX)
-//				::close(
-//					fdProcess
-//				);
-#elif defined(AL_PLATFORM_WINDOWS)
-				::CloseHandle(
-					hProcess
-				);
-#endif
 
-				isOpen = False;
+				process.Close();
 			}
 		}
 
 		Process& operator = (Process&& process)
 		{
-			if (IsOpen())
-			{
-
-				Close();
-			}
-
-			isOpen = process.isOpen;
-			process.isOpen = False;
-
-			isCurrentProcess = process.isCurrentProcess;
-
-			id = process.id;
-
-#if defined(AL_PLATFORM_LINUX)
-			fdProcess = process.fdProcess;
-#elif defined(AL_PLATFORM_WINDOWS)
-			hProcess = process.hProcess;
-#endif
+			this->process = Move(
+				process.process
+			);
 
 			return *this;
 		}
 
 		Bool operator == (const Process& process) const
 		{
-			if (IsOpen() != process.IsOpen())
-			{
-
-				return False;
-			}
-
-			if (IsOpen() && (GetId() != process.GetId()))
+			if (this->process != process.process)
 			{
 
 				return False;
@@ -1321,68 +1011,6 @@ namespace AL::OS
 
 			return True;
 		}
-
-	private:
-#if defined(AL_PLATFORM_LINUX)
-		// @throw AL::Exception
-		static String GetProcessName(ProcessId processId)
-		{
-			int  cmdline_fd;
-			auto cmdline_Path = String::Format(
-				"/proc/%lu/cmdline",
-				processId
-			);
-
-			String processName;
-
-			try
-			{
-				if ((cmdline_fd = ::open(cmdline_Path.GetCString(), O_RDONLY)) == -1)
-				{
-
-					throw SystemException(
-						"open"
-					);
-				}
-
-				Collections::Array<char> cmdline_Buffer(
-					AL_MAX_PATH
-				);
-
-				if (::read(cmdline_fd, &cmdline_Buffer[0], cmdline_Buffer.GetCapacity()) == -1)
-				{
-					::close(
-						cmdline_fd
-					);
-
-					throw SystemException(
-						"read"
-					);
-				}
-
-				// cmdline_Buffer contains null terminated strings
-				// String::Assign stops at the first null
-				processName.Assign(
-					&cmdline_Buffer[0]
-				);
-
-				::close(
-					cmdline_fd
-				);
-			}
-			catch (Exception& exception)
-			{
-
-				throw Exception(
-					Move(exception),
-					"Error reading '%s'",
-					cmdline_Path.GetCString()
-				);
-			}
-
-			return processName;
-		}
-#endif
 	};
 
 	// @throw AL::Exception
@@ -1397,47 +1025,11 @@ namespace AL::OS
 	inline auto GetCurrentProcessId()
 	{
 #if defined(AL_PLATFORM_LINUX)
-		return static_cast<ProcessId>(
-			::getpid()
-		);
+		return Linux::GetCurrentProcessId();
 #elif defined(AL_PLATFORM_WINDOWS)
-		return static_cast<ProcessId>(
-			::GetCurrentProcessId()
-		);
+		return Windows::GetCurrentProcessId();
 #endif
 	}
-
-#if defined(AL_PLATFORM_WINDOWS)
-	inline ::TEB* GetThreadEnvironmentBlock()
-	{
-		return reinterpret_cast<::PTEB>(
-#if defined(AL_X86)
-			::__readfsdword(
-#elif defined(AL_X86_64)
-			::__readgsqword(
-#endif
-				reinterpret_cast<::DWORD_PTR>(
-					&static_cast<::NT_TIB*>(nullptr)->Self
-				)
-			)
-		);
-	}
-
-	inline ::PEB* GetProcessEnvironmentBlock()
-	{
-		return GetThreadEnvironmentBlock()->ProcessEnvironmentBlock;
-	}
-
-	inline Bool IsDebuggerPresent()
-	{
-		return GetProcessEnvironmentBlock()->BeingDebugged != 0;
-	}
-
-	inline Void SetDebuggerPresent(Bool set = True)
-	{
-		GetProcessEnvironmentBlock()->BeingDebugged = set ? 1 : 0;
-	}
-#endif
 }
 
 // @throw AL::Exception
@@ -1675,17 +1267,5 @@ inline AL::Void AL::OS::ProcessLibrary::Unload()
 #endif
 
 		isLoaded = False;
-	}
-}
-
-// @throw AL::Exception
-inline AL::Void AL::OS::Process::OpenCurrent(Process& process)
-{
-	if (!Open(process, GetCurrentProcessId()))
-	{
-
-		throw Exception(
-			"The current process could not be found"
-		);
 	}
 }

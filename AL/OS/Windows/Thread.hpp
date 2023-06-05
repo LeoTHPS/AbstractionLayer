@@ -8,6 +8,9 @@
 #include "AL/OS/Timer.hpp"
 #include "AL/OS/SystemException.hpp"
 
+#include <intrin.h>
+#include <winternl.h>
+
 namespace AL::OS::Windows
 {
 	typedef uint32 ThreadId;
@@ -419,6 +422,21 @@ namespace AL::OS::Windows
 	{
 		return static_cast<uint32>(
 			::GetCurrentThreadId()
+		);
+	}
+
+	inline ::TEB* GetThreadEnvironmentBlock()
+	{
+		return reinterpret_cast<::PTEB>(
+#if defined(AL_X86)
+			::__readfsdword(
+#elif defined(AL_X86_64)
+			::__readgsqword(
+#endif
+				reinterpret_cast<::DWORD_PTR>(
+					&static_cast<::NT_TIB*>(nullptr)->Self
+				)
+			)
 		);
 	}
 }
