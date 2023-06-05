@@ -37,12 +37,13 @@ static void AL_Lua54_say_the_thing(const char* message)
 	);
 }
 
-static void AL_Lua54_say_the_thing2(const AL::String& message)
-{
-	AL::OS::Console::WriteLine(
-		message
-	);
-}
+// TODO: fix param type
+// static void AL_Lua54_say_the_thing2(const AL::String& message)
+// {
+// 	AL::OS::Console::WriteLine(
+// 		message
+// 	);
+// }
 
 static void AL_Lua54_call_the_thing(AL::Lua54::Function::LuaCallback<void()> callback)
 {
@@ -87,9 +88,9 @@ static void AL_Lua54()
 			"say_the_thing"
 		);
 
-		AL_Lua54_State.SetGlobalFunction<AL_Lua54_say_the_thing2>(
-			"say_the_thing2"
-		);
+		// AL_Lua54_State.SetGlobalFunction<AL_Lua54_say_the_thing2>(
+		// 	"say_the_thing2"
+		// );
 
 		AL_Lua54_State.SetGlobalFunction<AL_Lua54_do_the_call>(
 			"do_the_call"
