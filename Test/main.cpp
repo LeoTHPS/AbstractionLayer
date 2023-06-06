@@ -20,17 +20,6 @@
 
 // #include "FileSystem/File.hpp"
 
-// #include "Game/Engine/Window.hpp"
-
-// #include "Game/FileSystem/DataFile.hpp"
-// #include "Game/FileSystem/ConfigFile.hpp"
-
-// #include "Game/Network/ClientServer.hpp"
-
-// #include "Hardware/Drivers/ADS1115.hpp"
-// #include "Hardware/Drivers/AT24C256.hpp"
-// #include "Hardware/Drivers/MLX90640.hpp"
-
 // #include "Lua54/Lua.hpp"
 
 // #include "Network/Adapter.hpp"
@@ -45,9 +34,6 @@
 
 // #include "Serialization/CSV.hpp"
 // #include "Serialization/HTML.hpp"
-// #include "Serialization/JSON.hpp"
-// #include "Serialization/NMEA.hpp"
-// #include "Serialization/XML.hpp"
 
 // #include "SQLite3/Database.hpp"
 
@@ -289,17 +275,6 @@ void main_execute_tests(AL::uint32& testCount, AL::uint32& testFailCount)
 
 	// main_execute_test(AL_FileSystem_File);
 
-	// main_execute_test(AL_Game_Engine_Window);
-
-	// main_execute_test(AL_Game_FileSystem_DataFile);
-	// main_execute_test(AL_Game_FileSystem_ConfigFile);
-
-	// main_execute_test(AL_Game_Network_ClientServer);
-
-	// main_execute_test(AL_Hardware_Drivers_ADS1115);
-	// main_execute_test(AL_Hardware_Drivers_AT24C256);
-	// main_execute_test(AL_Hardware_Drivers_MLX90640);
-
 	// main_execute_test(AL_Lua54);
 
 	// main_execute_test(AL_Network_Adapter);
@@ -314,9 +289,6 @@ void main_execute_tests(AL::uint32& testCount, AL::uint32& testFailCount)
 
 	// main_execute_test(AL_Serialization_CSV);
 	// main_execute_test(AL_Serialization_HTML);
-	// main_execute_test(AL_Serialization_JSON);
-	// main_execute_test(AL_Serialization_NMEA);
-	// main_execute_test(AL_Serialization_XML);
 
 	// main_execute_test(AL_SQLite3_Database);
 }
