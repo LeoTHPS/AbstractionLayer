@@ -440,14 +440,19 @@ namespace AL::OS::Windows
 		// @return AL::False on access denied
 		static Bool Open(ProcessMemory& processMemory, Process& process, ProcessMemoryAccessModes mode)
 		{
-			::HANDLE hMemory;
+			::HANDLE         hMemory;
+			BitMask<::DWORD> accessMode;
+
+			accessMode.Add(PROCESS_VM_READ);
+			accessMode.Add(PROCESS_VM_OPERATION);
+			accessMode.Set(PROCESS_VM_WRITE, mode == ProcessMemoryAccessModes::ReadWrite);
 
 			if (process.IsCurrentProcess())
 			{
 
 				hMemory = process.GetHandle();
 			}
-			else if (!(hMemory = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, static_cast<::DWORD>(process.GetId()))))
+			else if (!(hMemory = ::OpenProcess(accessMode.Value, FALSE, static_cast<::DWORD>(process.GetId()))))
 			{
 				if (process.GetId() && (GetLastError() == ERROR_INVALID_PARAMETER))
 				{
