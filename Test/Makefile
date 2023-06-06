@@ -8,7 +8,7 @@ AL_INCLUDE   ?= ..
 
 #CPPFLAGS     += -DNDEBUG
 CPPFLAGS     += -DAL_TEST_SHOW_CONSOLE_OUTPUT
-CXXFLAGS     += -Wall -Wfatal-errors -g -std=c++20 -I. -I"$(AL_INCLUDE)"
+CXXFLAGS     += -Wall -Wfatal-errors -g -Og -std=c++20 -I. -I"$(AL_INCLUDE)"
 #CXXFLAGS     += -Wno-unused-function -Wno-unused-variable -Wno-unused-lambda-capture -Wno-unused-private-field
 #CXXFLAGS     += -Wno-format-security
 
