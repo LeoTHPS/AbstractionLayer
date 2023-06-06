@@ -262,14 +262,6 @@ namespace AL::OS::Windows
 				);
 			}
 
-			if (!BitMask<::DWORD>::IsSet(memoryInformation.State, MEM_COMMIT))
-			{
-
-				throw Exception(
-					"Memory not committed"
-				);
-			}
-
 			Information information =
 			{
 				.Base       = memoryInformation.BaseAddress,
@@ -303,7 +295,7 @@ namespace AL::OS::Windows
 					lpAddress
 				);
 
-				if (!callback(info))
+				if (info.PageStates.IsSet(PageStates::Commit) && !callback(info))
 				{
 
 					break;

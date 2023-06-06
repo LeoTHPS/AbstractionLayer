@@ -700,6 +700,52 @@ namespace AL::OS::Windows
 		}
 	};
 
+	class ProcessThread
+	{
+		Bool     isOpen = False;
+
+		Process* lpProcess;
+
+		ProcessThread(const ProcessThread&) = delete;
+
+	public:
+		ProcessThread();
+
+		ProcessThread(ProcessThread&& processThread);
+
+		virtual ~ProcessThread();
+
+		Bool IsOpen() const
+		{
+			return isOpen;
+		}
+
+		auto GetHandle() const;
+
+		auto& GetProcess()
+		{
+			return *lpProcess;
+		}
+		auto& GetProcess() const
+		{
+			return *lpProcess;
+		}
+
+		ProcessThread& operator = (ProcessThread&& processThread);
+
+		Bool operator == (const ProcessThread& processThread) const;
+		Bool operator != (const ProcessThread& processThread) const
+		{
+			if (operator==(processThread))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+	};
+
 	class ProcessLibrary
 	{
 		Bool      isLoaded = False;
