@@ -1,7 +1,9 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+	#include "Pico/USB.hpp"
+#elif defined(AL_PLATFORM_LINUX)
 	#if !AL_HAS_INCLUDE(<libusb-1.0/libusb.h>)
 		#error Missing libusb-1.0/libusb.h
 	#endif
@@ -30,7 +32,9 @@ namespace AL::Hardware
 		USBProductId   productId       = 0;
 		USBInterfaceId interfaceId     = 0;
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+
+#elif defined(AL_PLATFORM_LINUX)
 		class LibUSB
 		{
 			Bool isInitialized;
@@ -125,7 +129,20 @@ namespace AL::Hardware
 
 		USBDevice(const USBDevice&) = delete;
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+		USBDevice(USBVendorId vendorId, USBProductId productId)
+			: isOpen(
+				True
+			),
+			vendorId(
+				vendorId
+			),
+			productId(
+				productId
+			)
+		{
+		}
+#elif defined(AL_PLATFORM_LINUX)
 		explicit USBDevice(::libusb_device_descriptor&& descriptor)
 			: isOpen(
 				True
@@ -161,7 +178,10 @@ namespace AL::Hardware
 		// @return AL::False if device does not exist
 		static Bool Open(USBDevice& device, USBVendorId vendorId, USBProductId productId)
 		{
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			// TODO: implement
+			throw NotImplementedException();
+#elif defined(AL_PLATFORM_LINUX)
 			LibUSB libUSB;
 
 			::libusb_device** deviceList;
@@ -236,7 +256,10 @@ namespace AL::Hardware
 		// @throw AL::Exception
 		static Void Enumerate(const USBDeviceEnumCallback& callback)
 		{
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			// TODO: implement
+			throw NotImplementedException();
+#elif defined(AL_PLATFORM_LINUX)
 			LibUSB libUSB;
 
 			::libusb_device** deviceList;
@@ -312,7 +335,9 @@ namespace AL::Hardware
 			interfaceId(
 				usbDevice.interfaceId
 			)
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			// TODO: implement
+#elif defined(AL_PLATFORM_LINUX)
 			,
 			libUSB(
 				Move(usbDevice.libUSB)
@@ -330,7 +355,9 @@ namespace AL::Hardware
 			usbDevice.isOpen = False;
 			usbDevice.isInterfaceOpen = False;
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			// TODO: implement
+#elif defined(AL_PLATFORM_LINUX)
 			usbDevice.hInterface = nullptr;
 #elif defined(AL_PLATFORM_WINDOWS)
 			// TODO: implement
@@ -381,7 +408,9 @@ namespace AL::Hardware
 					CloseInterface();
 				}
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+				// TODO: implement
+#elif defined(AL_PLATFORM_LINUX)
 
 #elif defined(AL_PLATFORM_WINDOWS)
 				// TODO: implement
@@ -404,7 +433,10 @@ namespace AL::Hardware
 				"USBDevice interface already open"
 			);
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			// TODO: implement
+			throw NotImplementedException();
+#elif defined(AL_PLATFORM_LINUX)
 			if (!(hInterface = ::libusb_open_device_with_vid_pid(nullptr, GetVendorId(), GetProductId())))
 			{
 
@@ -439,7 +471,9 @@ namespace AL::Hardware
 		{
 			if (IsInterfaceOpen())
 			{
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+				// TODO: implement
+#elif defined(AL_PLATFORM_LINUX)
 				libusb_release_interface(
 					hInterface,
 					GetInterfaceId()
@@ -472,7 +506,10 @@ namespace AL::Hardware
 				"USBDevice interface not open"
 			);
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			// TODO: implement
+			throw NotImplementedException();
+#elif defined(AL_PLATFORM_LINUX)
 			int bytesRead;
 
 			if (::libusb_bulk_transfer(hInterface, static_cast<unsigned char>(endPoint) | LIBUSB_ENDPOINT_IN, reinterpret_cast<unsigned char*>(lpBuffer), static_cast<int>(size), &bytesRead, 0) != 0)
@@ -506,7 +543,10 @@ namespace AL::Hardware
 				"USBDevice interface not open"
 			);
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			// TODO: implement
+			throw NotImplementedException();
+#elif defined(AL_PLATFORM_LINUX)
 			int bytesWritten;
 
 			if (::libusb_bulk_transfer(hInterface, static_cast<unsigned char>(endPoint) | LIBUSB_ENDPOINT_OUT, const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(lpBuffer)), static_cast<int>(size), &bytesWritten, 0) != 0)
@@ -538,7 +578,9 @@ namespace AL::Hardware
 			productId                 = usbDevice.productId;
 			interfaceId               = usbDevice.interfaceId;
 
-#if defined(AL_PLATFORM_LINUX)
+#if defined(AL_PLATFORM_PICO)
+			// TODO: implement
+#elif defined(AL_PLATFORM_LINUX)
 			libUSB                    = Move(usbDevice.libUSB);
 			descriptor                = Move(usbDevice.descriptor);
 
