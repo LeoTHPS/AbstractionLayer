@@ -42,10 +42,10 @@ static void AL_OS_Process()
 				uint64 processMemoryUsage           = 0;
 				uint64 processMemoryAllocationCount = 0;
 
-				ProcessMemoryEnumRegionsCallback enumProcessMemoryRegionsCallback(
-					[&processMemoryUsage, &processMemoryAllocationCount](const ProcessMemoryRegion& _processMemoryRegion)
+				ProcessMemoryEnumPagesCallback enumProcessMemoryPagesCallback(
+					[&processMemoryUsage, &processMemoryAllocationCount](const ProcessMemoryInformation& _information)
 					{
-						processMemoryUsage += _processMemoryRegion.Size;
+						processMemoryUsage += _information.Size;
 
 						++processMemoryAllocationCount;
 
@@ -53,8 +53,8 @@ static void AL_OS_Process()
 					}
 				);
 
-				processMemory.EnumerateRegions(
-					enumProcessMemoryRegionsCallback
+				processMemory.EnumeratePages(
+					enumProcessMemoryPagesCallback
 				);
 
 #if defined(AL_TEST_SHOW_CONSOLE_OUTPUT)
