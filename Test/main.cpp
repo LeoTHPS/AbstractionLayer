@@ -21,6 +21,13 @@
 #include "FileSystem/File.hpp"
 #include "FileSystem/WaveFile.hpp"
 
+#include "Game/Engine/Window.hpp"
+
+#include "Game/FileSystem/DataFile.hpp"
+#include "Game/FileSystem/ConfigFile.hpp"
+
+#include "Game/Network/ClientServer.hpp"
+
 #if defined(AL_PLATFORM_LINUX)
 	#include "Hardware/Drivers/AT24C256.hpp"
 #endif
@@ -277,6 +284,13 @@ void main_execute_tests(AL::uint32& testCount, AL::uint32& testFailCount)
 
 	main_execute_test(AL_FileSystem_File);
 	main_execute_test(AL_FileSystem_WaveFile);
+
+	main_execute_test(AL_Game_Engine_Window);
+
+	main_execute_test(AL_Game_FileSystem_DataFile);
+	main_execute_test(AL_Game_FileSystem_ConfigFile);
+
+	main_execute_test(AL_Game_Network_ClientServer);
 
 #if defined(AL_PLATFORM_LINUX)
 	main_execute_test(AL_Hardware_Drivers_AT24C256);
