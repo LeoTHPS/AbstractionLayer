@@ -17,30 +17,10 @@ namespace AL::OS
 	typedef Linux::ProcessId                        ProcessId;
 	typedef Linux::ProcessExitCode                  ProcessExitCode;
 	typedef Linux::ProcessStartInfo                 ProcessStartInfo;
-	typedef Linux::ProcessEnumCallback              ProcessEnumCallback;
-	typedef Linux::ProcessMemoryPageTypes           ProcessMemoryPageTypes;
-	typedef Linux::ProcessMemoryPageStates          ProcessMemoryPageStates;
-	typedef Linux::ProcessMemoryAccessModes         ProcessMemoryAccessModes;
-	typedef Linux::ProcessMemoryInformation         ProcessMemoryInformation;
-	typedef Linux::ProcessMemoryProtections         ProcessMemoryProtections;
-	typedef Linux::ProcessMemoryAllocationTypes     ProcessMemoryAllocationTypes;
-	// @throw AL::Exception
-	// @return AL::False to stop enumeration
-	typedef Linux::ProcessMemoryEnumPagesCallback   ProcessMemoryEnumPagesCallback;
 #elif defined(AL_PLATFORM_WINDOWS)
 	typedef Windows::ProcessId                      ProcessId;
 	typedef Windows::ProcessExitCode                ProcessExitCode;
 	typedef Windows::ProcessStartInfo               ProcessStartInfo;
-	typedef Windows::ProcessEnumCallback            ProcessEnumCallback;
-	typedef Windows::ProcessMemoryPageTypes         ProcessMemoryPageTypes;
-	typedef Windows::ProcessMemoryPageStates        ProcessMemoryPageStates;
-	typedef Windows::ProcessMemoryAccessModes       ProcessMemoryAccessModes;
-	typedef Windows::ProcessMemoryInformation       ProcessMemoryInformation;
-	typedef Windows::ProcessMemoryProtections       ProcessMemoryProtections;
-	typedef Windows::ProcessMemoryAllocationTypes   ProcessMemoryAllocationTypes;
-	// @throw AL::Exception
-	// @return AL::False to stop enumeration
-	typedef Windows::ProcessMemoryEnumPagesCallback ProcessMemoryEnumPagesCallback;
 #endif
 
 	// @throw AL::Exception
@@ -203,6 +183,61 @@ namespace AL::OS
 		}
 	};
 
+	enum class ProcessMemoryPageTypes : uint8
+	{
+		Image   = 0x01,
+		Mapped  = 0x02,
+		Private = 0x04
+	};
+
+	AL_DEFINE_ENUM_FLAG_OPERATORS(ProcessMemoryPageTypes);
+
+	enum class ProcessMemoryPageStates : uint8
+	{
+		Free    = 0x01,
+		Commit  = 0x02,
+		Reserve = 0x04
+	};
+
+	AL_DEFINE_ENUM_FLAG_OPERATORS(ProcessMemoryPageStates);
+
+	enum class ProcessMemoryAccessModes : uint8
+	{
+		Read,
+		ReadWrite
+	};
+
+	enum class ProcessMemoryProtections : uint8
+	{
+		Read    = 0x01,
+		Write   = 0x02,
+		Execute = 0x04
+	};
+
+	AL_DEFINE_ENUM_FLAG_OPERATORS(ProcessMemoryProtections);
+
+	enum class ProcessMemoryAllocationTypes : uint8
+	{
+		Commit   = 0x01,
+		Reserve  = 0x02,
+		Physical = 0x04
+	};
+
+	AL_DEFINE_ENUM_FLAG_OPERATORS(ProcessMemoryAllocationTypes);
+
+	struct ProcessMemoryInformation
+	{
+		Void*                             Base;
+		size_t                            Size;
+		BitMask<ProcessMemoryPageTypes>   PageTypes;
+		BitMask<ProcessMemoryPageStates>  PageStates;
+		BitMask<ProcessMemoryProtections> Protection;
+	};
+
+	// @throw AL::Exception
+	// @return AL::False to stop enumeration
+	typedef Function<Bool(const ProcessMemoryInformation& information)> ProcessMemoryEnumPagesCallback;
+
 	struct ProcessMemoryPatternEntry
 	{
 		uint8 Value    = 0x00;
@@ -260,9 +295,25 @@ namespace AL::OS
 	class ProcessMemory
 	{
 #if defined(AL_PLATFORM_LINUX)
-		typedef Linux::ProcessMemory   _ProcessMemory;
+		typedef Linux::ProcessMemory                  _ProcessMemory;
+		typedef Linux::ProcessEnumCallback            _ProcessEnumCallback;
+		typedef Linux::ProcessMemoryPageTypes         _ProcessMemoryPageTypes;
+		typedef Linux::ProcessMemoryPageStates        _ProcessMemoryPageStates;
+		typedef Linux::ProcessMemoryAccessModes       _ProcessMemoryAccessModes;
+		typedef Linux::ProcessMemoryInformation       _ProcessMemoryInformation;
+		typedef Linux::ProcessMemoryProtections       _ProcessMemoryProtections;
+		typedef Linux::ProcessMemoryAllocationTypes   _ProcessMemoryAllocationTypes;
+		typedef Linux::ProcessMemoryEnumPagesCallback _ProcessMemoryEnumPagesCallback;
 #elif defined(AL_PLATFORM_WINDOWS)
-		typedef Windows::ProcessMemory _ProcessMemory;
+		typedef Windows::ProcessMemory                  _ProcessMemory;
+		typedef Windows::ProcessEnumCallback            _ProcessEnumCallback;
+		typedef Windows::ProcessMemoryPageTypes         _ProcessMemoryPageTypes;
+		typedef Windows::ProcessMemoryPageStates        _ProcessMemoryPageStates;
+		typedef Windows::ProcessMemoryAccessModes       _ProcessMemoryAccessModes;
+		typedef Windows::ProcessMemoryInformation       _ProcessMemoryInformation;
+		typedef Windows::ProcessMemoryProtections       _ProcessMemoryProtections;
+		typedef Windows::ProcessMemoryAllocationTypes   _ProcessMemoryAllocationTypes;
+		typedef Windows::ProcessMemoryEnumPagesCallback _ProcessMemoryEnumPagesCallback;
 #endif
 
 		Process*       lpProcess;
@@ -285,7 +336,7 @@ namespace AL::OS
 		// @return AL::False on access denied
 		static Bool Open(ProcessMemory& processMemory, Process& process, ProcessMemoryAccessModes mode)
 		{
-			if (!_ProcessMemory::Open(processMemory.processMemory, process.process))
+			if (!_ProcessMemory::Open(processMemory.processMemory, process.process, ProcessMemoryAccessModes_ToNative(mode)))
 			{
 
 				return False;
@@ -363,7 +414,7 @@ namespace AL::OS
 			processMemory.SetProtection(
 				address,
 				size,
-				value
+				ProcessMemoryProtections_ToNative(value)
 			);
 		}
 
@@ -379,8 +430,8 @@ namespace AL::OS
 			return processMemory.Allocate(
 				address,
 				size,
-				type,
-				protection
+				ProcessMemoryAllocationTypes_ToNative(type),
+				ProcessMemoryProtections_ToNative(protection)
 			);
 		}
 
@@ -529,8 +580,25 @@ namespace AL::OS
 				"ProcessMemory not open"
 			);
 
+			_ProcessMemoryEnumPagesCallback _callback(
+				[&callback](const _ProcessMemoryInformation& _information)
+				{
+					auto information = ProcessMemoryInformation_ToOS(
+						_information
+					);
+
+					if (!callback(information))
+					{
+
+						return False;
+					}
+
+					return True;
+				}
+			);
+
 			processMemory.EnumeratePages(
-				callback
+				_callback
 			);
 		}
 
@@ -570,6 +638,236 @@ namespace AL::OS
 			}
 
 			return True;
+		}
+
+	private:
+		static ProcessMemoryPageTypes  ProcessMemoryPageTypes_ToOS(_ProcessMemoryPageTypes value)
+		{
+			BitMask<ProcessMemoryPageTypes> pageType;
+
+#if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
+#elif defined(AL_PLATFORM_WINDOWS)
+			pageType.Set(ProcessMemoryPageTypes::Image, BitMask<_ProcessMemoryPageTypes>::IsSet(value, _ProcessMemoryPageTypes::Image));
+			pageType.Set(ProcessMemoryPageTypes::Mapped, BitMask<_ProcessMemoryPageTypes>::IsSet(value, _ProcessMemoryPageTypes::Mapped));
+			pageType.Set(ProcessMemoryPageTypes::Private, BitMask<_ProcessMemoryPageTypes>::IsSet(value, _ProcessMemoryPageTypes::Private));
+#endif
+
+			return pageType.Value;
+		}
+		static _ProcessMemoryPageTypes ProcessMemoryPageTypes_ToNative(ProcessMemoryPageTypes value)
+		{
+			BitMask<_ProcessMemoryPageTypes> pageType;
+
+#if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
+#elif defined(AL_PLATFORM_WINDOWS)
+			pageType.Set(_ProcessMemoryPageTypes::Image,   BitMask<ProcessMemoryPageTypes>::IsSet(value, ProcessMemoryPageTypes::Image));
+			pageType.Set(_ProcessMemoryPageTypes::Mapped,  BitMask<ProcessMemoryPageTypes>::IsSet(value, ProcessMemoryPageTypes::Mapped));
+			pageType.Set(_ProcessMemoryPageTypes::Private, BitMask<ProcessMemoryPageTypes>::IsSet(value, ProcessMemoryPageTypes::Private));
+#endif
+
+			return pageType.Value;
+		}
+
+		static ProcessMemoryPageStates  ProcessMemoryPageStates_ToOS(_ProcessMemoryPageStates value)
+		{
+			BitMask<ProcessMemoryPageStates> pageState;
+
+#if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
+#elif defined(AL_PLATFORM_WINDOWS)
+			pageState.Set(ProcessMemoryPageStates::Free,    BitMask<_ProcessMemoryPageStates>::IsSet(value, _ProcessMemoryPageStates::Free));
+			pageState.Set(ProcessMemoryPageStates::Commit,  BitMask<_ProcessMemoryPageStates>::IsSet(value, _ProcessMemoryPageStates::Commit));
+			pageState.Set(ProcessMemoryPageStates::Reserve, BitMask<_ProcessMemoryPageStates>::IsSet(value, _ProcessMemoryPageStates::Reserve));
+#endif
+
+			return pageState.Value;
+		}
+		static _ProcessMemoryPageStates ProcessMemoryPageStates_ToNative(ProcessMemoryPageStates value)
+		{
+			BitMask<_ProcessMemoryPageStates> pageState;
+
+#if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
+#elif defined(AL_PLATFORM_WINDOWS)
+			pageState.Set(_ProcessMemoryPageStates::Free,    BitMask<ProcessMemoryPageStates>::IsSet(value, ProcessMemoryPageStates::Free));
+			pageState.Set(_ProcessMemoryPageStates::Commit,  BitMask<ProcessMemoryPageStates>::IsSet(value, ProcessMemoryPageStates::Commit));
+			pageState.Set(_ProcessMemoryPageStates::Reserve, BitMask<ProcessMemoryPageStates>::IsSet(value, ProcessMemoryPageStates::Reserve));
+#endif
+
+			return pageState.Value;
+		}
+
+		static ProcessMemoryAccessModes  ProcessMemoryAccessModes_ToOS(_ProcessMemoryAccessModes value)
+		{
+#if defined(AL_PLATFORM_LINUX)
+			switch (value)
+			{
+				case _ProcessMemoryAccessModes::Read:
+					return ProcessMemoryAccessModes::Read;
+
+				case _ProcessMemoryAccessModes::ReadWrite:
+					return ProcessMemoryAccessModes::ReadWrite;
+			}
+#elif defined(AL_PLATFORM_WINDOWS)
+			switch (value)
+			{
+				case _ProcessMemoryAccessModes::Read:
+					return ProcessMemoryAccessModes::Read;
+
+				case _ProcessMemoryAccessModes::ReadWrite:
+					return ProcessMemoryAccessModes::ReadWrite;
+			}
+#endif
+
+			return ProcessMemoryAccessModes(
+				0
+			);
+		}
+		static _ProcessMemoryAccessModes ProcessMemoryAccessModes_ToNative(ProcessMemoryAccessModes value)
+		{
+#if defined(AL_PLATFORM_LINUX)
+			switch (value)
+			{
+				case ProcessMemoryAccessModes::Read:
+					return _ProcessMemoryAccessModes::Read;
+
+				case ProcessMemoryAccessModes::ReadWrite:
+					return _ProcessMemoryAccessModes::ReadWrite;
+			}
+#elif defined(AL_PLATFORM_WINDOWS)
+			switch (value)
+			{
+				case ProcessMemoryAccessModes::Read:
+					return _ProcessMemoryAccessModes::Read;
+
+				case ProcessMemoryAccessModes::ReadWrite:
+					return _ProcessMemoryAccessModes::ReadWrite;
+			}
+#endif
+
+			return _ProcessMemoryAccessModes(
+				0
+			);
+		}
+
+		static ProcessMemoryInformation  ProcessMemoryInformation_ToOS(_ProcessMemoryInformation value)
+		{
+			ProcessMemoryInformation information;
+
+#if defined(AL_PLATFORM_LINUX)
+			information.Base             = value.Base;
+			information.Size             = value.Size;
+			information.PageTypes.Value  = ProcessMemoryPageTypes_ToOS(value.PageTypes.Value);
+			information.PageStates.Value = ProcessMemoryPageStates_ToOS(value.PageStates.Value);
+			information.Protection.Value = ProcessMemoryProtections_ToOS(value.Protection.Value);
+#elif defined(AL_PLATFORM_WINDOWS)
+			information.Base             = value.Base;
+			information.Size             = value.Size;
+			information.PageTypes.Value  = ProcessMemoryPageTypes_ToOS(value.PageTypes.Value);
+			information.PageStates.Value = ProcessMemoryPageStates_ToOS(value.PageStates.Value);
+			information.Protection.Value = ProcessMemoryProtections_ToOS(value.Protection.Value);
+#endif
+
+			return information;
+		}
+		static _ProcessMemoryInformation ProcessMemoryInformation_ToNative(ProcessMemoryInformation value)
+		{
+			_ProcessMemoryInformation information;
+
+#if defined(AL_PLATFORM_LINUX)
+			information.Base             = value.Base;
+			information.Size             = value.Size;
+			information.PageTypes.Value  = ProcessMemoryPageTypes_ToNative(value.PageTypes.Value);
+			information.PageStates.Value = ProcessMemoryPageStates_ToNative(value.PageStates.Value);
+			information.Protection.Value = ProcessMemoryProtections_ToNative(value.Protection.Value);
+#elif defined(AL_PLATFORM_WINDOWS)
+			information.Base             = value.Base;
+			information.Size             = value.Size;
+			information.PageTypes.Value  = ProcessMemoryPageTypes_ToNative(value.PageTypes.Value);
+			information.PageStates.Value = ProcessMemoryPageStates_ToNative(value.PageStates.Value);
+			information.Protection.Value = ProcessMemoryProtections_ToNative(value.Protection.Value);
+#endif
+
+			return information;
+		}
+
+		static ProcessMemoryProtections  ProcessMemoryProtections_ToOS(_ProcessMemoryProtections value)
+		{
+			BitMask<ProcessMemoryProtections> protection;
+
+#if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
+#elif defined(AL_PLATFORM_WINDOWS)
+			protection.Set(ProcessMemoryProtections::Read,    BitMask<_ProcessMemoryProtections>::IsSet(value, _ProcessMemoryProtections::Read));
+			protection.Set(ProcessMemoryProtections::Write,   BitMask<_ProcessMemoryProtections>::IsSet(value, _ProcessMemoryProtections::Read_Write) || BitMask<_ProcessMemoryProtections>::IsSet(value, _ProcessMemoryProtections::Execute_Read_Write));
+			protection.Set(ProcessMemoryProtections::Execute, BitMask<_ProcessMemoryProtections>::IsSet(value, _ProcessMemoryProtections::Execute) || BitMask<_ProcessMemoryProtections>::IsSet(value, _ProcessMemoryProtections::Execute_Read) || BitMask<_ProcessMemoryProtections>::IsSet(value, _ProcessMemoryProtections::Execute_Read_Write));
+#endif
+
+			return protection.Value;
+		}
+		static _ProcessMemoryProtections ProcessMemoryProtections_ToNative(ProcessMemoryProtections value)
+		{
+#if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
+#elif defined(AL_PLATFORM_WINDOWS)
+			if (BitMask<ProcessMemoryProtections>::IsSet(value, ProcessMemoryProtections::Read))
+			{
+				if (BitMask<ProcessMemoryProtections>::IsSet(value, ProcessMemoryProtections::Write))
+				{
+					if (BitMask<ProcessMemoryProtections>::IsSet(value, ProcessMemoryProtections::Execute))
+					{
+
+						return _ProcessMemoryProtections::Execute_Read_Write;
+					}
+
+					return _ProcessMemoryProtections::Read_Write;
+				}
+				else if (BitMask<ProcessMemoryProtections>::IsSet(value, ProcessMemoryProtections::Execute))
+				{
+
+					return _ProcessMemoryProtections::Execute_Read;
+				}
+
+				return _ProcessMemoryProtections::Read;
+			}
+
+			return _ProcessMemoryProtections::NoAccess;
+#endif
+
+			return _ProcessMemoryProtections(
+				0
+			);
+		}
+
+		static ProcessMemoryAllocationTypes  ProcessMemoryAllocationTypes_ToOS(_ProcessMemoryAllocationTypes value)
+		{
+			BitMask<ProcessMemoryAllocationTypes> allocationType;
+
+#if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
+#elif defined(AL_PLATFORM_WINDOWS)
+			allocationType.Set(ProcessMemoryAllocationTypes::Commit,   BitMask<_ProcessMemoryAllocationTypes>::IsSet(value, _ProcessMemoryAllocationTypes::Commit));
+			allocationType.Set(ProcessMemoryAllocationTypes::Reserve,  BitMask<_ProcessMemoryAllocationTypes>::IsSet(value, _ProcessMemoryAllocationTypes::Reserve));
+			allocationType.Set(ProcessMemoryAllocationTypes::Physical, BitMask<_ProcessMemoryAllocationTypes>::IsSet(value, _ProcessMemoryAllocationTypes::Physical));
+#endif
+
+			return allocationType.Value;
+		}
+		static _ProcessMemoryAllocationTypes ProcessMemoryAllocationTypes_ToNative(ProcessMemoryAllocationTypes value)
+		{
+			BitMask<_ProcessMemoryAllocationTypes> allocationType;
+
+#if defined(AL_PLATFORM_LINUX)
+			// TODO: implement
+#elif defined(AL_PLATFORM_WINDOWS)
+			allocationType.Set(_ProcessMemoryAllocationTypes::Commit,   BitMask<ProcessMemoryAllocationTypes>::IsSet(value, ProcessMemoryAllocationTypes::Commit));
+			allocationType.Set(_ProcessMemoryAllocationTypes::Reserve,  BitMask<ProcessMemoryAllocationTypes>::IsSet(value, ProcessMemoryAllocationTypes::Reserve));
+			allocationType.Set(_ProcessMemoryAllocationTypes::Physical, BitMask<ProcessMemoryAllocationTypes>::IsSet(value, ProcessMemoryAllocationTypes::Physical));
+#endif
+
+			return allocationType.Value;
 		}
 	};
 

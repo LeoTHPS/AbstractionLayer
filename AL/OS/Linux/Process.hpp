@@ -364,11 +364,48 @@ namespace AL::OS::Linux
 		}
 	};
 
+	enum class ProcessMemoryPageTypes : uint32
+	{
+	};
+
+	AL_DEFINE_ENUM_FLAG_OPERATORS(ProcessMemoryPageTypes);
+
+	enum class ProcessMemoryPageStates : uint32
+	{
+	};
+
+	AL_DEFINE_ENUM_FLAG_OPERATORS(ProcessMemoryPageStates);
+
 	enum class ProcessMemoryAccessModes : uint8
 	{
 		Read,
 		ReadWrite
 	};
+
+	enum class ProcessMemoryProtections : uint32
+	{
+	};
+
+	AL_DEFINE_ENUM_FLAG_OPERATORS(ProcessMemoryProtections);
+
+	enum class ProcessMemoryAllocationTypes : uint32
+	{
+	};
+
+	AL_DEFINE_ENUM_FLAG_OPERATORS(ProcessMemoryAllocationTypes);
+
+	struct ProcessMemoryInformation
+	{
+		Void*                             Base;
+		size_t                            Size;
+		BitMask<ProcessMemoryPageTypes>   PageTypes;
+		BitMask<ProcessMemoryPageStates>  PageStates;
+		BitMask<ProcessMemoryProtections> Protection;
+	};
+
+	// @throw AL::Exception
+	// @return AL::False to stop enumeration
+	typedef Function<Bool(const ProcessMemoryInformation& information)> ProcessMemoryEnumPagesCallback;
 
 	class ProcessMemory
 	{
@@ -415,7 +452,7 @@ namespace AL::OS::Linux
 		{
 			int fdMemory;
 
-			if ((fdMemory = ::open(String::Format("/proc/%lu/mem", process.GetId()).GetCString(), O_RDWR | O_DIRECT | O_SYNC)) == -1)
+			if ((fdMemory = ::open(String::Format("/proc/%lu/mem", process.GetId()).GetCString(), ((mode == ProcessMemoryAccessModes::Read) ? O_RDONLY : O_RDWR) | O_DIRECT | O_SYNC)) == -1)
 			{
 				auto errorCode = GetLastError();
 
@@ -756,7 +793,7 @@ namespace AL::OS::Linux
 			if (IsLoaded())
 			{
 				::dlclose(
-					hLibrary
+					handle
 				);
 			}
 		}
