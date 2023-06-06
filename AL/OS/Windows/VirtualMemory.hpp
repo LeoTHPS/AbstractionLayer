@@ -131,7 +131,9 @@ namespace AL::OS::Windows
 		BitMask<VirtualMemoryProtections> Protection;
 	};
 
-	typedef Function<Void(const VirtualMemoryInformation& information)> VirtualMemoryEnumPagesCallback;
+	// @throw AL::Exception
+	// @return AL::False to stop enumeration
+	typedef Function<Bool(const VirtualMemoryInformation& information)> VirtualMemoryEnumPagesCallback;
 
 	class VirtualMemory
 	{
@@ -144,6 +146,8 @@ namespace AL::OS::Windows
 		typedef VirtualMemoryProtections       Protections;
 		typedef VirtualMemoryAllocationTypes   AllocationTypes;
 
+		// @throw AL::Exception
+		// @return AL::False to stop enumeration
 		typedef VirtualMemoryEnumPagesCallback EnumPagesCallback;
 
 		// @throw AL::Exception
@@ -299,9 +303,11 @@ namespace AL::OS::Windows
 					lpAddress
 				);
 
-				callback(
-					info
-				);
+				if (!callback(info))
+				{
+
+					break;
+				}
 
 				lpAddress = reinterpret_cast<Void*>(
 					reinterpret_cast<size_t>(lpAddress) + info.Size

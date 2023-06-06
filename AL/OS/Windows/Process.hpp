@@ -22,10 +22,8 @@
 
 namespace AL::OS::Windows
 {
-	class Process;
-	class ProcessMemory;
-	class ProcessThread;
-	class ProcessLibrary;
+	typedef uint32 ProcessId;
+	typedef int32  ProcessExitCode;
 
 	struct ProcessStartInfo
 	{
@@ -33,9 +31,6 @@ namespace AL::OS::Windows
 		String CommandLine;
 		String WorkingDirectory;
 	};
-
-	typedef uint32 ProcessId;
-	typedef int32  ProcessExitCode;
 
 	// @throw AL::Exception
 	// @return AL::False to stop enumeration
@@ -376,6 +371,588 @@ namespace AL::OS::Windows
 		Bool operator != (const Process& process) const
 		{
 			if (operator==(process))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+	};
+
+	enum class ProcessMemoryAccessModes : uint8
+	{
+		Read,
+		ReadWrite
+	};
+
+	typedef VirtualMemoryPageTypes         ProcessMemoryPageTypes;
+	typedef VirtualMemoryPageStates        ProcessMemoryPageStates;
+	typedef VirtualMemoryInformation       ProcessMemoryInformation;
+	typedef VirtualMemoryProtections       ProcessMemoryProtections;
+	typedef VirtualMemoryAllocationTypes   ProcessMemoryAllocationTypes;
+	// @throw AL::Exception
+	// @return AL::False to stop enumeration
+	typedef VirtualMemoryEnumPagesCallback ProcessMemoryEnumPagesCallback;
+
+	class ProcessMemory
+	{
+		Bool                     isOpen = False;
+
+		ProcessMemoryAccessModes mode;
+		::HANDLE                 handle;
+		Process*                 lpProcess;
+
+		ProcessMemory(const ProcessMemory&) = delete;
+
+		ProcessMemory(Process& process, ::HANDLE handle, ProcessMemoryAccessModes mode)
+			: isOpen(
+				True
+			),
+			mode(
+				mode
+			),
+			handle(
+				handle
+			),
+			lpProcess(
+				&process
+			)
+		{
+		}
+
+	public:
+		// @throw AL::Exception
+		// @return AL::False on access denied
+		static Bool Open(ProcessMemory& processMemory, Process& process)
+		{
+			if (!Open(processMemory, process, ProcessMemoryAccessModes::ReadWrite))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		// @throw AL::Exception
+		// @return AL::False on access denied
+		static Bool Open(ProcessMemory& processMemory, Process& process, ProcessMemoryAccessModes mode)
+		{
+			::HANDLE hMemory;
+
+			if (process.IsCurrentProcess())
+			{
+
+				hMemory = process.GetHandle();
+			}
+			else if (!(hMemory = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, static_cast<::DWORD>(process.GetId()))))
+			{
+				if (process.GetId() && (GetLastError() == ERROR_INVALID_PARAMETER))
+				{
+
+					return False;
+				}
+
+				throw SystemException(
+					"OpenProcess"
+				);
+			}
+
+			processMemory = ProcessMemory(
+				process,
+				hMemory,
+				mode
+			);
+		}
+
+		ProcessMemory()
+		{
+		}
+
+		ProcessMemory(ProcessMemory&& processMemory)
+			: isOpen(
+				processMemory.isOpen
+			),
+			mode(
+				processMemory.mode
+			),
+			handle(
+				processMemory.handle
+			),
+			lpProcess(
+				processMemory.lpProcess
+			)
+		{
+			processMemory.isOpen = False;
+		}
+
+		virtual ~ProcessMemory()
+		{
+			if (IsOpen())
+			{
+
+				Close();
+			}
+		}
+
+		Bool IsOpen() const
+		{
+			return isOpen;
+		}
+
+		auto GetMode() const
+		{
+			return mode;
+		}
+
+		auto GetHandle() const
+		{
+			return handle;
+		}
+
+		auto& GetProcess()
+		{
+			return *lpProcess;
+		}
+		auto& GetProcess() const
+		{
+			return *lpProcess;
+		}
+
+		Void Close()
+		{
+			if (IsOpen())
+			{
+				::CloseHandle(
+					GetHandle()
+				);
+
+				isOpen = False;
+			}
+		}
+
+		// @throw AL::Exception
+		Void* Allocate(Void* address, size_t size, ProcessMemoryAllocationTypes type, ProcessMemoryProtections protection)
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"ProcessMemory not open"
+			);
+
+			return VirtualMemory::Allocate(
+				GetProcess().GetHandle(),
+				address,
+				size,
+				type,
+				protection
+			);
+		}
+
+		Void Release(Void* address)
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"ProcessMemory not open"
+			);
+
+			VirtualMemory::Release(
+				GetProcess().GetHandle(),
+				address
+			);
+		}
+
+		// @throw AL::Exception
+		Void Read(Void* address, Void* lpBuffer, size_t size)
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"ProcessMemory not open"
+			);
+
+			::SIZE_T numberOfBytesRead;
+
+			if (!::ReadProcessMemory(GetHandle(), address, lpBuffer, static_cast<::SIZE_T>(size), &numberOfBytesRead))
+			{
+
+				throw SystemException(
+					"ReadProcessMemory"
+				);
+			}
+		}
+
+		// @throw AL::Exception
+		Void Write(Void* address, const Void* lpBuffer, size_t size)
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"ProcessMemory not open"
+			);
+
+			if (GetMode() != ProcessMemoryAccessModes::ReadWrite)
+			{
+
+				throw OperationNotSupportedException();
+			}
+
+			::SIZE_T numberOfBytesWritten;
+
+			if (!::WriteProcessMemory(GetHandle(), address, lpBuffer, static_cast<::SIZE_T>(size), &numberOfBytesWritten))
+			{
+
+				throw SystemException(
+					"WriteProcessMemory"
+				);
+			}
+		}
+
+		// @throw AL::Exception
+		ProcessMemoryInformation Query(Void* address)
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"ProcessMemory not open"
+			);
+
+			return VirtualMemory::Query(
+				GetProcess().GetHandle(),
+				address
+			);
+		}
+
+		// @throw AL::Exception
+		// @return previous ProcessMemoryProtections
+		ProcessMemoryProtections SetProtection(Void* address, size_t size, ProcessMemoryProtections value)
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"ProcessMemory not open"
+			);
+
+			return VirtualMemory::SetProtection(
+				GetProcess().GetHandle(),
+				address,
+				size,
+				value
+			);
+		}
+
+		// @throw AL::Exception
+		Void EnumeratePages(const ProcessMemoryEnumPagesCallback& callback)
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"ProcessMemory not open"
+			);
+
+			VirtualMemory::EnumeratePages(
+				GetProcess().GetHandle(),
+				callback
+			);
+		}
+
+		ProcessMemory& operator = (ProcessMemory&& processMemory)
+		{
+			if (IsOpen())
+			{
+
+				Close();
+			}
+
+			isOpen = processMemory.isOpen;
+			processMemory.isOpen = False;
+
+			mode      = processMemory.mode;
+			handle    = processMemory.handle;
+			lpProcess = processMemory.lpProcess;
+
+			return *this;
+		}
+
+		Bool operator == (const ProcessMemory& processMemory) const
+		{
+			if (IsOpen() != processMemory.IsOpen())
+			{
+
+				return False;
+			}
+
+			if (GetHandle() != processMemory.GetHandle())
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		Bool operator != (const ProcessMemory& processMemory) const
+		{
+			if (operator==(processMemory))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+	};
+
+	class ProcessLibrary
+	{
+		Bool      isLoaded = False;
+
+		String    path;
+		::HMODULE handle;
+		Process*  lpProcess;
+
+		ProcessLibrary(const ProcessLibrary&) = delete;
+
+		ProcessLibrary(Process& process, ::HMODULE handle, String&& path)
+			: isLoaded(
+				True
+			),
+			path(
+				Move(path)
+			),
+			handle(
+				handle
+			),
+			lpProcess(
+				&process
+			)
+		{
+		}
+
+	public:
+		// @throw AL::Exception
+		// @return AL::False if file not found
+		static Bool Load(ProcessLibrary& library, Process& process, const FileSystem::Path& path)
+		{
+			if (!path.Exists())
+			{
+
+				return False;
+			}
+
+			if (process.IsCurrentProcess())
+			{
+				::HMODULE hModule;
+
+				if ((hModule = ::LoadLibraryA(path.GetString().GetCString())) == NULL)
+				{
+
+					throw SystemException(
+						"LoadLibraryA"
+					);
+				}
+
+				library = ProcessLibrary(
+					process,
+					hModule,
+					String(path.GetString())
+				);
+			}
+			else
+			{
+				// TODO: implement
+				throw NotImplementedException();
+			}
+
+			return True;
+		}
+
+		// @throw AL::Exception
+		// @return AL::False if library not loaded
+		static Bool Open(ProcessLibrary& library, Process& process, const String& name)
+		{
+			if (process.IsCurrentProcess())
+			{
+				::HMODULE hModule;
+
+				if ((hModule = ::GetModuleHandleA(name.GetCString())) == NULL)
+				{
+					auto errorCode = GetLastError();
+
+					if (errorCode == ERROR_MOD_NOT_FOUND)
+					{
+
+						return False;
+					}
+
+					throw SystemException(
+						"GetModuleHandleA",
+						errorCode
+					);
+				}
+
+				library = ProcessLibrary(
+					process,
+					hModule,
+					String(name)
+				);
+			}
+			else
+			{
+				// TODO: implement
+				throw NotImplementedException();
+			}
+
+			return True;
+		}
+
+		// @throw AL::Exception
+		static Void OpenProcess(ProcessLibrary& library, Process& process)
+		{
+			if (process.IsCurrentProcess())
+			{
+				::HMODULE hModule;
+
+				if ((hModule = ::GetModuleHandleA(NULL)) == NULL)
+				{
+
+					throw SystemException(
+						"GetModuleHandleA"
+					);
+				}
+
+				char    path[AL_MAX_PATH] = { 0  };
+				::DWORD pathLength;
+
+				if ((pathLength = ::GetModuleFileNameA(hModule, &path[0], AL_MAX_PATH)) == 0)
+				{
+
+					throw SystemException(
+						"GetModuleFileName"
+					);
+				}
+
+				library = ProcessLibrary(
+					process,
+					hModule,
+					String(
+						path,
+						pathLength
+					)
+				);
+			}
+			else
+			{
+				// TODO: implement
+				throw NotImplementedException();
+			}
+		}
+
+		ProcessLibrary()
+		{
+		}
+
+		ProcessLibrary(ProcessLibrary&& processLibrary)
+			: isLoaded(
+				processLibrary.isLoaded
+			),
+			path(
+				Move(processLibrary.path)
+			),
+			handle(
+				processLibrary.handle
+			),
+			lpProcess(
+				processLibrary.lpProcess
+			)
+		{
+			processLibrary.isLoaded = False;
+		}
+
+		virtual ~ProcessLibrary()
+		{
+		}
+
+		Bool IsLoaded() const
+		{
+			return isLoaded;
+		}
+
+		auto& GetPath() const
+		{
+			return path;
+		}
+
+		auto GetHandle() const
+		{
+			return handle;
+		}
+
+		auto& GetProcess()
+		{
+			return *lpProcess;
+		}
+		auto& GetProcess() const
+		{
+			return *lpProcess;
+		}
+
+		// @throw AL::Exception
+		// @return AL::False if export not found
+		template<typename T>
+		Bool GetExport(T*& lpValue, const String& name) const
+		{
+			AL_ASSERT(
+				IsLoaded(),
+				"ProcessLibrary not loaded"
+			);
+
+			::FARPROC result;
+
+			if ((result = ::GetProcAddress(GetHandle(), name.GetCString())) == NULL)
+			{
+
+				throw SystemException(
+					"GetProcAddress"
+				);
+			}
+
+			lpValue = reinterpret_cast<T*>(
+				result
+			);
+
+			return True;
+		}
+
+		Void Unload()
+		{
+			if (IsLoaded())
+			{
+				if (GetProcess().IsCurrentProcess())
+				{
+					::FreeLibrary(
+						GetHandle()
+					);
+				}
+				else
+				{
+					// TODO: implement
+					throw NotImplementedException();
+				}
+
+				isLoaded = False;
+			}
+		}
+
+		ProcessLibrary& operator = (ProcessLibrary&& processLibrary)
+		{
+			isLoaded = processLibrary.isLoaded;
+			processLibrary.isLoaded = False;
+
+			path      = Move(processLibrary.path);
+			handle    = processLibrary.handle;
+			lpProcess = processLibrary.lpProcess;
+
+			return *this;
+		}
+
+		Bool operator == (const ProcessLibrary& processLibrary) const;
+		Bool operator != (const ProcessLibrary& processLibrary) const
+		{
+			if (operator==(processLibrary))
 			{
 
 				return False;
