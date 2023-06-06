@@ -93,6 +93,8 @@ namespace AL::OS::Windows
 				hProcess,
 				isCurrentProcess
 			);
+
+			return True;
 		}
 		// @throw AL::Exception
 		// @return AL::False if not found
@@ -463,6 +465,8 @@ namespace AL::OS::Windows
 				hMemory,
 				mode
 			);
+
+			return True;
 		}
 
 		ProcessMemory()
