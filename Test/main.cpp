@@ -6,36 +6,43 @@
 #include <AL/OS/Thread.hpp>
 #include <AL/OS/Process.hpp>
 
-// #include "Collections/Array.hpp"
-// #include "Collections/ArrayList.hpp"
-// #include "Collections/Dictionary.hpp"
-// #include "Collections/LinkedList.hpp"
-// #include "Collections/MPSCQueue.hpp"
-// #include "Collections/Queue.hpp"
-// #include "Collections/CircularQueue.hpp"
-// #include "Collections/String.hpp"
-// #include "Collections/StringBuilder.hpp"
+#include "Collections/Array.hpp"
+#include "Collections/ArrayList.hpp"
+#include "Collections/Dictionary.hpp"
+#include "Collections/LinkedList.hpp"
+#include "Collections/MPSCQueue.hpp"
+#include "Collections/Queue.hpp"
+#include "Collections/CircularQueue.hpp"
+#include "Collections/String.hpp"
+#include "Collections/StringBuilder.hpp"
 
-// #include "Common/Function.hpp"
+#include "Common/Function.hpp"
 
-// #include "FileSystem/File.hpp"
+#include "FileSystem/File.hpp"
+#include "FileSystem/WaveFile.hpp"
 
-// #include "Lua54/Lua.hpp"
+#if defined(AL_PLATFORM_LINUX)
+	#include "Hardware/Drivers/AT24C256.hpp"
+#endif
 
-// #include "Network/Adapter.hpp"
-// #include "Network/UdpSocket.hpp"
+#include "Lua54/Lua.hpp"
 
-// #include "Network/HTTP/Request.hpp"
+#include "Network/Adapter.hpp"
+#include "Network/UdpSocket.hpp"
 
-// #include "OS/Process.hpp"
-// #include "OS/Thread.hpp"
-// #include "OS/ThreadPool.hpp"
-// #include "OS/Window.hpp"
+#include "Network/HTTP/Request.hpp"
 
-// #include "Serialization/CSV.hpp"
-// #include "Serialization/HTML.hpp"
+#include "OS/Process.hpp"
+#include "OS/Thread.hpp"
+#include "OS/ThreadPool.hpp"
+#include "OS/Window.hpp"
 
-// #include "SQLite3/Database.hpp"
+#include "Serialization/CSV.hpp"
+#include "Serialization/HTML.hpp"
+#include "Serialization/JSON.hpp"
+#include "Serialization/NMEA.hpp"
+
+#include "SQLite3/Database.hpp"
 
 void main_display_build_information()
 {
@@ -184,11 +191,6 @@ void main_display_process_information()
 // @throw AL::Exception
 void main_execute_tests(AL::uint32& testCount, AL::uint32& testFailCount)
 {
-	auto test = AL::BaseConverter32::Encode(
-		"."				// FY======
-		//"Hello World"	// JBSWY3DPEBLW64TMMQ======
-	);
-
 	#define main_execute_test(__function__) \
 		_main_execute_test(#__function__, __function__)
 
@@ -261,36 +263,43 @@ void main_execute_tests(AL::uint32& testCount, AL::uint32& testFailCount)
 		AL::OS::Console::WriteLine();
 	};
 
-	// main_execute_test(AL_Collections_Array);
-	// main_execute_test(AL_Collections_ArrayList);
-	// main_execute_test(AL_Collections_Dictionary);
-	// main_execute_test(AL_Collections_LinkedList);
-	// main_execute_test(AL_Collections_MPSCQueue);
-	// main_execute_test(AL_Collections_Queue);
-	// main_execute_test(AL_Collections_CircularQueue);
-	// main_execute_test(AL_Collections_String);
-	// main_execute_test(AL_Collections_StringBuilder);
+	main_execute_test(AL_Collections_Array);
+	main_execute_test(AL_Collections_ArrayList);
+	main_execute_test(AL_Collections_Dictionary);
+	main_execute_test(AL_Collections_LinkedList);
+	main_execute_test(AL_Collections_MPSCQueue);
+	main_execute_test(AL_Collections_Queue);
+	main_execute_test(AL_Collections_CircularQueue);
+	main_execute_test(AL_Collections_String);
+	main_execute_test(AL_Collections_StringBuilder);
 
-	// main_execute_test(AL_Function);
+	main_execute_test(AL_Function);
 
-	// main_execute_test(AL_FileSystem_File);
+	main_execute_test(AL_FileSystem_File);
+	main_execute_test(AL_FileSystem_WaveFile);
 
-	// main_execute_test(AL_Lua54);
+#if defined(AL_PLATFORM_LINUX)
+	main_execute_test(AL_Hardware_Drivers_AT24C256);
+#endif
 
-	// main_execute_test(AL_Network_Adapter);
-	// main_execute_test(AL_Network_UdpSocket);
+	main_execute_test(AL_Lua54);
 
-	// main_execute_test(AL_Network_HTTP_Request);
+	main_execute_test(AL_Network_Adapter);
+	main_execute_test(AL_Network_UdpSocket);
 
-	// main_execute_test(AL_OS_Process);
-	// main_execute_test(AL_OS_Thread);
-	// main_execute_test(AL_OS_ThreadPool);
-	// main_execute_test(AL_OS_Window);
+	main_execute_test(AL_Network_HTTP_Request);
 
-	// main_execute_test(AL_Serialization_CSV);
-	// main_execute_test(AL_Serialization_HTML);
+	main_execute_test(AL_OS_Process);
+	main_execute_test(AL_OS_Thread);
+	main_execute_test(AL_OS_ThreadPool);
+	main_execute_test(AL_OS_Window);
 
-	// main_execute_test(AL_SQLite3_Database);
+	main_execute_test(AL_Serialization_CSV);
+	main_execute_test(AL_Serialization_HTML);
+	main_execute_test(AL_Serialization_JSON);
+	main_execute_test(AL_Serialization_NMEA);
+
+	main_execute_test(AL_SQLite3_Database);
 }
 
 int main(int argc, char* argv[])
