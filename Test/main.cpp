@@ -138,7 +138,7 @@ void main_display_thread_information()
 		AL::OS::GetCurrentThreadId()
 	);
 
-	auto lpTEB = AL::OS::GetThreadEnvironmentBlock();
+	auto lpTEB = AL::OS::Windows::GetThreadEnvironmentBlock();
 
 	AL::OS::Console::WriteLine(
 		"\tThread Environment Block: 0x%p",
@@ -166,7 +166,7 @@ void main_display_process_information()
 		AL::OS::GetCurrentProcessId()
 	);
 
-	auto lpPEB = AL::OS::GetProcessEnvironmentBlock();
+	auto lpPEB = AL::OS::Windows::GetProcessEnvironmentBlock();
 
 	AL::OS::Console::WriteLine(
 		"\tProcess Environment Block: 0x%p",
@@ -190,7 +190,7 @@ void main_display_process_information()
 
 	AL::OS::Console::WriteLine(
 		"\tDebugger Present: %s",
-		AL::ToString(AL::OS::IsDebuggerPresent()).GetCString()
+		AL::ToString(AL::OS::Windows::IsDebuggerPresent()).GetCString()
 	);
 #endif
 }
@@ -198,6 +198,11 @@ void main_display_process_information()
 // @throw AL::Exception
 void main_execute_tests(AL::uint32& testCount, AL::uint32& testFailCount)
 {
+	auto test = AL::BaseConverter32::Encode(
+		"."				// FY======
+		//"Hello World"	// JBSWY3DPEBLW64TMMQ======
+	);
+
 	#define main_execute_test(__function__) \
 		_main_execute_test(#__function__, __function__)
 
@@ -262,19 +267,9 @@ void main_execute_tests(AL::uint32& testCount, AL::uint32& testFailCount)
 		{
 			++testFailCount;
 
-			AL::OS::Console::WriteLine(
-				exception.GetMessage()
+			AL::OS::Console::WriteException(
+				exception
 			);
-
-			if (auto lpInnerException = exception.GetInnerException())
-			{
-				do
-				{
-					AL::OS::Console::WriteLine(
-						lpInnerException->GetMessage()
-					);
-				} while ((lpInnerException = lpInnerException->GetInnerException()) != nullptr);
-			}
 		}
 
 		AL::OS::Console::WriteLine();
@@ -340,8 +335,10 @@ int main(int argc, char* argv[])
 	AL::OS::Console::WriteLine();
 
 	AL::OS::Timer timer;
-	AL::uint32    testCount     = 0;
-	AL::uint32    testFailCount = 0;
+	AL::uint32    testCount       = 0;
+	AL::uint32    testFailCount   = 0;
+
+	timer.Reset();
 
 	main_execute_tests(
 		testCount,
@@ -352,46 +349,48 @@ int main(int argc, char* argv[])
 		auto elapsed = timer.GetElapsed();
 
 		AL::OS::Console::Write(
-			"%lu/%lu tests completed in ",
+			"%lu/%lu tests completed in",
 			testCount - testFailCount,
 			testCount
 		);
 
 		if (elapsed.ToMinutes() > 0)
 		{
-			AL::OS::Console::WriteLine(
-				"%llu minute(s)",
+			AL::OS::Console::Write(
+				" %llu minute(s)",
 				elapsed.ToMinutes()
 			);
 		}
 		else if (elapsed.ToSeconds() > 0)
 		{
-			AL::OS::Console::WriteLine(
-				"%llu second(s)",
+			AL::OS::Console::Write(
+				" %llu second(s)",
 				elapsed.ToSeconds()
 			);
 		}
 		else if (elapsed.ToMilliseconds() > 0)
 		{
-			AL::OS::Console::WriteLine(
-				"%llums",
+			AL::OS::Console::Write(
+				" %llums",
 				elapsed.ToMilliseconds()
 			);
 		}
 		else if (elapsed.ToMicroseconds() > 0)
 		{
-			AL::OS::Console::WriteLine(
-				"%lluus",
+			AL::OS::Console::Write(
+				" %lluus",
 				elapsed.ToMicroseconds()
 			);
 		}
 		else
 		{
-			AL::OS::Console::WriteLine(
-				"%lluns",
+			AL::OS::Console::Write(
+				" %lluns",
 				elapsed.ToNanoseconds()
 			);
 		}
+
+		AL::OS::Console::WriteLine();
 	}
 
 // Windows debugging is often done through a spawned shell so this will keep results open
