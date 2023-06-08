@@ -1783,6 +1783,8 @@ namespace AL::Collections
 				index,
 				length
 			);
+
+			return string;
 		}
 		_String SubString(ConstIterator first, ConstIterator last) const
 		{
@@ -1800,6 +1802,8 @@ namespace AL::Collections
 				index,
 				length
 			);
+
+			return string;
 		}
 		_String SubString(ReverseIterator first, ReverseIterator last) const
 		{
@@ -1817,6 +1821,8 @@ namespace AL::Collections
 				index,
 				length
 			);
+
+			return string;
 		}
 		_String SubString(ConstReverseIterator first, ConstReverseIterator last) const
 		{
@@ -1834,6 +1840,8 @@ namespace AL::Collections
 				index,
 				length
 			);
+
+			return string;
 		}
 
 		virtual Iterator begin() override
