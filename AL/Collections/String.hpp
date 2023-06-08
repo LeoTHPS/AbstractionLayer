@@ -1781,7 +1781,7 @@ namespace AL::Collections
 
 			auto string = SubString(
 				index,
-				length
+				length + 1
 			);
 
 			return string;
@@ -1800,7 +1800,7 @@ namespace AL::Collections
 
 			auto string = SubString(
 				index,
-				length
+				length + 1
 			);
 
 			return string;
@@ -1819,7 +1819,7 @@ namespace AL::Collections
 
 			auto string = SubString(
 				index,
-				length
+				length + 1
 			);
 
 			return string;
@@ -1838,7 +1838,7 @@ namespace AL::Collections
 
 			auto string = SubString(
 				index,
-				length
+				length + 1
 			);
 
 			return string;
