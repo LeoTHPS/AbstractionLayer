@@ -8,6 +8,12 @@
 #include "StatusCodes.hpp"
 #include "RequestMethods.hpp"
 
+#if AL_HAS_INCLUDE(<openssl/ssl.h>)
+	#include "AL/OpenSSL/SSL.hpp"
+
+	#define AL_NETWORK_HTTP_REQUEST_OPENSSL_ENABLED
+#endif
+
 #include "AL/Network/DNS.hpp"
 #include "AL/Network/IPAddress.hpp"
 #include "AL/Network/TcpSocket.hpp"
@@ -19,6 +25,269 @@ namespace AL::Network::HTTP
 {
 	class Request
 	{
+		class Socket
+		{
+			Bool         isConnected  = False;
+			Bool         isSslEnabled;
+
+			OpenSSL::SSL ssl;
+			TcpSocket    socket;
+
+			Socket(Socket&&) = delete;
+			Socket(const Socket&) = delete;
+
+		public:
+			Socket(AddressFamilies addressFamily, Bool enableSSL)
+				: isSslEnabled(
+					enableSSL
+				),
+				ssl(
+					OpenSSL::Modes::Client,
+					OpenSSL::Protocols::TLS
+				),
+				socket(
+					addressFamily
+				)
+			{
+			}
+
+			virtual ~Socket()
+			{
+				if (IsConnected())
+				{
+
+					Disconnect();
+				}
+			}
+
+			Bool IsConnected() const
+			{
+				return isConnected;
+			}
+
+			// @throw AL::Exception
+			Bool Connect(const IPEndPoint& ep)
+			{
+				AL_ASSERT(
+					!IsConnected(),
+					"Socket already connected"
+				);
+
+				try
+				{
+					socket.Open();
+				}
+				catch (Exception& exception)
+				{
+
+					throw Exception(
+						Move(exception),
+						"Error opening TcpSocket"
+					);
+				}
+
+				if (isSslEnabled)
+				{
+					try
+					{
+						ssl.Create();
+					}
+					catch (Exception& exception)
+					{
+						socket.Close();
+
+						throw Exception(
+							Move(exception),
+							"Error creating OpenSSL::SSL"
+						);
+					}
+
+					try
+					{
+						ssl.SetFD(
+							socket.GetHandle()
+						);
+					}
+					catch (Exception& exception)
+					{
+						ssl.Destroy();
+						socket.Close();
+
+						throw Exception(
+							Move(exception),
+							"Error setting OpenSSL::SSL file descriptor"
+						);
+					}
+				}
+
+				try
+				{
+					if (!socket.Connect(ep))
+					{
+
+						throw Exception(
+							"Connection timed out"
+						);
+					}
+				}
+				catch (Exception& exception)
+				{
+					ssl.Destroy();
+					socket.Close();
+
+					throw Exception(
+						Move(exception),
+						"Error connecting to %s:%u",
+						ep.Host.ToString().GetCString(),
+						ep.Port
+					);
+				}
+
+				if (isSslEnabled)
+				{
+					try
+					{
+						ssl.Connect();
+					}
+					catch (Exception& exception)
+					{
+						socket.Close();
+
+						throw Exception(
+							Move(exception),
+							"Error connecting OpenSSL::SSL"
+						);
+					}
+				}
+
+				isConnected = True;
+
+				return True;
+			}
+
+			Void Disconnect()
+			{
+				if (IsConnected())
+				{
+					ssl.Destroy();
+					socket.Close();
+
+					isConnected = False;
+				}
+			}
+
+			// @throw AL::Exception
+			Bool Read(Void* lpBuffer, size_t size, size_t& numberOfBytesRead)
+			{
+				AL_ASSERT(
+					IsConnected(),
+					"Socket not connected"
+				);
+
+				if (isSslEnabled)
+				{
+					try
+					{
+						if (!ssl.Read(lpBuffer, size, numberOfBytesRead))
+						{
+							Disconnect();
+
+							return False;
+						}
+					}
+					catch (Exception& exception)
+					{
+
+						throw Exception(
+							Move(exception),
+							"Error reading OpenSSL::SSL"
+						);
+					}
+				}
+				else
+				{
+					try
+					{
+						if (!socket.Receive(lpBuffer, size, numberOfBytesRead))
+						{
+							Disconnect();
+
+							return False;
+						}
+					}
+					catch (Exception& exception)
+					{
+
+						throw Exception(
+							Move(exception),
+							"Error reading TcpSocket"
+						);
+					}
+				}
+
+				return True;
+			}
+
+			// @throw AL::Exception
+			Bool Write(const Void* lpBuffer, size_t size)
+			{
+				AL_ASSERT(
+					IsConnected(),
+					"Socket not connected"
+				);
+
+				size_t numberOfBytesSent;
+
+				if (isSslEnabled)
+				{
+					numberOfBytesSent = 0;
+
+					try
+					{
+						for (size_t _numberOfBytesSent = 0; numberOfBytesSent < size; numberOfBytesSent += _numberOfBytesSent)
+						{
+							if (!ssl.Write(&reinterpret_cast<const uint8*>(lpBuffer)[numberOfBytesSent], size - numberOfBytesSent, _numberOfBytesSent))
+							{
+								Disconnect();
+
+								return False;
+							}
+						}
+					}
+					catch (Exception& exception)
+					{
+
+						throw Exception(
+							Move(exception),
+							"Error writing OpenSSL::SSL"
+						);
+					}
+				}
+				else
+				{
+					try
+					{
+						if (!SocketExtensions::SendAll(socket, lpBuffer, size, numberOfBytesSent))
+						{
+							Disconnect();
+
+							return False;
+						}
+					}
+					catch (Exception& exception)
+					{
+
+						throw Exception(
+							Move(exception),
+							"Error writing TcpSocket"
+						);
+					}
+				}
+
+				return True;
+			}
+		};
+
 		typedef Collections::Array<typename String::Char> ResponseBuffer;
 
 		Header         header;
@@ -87,6 +356,8 @@ namespace AL::Network::HTTP
 			// TODO: optionally reuse socket if HTTP/1.1
 			// TODO: do a better job at detecting ports
 
+			Bool       enableSSL = False;
+
 			IPEndPoint serverEP =
 			{
 				.Port = uri.GetAuthority().Port
@@ -101,6 +372,11 @@ namespace AL::Network::HTTP
 				else if (uri.GetScheme().Compare("http", True))
 				{
 					serverEP.Port = 80;
+				}
+				else if (uri.GetScheme().Compare("https", True))
+				{
+					enableSSL    = True;
+					serverEP.Port = 443;
 				}
 				else
 				{
@@ -146,22 +422,10 @@ namespace AL::Network::HTTP
 				DNS::Deinit();
 			}
 
-			TcpSocket socket(
-				serverEP.Host.GetFamily()
+			Socket socket(
+				serverEP.Host.GetFamily(),
+				enableSSL
 			);
-
-			try
-			{
-				socket.Open();
-			}
-			catch (Exception& exception)
-			{
-
-				throw Exception(
-					Move(exception),
-					"Error opening Socket"
-				);
-			}
 
 			try
 			{
@@ -175,7 +439,7 @@ namespace AL::Network::HTTP
 			}
 			catch (Exception& exception)
 			{
-				socket.Close();
+				socket.Disconnect();
 
 				throw Exception(
 					Move(exception),
@@ -185,11 +449,9 @@ namespace AL::Network::HTTP
 				);
 			}
 
-			size_t numberOfBytesSent;
-
 			try
 			{
-				if (!SocketExtensions::SendAll(socket, request.GetCString(), request.GetSize(), numberOfBytesSent))
+				if (!socket.Write(request.GetCString(), request.GetSize()))
 				{
 
 					throw Exception(
@@ -199,7 +461,7 @@ namespace AL::Network::HTTP
 			}
 			catch (Exception& exception)
 			{
-				socket.Close();
+				socket.Disconnect();
 
 				throw Exception(
 					Move(exception),
@@ -224,7 +486,7 @@ namespace AL::Network::HTTP
 
 					try
 					{
-						while (socket.Receive(&bufferChunk[0], bufferChunk.GetCapacity() * sizeof(ResponseBuffer::Type), numberOfBytesReceived))
+						while (socket.Read(&bufferChunk[0], bufferChunk.GetCapacity() * sizeof(ResponseBuffer::Type), numberOfBytesReceived))
 						{
 							if (numberOfBytesReceived == 0)
 							{
@@ -235,9 +497,8 @@ namespace AL::Network::HTTP
 							if (auto numberOfBytesRemaining = (buffer.GetCapacity() - bufferSize);
 								numberOfBytesRemaining < static_cast<size_t>(numberOfBytesReceived))
 							{
-
 								buffer.SetSize(
-									numberOfBytesReceived - numberOfBytesRemaining
+									buffer.GetCapacity() + (numberOfBytesReceived - numberOfBytesRemaining)
 								);
 							}
 
@@ -252,7 +513,7 @@ namespace AL::Network::HTTP
 					}
 					catch (Exception& exception)
 					{
-						socket.Close();
+						socket.Disconnect();
 
 						throw Exception(
 							Move(exception),
@@ -261,7 +522,7 @@ namespace AL::Network::HTTP
 					}
 				}
 
-				socket.Close();
+				socket.Disconnect();
 
 				{
 					Header      header;
