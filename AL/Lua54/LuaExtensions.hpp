@@ -351,6 +351,11 @@ namespace AL::Lua54::Extensions
 			static_cast<int>(returnCount & Integer<int>::SignedCastMask)
 		);
 	}
+
+#if defined(AL_COMPILER_GNU)
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wunused-function"
+#endif
 	static Void             pcall(::lua_State* lua, size_t argCount, size_t returnCount)
 	{
 		::lua_pcall(
@@ -360,6 +365,9 @@ namespace AL::Lua54::Extensions
 			0
 		);
 	}
+#if defined(AL_COMPILER_GNU)
+	#pragma GCC diagnostic pop
+#endif
 }
 
 AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(::std::nullptr_t, &AL::Lua54::Extensions::getnil,           &AL::Lua54::Extensions::pushnil,           &AL::Lua54::Extensions::pop<::std::nullptr_t>);
