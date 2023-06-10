@@ -147,7 +147,7 @@ namespace AL::Lua54
 				{
 					return Function::Get<typename Get_Type_Sequence<INDEX, TArgs ...>::Type>(
 						lua,
-						1 + INDEX
+						INDEX
 					);
 				}
 			};
@@ -178,7 +178,7 @@ namespace AL::Lua54
 				{
 					return Function::Get<typename Get_Type_Sequence<INDEX, TArgs ...>::Type>(
 						lua,
-						1 + INDEX
+						INDEX
 					);
 				}
 			};
@@ -212,7 +212,7 @@ namespace AL::Lua54
 				{
 					return Function::Get<typename Get_Type_Sequence<INDEX, TArgs ...>::Type>(
 						lua,
-						1 + INDEX
+						INDEX
 					);
 				}
 
@@ -250,7 +250,7 @@ namespace AL::Lua54
 			public:
 				static constexpr T_RETURN Execute(::lua_State* lua, T_ARGS ... args)
 				{
-					(Push<T_ARGS>(lua, Forward<T_ARGS>(args)), ...);
+					(Function::Push<T_ARGS>(lua, Forward<T_ARGS>(args)), ...);
 
 					Extensions::call(
 						lua,
@@ -258,8 +258,9 @@ namespace AL::Lua54
 						1
 					);
 
-					return Pop<T_RETURN>(
-						lua
+					return Function::Get<T_RETURN>(
+						lua,
+						1
 					);
 				}
 			};
@@ -269,7 +270,7 @@ namespace AL::Lua54
 			public:
 				static constexpr Void Execute(::lua_State* lua, T_ARGS ... args)
 				{
-					(Push<T_ARGS>(lua, Forward<T_ARGS>(args)), ...);
+					(Function::Push<T_ARGS>(lua, Forward<T_ARGS>(args)), ...);
 
 					Extensions::call(
 						lua,
@@ -284,7 +285,16 @@ namespace AL::Lua54
 			public:
 				static constexpr Collections::Tuple<T_RETURN ...> Execute(::lua_State* lua, T_ARGS ... args)
 				{
-					(Push<T_ARGS>(lua, Forward<T_ARGS>(args)), ...);
+					return Execute(
+						lua,
+						Forward<T_ARGS>(args) ...,
+						typename Make_Index_Sequence<sizeof ...(T_RETURN)>::Type {}
+					);
+				}
+				template<size_t ... INDEXES>
+				static constexpr Collections::Tuple<T_RETURN ...> Execute(::lua_State* lua, T_ARGS ... args, Index_Sequence<INDEXES ...>)
+				{
+					(Function::Push<T_ARGS>(lua, Forward<T_ARGS>(args)), ...);
 
 					Extensions::call(
 						lua,
@@ -293,7 +303,17 @@ namespace AL::Lua54
 					);
 
 					return Collections::Tuple<T_RETURN ...>(
-						Pop<T_RETURN>(lua) ...
+						Get<INDEXES>(lua) ...
+					);
+				}
+
+			private:
+				template<size_t I>
+				static constexpr auto Get(::lua_State* lua)
+				{
+					return Function::Get<typename Get_Type_Sequence<I, T_RETURN ...>::Type>(
+						lua,
+						I
 					);
 				}
 			};
@@ -458,18 +478,18 @@ namespace AL::Lua54
 		template<typename T_ARG>
 		static constexpr T_ARG Get(::lua_State* lua, size_t index)
 		{
-			if constexpr (Extensions::Type_Functions<T_ARG>::IsDefined)
-			{
-				return Extensions::Type_Functions<T_ARG>::Get(
-					lua,
-					index
-				);
-			}
-			else if constexpr (Is_LuaCallback<T_ARG>::Value)
+			if constexpr (Is_LuaCallback<T_ARG>::Value)
 			{
 				return T_ARG(
 					lua,
-					index
+					1 + index
+				);
+			}
+			else if constexpr (Extensions::Type_Functions<T_ARG>::IsDefined)
+			{
+				return Extensions::Type_Functions<T_ARG>::Get(
+					lua,
+					1 + index
 				);
 			}
 		}
@@ -477,16 +497,16 @@ namespace AL::Lua54
 		template<typename T_ARG>
 		static constexpr T_ARG Pop(::lua_State* lua) 
 		{
-			if constexpr (Extensions::Type_Functions<T_ARG>::IsDefined)
+			if constexpr (Is_LuaCallback<T_ARG>::Value)
 			{
-				return Extensions::Type_Functions<T_ARG>::Pop(
+				return T_ARG(
 					lua,
 					1
 				);
 			}
-			else if constexpr (Is_LuaCallback<T_ARG>::Value)
+			else if constexpr (Extensions::Type_Functions<T_ARG>::IsDefined)
 			{
-				return T_ARG(
+				return Extensions::Type_Functions<T_ARG>::Pop(
 					lua,
 					1
 				);
