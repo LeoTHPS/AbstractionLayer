@@ -526,6 +526,14 @@ namespace AL::Lua54
 		}
 	};
 
+	template<auto F>
+	using CFunction = Function::C<F>;
+
+	template<typename F>
+	using LuaFunction = Function::Lua<F>;
+	template<typename F>
+	using LuaCallback = Function::LuaCallback<F>;
+
 	enum class Libraries : uint8
 	{
 		IO,
@@ -700,7 +708,7 @@ namespace AL::Lua54
 
 			SetGlobal(
 				name,
-				&Function::C<F>::Execute
+				&CFunction<F>::Execute
 			);
 		}
 
@@ -717,7 +725,7 @@ namespace AL::Lua54
 				name
 			);
 
-			return Function::Lua<F>::Execute(
+			return LuaFunction<F>::Execute(
 				GetHandle(),
 				Forward<TArgs>(args) ...
 			);
