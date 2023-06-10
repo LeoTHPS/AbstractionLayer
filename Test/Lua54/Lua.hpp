@@ -55,6 +55,11 @@ static void AL_Lua54_call_the_thing(AL::Lua54::Function::LuaCallback<void()> cal
 	callback();
 }
 
+static auto AL_Lua54_get_the_thing_via(AL::Lua54::Function::LuaCallback<bool()> func)
+{
+	return func();
+}
+
 static void AL_Lua54_do_the_call()
 {
 	AL_Lua54_Callback();
@@ -105,6 +110,10 @@ static void AL_Lua54()
 			"do_the_call"
 		);
 
+		AL_Lua54_State.SetGlobalFunction<AL_Lua54_get_the_thing_via>(
+			"get_the_thing_via"
+		);
+
 		AL_Lua54_State.SetGlobalFunction<AL_Lua54_prepare_the_call>(
 			"prepare_the_call"
 		);
@@ -118,7 +127,9 @@ static void AL_Lua54()
 			                                    "\n"
 			"prepare_the_call(do_the_thing);"   "\n"
 			"do_the_call();"                    "\n"
-			"print(type(get_the_thing()), get_the_thing());"
+			"the_thing = nil;"                  "\n"
+			"get_the_thing_via(get_the_thing)"  "\n"
+			"print(type(the_thing), the_thing);""\n"
 		);
 	}
 	catch (Exception&)
