@@ -30,6 +30,11 @@ static void AL_Lua54_do_the_thing()
 	);
 }
 
+static bool AL_Lua54_get_the_thing()
+{
+	return true;
+}
+
 static void AL_Lua54_say_the_thing(const char* message)
 {
 	AL::OS::Console::WriteLine(
@@ -80,6 +85,10 @@ static void AL_Lua54()
 			"do_the_thing"
 		);
 
+		AL_Lua54_State.SetGlobalFunction<AL_Lua54_get_the_thing>(
+			"get_the_thing"
+		);
+
 		AL_Lua54_State.SetGlobalFunction<AL_Lua54_call_the_thing>(
 			"call_the_thing"
 		);
@@ -108,7 +117,8 @@ static void AL_Lua54()
 			"end"                               "\n"
 			                                    "\n"
 			"prepare_the_call(do_the_thing);"   "\n"
-			"do_the_call();"
+			"do_the_call();"                    "\n"
+			"print(type(get_the_thing()), get_the_thing());"
 		);
 	}
 	catch (Exception&)
