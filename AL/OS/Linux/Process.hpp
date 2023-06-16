@@ -43,9 +43,8 @@ namespace AL::OS::Linux
 		Bool      isCurrentProcess = False;
 
 		ProcessId id;
-		int       handle;
 
-		Process(ProcessId id, int handle, Bool isCurrentProcess)
+		Process(ProcessId id, Bool isCurrentProcess)
 			: isOpen(
 				True
 			),
@@ -54,9 +53,6 @@ namespace AL::OS::Linux
 			),
 			id(
 				id
-			),
-			handle(
-				handle
 			)
 		{
 		}
@@ -66,19 +62,14 @@ namespace AL::OS::Linux
 		// @return AL::False if not found
 		static Bool Open(Process& process, ProcessId id)
 		{
-			int handle;
-
-			if ((handle = ::open(String::Format("/proc/%s/mem", ToString(id).GetCString()).GetCString(), O_RDWR | O_DIRECT | O_SYNC)) == -1)
+			if (!FileSystem::Directory::Exists(String::Format("/proc/%s", ToString(id).GetCString())))
 			{
 
-				throw SystemException(
-					"open"
-				);
+				return False;
 			}
 
 			process = Process(
 				id,
-				handle,
 				(id == static_cast<ProcessId>(::getpid()))
 			);
 		}
@@ -187,9 +178,6 @@ namespace AL::OS::Linux
 			),
 			id(
 				process.id
-			),
-			handle(
-				process.handle
 			)
 		{
 			process.isOpen = False;
@@ -226,11 +214,6 @@ namespace AL::OS::Linux
 			return id;
 		}
 
-		auto GetHandle() const
-		{
-			return handle;
-		}
-
 		// @throw AL::Exception
 		ProcessExitCode GetExitCode() const
 		{
@@ -247,9 +230,6 @@ namespace AL::OS::Linux
 		{
 			if (IsOpen())
 			{
-				// ::close(
-				// 	GetHandle()
-				// );
 
 				isOpen = False;
 			}
@@ -285,8 +265,7 @@ namespace AL::OS::Linux
 
 			isCurrentProcess = process.isCurrentProcess;
 
-			id     = process.id;
-			handle = process.handle;
+			id = process.id;
 
 			return *this;
 		}
