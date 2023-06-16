@@ -72,6 +72,8 @@ namespace AL::OS::Linux
 				id,
 				(id == static_cast<ProcessId>(::getpid()))
 			);
+
+			return True;
 		}
 		// @throw AL::Exception
 		// @return AL::False if not found
@@ -212,6 +214,10 @@ namespace AL::OS::Linux
 		auto GetId() const
 		{
 			return id;
+		}
+
+		auto GetHandle() const
+		{
 		}
 
 		// @throw AL::Exception
@@ -467,6 +473,8 @@ namespace AL::OS::Linux
 				fdMemory,
 				mode
 			);
+
+			return True;
 		}
 
 		ProcessMemory()
