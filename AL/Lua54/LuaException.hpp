@@ -1,11 +1,13 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#if !AL_HAS_INCLUDE(<lua.hpp>)
+#if AL_HAS_INCLUDE(<lua.hpp>)
+	#include <lua.hpp>
+#elif AL_HAS_INCLUDE(<lua5.4/lua.hpp>)
+	#include <lua5.4/lua.hpp>
+#else
 	#error Missing lua.hpp
 #endif
-
-#include <lua.hpp>
 
 namespace AL::Lua54
 {
