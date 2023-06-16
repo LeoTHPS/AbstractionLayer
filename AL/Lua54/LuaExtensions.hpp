@@ -3,12 +3,6 @@
 
 #include "LuaException.hpp"
 
-#if !AL_HAS_INCLUDE(<lua.hpp>)
-	#error Missing lua.hpp
-#endif
-
-#include <lua.hpp>
-
 #define AL_LUA_DEFINE_TYPE_STACK_FUNCTIONS(__type__, __get__, __push__, __pop__) \
 	template<> \
 	struct AL::Lua54::Extensions::Type_Functions<__type__> \

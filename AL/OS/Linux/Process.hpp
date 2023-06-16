@@ -43,9 +43,8 @@ namespace AL::OS::Linux
 		Bool      isCurrentProcess = False;
 
 		ProcessId id;
-		int       handle;
 
-		Process(ProcessId id, int handle, Bool isCurrentProcess)
+		Process(ProcessId id, Bool isCurrentProcess)
 			: isOpen(
 				True
 			),
@@ -54,9 +53,6 @@ namespace AL::OS::Linux
 			),
 			id(
 				id
-			),
-			handle(
-				handle
 			)
 		{
 		}
@@ -66,26 +62,14 @@ namespace AL::OS::Linux
 		// @return AL::False if not found
 		static Bool Open(Process& process, ProcessId id)
 		{
-			if (::kill(static_cast<::pid_t>(id), 0) == -1)
+			if (!FileSystem::Directory::Exists(String::Format("/proc/%s", ToString(id).GetCString())))
 			{
-				auto lastError = GetLastError();
 
-				switch (lastError)
-				{
-					case ESRCH:
-					case EPERM:
-						return False;
-				}
-
-				throw SystemException(
-					"kill",
-					lastError
-				);
+				return False;
 			}
 
 			process = Process(
 				id,
-				0,
 				(id == static_cast<ProcessId>(::getpid()))
 			);
 		}
@@ -194,9 +178,6 @@ namespace AL::OS::Linux
 			),
 			id(
 				process.id
-			),
-			handle(
-				process.handle
 			)
 		{
 			process.isOpen = False;
@@ -233,14 +214,14 @@ namespace AL::OS::Linux
 			return id;
 		}
 
-		auto GetHandle() const
-		{
-			return handle;
-		}
-
 		// @throw AL::Exception
 		ProcessExitCode GetExitCode() const
 		{
+			AL_ASSERT(
+				IsOpen(),
+				"Process not open"
+			);
+
 			// TODO: implement
 			throw NotImplementedException();
 		}
@@ -249,11 +230,25 @@ namespace AL::OS::Linux
 		{
 			if (IsOpen())
 			{
-				// ::close(
-				// 	GetHandle()
-				// );
 
 				isOpen = False;
+			}
+		}
+
+		// @throw AL::Exception
+		Void Terminate(int32 signal)
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"Process not open"
+			);
+
+			if (::kill(GetId(), signal) == -1)
+			{
+
+				throw SystemException(
+					"kill"
+				);
 			}
 		}
 
@@ -270,8 +265,7 @@ namespace AL::OS::Linux
 
 			isCurrentProcess = process.isCurrentProcess;
 
-			id     = process.id;
-			handle = process.handle;
+			id = process.id;
 
 			return *this;
 		}
