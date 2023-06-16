@@ -66,26 +66,19 @@ namespace AL::OS::Linux
 		// @return AL::False if not found
 		static Bool Open(Process& process, ProcessId id)
 		{
-			if (::kill(static_cast<::pid_t>(id), 0) == -1)
-			{
-				auto lastError = GetLastError();
+			int handle;
 
-				switch (lastError)
-				{
-					case ESRCH:
-					case EPERM:
-						return False;
-				}
+			if ((handle = ::open(String::Format("/proc/%s/mem", ToString(id).GetCString()).GetCString(), O_RDWR | O_DIRECT | O_SYNC)) == -1)
+			{
 
 				throw SystemException(
-					"kill",
-					lastError
+					"open"
 				);
 			}
 
 			process = Process(
 				id,
-				0,
+				handle,
 				(id == static_cast<ProcessId>(::getpid()))
 			);
 		}
@@ -241,6 +234,11 @@ namespace AL::OS::Linux
 		// @throw AL::Exception
 		ProcessExitCode GetExitCode() const
 		{
+			AL_ASSERT(
+				IsOpen(),
+				"Process not open"
+			);
+
 			// TODO: implement
 			throw NotImplementedException();
 		}
@@ -254,6 +252,23 @@ namespace AL::OS::Linux
 				// );
 
 				isOpen = False;
+			}
+		}
+
+		// @throw AL::Exception
+		Void Terminate(int32 signal)
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"Process not open"
+			);
+
+			if (::kill(GetId(), signal) == -1)
+			{
+
+				throw SystemException(
+					"kill"
+				);
 			}
 		}
 
