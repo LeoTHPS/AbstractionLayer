@@ -30,7 +30,9 @@ namespace AL::Network::HTTP
 			Bool         isConnected  = False;
 			Bool         isSslEnabled;
 
+#if defined(AL_NETWORK_HTTP_REQUEST_OPENSSL_ENABLED)
 			OpenSSL::SSL ssl;
+#endif
 			TcpSocket    socket;
 
 			Socket(Socket&&) = delete;
@@ -41,10 +43,12 @@ namespace AL::Network::HTTP
 				: isSslEnabled(
 					enableSSL
 				),
+#if defined(AL_NETWORK_HTTP_REQUEST_OPENSSL_ENABLED)
 				ssl(
 					OpenSSL::Modes::Client,
 					OpenSSL::Protocols::TLS
 				),
+#endif
 				socket(
 					addressFamily
 				)
@@ -86,6 +90,7 @@ namespace AL::Network::HTTP
 					);
 				}
 
+#if defined(AL_NETWORK_HTTP_REQUEST_OPENSSL_ENABLED)
 				if (isSslEnabled)
 				{
 					try
@@ -119,6 +124,7 @@ namespace AL::Network::HTTP
 						);
 					}
 				}
+#endif
 
 				try
 				{
@@ -132,7 +138,9 @@ namespace AL::Network::HTTP
 				}
 				catch (Exception& exception)
 				{
+#if defined(AL_NETWORK_HTTP_REQUEST_OPENSSL_ENABLED)
 					ssl.Destroy();
+#endif
 					socket.Close();
 
 					throw Exception(
@@ -143,6 +151,7 @@ namespace AL::Network::HTTP
 					);
 				}
 
+#if defined(AL_NETWORK_HTTP_REQUEST_OPENSSL_ENABLED)
 				if (isSslEnabled)
 				{
 					try
@@ -159,6 +168,7 @@ namespace AL::Network::HTTP
 						);
 					}
 				}
+#endif
 
 				isConnected = True;
 
@@ -169,7 +179,9 @@ namespace AL::Network::HTTP
 			{
 				if (IsConnected())
 				{
+#if defined(AL_NETWORK_HTTP_REQUEST_OPENSSL_ENABLED)
 					ssl.Destroy();
+#endif
 					socket.Close();
 
 					isConnected = False;
@@ -184,6 +196,7 @@ namespace AL::Network::HTTP
 					"Socket not connected"
 				);
 
+#if defined(AL_NETWORK_HTTP_REQUEST_OPENSSL_ENABLED)
 				if (isSslEnabled)
 				{
 					try
@@ -205,6 +218,7 @@ namespace AL::Network::HTTP
 					}
 				}
 				else
+#endif
 				{
 					try
 					{
@@ -238,6 +252,7 @@ namespace AL::Network::HTTP
 
 				size_t numberOfBytesSent;
 
+#if defined(AL_NETWORK_HTTP_REQUEST_OPENSSL_ENABLED)
 				if (isSslEnabled)
 				{
 					numberOfBytesSent = 0;
@@ -264,6 +279,7 @@ namespace AL::Network::HTTP
 					}
 				}
 				else
+#endif
 				{
 					try
 					{
