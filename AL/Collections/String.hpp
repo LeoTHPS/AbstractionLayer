@@ -147,8 +147,19 @@ namespace AL::Collections
 			);
 		}
 
+		static _String<Char> Format(const Char* format)
+		{
+			return _String(
+				format
+			);
+		}
 		template<typename ... TArgs>
 		static _String<Char> Format(const Char* format, TArgs ... args);
+
+		static _String<Char> Format(const _String& format)
+		{
+			return format;
+		}
 		template<typename ... TArgs>
 		static _String<Char> Format(const _String& format, TArgs ... args)
 		{
