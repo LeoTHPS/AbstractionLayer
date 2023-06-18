@@ -1041,4 +1041,32 @@ namespace AL::OS
 		return Windows::GetCurrentProcessId();
 #endif
 	}
+
+	inline auto IsDebuggerPresent()
+	{
+#if defined(AL_PLATFORM_LINUX)
+		try
+		{
+			return Linux::IsDebuggerPresent();
+		}
+		catch (const Exception&)
+		{
+		}
+
+		return False;
+#elif defined(AL_PLATFORM_WINDOWS)
+		return Windows::IsDebuggerPresent();
+#endif
+	}
+
+	inline auto SetDebuggerPresent(Bool value = True)
+	{
+#if defined(AL_PLATFORM_LINUX)
+		// TODO: can this be implemented without a kernel patch?
+#elif defined(AL_PLATFORM_WINDOWS)
+		return Windows::SetDebuggerPresent(
+			value
+		);
+#endif
+	}
 }
