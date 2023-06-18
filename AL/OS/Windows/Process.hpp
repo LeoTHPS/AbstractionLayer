@@ -1043,9 +1043,9 @@ namespace AL::OS::Windows
 		return GetProcessEnvironmentBlock()->BeingDebugged != 0;
 	}
 
-	inline Void SetDebuggerPresent(Bool set = True)
+	inline Void SetDebuggerPresent(Bool value = True)
 	{
-		GetProcessEnvironmentBlock()->BeingDebugged = set ? 1 : 0;
+		GetProcessEnvironmentBlock()->BeingDebugged = value ? 1 : 0;
 	}
 }
 
