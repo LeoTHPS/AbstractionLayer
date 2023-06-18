@@ -14,6 +14,7 @@
 #include "AL/Collections/Array.hpp"
 
 #include "AL/FileSystem/Path.hpp"
+#include "AL/FileSystem/TextFile.hpp"
 #include "AL/FileSystem/Directory.hpp"
 
 #include <dlfcn.h>
@@ -892,6 +893,102 @@ namespace AL::OS::Linux
 			return True;
 		}
 	};
+
+	// @throw AL::Exception
+	static Bool IsDebuggerPresent()
+	{
+		FileSystem::TextFile file(
+			"/proc/self/status"
+		);
+
+		try
+		{
+			if (!file.Open(FileSystem::FileOpenModes::Read))
+			{
+
+				throw Exception(
+					"File not found"
+				);
+			}
+		}
+		catch (Exception& exception)
+		{
+
+			throw Exception(
+				Move(exception),
+				"Error opening %s",
+				file.GetPath().GetString().GetCString()
+			);
+		}
+
+		// @return 0 if not found
+		// @return -1 if end of file
+		auto file_TryReadLineAndTracerPID = [&file](String& _line, ProcessId& _value)
+		{
+			try
+			{
+				if (!file.ReadLine(_line))
+				{
+
+					return -1;
+				}
+			}
+			catch (Exception& exception)
+			{
+
+				throw Exception(
+					Move(exception),
+					"Error reading line"
+				);
+			}
+
+			Regex::MatchCollection matches;
+
+			if (!Regex::Match(matches, "^TracerPid:\\s*(\\d+)$", _line))
+			{
+
+				return 0;
+			}
+
+			_value = FromString<ProcessId>(
+				matches[1]
+			);
+
+			return 1;
+		};
+
+		ProcessId tracerPID = 0;
+
+		try
+		{
+			String line;
+			int    value;
+
+			while ((value = file_TryReadLineAndTracerPID(line, tracerPID)) <= 0)
+			{
+				if (value == -1)
+				{
+					file.Close();
+
+					return False;
+				}
+			}
+		}
+		catch (Exception& exception)
+		{
+			file.Close();
+
+			throw Exception(
+				Move(exception),
+				"Error reading %s",
+				file.GetPath().GetString().GetCString()
+			);
+		}
+
+		file.Close();
+
+		return tracerPID != 0;
+	}
 
 	// @throw AL::Exception
 	inline auto GetCurrentProcess()
