@@ -100,6 +100,27 @@ namespace AL::Hardware::PicoW
 		USA            = CYW43_COUNTRY_USA
 	};
 
+	enum class CYW43LinkStatus : int8
+	{
+		// Wifi down
+		Down    = CYW43_LINK_DOWN,
+		// Connected to wifi
+		Join    = CYW43_LINK_JOIN,
+		// Connection failed
+		Fail    = CYW43_LINK_FAIL,
+		// No matching SSID found (could be out of range, or down)
+		NoNet   = CYW43_LINK_NONET,
+		// Authenticatation failure
+		BadAuth = CYW43_LINK_BADAUTH
+	};
+
+	enum class CYW43PowerLevels : uint8
+	{
+		Default,
+		Aggressive,
+		Performance
+	};
+
 	struct CYW43Network
 	{
 		int16          RSSI;
@@ -108,6 +129,8 @@ namespace AL::Hardware::PicoW
 		uint16         Channel;
 		CYW43AuthTypes AuthType;
 	};
+
+	typedef Collections::Array<uint8[6]> CYW43MACAddress;
 
 	// @throw AL::Exception
 	// @return AL::False to stop scanning
@@ -121,16 +144,21 @@ namespace AL::Hardware::PicoW
 			const CYW43ScanCallback* lpCallback;
 		};
 
-		inline static Bool isOpen      = False;
-		inline static Bool isConnected = False;
-		inline static Bool isListening = False;
+		inline static Bool isOpen        = False;
+		inline static Bool isStation     = False;
+		inline static Bool isAccessPoint = False;
+		inline static Bool isConnected   = False;
+		inline static Bool isListening   = False;
 
 		CYW43() = delete;
 
 	public:
-		typedef CYW43Network   Network;
-		typedef CYW43AuthTypes AuthTypes;
-		typedef CYW43Countries Countries;
+		typedef CYW43Network     Network;
+		typedef CYW43AuthTypes   AuthTypes;
+		typedef CYW43Countries   Countries;
+		typedef CYW43LinkStatus  LinkStatus;
+		typedef CYW43MACAddress  MACAddress;
+		typedef CYW43PowerLevels PowerLevels;
 
 		class LED
 		{
@@ -170,6 +198,16 @@ namespace AL::Hardware::PicoW
 			return isOpen;
 		}
 
+		static Bool IsStation()
+		{
+			return isStation;
+		}
+
+		static Bool IsAccessPoint()
+		{
+			return isAccessPoint;
+		}
+
 		static Bool IsConnected()
 		{
 			return isConnected;
@@ -178,6 +216,117 @@ namespace AL::Hardware::PicoW
 		static Bool IsListening()
 		{
 			return isListening;
+		}
+
+		// @throw AL::Exception
+		static int32 GetRSSI()
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"CYW43 not open"
+			);
+
+			::int32_t     value;
+			OS::ErrorCode errorCode;
+
+			if ((errorCode = ::cyw43_wifi_get_rssi(&cyw43_state, &value)) != 0)
+			{
+
+				throw OS::SystemException(
+					"cyw43_wifi_get_rssi",
+					errorCode
+				);
+			}
+
+			return value;
+		}
+
+		// @throw AL::Exception
+		static LinkStatus GetLinkStatus()
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"CYW43 not open"
+			);
+
+			int value;
+
+			if ((value = ::cyw43_wifi_link_status(&cyw43_state, IsStation() ? ::CYW43_ITF_STA : ::CYW43_ITF_AP)) < 0)
+			{
+
+				throw OS::SystemException(
+					"cyw43_wifi_link_status",
+					value
+				);
+			}
+
+			return static_cast<LinkStatus>(
+				value
+			);
+		}
+
+		// @throw AL::Exception
+		static MACAddress GetMACAddress()
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"CYW43 not open"
+			);
+
+			::uint8_t     value[6];
+			OS::ErrorCode errorCode;
+
+			if ((errorCode = ::cyw43_wifi_get_mac(&cyw43_state, IsStation() ? ::CYW43_ITF_STA : ::CYW43_ITF_AP, value)) != 0)
+			{
+
+				throw OS::SystemException(
+					"cyw43_wifi_get_mac",
+					errorCode
+				);
+			}
+
+			return value;
+		}
+
+		// @throw AL::Exception
+		static PowerLevels GetPowerManagement()
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"CYW43 not open"
+			);
+
+			::uint32_t    value;
+			OS::ErrorCode errorCode;
+
+			if ((errorCode = ::cyw43_wifi_get_pm(&cyw43_state, &value)) != 0)
+			{
+
+				throw OS::SystemException(
+					"cyw43_wifi_get_pm",
+					errorCode
+				);
+			}
+
+			if (value == CYW43_DEFAULT_PM)
+			{
+
+				return PowerLevels::Default;
+			}
+
+			if (value == CYW43_AGGRESSIVE_PM)
+			{
+
+				return PowerLevels::Aggressive;
+			}
+
+			if (value == CYW43_PERFORMANCE_PM)
+			{
+
+				return PowerLevels::Performance;
+			}
+
+			throw NotImplementedException();
 		}
 
 		static Void Poll()
@@ -260,9 +409,11 @@ namespace AL::Hardware::PicoW
 
 				::cyw43_arch_deinit();
 
-				isOpen      = False;
-				isConnected = False;
-				isListening = False;
+				isOpen        = False;
+				isConnected   = False;
+				isListening   = False;
+				isStation     = False;
+				isAccessPoint = False;
 			}
 		}
 
@@ -330,8 +481,10 @@ namespace AL::Hardware::PicoW
 				);
 			}
 
-			isConnected = True;
-			isListening = False;
+			isStation     = True;
+			isAccessPoint = False;
+			isConnected   = True;
+			isListening   = False;
 		}
 		// @throw AL::Exception
 		static Void Connect(const String& ssid, const String& password, AuthTypes authType)
@@ -363,8 +516,10 @@ namespace AL::Hardware::PicoW
 				);
 			}
 
-			isConnected = True;
-			isListening = False;
+			isStation     = True;
+			isAccessPoint = False;
+			isConnected   = True;
+			isListening   = False;
 		}
 
 		// @throw AL::Exception
@@ -394,8 +549,10 @@ namespace AL::Hardware::PicoW
 				);
 			}
 
-			isConnected = True;
-			isListening = False;
+			isStation     = True;
+			isAccessPoint = False;
+			isConnected   = True;
+			isListening   = False;
 
 			return True;
 		}
@@ -435,8 +592,10 @@ namespace AL::Hardware::PicoW
 				);
 			}
 
-			isConnected = True;
-			isListening = False;
+			isStation     = True;
+			isAccessPoint = False;
+			isConnected   = True;
+			isListening   = False;
 
 			return True;
 		}
@@ -455,8 +614,10 @@ namespace AL::Hardware::PicoW
 				CYW43_AUTH_OPEN
 			);
 
-			isConnected = False;
-			isListening = True;
+			isStation     = False;
+			isAccessPoint = True;
+			isConnected   = False;
+			isListening   = True;
 		}
 		// @throw AL::Exception
 		static Void Listen(const String& ssid, const String& password, AuthTypes authType)
@@ -482,8 +643,48 @@ namespace AL::Hardware::PicoW
 				_authType
 			);
 
-			isConnected = False;
-			isListening = True;
+			isStation     = False;
+			isAccessPoint = True;
+			isConnected   = False;
+			isListening   = True;
+		}
+
+		// @throw AL::Exception
+		static Void SetPowerManagement(PowerLevels value)
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"CYW43 not open"
+			);
+
+			OS::ErrorCode errorCode = ::PICO_ERROR_INVALID_ARG;
+
+			switch (value)
+			{
+				case PowerLevels::Default:
+					errorCode = ::cyw43_wifi_pm(&cyw43_state, CYW43_DEFAULT_PM);
+					break;
+
+				case PowerLevels::Aggressive:
+					errorCode = ::cyw43_wifi_pm(&cyw43_state, CYW43_AGGRESSIVE_PM);
+					break;
+
+				case PowerLevels::Performance:
+					errorCode = ::cyw43_wifi_pm(&cyw43_state, CYW43_PERFORMANCE_PM);
+					break;
+
+				default:
+					throw NotImplementedException();
+			}
+
+			if (errorCode != 0)
+			{
+
+				throw OS::SystemException(
+					"cyw43_wifi_pm",
+					errorCode
+				);
+			}
 		}
 
 	private:
@@ -513,6 +714,20 @@ namespace AL::Hardware::PicoW
 			return 0;
 		}
 
+	private:
+		template<typename F, typename ... TArgs>
+		static Void LWIP_Sync(F&& function, TArgs ... args)
+		{
+			::cyw43_arch_lwip_begin();
+
+			function(
+				Forward<TArgs>(args) ...
+			);
+
+			::cyw43_arch_lwip_end();
+		}
+
+	private:
 		static String BSSID_ToString(const ::uint8_t(&value)[6])
 		{
 			return String::Format(
