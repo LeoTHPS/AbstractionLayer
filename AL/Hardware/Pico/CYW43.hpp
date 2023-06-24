@@ -11,8 +11,6 @@
 	#error Missing pico/cyw43_arch.h
 #endif
 
-#include <boards/pico_w.h>
-
 #include <pico/cyw43_arch.h>
 
 #if defined(LWIP_IPV4) && LWIP_IPV4
