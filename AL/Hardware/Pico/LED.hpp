@@ -5,6 +5,8 @@
 	#error Platform not supported
 #endif
 
+// TODO: detect any board using a non-standard LED
+
 #if defined(AL_PLATFORM_PICO_W)
 	#error Platform not supported - Use AL::Hardware::PicoW::CYW43::LED instead
 #endif
