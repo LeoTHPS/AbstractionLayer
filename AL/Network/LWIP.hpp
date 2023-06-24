@@ -1,7 +1,7 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#if !defined(AL_PLATFORM_PICO_W)
+#if !defined(AL_PLATFORM_PICO)
 	#error Platform not supported
 #endif
 

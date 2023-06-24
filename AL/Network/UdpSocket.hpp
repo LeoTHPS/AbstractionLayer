@@ -3,7 +3,7 @@
 
 #include "ISocket.hpp"
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 	#include "LWIP.hpp"
 #elif defined(AL_PLATFORM_LINUX)
 	#include <fcntl.h>
@@ -34,7 +34,7 @@ namespace AL::Network
 		SocketTypes     type;
 		AddressFamilies addressFamily;
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 		LWIP::UdpSocket socket;
 #elif defined(AL_PLATFORM_LINUX)
 		int             socket;
@@ -43,7 +43,7 @@ namespace AL::Network
 #endif
 
 	public:
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 		typedef typename LWIP::UdpSocket::Handle Handle;
 #elif defined(AL_PLATFORM_LINUX)
 		typedef int      Handle;
@@ -99,7 +99,7 @@ namespace AL::Network
 			addressFamily(
 				addressFamily
 			)
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 			,
 			socket(
 				addressFamily
@@ -147,7 +147,7 @@ namespace AL::Network
 
 		virtual Handle GetHandle() const
 		{
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 			return socket.GetHandle();
 #elif defined(AL_PLATFORM_LINUX)
 			return socket;
@@ -171,7 +171,7 @@ namespace AL::Network
 				"UdpSocket already open"
 			);
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 			try
 			{
 				socket.Open();
@@ -227,7 +227,7 @@ namespace AL::Network
 		{
 			if (IsOpen())
 			{
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 				socket.Close();
 #elif defined(AL_PLATFORM_LINUX)
 				::close(
@@ -252,7 +252,7 @@ namespace AL::Network
 				"UdpSocket not open"
 			);
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 			try
 			{
 				socket.Bind(
@@ -307,7 +307,7 @@ namespace AL::Network
 
 			size_t numberOfBytesSent = 0;
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 			try
 			{
 				do
@@ -374,7 +374,7 @@ namespace AL::Network
 
 			size_t numberOfBytesReceived;
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 			try
 			{
 				while (((numberOfBytesReceived = socket.Receive(lpBuffer, size, ep)) == 0) && IsBlocking())
@@ -447,7 +447,7 @@ namespace AL::Network
 		{
 			if (IsOpen())
 			{
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 				// do nothing
 				// this has to be emulated on the Pi Pico W due to LWIP not supporting it
 #elif defined(AL_PLATFORM_LINUX)

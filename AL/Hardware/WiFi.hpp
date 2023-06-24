@@ -7,7 +7,7 @@
 #include "AL/Collections/LinkedList.hpp"
 #include "AL/Collections/Dictionary.hpp"
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 	#include "PicoW/CYW43.hpp"
 #elif defined(AL_PLATFORM_LINUX)
 
@@ -52,7 +52,7 @@ namespace AL::Hardware
 
 	struct WiFiRadioInformation
 	{
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 
 #elif defined(AL_PLATFORM_LINUX)
 

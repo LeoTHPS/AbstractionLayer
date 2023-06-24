@@ -5,7 +5,7 @@
 
 #include "AL/Collections/Array.hpp"
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 	#include "AL/Hardware/PicoW/CYW43.hpp"
 
 	#include <lwip/ip_addr.h>
@@ -23,7 +23,7 @@ namespace AL::Network
 {
 	enum class AddressFamilies : uint8
 	{
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 		IPv4         = ::IPADDR_TYPE_V4,
 		IPv6         = ::IPADDR_TYPE_V6,
 		NotSpecified = ::IPADDR_TYPE_ANY
@@ -46,7 +46,7 @@ namespace AL::Network
 	{
 		union Address
 		{
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV4)
 			::ip4_addr_t v4;
 	#endif
@@ -68,7 +68,7 @@ namespace AL::Network
 		AddressFamilies addressFamily;
 
 	public:
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV4) && defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV6)
 		typedef ::ip_addr_t  ip_addr;
 		typedef ::ip4_addr_t in_addr;
@@ -94,7 +94,7 @@ namespace AL::Network
 
 		static auto Any()
 		{
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV4)
 			return IPAddress(
 				BitConverter::HostToNetwork(IPADDR_ANY)
@@ -121,7 +121,7 @@ namespace AL::Network
 		}
 		static auto Any6()
 		{
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV6)
 			in6_addr addr;
 			ip6_addr_set_any(&addr);
@@ -139,7 +139,7 @@ namespace AL::Network
 
 		static auto Loopback()
 		{
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV4)
 			return IPAddress(
 				BitConverter::HostToNetwork(IPADDR_LOOPBACK)
@@ -166,7 +166,7 @@ namespace AL::Network
 		}
 		static auto Loopback6()
 		{
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV6)
 			in6_addr addr;
 			ip6_addr_set_loopback(&addr);
@@ -187,7 +187,7 @@ namespace AL::Network
 		{
 			IPAddress address;
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV4) && defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV6)
 			switch (value.type)
 			{
@@ -218,7 +218,7 @@ namespace AL::Network
 		{
 			IPAddress address;
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 			address = ::ipaddr_addr(
 				value.GetCString()
 			);
@@ -265,7 +265,7 @@ namespace AL::Network
 
 		IPAddress()
 			: isWinSockLoaded(
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 				False
 #elif defined(AL_PLATFORM_LINUX)
 				False
@@ -278,7 +278,7 @@ namespace AL::Network
 
 		IPAddress(uint32 address)
 			: IPAddress(
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV4)
 				in_addr
 				{
@@ -322,7 +322,7 @@ namespace AL::Network
 
 		IPAddress(in_addr&& address)
 			: isWinSockLoaded(
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 				False
 #elif defined(AL_PLATFORM_LINUX)
 				False
@@ -330,7 +330,7 @@ namespace AL::Network
 				WinSock::TryLoad()
 #endif
 			),
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV4)
 			address{
 				.v4 = Move(address)
@@ -355,7 +355,7 @@ namespace AL::Network
 
 		IPAddress(in6_addr&& address)
 			: isWinSockLoaded(
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 				False
 #elif defined(AL_PLATFORM_LINUX)
 				False
@@ -363,7 +363,7 @@ namespace AL::Network
 				WinSock::TryLoad()
 #endif
 			),
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV6)
 			address{
 				.v6 = Move(address)
@@ -401,7 +401,7 @@ namespace AL::Network
 		}
 		IPAddress(const IPAddress& address)
 			: isWinSockLoaded(
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 				False
 #elif defined(AL_PLATFORM_LINUX)
 				False
@@ -466,7 +466,7 @@ namespace AL::Network
 				0x00, 0x00, 0xFF, 0xFF
 			};
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV6)
 			if (!ip6_addr_isipv4mappedipv6(&address.v6))
 			{
@@ -502,7 +502,7 @@ namespace AL::Network
 
 		auto& GetAddress() const
 		{
-#if defined(AL_PLATFORM_PICO_W) && defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV4)
+#if defined(AL_PLATFORM_PICO) && defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV4)
 			return address.v4;
 #elif defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
 			return address.v4;
@@ -515,7 +515,7 @@ namespace AL::Network
 
 		auto& GetAddress6() const
 		{
-#if defined(AL_PLATFORM_PICO_W) && defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV6)
+#if defined(AL_PLATFORM_PICO) && defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV6)
 			return address.v6;
 #elif defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
 			return address.v6;
@@ -539,7 +539,7 @@ namespace AL::Network
 					{
 						case AddressFamilies::IPv4:
 						{
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV4)
 							address.address.v4    = this->address.v4;
 							address.addressFamily = AddressFamilies::IPv4;
@@ -557,7 +557,7 @@ namespace AL::Network
 
 						case AddressFamilies::IPv6:
 						{
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV4) && defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV6)
 							memset(
 								&address.address.v6.addr[0],
@@ -629,7 +629,7 @@ namespace AL::Network
 								throw OperationNotSupportedException();
 							}
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV4) && defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV6)
 							address.address.v4.addr = *reinterpret_cast<const uint32*>(
 								reinterpret_cast<const uint8*>(&this->address.v6.addr[0])[12]
@@ -659,7 +659,7 @@ namespace AL::Network
 
 						case AddressFamilies::IPv6:
 						{
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV6)
 							address.address.v6    = this->address.v6;
 							address.addressFamily = AddressFamilies::IPv6;
@@ -691,7 +691,7 @@ namespace AL::Network
 		// @throw AL::Exception
 		String ToString() const
 		{
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 			switch (GetFamily())
 			{
 				case AddressFamilies::IPv4:
@@ -760,7 +760,7 @@ namespace AL::Network
 
 		auto ToNative() const
 		{
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV4) && defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV6)
 			ip_addr address = { 0 };
 
@@ -801,7 +801,7 @@ namespace AL::Network
 			}
 #endif
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 			isWinSockLoaded = False;
 #elif defined(AL_PLATFORM_LINUX)
 			isWinSockLoaded = False;
@@ -809,7 +809,7 @@ namespace AL::Network
 			isWinSockLoaded = WinSock::TryLoad();
 #endif
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV4)
 			this->address.v4.addr = address;
 	#endif
@@ -832,7 +832,7 @@ namespace AL::Network
 			}
 #endif
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 			isWinSockLoaded = False;
 #elif defined(AL_PLATFORM_LINUX)
 			isWinSockLoaded = False;
@@ -855,7 +855,7 @@ namespace AL::Network
 			}
 #endif
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 			isWinSockLoaded = False;
 #elif defined(AL_PLATFORM_LINUX)
 			isWinSockLoaded = False;
@@ -879,7 +879,7 @@ namespace AL::Network
 			}
 #endif
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 			isWinSockLoaded = False;
 #elif defined(AL_PLATFORM_LINUX)
 			isWinSockLoaded = False;
@@ -887,7 +887,7 @@ namespace AL::Network
 			isWinSockLoaded = WinSock::TryLoad();
 #endif
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV6)
 			this->address.v6 = Move(address);
 	#endif
@@ -909,7 +909,7 @@ namespace AL::Network
 			}
 #endif
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 			isWinSockLoaded = False;
 #elif defined(AL_PLATFORM_LINUX)
 			isWinSockLoaded = False;
@@ -917,7 +917,7 @@ namespace AL::Network
 			isWinSockLoaded = WinSock::TryLoad();
 #endif
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV6)
 			this->address.v6 = address;
 	#endif
@@ -958,7 +958,7 @@ namespace AL::Network
 			}
 #endif
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 			isWinSockLoaded = False;
 #elif defined(AL_PLATFORM_LINUX)
 			isWinSockLoaded = False;

@@ -3,7 +3,7 @@
 
 #include "ISocket.hpp"
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 	#include "LWIP.hpp"
 #elif defined(AL_PLATFORM_LINUX)
 	#include <fcntl.h>
@@ -42,7 +42,7 @@ namespace AL::Network
 		IPEndPoint      remoteEP;
 		AddressFamilies addressFamily;
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 		LWIP::TcpSocket socket;
 #elif defined(AL_PLATFORM_LINUX)
 		int             socket;
@@ -51,7 +51,7 @@ namespace AL::Network
 #endif
 
 	public:
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 		typedef typename LWIP::TcpSocket::Handle Handle;
 #elif defined(AL_PLATFORM_LINUX)
 		typedef int      Handle;
@@ -61,7 +61,7 @@ namespace AL::Network
 		typedef Void*    Handle;
 #endif
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 		static constexpr size_t BACKLOG_MAX = LWIP::TcpSocket::BACKLOG_MAX;
 #elif defined(AL_PLATFORM_LINUX)
 		static constexpr size_t BACKLOG_MAX = SOMAXCONN;
@@ -125,7 +125,7 @@ namespace AL::Network
 			addressFamily(
 				addressFamily
 			)
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 			,
 			socket(
 				addressFamily
@@ -163,7 +163,7 @@ namespace AL::Network
 
 		virtual Bool IsNoDelay() const
 		{
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 			return socket.IsNoDelay();
 #else
 			return isNoDelay;
@@ -192,7 +192,7 @@ namespace AL::Network
 
 		virtual Handle GetHandle() const
 		{
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 			return socket.GetHandle();
 #elif defined(AL_PLATFORM_LINUX)
 			return socket;
@@ -226,7 +226,7 @@ namespace AL::Network
 				"TcpSocket already open"
 			);
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 			try
 			{
 				socket.Open();
@@ -282,7 +282,7 @@ namespace AL::Network
 		{
 			if (IsOpen())
 			{
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 				socket.Close();
 #elif defined(AL_PLATFORM_LINUX)
 				::close(
@@ -309,7 +309,7 @@ namespace AL::Network
 				"TcpSocket not open"
 			);
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 			try
 			{
 				socket.Bind(
@@ -373,7 +373,7 @@ namespace AL::Network
 				backlog = BACKLOG_MAX;
 			}
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 			try
 			{
 				socket.Listen(
@@ -429,7 +429,7 @@ namespace AL::Network
 				GetAddressFamily()
 			);
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 			try
 			{
 				if (!this->socket.Accept(_socket.socket))
@@ -487,7 +487,7 @@ namespace AL::Network
 			_socket.isConnected = True;
 			_socket.isListening = False;
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 			_socket.localEP  = _socket.socket.GetLocalEndPoint();
 			_socket.remoteEP = _socket.socket.GetRemoteEndPoint();
 #elif defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
@@ -567,7 +567,7 @@ namespace AL::Network
 				"TcpSocket already connected"
 			);
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 			try
 			{
 				if (!socket.Connect(ep, TimeSpan::FromSeconds(5)))
@@ -717,7 +717,7 @@ namespace AL::Network
 		{
 			if (IsOpen() && IsConnected())
 			{
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 				try
 				{
 					socket.Shutdown(
@@ -809,7 +809,7 @@ namespace AL::Network
 				"TcpSocket not connected"
 			);
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 			try
 			{
 				if (!socket.Send(lpBuffer, size, numberOfBytesSent))
@@ -923,7 +923,7 @@ namespace AL::Network
 				"TcpSocket not connected"
 			);
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 			try
 			{
 				if (IsBlocking() || BitMask<SocketFlags>::IsSet(flags, SocketFlags::WaitAll))
@@ -1034,7 +1034,7 @@ namespace AL::Network
 		{
 			if (IsOpen())
 			{
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 				socket.SetNoDelay(
 					value
 				);
@@ -1071,7 +1071,7 @@ namespace AL::Network
 		{
 			if (IsOpen())
 			{
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 				// do nothing
 				// this has to be emulated on the Pi Pico W due to LWIP not supporting it
 #elif defined(AL_PLATFORM_LINUX)

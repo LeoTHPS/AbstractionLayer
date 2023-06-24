@@ -6,7 +6,7 @@
 
 #include "AL/Collections/Array.hpp"
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 	#include <lwip/dns.h>
 #elif defined(AL_PLATFORM_LINUX)
 	#include <netdb.h>
@@ -42,7 +42,7 @@ namespace AL::Network
 		{
 			if (!IsInitialized())
 			{
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 				::dns_init();
 #elif defined(AL_PLATFORM_LINUX)
 				// TODO:implement
@@ -61,7 +61,7 @@ namespace AL::Network
 		{
 			if (IsInitialized() && (--initCount == 0))
 			{
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 				++initCount; // do nothing - this platform can't be cleaned up
 #elif defined(AL_PLATFORM_LINUX)
 				// TODO: implement
@@ -80,7 +80,7 @@ namespace AL::Network
 				"DNS not initialized"
 			);
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 			static_assert(
 				S <= Integer<uint8>::Maximum,
 				"S must must be less than or equal to 0xFF"
@@ -117,7 +117,7 @@ namespace AL::Network
 				"DNS not initialized"
 			);
 
-#if defined(AL_PLATFORM_PICO_W)
+#if defined(AL_PLATFORM_PICO)
 			struct ResolveContext
 			{
 				Bool        Success;
