@@ -1,5 +1,6 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.24)
 
+set(CMAKE_C_STANDARD 23)
 set(CMAKE_CXX_STANDARD 20)
 
 set(PICO_BOARD pico_w)
@@ -23,9 +24,12 @@ target_link_libraries(
 	pico_malloc
 	pico_multicore
 	pico_lwip
+#	pico_btstack_ble
+#	pico_btstack_classic
+#	pico_btstack_sbc_encoder
+#	pico_btstack_sbc_decoder
 	pico_cyw43_arch_lwip_poll
-#[[	pico_cyw43_arch_lwip_poll ]]
-#[[	pico_cyw43_arch_lwip_threadsafe_background ]]
+#	pico_cyw43_arch_lwip_threadsafe_background
 	hardware_adc
 	hardware_i2c
 	hardware_pwm
