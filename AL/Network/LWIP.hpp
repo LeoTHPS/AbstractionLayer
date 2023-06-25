@@ -15,7 +15,7 @@
 #include "AL/Collections/Array.hpp"
 #include "AL/Collections/LinkedList.hpp"
 
-#include "AL/Hardware/PicoW/CYW43.hpp"
+#include "AL/Hardware/Pico/CYW43.hpp"
 
 #include <lwip/tcp.h>
 #include <lwip/udp.h>
@@ -1593,7 +1593,7 @@ namespace AL::Network
 
 		static Void Poll()
 		{
-			Hardware::PicoW::CYW43::Poll();
+			Hardware::Pico::CYW43::Poll();
 		}
 
 		template<typename F, typename ... TArgs>
