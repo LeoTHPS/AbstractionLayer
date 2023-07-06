@@ -14,18 +14,15 @@ namespace AL
 		{
 			static T DoTheThing(T value)
 			{
-				struct Bytes
-				{
-					uint8 B1, B2, B3, B4;
-				} bytes;
+				uint8 bytes[4];
 
-				bytes.B1 = reinterpret_cast<const Bytes*>(&value)->B4;
-				bytes.B2 = reinterpret_cast<const Bytes*>(&value)->B3;
-				bytes.B3 = reinterpret_cast<const Bytes*>(&value)->B2;
-				bytes.B4 = reinterpret_cast<const Bytes*>(&value)->B1;
+				bytes[0] = reinterpret_cast<const uint8*>(&value)[3];
+				bytes[1] = reinterpret_cast<const uint8*>(&value)[2];
+				bytes[2] = reinterpret_cast<const uint8*>(&value)[1];
+				bytes[3] = reinterpret_cast<const uint8*>(&value)[0];
 
 				return *reinterpret_cast<const T*>(
-					&bytes
+					&bytes[0]
 				);
 			}
 		};
@@ -34,22 +31,19 @@ namespace AL
 		{
 			static T DoTheThing(T value)
 			{
-				struct Bytes
-				{
-					uint8 B1, B2, B3, B4, B5, B6, B7, B8;
-				} bytes;
+				uint8 bytes[8];
 
-				bytes.B1 = reinterpret_cast<const Bytes*>(&value)->B8;
-				bytes.B2 = reinterpret_cast<const Bytes*>(&value)->B7;
-				bytes.B3 = reinterpret_cast<const Bytes*>(&value)->B6;
-				bytes.B4 = reinterpret_cast<const Bytes*>(&value)->B5;
-				bytes.B5 = reinterpret_cast<const Bytes*>(&value)->B4;
-				bytes.B6 = reinterpret_cast<const Bytes*>(&value)->B3;
-				bytes.B7 = reinterpret_cast<const Bytes*>(&value)->B2;
-				bytes.B8 = reinterpret_cast<const Bytes*>(&value)->B1;
+				bytes[0] = reinterpret_cast<const uint8*>(&value)[7];
+				bytes[1] = reinterpret_cast<const uint8*>(&value)[6];
+				bytes[2] = reinterpret_cast<const uint8*>(&value)[5];
+				bytes[3] = reinterpret_cast<const uint8*>(&value)[4];
+				bytes[4] = reinterpret_cast<const uint8*>(&value)[3];
+				bytes[5] = reinterpret_cast<const uint8*>(&value)[2];
+				bytes[6] = reinterpret_cast<const uint8*>(&value)[1];
+				bytes[7] = reinterpret_cast<const uint8*>(&value)[0];
 
 				return *reinterpret_cast<const T*>(
-					&bytes
+					&bytes[0]
 				);
 			}
 		};
