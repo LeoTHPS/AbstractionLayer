@@ -84,6 +84,11 @@ namespace AL::Hardware::Pico
 		// Get the current frequency of the specified clock
 		static uint32 GetFrequency(Clocks clock)
 		{
+			AL_ASSERT(
+				IsInitialized(),
+				"Clock not initialized"
+			);
+
 			return ::clock_get_hz(
 				static_cast<::clock_index>(clock)
 			);
@@ -92,6 +97,11 @@ namespace AL::Hardware::Pico
 		// Get the current frequency of the specified gpio pin
 		static uint32 GetGPIOFrequency(Clocks clock, GPIOPin pin)
 		{
+			AL_ASSERT(
+				IsInitialized(),
+				"Clock not initialized"
+			);
+
 			auto frequency = GetFrequency(
 				clock
 			);
@@ -104,6 +114,11 @@ namespace AL::Hardware::Pico
 		// Get the current frequency of the specified gpio pin
 		static uint32 GetGPIOFrequency(uint32 frequency, GPIOPin pin)
 		{
+			AL_ASSERT(
+				IsInitialized(),
+				"Clock not initialized"
+			);
+
 			if (::gpio_get_function(pin) != ::GPIO_FUNC_GPCK)
 			{
 
@@ -125,6 +140,11 @@ namespace AL::Hardware::Pico
 		// Measure a clocks frequency using the Frequency counter
 		static uint32 GetCountedFrequency(Clocks clock)
 		{
+			AL_ASSERT(
+				IsInitialized(),
+				"Clock not initialized"
+			);
+
 			auto frequencyKHz = ::frequency_count_khz(
 				static_cast<::clock_index>(clock)
 			);
@@ -135,6 +155,11 @@ namespace AL::Hardware::Pico
 		// Measure a pin frequency using the Frequency counter
 		static uint32 GetCountedGPIOFrequency(Clocks clock, GPIOPin pin)
 		{
+			AL_ASSERT(
+				IsInitialized(),
+				"Clock not initialized"
+			);
+
 			auto frequency = GetCountedFrequency(
 				clock
 			);
@@ -151,6 +176,11 @@ namespace AL::Hardware::Pico
 		// @param freq Requested frequency
 		static Bool Configure(Clocks clock, uint32 src, uint32 aux_src, uint32 src_freq, uint32 freq)
 		{
+			AL_ASSERT(
+				IsInitialized(),
+				"Clock not initialized"
+			);
+
 			if (!::clock_configure(static_cast<::clock_index>(clock), src, aux_src, src_freq, freq))
 			{
 
@@ -165,6 +195,11 @@ namespace AL::Hardware::Pico
 		// @param div The amount to divide the source clock by. This is useful to not overwhelm the GPIO pin with a fast clock
 		static Void ConfigureGPIO(Clocks clock, GPIOPin pin, uint32 src, Float div)
 		{
+			AL_ASSERT(
+				IsInitialized(),
+				"Clock not initialized"
+			);
+
 			::clock_gpio_init(
 				pin,
 				src,
@@ -177,6 +212,11 @@ namespace AL::Hardware::Pico
 		// @param div_frac The integer part of the value to divide the source clock by. This is useful to not overwhelm the GPIO pin with a fast clock. this is in range of 1..2^24-1.
 		static Void ConfigureGPIO(Clocks clock, GPIOPin pin, uint32 src, uint32 div_int, uint32 div_frac)
 		{
+			AL_ASSERT(
+				IsInitialized(),
+				"Clock not initialized"
+			);
+
 			::clock_gpio_init_int_frac(
 				pin,
 				src,
@@ -190,6 +230,11 @@ namespace AL::Hardware::Pico
 		// @param freq Requested frequency
 		static Bool ConfigureGPIOInput(Clocks clock, GPIOPin pin, uint32 src_freq, uint32 freq)
 		{
+			AL_ASSERT(
+				IsInitialized(),
+				"Clock not initialized"
+			);
+
 			if (!::clock_configure_gpin(static_cast<::clock_index>(clock), pin, src_freq, freq))
 			{
 
@@ -201,6 +246,11 @@ namespace AL::Hardware::Pico
 
 		static Void Stop(Clocks clock)
 		{
+			AL_ASSERT(
+				IsInitialized(),
+				"Clock not initialized"
+			);
+
 			::clock_stop(
 				static_cast<::clock_index>(clock)
 			);
@@ -208,6 +258,11 @@ namespace AL::Hardware::Pico
 
 		static Void EnableGPIO(GPIOPin pin, Bool set = True)
 		{
+			AL_ASSERT(
+				IsInitialized(),
+				"Clock not initialized"
+			);
+
 			::gpio_set_function(
 				pin,
 				set ? ::GPIO_FUNC_GPCK : ::GPIO_FUNC_NULL
