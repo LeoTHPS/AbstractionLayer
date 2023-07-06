@@ -61,10 +61,10 @@ namespace AL::Collections
 
 			NodeList(const T_NODE& value, const T_NODES& ... values)
 				: Node<I, T_NODE>(
-					Move(value)
+					value
 				),
 				NodeList<I + 1, T_NODES ...>(
-					Move(values) ...
+					Forward<T_NODES>(values) ...
 				)
 			{
 			}
@@ -109,28 +109,28 @@ namespace AL::Collections
 		{
 		}
 
-		template<size_t I, typename TYPE = typename Get_Type_Sequence<I, TYPES ...>::Type>
-		TYPE& Get()
+		template<size_t I>
+		typename Get_Type_Sequence<I, TYPES ...>::Type& Get()
 		{
-			return static_cast<Node<I, TYPE>&>(nodes).Value;
+			return static_cast<Node<I, typename Get_Type_Sequence<I, TYPES ...>::Type>&>(nodes).Value;
 		}
-		template<size_t I, typename TYPE = typename Get_Type_Sequence<I, TYPES ...>::Type>
-		const TYPE& Get() const
+		template<size_t I>
+		const typename Get_Type_Sequence<I, TYPES ...>::Type& Get() const
 		{
-			return static_cast<const Node<I, TYPE>&>(nodes).Value;
+			return static_cast<const Node<I, typename Get_Type_Sequence<I, TYPES ...>::Type>&>(nodes).Value;
 		}
 
-		template<size_t I, typename TYPE = typename Get_Type_Sequence<I, TYPES ...>::Type>
-		typename Enable_If<Is_Move_Assignable<TYPE>::Value, Void>::Type Set(TYPE&& value)
+		template<size_t I>
+		typename Enable_If<Is_Move_Assignable<typename Get_Type_Sequence<I, TYPES ...>::Type>::Value, Void>::Type Set(typename Get_Type_Sequence<I, TYPES ...>::Type&& value)
 		{
-			static_cast<Node<I, TYPE>&>(nodes).Value = Move(
+			static_cast<Node<I, typename Get_Type_Sequence<I, TYPES ...>::Type>&>(nodes).Value = Move(
 				value
 			);
 		}
-		template<size_t I, typename TYPE = typename Get_Type_Sequence<I, TYPES ...>::Type>
-		typename Enable_If<Is_Copy_Assignable<TYPE>::Value, Void>::Type Set(const TYPE& value)
+		template<size_t I>
+		typename Enable_If<Is_Copy_Assignable<typename Get_Type_Sequence<I, TYPES ...>::Type>::Value, Void>::Type Set(const typename Get_Type_Sequence<I, TYPES ...>::Type& value)
 		{
-			static_cast<Node<I, TYPE>&>(nodes).Value = value;
+			static_cast<Node<I, typename Get_Type_Sequence<I, TYPES ...>::Type>&>(nodes).Value = value;
 		}
 
 		template<typename F>
