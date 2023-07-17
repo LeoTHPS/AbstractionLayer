@@ -168,8 +168,8 @@ namespace AL::OS::Windows
 		}
 
 		// @throw AL::Exception
-		// @return number of bytes read
-		size_t Read(Void* lpBuffer, size_t size)
+		// @return AL::False on connection closed
+		Bool Read(Void* lpBuffer, size_t size, size_t& numberOfBytesRead)
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -180,42 +180,54 @@ namespace AL::OS::Windows
 
 			if (!::PeekNamedPipe(GetHandle(), nullptr, 0, nullptr, &bytesAvailable, nullptr))
 			{
+				auto errorCode = GetLastError();
+
+				if (errorCode == ERROR_BROKEN_PIPE)
+				{
+					Close();
+
+					return False;
+				}
 
 				throw SystemException(
-					"PeekNamedPipe"
+					"PeekNamedPipe",
+					errorCode
 				);
 			}
 
-			bytesAvailable = Math::Clamp<::DWORD>(
-				bytesAvailable,
-				0,
-				static_cast<::DWORD>(size)
-			);
-
 			::DWORD bytesRead = 0;
 
-			if (!::ReadFile(GetHandle(), lpBuffer, bytesAvailable, &bytesRead, nullptr))
+			if ((bytesAvailable = Math::Clamp<::DWORD>(bytesAvailable, 0, static_cast<::DWORD>(size))) != 0)
 			{
-				switch (auto errorCode = GetLastError())
+				if (!::ReadFile(GetHandle(), lpBuffer, bytesAvailable, &bytesRead, nullptr))
 				{
-					case ERROR_NO_DATA:
-						break;
+					switch (auto errorCode = GetLastError())
+					{
+						case ERROR_NO_DATA:
+							break;
 
-					default:
-						throw SystemException(
-							"ReadFile",
-							errorCode
-						);
-						break;
+						case ERROR_BROKEN_PIPE:
+							Close();
+							return False;
+
+						default:
+							throw SystemException(
+								"ReadFile",
+								errorCode
+							);
+							break;
+					}
 				}
 			}
 
-			return bytesRead;
+			numberOfBytesRead = bytesRead;
+
+			return True;
 		}
 
 		// @throw AL::Exception
-		// @return number of bytes written
-		size_t Write(const Void* lpBuffer, size_t size)
+		// @return AL::False on connection closed
+		Bool Write(const Void* lpBuffer, size_t size, size_t& numberOfBytesWritten)
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -226,13 +238,23 @@ namespace AL::OS::Windows
 
 			if (!::WriteFile(GetHandle(), lpBuffer, static_cast<::DWORD>(size), &bytesWritten, nullptr))
 			{
+				auto errorCode = GetLastError();
+
+				if (errorCode == ERROR_BROKEN_PIPE)
+				{
+					Close();
+
+					return False;
+				}
 
 				throw SystemException(
 					"WriteFile"
 				);
 			}
 
-			return bytesWritten;
+			numberOfBytesWritten = bytesWritten;
+
+			return True;
 		}
 	};
 }
