@@ -9,10 +9,6 @@
 
 namespace AL::Serialization
 {
-	class JSONArray;
-	class JSONValue;
-	class JSONObject;
-
 	class IJSON
 	{
 	public:
@@ -39,10 +35,21 @@ namespace AL::Serialization
 		virtual WString ToWString() const = 0;
 	};
 
+	class JSONArray;
+	class JSONValue;
+	class JSONObject;
+
 	class JSONValue
 		: public IJSON
 	{
-		Bool isNull    = True;
+		static constexpr const WString::Char REGEX_PATTERN_NULL[]    = L"";
+		static constexpr const WString::Char REGEX_PATTERN_NUMBER[]  = L"";
+		static constexpr const WString::Char REGEX_PATTERN_STRING[]  = L"";
+		static constexpr const WString::Char REGEX_PATTERN_BOOLEAN[] = L"";
+		static constexpr const WString::Char REGEX_PATTERN_DECIMAL[] = L"";
+		static constexpr const WString::Char REGEX_PATTERN_INTEGER[] = L"";
+
+		Bool isNull    = False;
 		Bool isNumber  = False;
 		Bool isString  = False;
 		Bool isBoolean = False;
@@ -51,7 +58,7 @@ namespace AL::Serialization
 
 		struct
 		{
-			AL::String String;
+			String String;
 
 			union
 			{
@@ -80,6 +87,9 @@ namespace AL::Serialization
 		}
 
 		JSONValue()
+			: isNull(
+				True
+			)
 		{
 		}
 
@@ -136,6 +146,58 @@ namespace AL::Serialization
 			value(
 				value.value
 			)
+		{
+		}
+
+		JSONValue(Bool value)
+			: isBoolean(
+				true
+			),
+			value{
+				.Boolean = value
+			}
+		{
+		}
+		JSONValue(int64 value)
+			: isNumber(
+				True
+			),
+			isInteger(
+				True
+			),
+			value{
+				.Integer = value
+			}
+		{
+		}
+		JSONValue(Double value)
+			: isNumber(
+				True
+			),
+			isDecimal(
+				True
+			),
+			value{
+				.Decimal = value
+			}
+		{
+		}
+		JSONValue(String&& value)
+			: isString(
+				true
+			),
+			value{
+				.String = Move(value)
+			}
+		{
+		}
+		JSONValue(const String& value)
+			: isString(
+				true
+			),
+			value{
+				.String = value
+			}
 		{
 		}
 
@@ -242,7 +304,11 @@ namespace AL::Serialization
 					sb.Append(GetInteger());
 			}
 			else if (IsString())
+			{
+				sb.Append(L'"');
 				sb.Append(GetString());
+				sb.Append(L'"');
+			}
 			else if (IsBoolean())
 				sb.Append(GetBoolean());
 
@@ -319,6 +385,10 @@ namespace AL::Serialization
 	class JSONArray
 		: public IJSON
 	{
+		static constexpr const WString::Char REGEX_PATTERN_ARRAY[]  = L"";
+		static constexpr const WString::Char REGEX_PATTERN_VALUE[]  = L"";
+		static constexpr const WString::Char REGEX_PATTERN_OBJECT[] = L"";
+
 		Collections::LinkedList<IJSON*> values;
 
 	public:
@@ -351,6 +421,17 @@ namespace AL::Serialization
 		}
 
 		JSONArray(const JSONArray& array);
+
+		template<size_t S>
+		JSONArray(IJSON(&&json)[S])
+		{
+			for (auto& j : json)
+			{
+				if (j.IsArray())       Add(Move(reinterpret_cast<JSONArray&>(j)));
+				else if (j.IsValue())  Add(Move(reinterpret_cast<JSONValue&>(j)));
+				else if (j.IsObject()) Add(Move(reinterpret_cast<JSONObject&>(j)));
+			}
+		}
 
 		virtual ~JSONArray()
 		{
@@ -416,14 +497,15 @@ namespace AL::Serialization
 			}
 		}
 
-		Void Add(String&& name, IJSON&& json)
+		Void Add(JSONArray&& array)
 		{
-			Add(
-				name.ToWString(),
-				Move(json)
-			);
+			values.PushBack(new JSONArray(Move(array)));
 		}
-		Void Add(WString&& name, IJSON&& json);
+		Void Add(JSONValue&& value)
+		{
+			values.PushBack(new JSONValue(Move(value)));
+		}
+		Void Add(JSONObject&& object);
 
 		Void Remove(size_t index)
 		{
@@ -537,16 +619,20 @@ namespace AL::Serialization
 		}
 	};
 
-	struct JSONObjectMember
-	{
-		AL::WString Name;
-		IJSON*      lpValue;
-	};
-
 	class JSONObject
 		: public IJSON
 	{
-		Collections::LinkedList<JSONObjectMember> members;
+		static constexpr const WString::Char REGEX_PATTERN_ARRAY[]  = L"";
+		static constexpr const WString::Char REGEX_PATTERN_VALUE[]  = L"";
+		static constexpr const WString::Char REGEX_PATTERN_OBJECT[] = L"";
+
+		struct Member
+		{
+			WString Name;
+			IJSON*  lpValue;
+		};
+
+		Collections::LinkedList<Member> members;
 
 	public:
 		// @throw AL::Exception
@@ -581,7 +667,7 @@ namespace AL::Serialization
 		{
 			for (auto& member : object.members)
 			{
-				JSONObjectMember _member =
+				Member _member =
 				{
 					.Name = member.Name
 				};
@@ -669,29 +755,52 @@ namespace AL::Serialization
 			}
 		}
 
-		Void Add(String&& name, IJSON&& json)
+		Void Add(String&& name, JSONArray&& array)
 		{
 			Add(
 				name.ToWString(),
-				Move(json)
+				Move(array)
 			);
 		}
-		Void Add(WString&& name, IJSON&& json)
+		Void Add(WString&& name, JSONArray&& array)
 		{
-			JSONObjectMember member =
-			{
-				.Name = Move(name)
-			};
-
-			if (json.IsArray())
-				member.lpValue = new JSONArray(reinterpret_cast<JSONArray&&>(json));
-			else if (json.IsValue())
-				member.lpValue = new JSONValue(reinterpret_cast<JSONValue&&>(json));
-			else if (json.IsObject())
-				member.lpValue = new JSONObject(reinterpret_cast<JSONObject&&>(json));
-
 			Add(
-				Move(member)
+				{
+					.Name    = Move(name),
+					.lpValue = new JSONArray(Move(array))
+				}
+			);
+		}
+		Void Add(String&& name, JSONValue&& value)
+		{
+			Add(
+				name.ToWString(),
+				Move(value)
+			);
+		}
+		Void Add(WString&& name, JSONValue&& value)
+		{
+			Add(
+				{
+					.Name    = Move(name),
+					.lpValue = new JSONValue(Move(value))
+				}
+			);
+		}
+		Void Add(String&& name, JSONObject&& object)
+		{
+			Add(
+				name.ToWString(),
+				Move(object)
+			);
+		}
+		Void Add(WString&& name, JSONObject&& object)
+		{
+			Add(
+				{
+					.Name    = Move(name),
+					.lpValue = new JSONObject(Move(object))
+				}
 			);
 		}
 
@@ -738,9 +847,9 @@ namespace AL::Serialization
 			}
 		}
 
-		Bool Get(AL::String& name, IJSON*& lpJSON, size_t index)
+		Bool Get(String& name, IJSON*& lpJSON, size_t index)
 		{
-			AL::WString wstring;
+			WString wstring;
 
 			if (!Get(wstring, lpJSON, index))
 			{
@@ -752,7 +861,7 @@ namespace AL::Serialization
 
 			return True;
 		}
-		Bool Get(AL::WString& name, IJSON*& lpJSON, size_t index)
+		Bool Get(WString& name, IJSON*& lpJSON, size_t index)
 		{
 			size_t i = 0;
 
@@ -769,9 +878,9 @@ namespace AL::Serialization
 
 			return False;
 		}
-		Bool Get(AL::String& name, JSONArray*& lpArray, size_t index)
+		Bool Get(String& name, JSONArray*& lpArray, size_t index)
 		{
-			AL::WString wstring;
+			WString wstring;
 
 			if (!Get(wstring, lpArray, index))
 			{
@@ -783,7 +892,7 @@ namespace AL::Serialization
 
 			return True;
 		}
-		Bool Get(AL::WString& name, JSONArray*& lpArray, size_t index)
+		Bool Get(WString& name, JSONArray*& lpArray, size_t index)
 		{
 			if (!Get(name, reinterpret_cast<IJSON*&>(lpArray), index))
 			{
@@ -799,9 +908,9 @@ namespace AL::Serialization
 
 			return True;
 		}
-		Bool Get(AL::String& name, JSONValue*& lpValue, size_t index)
+		Bool Get(String& name, JSONValue*& lpValue, size_t index)
 		{
-			AL::WString wstring;
+			WString wstring;
 
 			if (!Get(wstring, lpValue, index))
 			{
@@ -813,7 +922,7 @@ namespace AL::Serialization
 
 			return True;
 		}
-		Bool Get(AL::WString& name, JSONValue*& lpValue, size_t index)
+		Bool Get(WString& name, JSONValue*& lpValue, size_t index)
 		{
 			if (!Get(name, reinterpret_cast<IJSON*&>(lpValue), index))
 			{
@@ -829,9 +938,9 @@ namespace AL::Serialization
 
 			return True;
 		}
-		Bool Get(AL::String& name, JSONObject*& lpObject, size_t index)
+		Bool Get(String& name, JSONObject*& lpObject, size_t index)
 		{
-			AL::WString wstring;
+			WString wstring;
 
 			if (!Get(wstring, lpObject, index))
 			{
@@ -843,7 +952,7 @@ namespace AL::Serialization
 
 			return True;
 		}
-		Bool Get(AL::WString& name, JSONObject*& lpObject, size_t index)
+		Bool Get(WString& name, JSONObject*& lpObject, size_t index)
 		{
 			if (!Get(name, reinterpret_cast<IJSON*&>(lpObject), index))
 			{
@@ -1042,7 +1151,7 @@ namespace AL::Serialization
 
 			for (auto& member : object.members)
 			{
-				JSONObjectMember _member =
+				Member _member =
 				{
 					.Name = member.Name
 				};
@@ -1129,7 +1238,7 @@ namespace AL::Serialization
 		}
 
 	private:
-		Void Add(JSONObjectMember&& member)
+		Void Add(Member&& member)
 		{
 			for (auto it = members.begin(); it != members.end(); ++it)
 			{
@@ -1174,14 +1283,9 @@ inline AL::Serialization::JSONArray::JSONArray(const JSONArray& array)
 	}
 }
 
-inline AL::Void AL::Serialization::JSONArray::Add(WString&& name, IJSON&& json)
+inline AL::Void AL::Serialization::JSONArray::Add(JSONObject&& object)
 {
-	if (json.IsArray())
-		values.PushBack(new JSONArray(reinterpret_cast<JSONArray&&>(json)));
-	else if (json.IsValue())
-		values.PushBack(new JSONValue(reinterpret_cast<JSONValue&&>(json)));
-	else if (json.IsObject())
-		values.PushBack(new JSONObject(reinterpret_cast<JSONObject&&>(json)));
+	values.PushBack(new JSONObject(Move(object)));
 }
 
 inline AL::Bool AL::Serialization::JSONArray::Get(JSONObject*& lpObject, size_t index)
