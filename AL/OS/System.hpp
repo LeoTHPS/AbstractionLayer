@@ -11,6 +11,7 @@
 #elif defined(AL_PLATFORM_LINUX)
 	#include <pwd.h>
 	#include <time.h>
+	#include <stdlib.h>
 	#include <unistd.h>
 
 	#include <sys/types.h>
@@ -18,6 +19,8 @@
 #elif defined(AL_PLATFORM_WINDOWS)
 	#include <lmcons.h>
 	#include <sysinfoapi.h>
+
+	#undef GetEnvironmentVariable
 #else
 	#error Platform not supported
 #endif
@@ -287,6 +290,42 @@ namespace AL::OS
 				systemInfo.lpMaximumApplicationAddress
 			);
 #endif
+		}
+
+		// @throw AL::Exception
+		static Bool GetEnvironmentVariable(String& value, const String& name)
+		{
+#if defined(AL_PLATFORM_LINUX)
+			if (auto buffer = ::getenv(name.GetCString()))
+			{
+				value.Assign(
+					buffer
+				);
+
+				return True;
+			}
+
+			return False;
+#elif defined(AL_PLATFORM_WINDOWS)
+			if (auto bufferLength = ::GetEnvironmentVariableA(name.GetCString(), nullptr, 0))
+			{
+				value.SetCapacity(
+					bufferLength
+				);
+
+				if (::GetEnvironmentVariableA(name.GetCString(), &value[0], bufferLength) == 0)
+				{
+
+					throw SystemException(
+						"GetEnvironmentVariableA"
+					);
+				}
+
+				return True;
+			}
+#endif
+
+			return False;
 		}
 
 		static size_t GetProcessorCount()
