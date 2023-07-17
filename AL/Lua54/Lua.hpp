@@ -473,6 +473,13 @@ namespace AL::Lua54
 				return *this;
 			}
 		};
+		template<typename T, typename ... TArgs>
+		class LuaCallback<AL::Function<T(TArgs ...)>>
+			: public LuaCallback<T(TArgs ...)>
+		{
+		public:
+			using LuaCallback<T(TArgs ...)>::LuaCallback;
+		};
 
 	private:
 		template<typename T_ARG>
