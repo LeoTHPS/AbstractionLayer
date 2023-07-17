@@ -619,6 +619,7 @@ namespace AL::Network
 
 				switch (errorCode)
 				{
+					case EACCES:
 					case ETIMEDOUT:
 					case EHOSTDOWN:
 					case ENETUNREACH:
