@@ -6,11 +6,13 @@
 #include "AL/Collections/Array.hpp"
 
 #if defined(AL_PLATFORM_PICO)
-	#include "AL/Hardware/PicoW/CYW43.hpp"
+	#include "AL/Hardware/Pico/CYW43.hpp"
 
 	#include <lwip/ip_addr.h>
 #elif defined(AL_PLATFORM_LINUX)
 	#include <netdb.h>
+
+	#include <sys/un.h>
 
 	#include <arpa/inet.h>
 #elif defined(AL_PLATFORM_WINDOWS)
@@ -30,15 +32,12 @@ namespace AL::Network
 #elif defined(AL_PLATFORM_LINUX)
 		IPv4         = AF_INET,
 		IPv6         = AF_INET6,
+		Unix         = AF_UNIX,
 		NotSpecified = AF_UNSPEC
 #elif defined(AL_PLATFORM_WINDOWS)
 		IPv4         = AF_INET,
 		IPv6         = AF_INET6,
-		NotSpecified = AF_UNSPEC,
-#else
-		IPv4,
-		IPv6,
-		NotSpecified
+		NotSpecified = AF_UNSPEC
 #endif
 	};
 
@@ -48,17 +47,18 @@ namespace AL::Network
 		{
 #if defined(AL_PLATFORM_PICO)
 	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV4)
-			::ip4_addr_t v4;
+			::ip4_addr_t  v4;
 	#endif
 	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV6)
-			::ip6_addr_t v6;
+			::ip6_addr_t  v6;
 	#endif
 #elif defined(AL_PLATFORM_LINUX)
-			::in_addr  v4;
-			::in6_addr v6;
+			::in_addr     v4;
+			::in6_addr    v6;
+			::sockaddr_un Unix;
 #elif defined(AL_PLATFORM_WINDOWS)
-			::in_addr  v4;
-			::in6_addr v6;
+			::in_addr     v4;
+			::in6_addr    v6;
 #endif
 		};
 
@@ -90,6 +90,10 @@ namespace AL::Network
 		typedef ::sockaddr   ip_addr;
 		typedef ::in_addr    in_addr;
 		typedef ::in6_addr   in6_addr;
+
+		#if defined(AL_PLATFORM_LINUX)
+			typedef ::sockaddr_un unix_addr;
+		#endif
 #endif
 
 		static auto Any()
@@ -245,6 +249,10 @@ namespace AL::Network
 						);
 					}
 
+	#if defined(AL_PLATFORM_LINUX)
+					// TODO: try unix family
+	#endif
+
 					throw Exception(
 						"'%s' is not a valid IPv4 or IPv6 address",
 						value.GetCString()
@@ -386,6 +394,27 @@ namespace AL::Network
 		{
 		}
 
+#if defined(AL_PLATFORM_LINUX)
+		IPAddress(unix_addr&& address)
+			: isWinSockLoaded(
+				False
+			),
+			address{
+				.Unix = Move(address)
+			},
+			addressFamily(
+				AddressFamilies::Unix
+			)
+		{
+		}
+		IPAddress(const unix_addr& address)
+			: IPAddress(
+				unix_addr(address)
+			)
+		{
+		}
+#endif
+
 		IPAddress(IPAddress&& address)
 			: isWinSockLoaded(
 				address.isWinSockLoaded
@@ -451,6 +480,19 @@ namespace AL::Network
 			return True;
 		}
 
+		Bool IsUnix() const
+		{
+#if defined(AL_PLATFORM_LINUX)
+			if (GetFamily() == AddressFamilies::Unix)
+			{
+
+				return True;
+			}
+#endif
+
+			return False;
+		}
+
 		Bool IsV4MappedToV6() const
 		{
 			if (GetFamily() != AddressFamilies::IPv6)
@@ -499,6 +541,13 @@ namespace AL::Network
 		{
 			return addressFamily;
 		}
+
+#if defined(AL_PLATFORM_LINUX)
+		auto& GetUnix() const
+		{
+			return address.Unix;
+		}
+#endif
 
 		auto& GetAddress() const
 		{
@@ -734,6 +783,12 @@ namespace AL::Network
 					addressStringLength = INET6_ADDRSTRLEN;
 					break;
 
+	#if defined(AL_PLATFORM_LINUX)
+				case AddressFamilies::Unix:
+					// TODO: implement
+					throw NotImplementedException();
+	#endif
+
 				default:
 					throw OperationNotSupportedException();
 			}
@@ -930,6 +985,25 @@ namespace AL::Network
 			return *this;
 		}
 
+#if defined(AL_PLATFORM_LINUX)
+		IPAddress& operator = (unix_addr&& address)
+		{
+			// TODO: implement
+
+			throw NotImplementedException();
+
+			return *this;
+		}
+		IPAddress& operator = (const unix_addr& address)
+		{
+			// TODO: implement
+
+			throw NotImplementedException();
+
+			return *this;
+		}
+#endif
+
 		IPAddress& operator = (IPAddress&& address)
 		{
 #if defined(AL_PLATFORM_WINDOWS)
@@ -1024,6 +1098,16 @@ namespace AL::Network
 
 				}
 				break;
+
+#if defined(AL_PLATFORM_LINUX)
+				case AddressFamilies::Unix:
+				{
+					// TODO: implement
+
+					throw NotImplementedException();
+				}
+				break;
+#endif
 
 				default:
 					throw OperationNotSupportedException();

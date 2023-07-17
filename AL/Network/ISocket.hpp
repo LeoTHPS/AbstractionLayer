@@ -78,11 +78,15 @@ namespace AL::Network
 #if defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
 		struct NativeSocketAddress
 		{
-			socklen_t              Size;
+			::socklen_t            Size;
+
 			union
 			{
 				::sockaddr_in      V4;
 				::sockaddr_in6     V6;
+#if defined(AL_PLATFORM_LINUX)
+				::sockaddr_un      Unix;
+#endif
 				::sockaddr_storage Storage;
 			}                      Address;
 		};
@@ -128,6 +132,21 @@ namespace AL::Network
 					};
 				}
 				break;
+
+#if defined(AL_PLATFORM_LINUX)
+				case AddressFamilies::Unix:
+				{
+					address =
+					{
+						.Size    = sizeof(::sockaddr_un),
+						.Address =
+						{
+							.Unix = ep.Host.GetUnix()
+						}
+					};
+				}
+				break;
+#endif
 
 				default:
 					throw NotImplementedException();
@@ -203,6 +222,11 @@ namespace AL::Network
 				}
 				break;
 
+#if defined(AL_PLATFORM_LINUX)
+				case AddressFamilies::Unix:
+					throw OperationNotSupportedException();
+#endif
+
 				default:
 					throw NotImplementedException();
 			}
@@ -274,6 +298,11 @@ namespace AL::Network
 					};
 				}
 				break;
+
+#if defined(AL_PLATFORM_LINUX)
+				case AddressFamilies::Unix:
+					throw OperationNotSupportedException();
+#endif
 
 				default:
 					throw NotImplementedException();
