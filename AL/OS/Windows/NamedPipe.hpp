@@ -63,10 +63,11 @@ namespace AL::OS::Windows
 			{
 				auto errorCode = GetLastError();
 
-				if (errorCode == ERROR_PIPE_BUSY)
+				switch (errorCode)
 				{
-
-					return False;
+					case ERROR_PIPE_BUSY:
+					case ERROR_FILE_NOT_FOUND:
+						return False;
 				}
 
 				throw SystemException(
