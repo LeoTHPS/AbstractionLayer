@@ -28,7 +28,6 @@ namespace AL::OS::Windows
 			)
 		{
 		}
-
 		explicit NamedPipe(const String& name)
 			: NamedPipe(
 				String(name)
@@ -62,14 +61,17 @@ namespace AL::OS::Windows
 
 			if ((handle = ::CreateFileA(GetName().GetCString(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr)) == INVALID_HANDLE_VALUE)
 			{
-				if (GetLastError() == ERROR_PIPE_BUSY)
+				auto errorCode = GetLastError();
+
+				if (errorCode == ERROR_PIPE_BUSY)
 				{
 
 					return False;
 				}
 
 				throw SystemException(
-					"CreateFileA"
+					"CreateFileA",
+					errorCode
 				);
 			}
 
@@ -171,11 +173,12 @@ namespace AL::OS::Windows
 			{
 				auto errorCode = GetLastError();
 
-				if (errorCode == ERROR_BROKEN_PIPE)
+				switch (errorCode)
 				{
-					Close();
-
-					return False;
+					case ERROR_BROKEN_PIPE:
+					case ERROR_INVALID_HANDLE:
+						Close();
+						return False;
 				}
 
 				throw SystemException(
@@ -196,6 +199,7 @@ namespace AL::OS::Windows
 							break;
 
 						case ERROR_BROKEN_PIPE:
+						case ERROR_INVALID_HANDLE:
 							Close();
 							return False;
 
@@ -229,11 +233,12 @@ namespace AL::OS::Windows
 			{
 				auto errorCode = GetLastError();
 
-				if (errorCode == ERROR_BROKEN_PIPE)
+				switch (errorCode)
 				{
-					Close();
-
-					return False;
+					case ERROR_BROKEN_PIPE:
+					case ERROR_INVALID_HANDLE:
+						Close();
+						return False;
 				}
 
 				throw SystemException(
