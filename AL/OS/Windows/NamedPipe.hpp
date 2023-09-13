@@ -62,25 +62,14 @@ namespace AL::OS::Windows
 
 			if ((handle = ::CreateFileA(GetName().GetCString(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr)) == INVALID_HANDLE_VALUE)
 			{
-
-				throw SystemException(
-					"CreateFileA"
-				);
-			}
-
-			else if (auto lastError = GetLastError())
-			{
-				handle = INVALID_HANDLE_VALUE;
-
-				if (lastError == ERROR_PIPE_BUSY)
+				if (GetLastError() == ERROR_PIPE_BUSY)
 				{
 
 					return False;
 				}
 
 				throw SystemException(
-					"CreateFileA",
-					lastError
+					"CreateFileA"
 				);
 			}
 
