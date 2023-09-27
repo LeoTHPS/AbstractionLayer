@@ -169,6 +169,17 @@ namespace AL::OS::Windows
 				info.hThread
 			);
 
+			if (::WaitForInputIdle(info.hProcess, INFINITE) == WAIT_FAILED)
+			{
+				::CloseHandle(
+					info.hProcess
+				);
+
+				throw SystemException(
+					"WaitForInputIdle"
+				);
+			}
+
 			process = Process(
 				info.dwProcessId,
 				info.hProcess,
@@ -333,6 +344,25 @@ namespace AL::OS::Windows
 
 				isOpen = False;
 			}
+		}
+
+		// @throw AL::Exception
+		Void Terminate(ProcessExitCode exitCode)
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"Process not open"
+			);
+
+			if (!::TerminateProcess(GetHandle(), static_cast<::UINT>(exitCode)))
+			{
+
+				throw SystemException(
+					"TerminateProcess"
+				);
+			}
+
+			Close();
 		}
 
 		Process& operator = (Process&& process)
