@@ -53,6 +53,13 @@ namespace AL::OS::Windows::GDI
 			return solidColorBrush;
 		}
 
+		SolidColorBrush()
+			: hBrush(
+				NULL
+			)
+		{
+		}
+
 		SolidColorBrush(SolidColorBrush&& solidColorBrush)
 			: hBrush(
 				solidColorBrush.hBrush
