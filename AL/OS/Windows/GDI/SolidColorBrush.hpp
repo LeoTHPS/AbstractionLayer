@@ -14,12 +14,16 @@ namespace AL::OS::Windows::GDI
 {
 	class SolidColorBrush
 	{
-		::HBRUSH hBrush;
+		Drawing::Color color;
+		::HBRUSH       hBrush;
 
 		SolidColorBrush(const SolidColorBrush&) = delete;
 
-		explicit SolidColorBrush(::HBRUSH hBrush)
-			: hBrush(
+		SolidColorBrush(Drawing::Color color, ::HBRUSH hBrush)
+			: color(
+				color
+			),
+			hBrush(
 				hBrush
 			)
 		{
@@ -40,6 +44,7 @@ namespace AL::OS::Windows::GDI
 			}
 
 			return SolidColorBrush(
+				color,
 				hBrush
 			);
 		}
@@ -76,6 +81,11 @@ namespace AL::OS::Windows::GDI
 					hBrush
 				);
 			}
+		}
+
+		auto GetColor() const
+		{
+			return color;
 		}
 
 		auto GetHandle() const

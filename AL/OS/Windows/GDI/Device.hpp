@@ -8,6 +8,8 @@
 #include "GDIException.hpp"
 #include "SolidColorBrush.hpp"
 
+#include "AL/Drawing/Color.hpp"
+#include "AL/Drawing/Colors.hpp"
 #include "AL/Drawing/Rectangle.hpp"
 
 #include <wingdi.h>
@@ -94,33 +96,29 @@ namespace AL::OS::Windows::GDI
 
 		// @throw AL::Exception
 		template<typename T>
-		Void DrawString(const String& string, T x, T y)
+		Void DrawString(const String& string, T x, T y, Drawing::Color foreground, Drawing::Color background)
 		{
-			if (string.GetLength() == 0)
-			{
-
-				return;
-			}
-
-			::RECT rect =
-			{
-				.left   = BitConverter::Cast<::LONG>(x),
-				.top    = BitConverter::Cast<::LONG>(y),
-				.right  = paintStruct.rcPaint.right,
-				.bottom = paintStruct.rcPaint.bottom
-			};
-
-			if (::DrawTextA(GetHandle(), string.GetCString(), string.GetLength(), &rect, DT_LEFT | DT_NOCLIP) == 0)
-			{
-
-				throw GDIException(
-					"DrawTextA"
-				);
-			}
+			DrawString(
+				string,
+				Drawing::Rectangle<T>(x, x + (paintStruct.rcPaint.right - paintStruct.rcPaint.left), y, y + (paintStruct.rcPaint.bottom - paintStruct.rcPaint.top)),
+				foreground,
+				background
+			);
 		}
 		// @throw AL::Exception
 		template<typename T>
-		Void DrawString(const String& string, const Drawing::Rectangle<T>& rectangle)
+		Void DrawString(const String& string, T x, T y, T width, T height, Drawing::Color foreground, Drawing::Color background)
+		{
+			DrawString(
+				string,
+				Drawing::Rectangle<T>(x, x + width, y, y + height),
+				foreground,
+				background
+			);
+		}
+		// @throw AL::Exception
+		template<typename T>
+		Void DrawString(const String& string, const Drawing::Rectangle<T>& rectangle, Drawing::Color foreground, Drawing::Color background)
 		{
 			if (string.GetLength() == 0)
 			{
@@ -136,11 +134,46 @@ namespace AL::OS::Windows::GDI
 				.bottom = BitConverter::Cast<::LONG>(rectangle.Bottom)
 			};
 
+			::COLORREF prevBackground;
+			::COLORREF prevForeground;
+
+			if ((prevBackground = ::SetBkColor(GetHandle(), (static_cast<::COLORREF>(background.B) << 16) | (static_cast<::COLORREF>(background.G) << 8) | static_cast<::COLORREF>(background.R))) == CLR_INVALID)
+			{
+
+				throw GDIException(
+					"SetBkColor"
+				);
+			}
+
+			if ((prevForeground = ::SetTextColor(GetHandle(), (static_cast<::COLORREF>(foreground.B) << 16) | (static_cast<::COLORREF>(foreground.G) << 8) | static_cast<::COLORREF>(foreground.R))) == CLR_INVALID)
+			{
+
+				throw GDIException(
+					"SetTextColor"
+				);
+			}
+
 			if (::DrawTextA(GetHandle(), string.GetCString(), string.GetLength(), &rect, DT_LEFT) == 0)
 			{
 
 				throw GDIException(
 					"DrawTextA"
+				);
+			}
+
+			if (::SetBkColor(GetHandle(), prevBackground) == CLR_INVALID)
+			{
+
+				throw GDIException(
+					"SetBkColor"
+				);
+			}
+
+			if (::SetTextColor(GetHandle(), prevForeground) == CLR_INVALID)
+			{
+
+				throw GDIException(
+					"SetTextColor"
 				);
 			}
 		}
