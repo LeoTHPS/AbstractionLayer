@@ -83,6 +83,18 @@ namespace AL::OS::Windows::GDI
 			return hBrush;
 		}
 
+		Void Destroy()
+		{
+			if (hBrush != NULL)
+			{
+				::DeleteObject(
+					hBrush
+				);
+
+				hBrush = NULL;
+			}
+		}
+
 		SolidColorBrush& operator = (SolidColorBrush&& solidColorBrush)
 		{
 			if (hBrush != NULL)
