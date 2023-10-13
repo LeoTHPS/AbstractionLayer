@@ -9,6 +9,16 @@
 
 namespace AL::OS::Windows
 {
+	enum class ConsoleColors : uint8
+	{
+		Red    = 0x01,
+		Blue   = 0x02,
+		Green  = 0x04,
+		Bright = 0x08
+	};
+
+	AL_DEFINE_ENUM_FLAG_OPERATORS(ConsoleColors);
+
 	class Console
 	{
 		inline static Mutex mutex;
@@ -32,7 +42,7 @@ namespace AL::OS::Windows
 			if (IsOpen())
 			{
 				::DWORD mode;
-				auto   hInput = ::GetStdHandle(STD_INPUT_HANDLE);
+				auto   hInput = GetHandle(STD_INPUT_HANDLE);
 
 				if (::GetConsoleMode(hInput, &mode) && BitMask<::DWORD>::IsSet(mode, ENABLE_QUICK_EDIT_MODE))
 				{
@@ -42,6 +52,56 @@ namespace AL::OS::Windows
 			}
 
 			return False;
+		}
+
+		// @throw AL::Exception
+		static auto GetForegroundColor()
+		{
+			auto                         hOutput = GetHandle(STD_OUTPUT_HANDLE);
+			::CONSOLE_SCREEN_BUFFER_INFO bufferInfo;
+
+			if (!::GetConsoleScreenBufferInfo(hOutput, &bufferInfo))
+			{
+
+				throw SystemException(
+					"GetConsoleScreenBufferInfo"
+				);
+			}
+
+			BitMask<ConsoleColors> colors;
+			BitMask<::DWORD>       attributes(bufferInfo.wAttributes);
+
+			colors.Set(ConsoleColors::Red,    attributes.IsSet(FOREGROUND_RED));
+			colors.Set(ConsoleColors::Blue,   attributes.IsSet(FOREGROUND_BLUE));
+			colors.Set(ConsoleColors::Green,  attributes.IsSet(FOREGROUND_GREEN));
+			colors.Set(ConsoleColors::Bright, attributes.IsSet(FOREGROUND_INTENSITY));
+
+			return colors.Value;
+		}
+
+		// @throw AL::Exception
+		static auto GetBackgroundColor()
+		{
+			auto                         hOutput = GetHandle(STD_OUTPUT_HANDLE);
+			::CONSOLE_SCREEN_BUFFER_INFO bufferInfo;
+
+			if (!::GetConsoleScreenBufferInfo(hOutput, &bufferInfo))
+			{
+
+				throw SystemException(
+					"GetConsoleScreenBufferInfo"
+				);
+			}
+
+			BitMask<ConsoleColors> colors;
+			BitMask<::DWORD>       attributes(bufferInfo.wAttributes);
+
+			colors.Set(ConsoleColors::Red,    attributes.IsSet(BACKGROUND_RED));
+			colors.Set(ConsoleColors::Blue,   attributes.IsSet(BACKGROUND_BLUE));
+			colors.Set(ConsoleColors::Green,  attributes.IsSet(BACKGROUND_GREEN));
+			colors.Set(ConsoleColors::Bright, attributes.IsSet(BACKGROUND_INTENSITY));
+
+			return colors.Value;
 		}
 
 		// @throw AL::Exception
@@ -85,7 +145,7 @@ namespace AL::OS::Windows
 			);
 
 			::DWORD mode;
-			auto   hInput = ::GetStdHandle(STD_INPUT_HANDLE);
+			auto   hInput = GetHandle(STD_INPUT_HANDLE);
 
 			if (!::GetConsoleMode(hInput, &mode))
 			{
@@ -118,7 +178,7 @@ namespace AL::OS::Windows
 			);
 
 			::DWORD mode;
-			auto   hInput = ::GetStdHandle(STD_INPUT_HANDLE);
+			auto   hInput = GetHandle(STD_INPUT_HANDLE);
 
 			if (!::GetConsoleMode(hInput, &mode))
 			{
@@ -184,6 +244,68 @@ namespace AL::OS::Windows
 		}
 
 		// @throw AL::Exception
+		static Void SetForegroundColor(ConsoleColors value)
+		{
+			auto                         hOutput = GetHandle(STD_OUTPUT_HANDLE);
+			::CONSOLE_SCREEN_BUFFER_INFO bufferInfo;
+
+			if (!::GetConsoleScreenBufferInfo(hOutput, &bufferInfo))
+			{
+
+				throw SystemException(
+					"GetConsoleScreenBufferInfo"
+				);
+			}
+
+			BitMask<ConsoleColors> colors(value);
+			BitMask<::DWORD>       attributes(bufferInfo.wAttributes);
+
+			attributes.Set(FOREGROUND_RED,       colors.IsSet(ConsoleColors::Red));
+			attributes.Set(FOREGROUND_BLUE,      colors.IsSet(ConsoleColors::Blue));
+			attributes.Set(FOREGROUND_GREEN,     colors.IsSet(ConsoleColors::Green));
+			attributes.Set(FOREGROUND_INTENSITY, colors.IsSet(ConsoleColors::Bright));
+
+			if (!::SetConsoleTextAttribute(hOutput, attributes.Value))
+			{
+
+				throw SystemException(
+					"SetConsoleTextAttribute"
+				);
+			}
+		}
+
+		// @throw AL::Exception
+		static Void SetBackgroundColor(ConsoleColors value)
+		{
+			auto                         hOutput = GetHandle(STD_OUTPUT_HANDLE);
+			::CONSOLE_SCREEN_BUFFER_INFO bufferInfo;
+
+			if (!::GetConsoleScreenBufferInfo(hOutput, &bufferInfo))
+			{
+
+				throw SystemException(
+					"GetConsoleScreenBufferInfo"
+				);
+			}
+
+			BitMask<ConsoleColors> colors(value);
+			BitMask<::DWORD>       attributes(bufferInfo.wAttributes);
+
+			attributes.Set(BACKGROUND_RED,       colors.IsSet(ConsoleColors::Red));
+			attributes.Set(BACKGROUND_BLUE,      colors.IsSet(ConsoleColors::Blue));
+			attributes.Set(BACKGROUND_GREEN,     colors.IsSet(ConsoleColors::Green));
+			attributes.Set(BACKGROUND_INTENSITY, colors.IsSet(ConsoleColors::Bright));
+
+			if (!::SetConsoleTextAttribute(hOutput, attributes.Value))
+			{
+
+				throw SystemException(
+					"SetConsoleTextAttribute"
+				);
+			}
+		}
+
+		// @throw AL::Exception
 		static Void Clear()
 		{
 			AL_ASSERT(
@@ -197,7 +319,7 @@ namespace AL::OS::Windows
 
 			::DWORD                    written = 0;
 			::COORD                    topLeft = { 0, 0 };
-			auto                       hOutput = ::GetStdHandle(STD_OUTPUT_HANDLE);
+			auto                       hOutput = GetHandle(STD_OUTPUT_HANDLE);
 			CONSOLE_SCREEN_BUFFER_INFO bufferInfo;
 
 			if (!::GetConsoleScreenBufferInfo(hOutput, &bufferInfo))
@@ -246,7 +368,7 @@ namespace AL::OS::Windows
 				mutex
 			);
 
-			auto    hInput            = ::GetStdHandle(STD_INPUT_HANDLE);
+			auto    hInput            = GetHandle(STD_INPUT_HANDLE);
 			::DWORD numberOfCharsRead = 0;
 
 			if (::ReadConsoleA(hInput, &value, 1, &numberOfCharsRead, nullptr) == 0)
@@ -268,7 +390,7 @@ namespace AL::OS::Windows
 			);
 
 			String::Char c;
-			auto         hInput            = ::GetStdHandle(STD_INPUT_HANDLE);
+			auto         hInput            = GetHandle(STD_INPUT_HANDLE);
 			::DWORD      numberOfCharsRead = 0;
 
 			do
@@ -330,7 +452,7 @@ namespace AL::OS::Windows
 					mutex
 				);
 
-				auto    hOutput = ::GetStdHandle(STD_OUTPUT_HANDLE);
+				auto    hOutput = GetHandle(STD_OUTPUT_HANDLE);
 				::DWORD numberOfCharsWritten;
 
 				for (size_t totalCharsWritten = 0; totalCharsWritten < _length; )
@@ -423,6 +545,23 @@ namespace AL::OS::Windows
 					);
 				} while ((lpInnerException = lpInnerException->GetInnerException()) != nullptr);
 			}
+		}
+
+	private:
+		// @throw AL::Exception
+		static ::HANDLE GetHandle(::DWORD handle)
+		{
+			::HANDLE value;
+
+			if ((value = ::GetStdHandle(handle)) == INVALID_HANDLE_VALUE)
+			{
+
+				throw SystemException(
+					"GetStdHandle"
+				);
+			}
+
+			return value;
 		}
 	};
 }
