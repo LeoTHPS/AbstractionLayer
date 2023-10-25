@@ -1,11 +1,11 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#include "GPIO.hpp"
-
 #include "AL/OS/SystemException.hpp"
 
 #if defined(AL_PLATFORM_PICO)
+	#include "GPIO.hpp"
+
 	#include "Pico/UART.hpp"
 #elif defined(AL_PLATFORM_LINUX)
 	#include "AL/FileSystem/Path.hpp"
