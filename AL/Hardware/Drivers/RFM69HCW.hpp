@@ -13,13 +13,14 @@ namespace AL::Hardware::Drivers
 {
 	enum class RFM69HCWLnaGains : uint8
 	{
-		Auto = 0b000,
-		G1   = 0b001, // 0 dB
-		G2   = 0b010, // 6 dB
-		G3   = 0b011, // 12 dB
-		G4   = 0b100, // 24 dB
-		G5   = 0b101, // 36 dB
-		G6   = 0b110  // 48 dB
+		Auto  = 0b000,
+
+		dB_0  = 0b001, // 0 dB
+		dB_6  = 0b010, // 6 dB
+		dB_12 = 0b011, // 12 dB
+		dB_24 = 0b100, // 24 dB
+		dB_36 = 0b101, // 36 dB
+		dB_48 = 0b110  // 48 dB
 	};
 
 	enum class RFM69HCWLnaImpedances : uint8
@@ -737,8 +738,9 @@ namespace AL::Hardware::Drivers
 			RegTest          = 0x50
 		};
 
-		static constexpr Double _FREQUENCY_STEP          = 61.03515625;
+		static constexpr Double _FREQUENCY_STEP      = 61.03515625;
 
+		Bool                     isAFCEnabled        = True;
 		Bool                     isLnaEnabled        = False;
 		Bool                     isEncryptionEnabled = False;
 
@@ -746,7 +748,7 @@ namespace AL::Hardware::Drivers
 
 		int8                     rssi             = -127;
 
-		RFM69HCWLnaGains         lnaGain          = RFM69HCWLnaGains::G1;
+		RFM69HCWLnaGains         lnaGain          = RFM69HCWLnaGains::dB_0;
 		RFM69HCWLnaImpedances    lnaImpedance     = RFM69HCWLnaImpedances::OHM_200;
 
 		RFM69HCWOutputPowerModes outputPowerMode  = RFM69HCWOutputPowerModes::PA_0;
@@ -783,7 +785,10 @@ namespace AL::Hardware::Drivers
 		static constexpr size_t PACKET_SIZE_MAXIMUM_AES = 64 - sizeof(_FrameHeader);
 
 		RFM69HCW(RFM69HCW&& rfm69hcw)
-			: isLnaEnabled(
+			: isAFCEnabled(
+				rfm69hcw.isAFCEnabled
+			),
+			isLnaEnabled(
 				rfm69hcw.isLnaEnabled
 			),
 			isEncryptionEnabled(
@@ -823,11 +828,12 @@ namespace AL::Hardware::Drivers
 				rfm69hcw.preambleLength
 			)
 		{
+			rfm69hcw.isAFCEnabled = True;
 			rfm69hcw.isLnaEnabled = False;
 			rfm69hcw.isEncryptionEnabled = False;
 
 			rfm69hcw.rssi = -127;
-			rfm69hcw.lnaGain = LnaGains::G1;
+			rfm69hcw.lnaGain = LnaGains::dB_0;
 			rfm69hcw.lnaImpedance = LnaImpedances::OHM_200;
 			rfm69hcw.outputPowerMode = OutputPowerModes::PA_0;
 			rfm69hcw.outputPowerLevel = RFM69HCW_OUTPUT_POWER_LEVEL_MINIMUM;
@@ -897,6 +903,11 @@ namespace AL::Hardware::Drivers
 		virtual Bool IsOpen() const override
 		{
 			return device.IsOpen();
+		}
+
+		Bool IsAFCEnabled() const
+		{
+			return isAFCEnabled;
 		}
 
 		Bool IsLnaEnabled() const
@@ -1008,6 +1019,20 @@ namespace AL::Hardware::Drivers
 
 				device.Close();
 			}
+		}
+
+		// @throw AL::Exception
+		Void EnableAFC(Bool set = True)
+		{
+			if (IsOpen())
+			{
+
+				WriteAfcConfig(
+					set
+				);
+			}
+
+			isAFCEnabled = set;
 		}
 
 		// @throw AL::Exception
@@ -1413,6 +1438,9 @@ namespace AL::Hardware::Drivers
 
 		RFM69HCW& operator = (RFM69HCW&& rfm69hcw)
 		{
+			isAFCEnabled = rfm69hcw.isAFCEnabled;
+			rfm69hcw.isAFCEnabled = True;
+
 			isLnaEnabled = rfm69hcw.isLnaEnabled;
 			rfm69hcw.isLnaEnabled = False;
 
@@ -1427,7 +1455,7 @@ namespace AL::Hardware::Drivers
 			rfm69hcw.rssi = -127;
 
 			lnaGain = rfm69hcw.lnaGain;
-			rfm69hcw.lnaGain = LnaGains::G1;
+			rfm69hcw.lnaGain = LnaGains::dB_0;
 
 			lnaImpedance = rfm69hcw.lnaImpedance;
 			rfm69hcw.lnaImpedance = LnaImpedances::OHM_200;
@@ -2140,6 +2168,9 @@ namespace AL::Hardware::Drivers
 				WriteRegister(_Registers::RegTestDagc, 0x30);
 			}
 
+			// AFC
+			WriteAfcConfig(IsAFCEnabled());
+
 			// Frequency
 			WriteFrequency(GetFrequency());
 
@@ -2220,6 +2251,24 @@ namespace AL::Hardware::Drivers
 			}
 
 			return True;
+		}
+
+		// @throw AL::Exception
+		Void WriteAfcConfig(Bool enable)
+		{
+			uint8 value;
+
+			ReadRegister(
+				_Registers::RegAfcFei,
+				value
+			);
+
+			value = enable ? (value | 0x04) : (value & ~0x04);
+
+			WriteRegister(
+				_Registers::RegAfcFei,
+				value
+			);
 		}
 
 		// @throw AL::Exception
