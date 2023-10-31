@@ -6,6 +6,8 @@
 #include "AL/OS/SystemException.hpp"
 
 #if defined(AL_PLATFORM_PICO)
+	#include "GPIO.hpp"
+
 	#include "Pico/SPI.hpp"
 #elif defined(AL_PLATFORM_LINUX)
 	#include "AL/FileSystem/Path.hpp"
