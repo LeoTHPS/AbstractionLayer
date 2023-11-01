@@ -128,8 +128,6 @@ namespace AL::Hardware::Drivers
 				"MCP3008 not open"
 			);
 
-			uint8 rx[3];
-
 			uint8 tx[3] =
 			{
 				static_cast<uint8>(0xC0 | ((channel & 0x07) << 3)),
@@ -137,9 +135,11 @@ namespace AL::Hardware::Drivers
 				0
 			};
 
-			device.ReadWrite(
-				rx,
-				tx
+			uint8 rx[3];
+
+			device.WriteRead(
+				tx,
+				rx
 			);
 
 			data  = static_cast<ReadData>((rx[0] & 0x01) << 9);

@@ -330,7 +330,7 @@ namespace AL::Hardware
 
 		// @throw AL::Exception
 		template<typename T>
-		Void Read(T& value, Bool changeCS = False) const
+		Void Read(T& value, Bool changeCS = True) const
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -344,7 +344,7 @@ namespace AL::Hardware
 			);
 		}
 		// @throw AL::Exception
-		Void Read(Void* lpBuffer, size_t size, Bool changeCS = False) const
+		Void Read(Void* lpBuffer, size_t size, Bool changeCS = True) const
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -363,7 +363,6 @@ namespace AL::Hardware
 			transfer.rx_buf        = reinterpret_cast<decltype(::spi_ioc_transfer::rx_buf)>(lpBuffer);
 			transfer.tx_buf        = nullptr;
 			transfer.speed_hz      = static_cast<decltype(transfer.speed_hz)>(GetSpeed());
-			transfer.cs_change     = changeCS ? 1 : 0;
 			transfer.bits_per_word = static_cast<decltype(transfer.bits_per_word)>(GetBitCount());
 
 			if (::ioctl(fd, SPI_IOC_MESSAGE(1), &transfer) == -1)
@@ -380,7 +379,7 @@ namespace AL::Hardware
 
 		// @throw AL::Exception
 		template<typename T>
-		Void Write(const T& value, Bool changeCS = False)
+		Void Write(const T& value, Bool changeCS = True)
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -394,16 +393,16 @@ namespace AL::Hardware
 			);
 		}
 		// @throw AL::Exception
-		Void Write(const Void* lpBuffer, size_t size, Bool changeCS = False)
+		Void Write(const Void* lpBuffer, size_t size, Bool changeCS = True)
 		{
 			AL_ASSERT(
 				IsOpen(),
 				"SPIDevice not open"
 			);
 
-			ReadWrite(
-				nullptr,
+			WriteRead(
 				lpBuffer,
+				nullptr,
 				size,
 				changeCS
 			);
@@ -411,13 +410,13 @@ namespace AL::Hardware
 
 		// @throw AL::Exception
 		template<typename T>
-		Void ReadWrite(T& rx, const T& tx, Bool changeCS = False)
+		Void WriteRead(const T& tx, T& rx, Bool changeCS = True)
 		{
 			AL_ASSERT(
 				IsOpen(),
 				"SPIDevice not open"
 			);
-			
+
 			ReadWrite(
 				&rx,
 				&tx,
@@ -426,7 +425,7 @@ namespace AL::Hardware
 			);
 		}
 		// @throw AL::Exception
-		Void ReadWrite(Void* lpRX, const Void* lpTX, size_t size, Bool changeCS = False)
+		Void WriteRead(const Void* lpTX, Void* lpRX, size_t size, Bool changeCS = True)
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -465,7 +464,6 @@ namespace AL::Hardware
 			transfer.rx_buf        = reinterpret_cast<decltype(::spi_ioc_transfer::rx_buf)>(lpRX);
 			transfer.tx_buf        = reinterpret_cast<decltype(::spi_ioc_transfer::tx_buf)>(lpTX);
 			transfer.speed_hz      = static_cast<decltype(transfer.speed_hz)>(GetSpeed());
-			transfer.cs_change     = changeCS ? 1 : 0;
 			transfer.bits_per_word = static_cast<decltype(transfer.bits_per_word)>(GetBitCount());
 
 			if (::ioctl(fd, SPI_IOC_MESSAGE(1), &transfer) == -1)
@@ -482,7 +480,7 @@ namespace AL::Hardware
 
 		// @throw AL::Exception
 		template<size_t S>
-		Void Execute(const SPITransaction(&transactions)[S])
+		Void Execute(const SPITransaction(&transactions)[S], Bool changeCS = True)
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -491,11 +489,12 @@ namespace AL::Hardware
 
 			Execute(
 				&transactions[0],
-				S
+				S,
+				changeCS
 			);
 		}
 		// @throw AL::Exception
-		Void Execute(const SPITransaction* lpTransactions, size_t count)
+		Void Execute(const SPITransaction* lpTransactions, size_t count, Bool changeCS = True)
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -503,7 +502,11 @@ namespace AL::Hardware
 			);
 
 #if defined(AL_PLATFORM_PICO)
-			spi.SetCSActive();
+			if (changeCS)
+			{
+
+				spi.SetCSActive();
+			}
 
 			for (size_t i = 0; i < count; ++i, ++lpTransactions)
 			{
@@ -534,9 +537,13 @@ namespace AL::Hardware
 				}
 			}
 
-			spi.SetCSActive(
-				False
-			);
+			if (changeCS)
+			{
+
+				spi.SetCSActive(
+					False
+				);
+			}
 #elif defined(AL_PLATFORM_LINUX)
 			Collections::Array<::spi_ioc_transfer> transfers(
 				count
@@ -556,7 +563,7 @@ namespace AL::Hardware
 				lpTransfers->rx_buf        = reinterpret_cast<decltype(::spi_ioc_transfer::rx_buf)>  (lpTransactions->lpRX);
 				lpTransfers->tx_buf        = reinterpret_cast<decltype(::spi_ioc_transfer::tx_buf)>  (lpTransactions->lpTX);
 				lpTransfers->speed_hz      = static_cast<decltype(::spi_ioc_transfer::speed_hz)>     (GetSpeed());
-				lpTransfers->cs_change     = changeCS ?                                              1 : 0;
+				lpTransfers->cs_change     = 0;
 				lpTransfers->bits_per_word = static_cast<decltype(::spi_ioc_transfer::bits_per_word)>(GetBitCount());
 			}
 
