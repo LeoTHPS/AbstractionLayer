@@ -347,6 +347,25 @@ namespace AL::OS::Windows
 		}
 
 		// @throw AL::Exception
+		// @return AL::False if time elapsed and process is still running
+		Bool Join(TimeSpan maxWaitTime = TimeSpan::Infinite)
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"Process not open"
+			);
+
+			switch (::WaitForSingleObject(GetHandle(), static_cast<::DWORD>(maxWaitTime.ToMilliseconds())))
+			{
+				case WAIT_FAILED:    throw SystemException("WaitForSingleObject");
+				case WAIT_TIMEOUT:   return False;
+				case WAIT_ABANDONED: throw Exception("Error calling 'WaitForSingleObject': WAIT_ABANDONED");
+			}
+
+			return True;
+		}
+
+		// @throw AL::Exception
 		Void Terminate(ProcessExitCode exitCode)
 		{
 			AL_ASSERT(
