@@ -11,8 +11,6 @@
 
 namespace AL::OS
 {
-	class Process;
-
 #if defined(AL_PLATFORM_LINUX)
 	typedef Linux::ProcessId                        ProcessId;
 	typedef Linux::ProcessExitCode                  ProcessExitCode;
@@ -150,6 +148,19 @@ namespace AL::OS
 
 				process.Close();
 			}
+		}
+
+		// @throw AL::Exception
+		// @return AL::False if time elapsed and process is still running
+		Bool Join(TimeSpan maxWaitTime = TimeSpan::Infinite)
+		{
+			if (!process.Join(maxWaitTime))
+			{
+
+				return False;
+			}
+
+			return True;
 		}
 
 		Process& operator = (Process&& process)
