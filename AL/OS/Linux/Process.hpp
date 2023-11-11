@@ -7,6 +7,7 @@
 
 #include "DLException.hpp"
 
+#include "AL/OS/Timer.hpp"
 #include "AL/OS/System.hpp"
 #include "AL/OS/ErrorCode.hpp"
 #include "AL/OS/SystemException.hpp"
@@ -24,8 +25,8 @@
 
 namespace AL::OS::Linux
 {
-	typedef int32 ProcessId;
-	typedef uint8 ProcessExitCode;
+	typedef ::pid_t ProcessId;
+	typedef uint8   ProcessExitCode;
 
 	struct ProcessStartInfo
 	{
@@ -129,8 +130,50 @@ namespace AL::OS::Linux
 		// @throw AL::Exception
 		static Void Create(Process& process, const ProcessStartInfo& startInfo)
 		{
-			// TODO: implement
-			throw NotImplementedException();
+			ProcessId id;
+
+			if ((id = ::fork()) == -1)
+			{
+
+				throw SystemException(
+					"fork"
+				);
+			}
+			else if (id == 0)
+			{
+				if (::chdir() == -1)
+				{
+
+					exit(0);
+				}
+
+				auto args = startInfo.CommandLine.Split(
+					' '
+				);
+
+				Collections::Array<const char*> argPointers(
+					args.GetSize() + 1
+				);
+
+				for (AL::size_t i = 0; i < args.GetSize(); ++i)
+				{
+
+					argPointers[i] = args[i].GetCString();
+				}
+
+				argPointers[argPointers.GetSize() - 1] = nullptr;
+
+				if (::execv(startInfo.Path.GetCString(), &argPointers[0]) == -1)
+				{
+
+					exit(0);
+				}
+			}
+
+			process = Process(
+				id,
+				False
+			);
 		}
 
 		// @throw AL::Exception
@@ -203,8 +246,22 @@ namespace AL::OS::Linux
 		// @throw AL::Exception
 		Bool IsRunning() const
 		{
-			// TODO: implement
-			throw NotImplementedException();
+			AL_ASSERT(
+				IsOpen(),
+				"Process not open"
+			);
+
+			if (::kill(id, 0) == -1)
+			{
+				auto errorCode = GetLastError();
+
+				if (errorCode != ESRCH)
+					throw SystemException("kill", errorCode);
+
+				return False;
+			}
+
+			return True;
 		}
 
 		Bool IsCurrentProcess() const
@@ -240,6 +297,26 @@ namespace AL::OS::Linux
 
 				isOpen = False;
 			}
+		}
+
+		// @throw AL::Exception
+		// @return AL::False if time elapsed and process is still running
+		Bool Join(TimeSpan maxWaitTime = TimeSpan::Infinite)
+		{
+			Timer timer;
+
+			while (timer.GetElapsed() <= maxWaitTime)
+			{
+				if (!IsRunning())
+				{
+
+					return True;
+				}
+
+				Sleep();
+			}
+
+			return False;
 		}
 
 		// @throw AL::Exception
