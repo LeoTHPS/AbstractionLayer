@@ -1648,7 +1648,7 @@ namespace AL::Collections
 		{
 			LinkedList<_String> chunks;
 
-			for (size_t i = 0, j = 0; (i + length) < GetLength(); )
+			for (size_t i = 0, j = 0; i < GetLength(); )
 			{
 				if ((i = IndexOfAt(delimiter, length, i, ignoreCase)) == NPOS)
 				{
