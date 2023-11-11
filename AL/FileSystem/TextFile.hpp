@@ -195,11 +195,7 @@ namespace AL::FileSystem
 				switch (_lineEnding)
 				{
 					case TextFileLineEndings::Auto:
-#if defined(AL_PLATFORM_LINUX)
-						return chunkBuffer_IndexOf_LF();
-#elif defined(AL_PLATFORM_WINDOWS)
-						return chunkBuffer_IndexOf_CRLF(_lpPrevChunkFirstChar);
-#endif
+						break;
 
 					case TextFileLineEndings::LF:
 						return chunkBuffer_IndexOf_LF();
@@ -207,6 +203,12 @@ namespace AL::FileSystem
 					case TextFileLineEndings::CRLF:
 						return chunkBuffer_IndexOf_CRLF(_lpPrevChunkFirstChar);
 				}
+
+#if defined(AL_PLATFORM_LINUX)
+				return chunkBuffer_IndexOf_LF();
+#elif defined(AL_PLATFORM_WINDOWS)
+				return chunkBuffer_IndexOf_CRLF(_lpPrevChunkFirstChar);
+#endif
 			};
 
 			auto lineEnding = GetLineEnding();
