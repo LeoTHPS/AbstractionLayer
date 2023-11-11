@@ -141,7 +141,7 @@ namespace AL::OS::Linux
 			}
 			else if (id == 0)
 			{
-				if (::chdir() == -1)
+				if (::chdir(startInfo.WorkingDirectory.GetCString()) == -1)
 				{
 
 					exit(0);
@@ -151,14 +151,14 @@ namespace AL::OS::Linux
 					' '
 				);
 
-				Collections::Array<const char*> argPointers(
+				Collections::Array<char*> argPointers(
 					args.GetSize() + 1
 				);
 
 				for (AL::size_t i = 0; i < args.GetSize(); ++i)
 				{
 
-					argPointers[i] = args[i].GetCString();
+					argPointers[i] = &args[i];
 				}
 
 				argPointers[argPointers.GetSize() - 1] = nullptr;
