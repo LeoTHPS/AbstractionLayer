@@ -1,10 +1,12 @@
 #pragma once
 #include "AL/Common.hpp"
 
+#include "SystemException.hpp"
+
 #if defined(AL_PLATFORM_PICO)
 
 #elif defined(AL_PLATFORM_LINUX)
-	#include <time.h>
+	#include <chrono>
 #elif defined(AL_PLATFORM_WINDOWS)
 
 #else
@@ -16,12 +18,12 @@ namespace AL::OS
 	class Timer
 	{
 #if defined(AL_PLATFORM_PICO)
-		uint64 start;
+		uint64                                start;
 #elif defined(AL_PLATFORM_LINUX)
-		uint64 start;
+		::std::chrono::steady_clock::duration start;
 #elif defined(AL_PLATFORM_WINDOWS)
-		Double start;
-		Double frequency;
+		Double                                start;
+		Double                                frequency;
 #endif
 
 		Timer(const Timer&) = delete;
@@ -70,6 +72,7 @@ namespace AL::OS
 		{
 		}
 
+		// @throw AL::Exception
 		TimeSpan GetElapsed() const
 		{
 #if defined(AL_PLATFORM_PICO)
@@ -77,22 +80,21 @@ namespace AL::OS
 				time_us_64() - start
 			);
 #elif defined(AL_PLATFORM_LINUX)
-			::timespec time;
-
-			::timespec_get(
-				&time,
-				TIME_UTC
-			);
-
 			return TimeSpan::FromNanoseconds(
-				((time.tv_sec * 1000000000) + time.tv_nsec) - start
+				::std::chrono::duration_cast<::std::chrono::nanoseconds>(
+					::std::chrono::steady_clock::now().time_since_epoch() - start
+				).count()
 			);
 #elif defined(AL_PLATFORM_WINDOWS)
 			::LARGE_INTEGER integer;
 
-			::QueryPerformanceCounter(
-				&integer
-			);
+			if (!::QueryPerformanceCounter(&integer))
+			{
+
+				throw SystemException(
+					"QueryPerformanceCounter"
+				);
+			}
 
 			return TimeSpan::FromNanoseconds(
 				static_cast<uint64>(
@@ -102,25 +104,23 @@ namespace AL::OS
 #endif
 		}
 
+		// @throw AL::Exception
 		Void Reset()
 		{
 #if defined(AL_PLATFORM_PICO)
 			start = ::time_us_64();
 #elif defined(AL_PLATFORM_LINUX)
-			::timespec time;
-
-			::timespec_get(
-				&time,
-				TIME_UTC
-			);
-
-			start = (time.tv_sec * 1000000000) + time.tv_nsec;
+			start = ::std::chrono::steady_clock::now().time_since_epoch();
 #elif defined(AL_PLATFORM_WINDOWS)
 			::LARGE_INTEGER integer;
 
-			::QueryPerformanceCounter(
-				&integer
-			);
+			if (!::QueryPerformanceCounter(&integer))
+			{
+
+				throw SystemException(
+					"QueryPerformanceCounter"
+				);
+			}
 
 			start = static_cast<Double>(
 				integer.QuadPart
