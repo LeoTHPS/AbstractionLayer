@@ -88,31 +88,6 @@ namespace AL::Game::Engine
 			return *lpWindow;
 		}
 
-		template<typename T_WINDOW>
-		T_WINDOW& GetWindow()
-		{
-			static_assert(
-				Is_Base_Of<Window, T_WINDOW>::Value,
-				"T_WINDOW must inherit Window"
-			);
-
-			return static_cast<T_WINDOW&>(
-				GetWindow()
-			);
-		}
-		template<typename T_WINDOW>
-		const T_WINDOW& GetWindow() const
-		{
-			static_assert(
-				Is_Base_Of<Window, T_WINDOW>::Value,
-				"T_WINDOW must inherit Window"
-			);
-
-			return static_cast<const T_WINDOW&>(
-				GetWindow()
-			);
-		}
-
 		// @throw AL::Exception
 		Void Create()
 		{
