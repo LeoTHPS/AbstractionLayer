@@ -247,6 +247,27 @@ namespace AL::Collections
 		T*     lpValues;
 		size_t capacity;
 
+		template<size_t S, size_t ... INDEXES>
+		Array(T(&&values)[S], Index_Sequence<INDEXES ...>)
+			: lpValues(
+				new T[S] { Move(values[INDEXES]) ... }
+			),
+			capacity(
+				S
+			)
+		{
+		}
+		template<size_t S, size_t ... INDEXES>
+		Array(const T(&values)[S], Index_Sequence<INDEXES ...>)
+			: lpValues(
+				new T[S] { values[INDEXES] ... }
+			),
+			capacity(
+				S
+			)
+		{
+		}
+
 	public:
 		typedef typename IBidirectionalCollection<T, ArrayIterator, ArrayReverseIterator>::Type                 Type;
 
@@ -397,10 +418,18 @@ namespace AL::Collections
 		}
 
 		template<size_t S>
+		Array(Type(&&values)[S])
+			: Array(
+				Move(values),
+				typename Make_Index_Sequence<S>::Type {}
+			)
+		{
+		}
+		template<size_t S>
 		Array(const Type(&values)[S])
 			: Array(
-				&values[0],
-				S
+				values,
+				typename Make_Index_Sequence<S>::Type {}
 			)
 		{
 		}
@@ -568,11 +597,19 @@ namespace AL::Collections
 		}
 
 		template<size_t S>
+		Void Assign(Type(&&values)[S])
+		{
+			Assign(
+				Move(values),
+				typename Make_Index_Sequence<S>::Type {}
+			);
+		}
+		template<size_t S>
 		Void Assign(const Type(&values)[S])
 		{
 			Assign(
-				&values[0],
-				S
+				values,
+				typename Make_Index_Sequence<S>::Type {}
 			);
 		}
 		Void Assign(const Type* lpValues, size_t count)
@@ -726,6 +763,15 @@ namespace AL::Collections
 		}
 
 		template<size_t S>
+		Array& operator = (Type(&&values)[S])
+		{
+			Assign(
+				values
+			);
+
+			return *this;
+		}
+		template<size_t S>
 		Array& operator = (const Type(&values)[S])
 		{
 			Assign(
@@ -780,6 +826,32 @@ namespace AL::Collections
 
 			return True;
 		}
+
+	private:
+		template<size_t S, size_t ... INDEXES>
+		Void Assign(Type(&&values)[S], Index_Sequence<INDEXES ...>)
+		{
+			if (lpValues != nullptr)
+			{
+
+				delete[] lpValues;
+			}
+
+			lpValues = new Type[S] { Move(values[INDEXES]) ... };
+			capacity = S;
+		}
+		template<size_t S, size_t ... INDEXES>
+		Void Assign(const Type(&values)[S], Index_Sequence<INDEXES ...>)
+		{
+			if (lpValues != nullptr)
+			{
+
+				delete[] lpValues;
+			}
+
+			lpValues = new Type[S] { values[INDEXES] ... };
+			capacity = S;
+		}
 	};
 
 	template<typename T, size_t S>
@@ -787,6 +859,21 @@ namespace AL::Collections
 		: public IBidirectionalCollection<T, ArrayIterator, ArrayReverseIterator>
 	{
 		T values[S];
+
+		template<size_t ... INDEXES>
+		Array(T(&&values)[S], Index_Sequence<INDEXES ...>)
+			: values {
+				Move(values[INDEXES]) ...
+			}
+		{
+		}
+		template<size_t ... INDEXES>
+		Array(const T(&values)[S], Index_Sequence<INDEXES ...>)
+			: values {
+				values[INDEXES] ...
+			}
+		{
+		}
 
 	public:
 		typedef typename IBidirectionalCollection<T, ArrayIterator, ArrayReverseIterator>::Type                 Type;
@@ -804,28 +891,32 @@ namespace AL::Collections
 		}
 
 		Array(Array&& array)
-			: values {
-				Expand_Move(array.values)
-			}
+			: Array(
+				Move(array.values),
+				typename Make_Index_Sequence<S>::Type {}
+			)
 		{
 		}
 		Array(const Array& array)
-			: values {
-				Expand_Copy(array.values)
-			}
+			: Array(
+				array.values,
+				typename Make_Index_Sequence<S>::Type {}
+			)
 		{
 		}
 
 		Array(Type(&&values)[S])
-			: values {
-				Expand_Move(values)
-			}
+			: Array(
+				Move(values),
+				typename Make_Index_Sequence<S>::Type {}
+			)
 		{
 		}
 		Array(const Type(&values)[S])
-			: values {
-				Expand_Copy(values)
-			}
+			: Array(
+				values,
+				typename Make_Index_Sequence<S>::Type {}
+			)
 		{
 		}
 
@@ -901,12 +992,18 @@ namespace AL::Collections
 			}
 		}
 
+		Void Assign(Type(&&values)[S])
+		{
+			Array<Type>::Move(
+				values,
+				this->values
+			);
+		}
 		Void Assign(const Type(&values)[S])
 		{
 			Array<Type>::Copy(
-				&values[0],
-				&this->values[0],
-				S
+				values,
+				this->values
 			);
 		}
 
@@ -1028,6 +1125,14 @@ namespace AL::Collections
 			return *this;
 		}
 
+		Array& operator = (Type(&values)[S])
+		{
+			Assign(
+				values
+			);
+
+			return *this;
+		}
 		Array& operator = (const Type(&values)[S])
 		{
 			Assign(
