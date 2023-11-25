@@ -64,7 +64,7 @@ namespace AL::Collections
 					value
 				),
 				NodeList<I + 1, T_NODES ...>(
-					Forward<T_NODES>(values) ...
+					values ...
 				)
 			{
 			}
