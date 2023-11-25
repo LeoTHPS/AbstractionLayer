@@ -19,6 +19,7 @@ namespace AL
 		typedef T                          String;
 		typedef Collections::Array<String> MatchCollection;
 
+		// @throw AL::Exception
 		static Bool IsMatch(const String& pattern, const String& buffer)
 		{
 			if (!_Regex(pattern).IsMatch(buffer))
@@ -30,6 +31,7 @@ namespace AL
 			return True;
 		}
 
+		// @throw AL::Exception
 		static Bool Match(MatchCollection& match, const String& pattern, const String& buffer)
 		{
 			if (!_Regex(pattern).Match(match, buffer))
@@ -40,6 +42,7 @@ namespace AL
 
 			return True;
 		}
+		// @throw AL::Exception
 		template<size_t S>
 		static Bool Match(MatchCollection& match, const Char(&pattern)[S], const String& buffer)
 		{
@@ -52,19 +55,51 @@ namespace AL
 			return True;
 		}
 
+		// @throw AL::Exception
 		_Regex(const String& pattern)
 			: regex(
-				pattern.GetCString(),
-				pattern.GetLength()
+				[&pattern]()
+				{
+					try
+					{
+						return Regex(
+							pattern.GetCString(),
+							pattern.GetLength()
+						);
+					}
+					catch (const ::std::regex_error& error)
+					{
+
+						throw Exception(
+							error.what()
+						);
+					}
+				}()
 			)
 		{
 		}
 
+		// @throw AL::Exception
 		template<size_t S>
 		_Regex(const Char(&pattern)[S])
 			: regex(
-				&pattern[0],
-				S - 1
+				[pattern]()
+				{
+					try
+					{
+						return Regex(
+							&pattern[0],
+							S - 1
+						);
+					}
+					catch (const ::std::regex_error& error)
+					{
+
+						throw Exception(
+							error.what()
+						);
+					}
+				}()
 			)
 		{
 		}
@@ -73,43 +108,66 @@ namespace AL
 		{
 		}
 
+		// @throw AL::Exception
 		Bool IsMatch(const String& buffer) const
 		{
 			MatchResults matches;
 
-			if (!::std::regex_match(buffer.GetCString(), matches, regex))
+			try
+			{
+				if (!::std::regex_match(buffer.GetCString(), matches, regex))
+				{
+
+					return False;
+				}
+			}
+			catch (const ::std::regex_error& error)
 			{
 
-				return False;
+				throw Exception(
+					error.what()
+				);
 			}
 
 			return True;
 		}
 
+		// @throw AL::Exception
 		Bool Match(MatchCollection& match, const String& buffer) const
 		{
 			MatchResults matches;
 
-			if (::std::regex_search(buffer.GetCString(), matches, regex))
+			try
 			{
-				match.SetCapacity(
-					matches.size()
-				);
-
-				size_t i = 0;
-
-				for (auto it = matches.begin(); it != matches.end(); ++it, ++i)
+				if (!::std::regex_search(buffer.GetCString(), matches, regex))
 				{
-					match[i] = String(
-						it->str().c_str(),
-						it->str().length()
-					);
-				}
 
-				return True;
+					return False;
+				}
+			}
+			catch (const ::std::regex_error& error)
+			{
+
+				throw Exception(
+					error.what()
+				);
 			}
 
-			return False;
+			match.SetCapacity(
+				matches.size()
+			);
+
+			size_t i = 0;
+
+			for (auto it = matches.begin(); it != matches.end(); ++it, ++i)
+			{
+				match[i] = String(
+					it->str().c_str(),
+					it->str().length()
+				);
+			}
+
+			return True;
 		}
 
 		auto& operator = (const String& pattern)
