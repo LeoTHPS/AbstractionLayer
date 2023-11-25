@@ -158,7 +158,7 @@ namespace AL::OS::Linux
 				for (AL::size_t i = 0; i < args.GetSize(); ++i)
 				{
 
-					argPointers[i] = &args[i];
+					argPointers[i] = &args[i][0];
 				}
 
 				argPointers[argPointers.GetSize() - 1] = nullptr;
