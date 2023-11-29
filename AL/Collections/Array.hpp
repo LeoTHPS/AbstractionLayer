@@ -279,6 +279,38 @@ namespace AL::Collections
 		typedef typename IBidirectionalCollection<T, ArrayIterator, ArrayReverseIterator>::ReverseIterator      ReverseIterator;
 		typedef typename IBidirectionalCollection<T, ArrayIterator, ArrayReverseIterator>::ConstReverseIterator ConstReverseIterator;
 
+		static Type* Allocate(size_t size, size_t reserve, const Type& source = Type())
+		{
+			auto lpValues = new Type[size + reserve];
+			auto lpValue  = lpValues;
+
+			for (size_t i = 0; i < size; ++i, ++lpValue)
+			{
+
+				*lpValue = source;
+			}
+
+			return lpValues;
+		}
+		static Type* Allocate(size_t size, size_t reserve, const Type* lpSource)
+		{
+			auto lpValues = new Type[size + reserve];
+			auto lpValue  = lpValues;
+
+			for (size_t i = 0; i < size; ++i, ++lpValue, ++lpSource)
+			{
+
+				*lpValue = *lpSource;
+			}
+
+			return lpValues;
+		}
+
+		static Void Free(Type* value)
+		{
+			delete[] value;
+		}
+
 		template<size_t S>
 		static Void Copy(const Type(&source)[S], Type(&destination)[S])
 		{
@@ -395,21 +427,17 @@ namespace AL::Collections
 		}
 		Array(const Array& array)
 			: lpValues(
-				new Type[array.capacity]
+				Allocate(array.GetSize(), 0, array.lpValues)
 			),
 			capacity(
 				array.capacity
 			)
 		{
-			Assign(
-				array.lpValues,
-				array.capacity
-			);
 		}
 
-		explicit Array(size_t capacity)
+		Array(size_t capacity, const Type& value = Type())
 			: lpValues(
-				new Type[capacity]
+				Allocate(capacity, 0, value)
 			),
 			capacity(
 				capacity
@@ -444,16 +472,12 @@ namespace AL::Collections
 		}
 		Array(const Type& value, size_t count, size_t reserve)
 			: lpValues(
-				new Type[count + reserve]
+				Allocate(count, reserve, value)
 			),
 			capacity(
 				count + reserve
 			)
 		{
-			Fill(
-				value,
-				count
-			);
 		}
 
 		Array(const Type* lpValues, size_t count)
@@ -466,24 +490,20 @@ namespace AL::Collections
 		}
 		Array(const Type* lpValues, size_t count, size_t reserve)
 			: lpValues(
-				new Type[count + reserve]
+				Allocate(count, reserve, lpValues)
 			),
 			capacity(
 				count + reserve
 			)
 		{
-			Assign(
-				lpValues,
-				count,
-				reserve
-			);
 		}
 
 		virtual ~Array()
 		{
 			if (lpValues != nullptr)
 			{
-				delete[] lpValues;
+
+				Free(lpValues);
 			}
 		}
 
@@ -514,7 +534,7 @@ namespace AL::Collections
 				if (this->lpValues != nullptr)
 				{
 
-					delete[] this->lpValues;
+					Free(this->lpValues);
 				}
 
 				this->lpValues = lpValues;
@@ -525,12 +545,12 @@ namespace AL::Collections
 		// Changes the container size+capacity and discards values
 		Void SetCapacity(size_t value)
 		{
-			if (auto lpValues = ((GetCapacity() != value) ? new Type[value] : nullptr))
+			if (auto lpValues = ((GetCapacity() != value) ? Allocate(value, 0) : nullptr))
 			{
 				if (this->lpValues != nullptr)
 				{
 
-					delete[] this->lpValues;
+					Free(this->lpValues);
 				}
 
 				this->lpValues = lpValues;
@@ -741,7 +761,7 @@ namespace AL::Collections
 			if (lpValues != nullptr)
 			{
 
-				delete[] lpValues;
+				Free(lpValues);
 			}
 
 			lpValues = array.lpValues;
@@ -834,7 +854,7 @@ namespace AL::Collections
 			if (lpValues != nullptr)
 			{
 
-				delete[] lpValues;
+				Free(lpValues);
 			}
 
 			lpValues = new Type[S] { Move(values[INDEXES]) ... };
@@ -846,7 +866,7 @@ namespace AL::Collections
 			if (lpValues != nullptr)
 			{
 
-				delete[] lpValues;
+				Free(lpValues);
 			}
 
 			lpValues = new Type[S] { values[INDEXES] ... };
