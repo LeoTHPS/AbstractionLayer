@@ -93,35 +93,35 @@ namespace AL
 		template<EventPriorities PRIORITY, typename F>
 		Void Register(F&& function)
 		{
-			event.Register<PRIORITY>(
+			event.template Register<PRIORITY>(
 				Move(function)
 			);
 		}
 		template<EventPriorities PRIORITY>
 		Void Register(Handler&& handler)
 		{
-			event.Register<PRIORITY>(
+			event.template Register<PRIORITY>(
 				Move(handler)
 			);
 		}
 		template<EventPriorities PRIORITY>
 		Void Register(const Handler& handler)
 		{
-			event.Register<PRIORITY>(
+			event.template Register<PRIORITY>(
 				handler
 			);
 		}
 		template<EventPriorities PRIORITY>
 		Void Register(T(*lpFunction)(TArgs ...))
 		{
-			event.Register<PRIORITY>(
+			event.template Register<PRIORITY>(
 				lpFunction
 			);
 		}
 		template<EventPriorities PRIORITY, typename C>
 		Void Register(T(C::*lpFunction)(TArgs ...), C& instance)
 		{
-			event.Register<PRIORITY>(
+			event.template Register<PRIORITY>(
 				lpFunction,
 				instance
 			);
@@ -129,7 +129,7 @@ namespace AL
 		template<EventPriorities PRIORITY, typename C>
 		Void Register(T(C::*lpFunction)(TArgs ...) const, C& instance)
 		{
-			event.Register<PRIORITY>(
+			event.template Register<PRIORITY>(
 				lpFunction,
 				instance
 			);
