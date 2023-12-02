@@ -371,22 +371,13 @@ namespace AL::OS
 
 		static Bool WriteException(const Exception& exception)
 		{
-			if (!WriteLine(exception.GetMessage()))
+			for (auto lpException = &exception; lpException != nullptr; lpException = lpException->GetInnerException())
 			{
-
-				return False;
-			}
-
-			if (auto lpInnerException = exception.GetInnerException())
-			{
-				do
+				if (!WriteLine(lpException->GetMessage()))
 				{
-					if (!WriteLine(lpInnerException->GetMessage()))
-					{
 
-						return False;
-					}
-				} while ((lpInnerException = lpInnerException->GetInnerException()) != nullptr);
+					return False;
+				}
 			}
 
 			return True;

@@ -532,18 +532,11 @@ namespace AL::OS::Windows
 		// @throw AL::Exception
 		static Void WriteException(const Exception& exception)
 		{
-			WriteLine(
-				exception.GetMessage()
-			);
-
-			if (auto lpInnerException = exception.GetInnerException())
+			for (auto lpException = &exception; lpException != nullptr; lpException = lpException->GetInnerException())
 			{
-				do
-				{
-					WriteLine(
-						lpInnerException->GetMessage()
-					);
-				} while ((lpInnerException = lpInnerException->GetInnerException()) != nullptr);
+				WriteLine(
+					lpException->GetMessage()
+				);
 			}
 		}
 
