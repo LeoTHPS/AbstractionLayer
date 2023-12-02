@@ -68,7 +68,7 @@ namespace AL::OS::Linux
 		{
 			auto lpEnvironmentStrings = environ;
 
-			for (size_t environmentStringLength; (environmentStringLength = String::GetLength(*lpEnvironmentStrings, environmentStringLength)) != 0; ++lpEnvironmentStrings)
+			for (size_t environmentStringLength = 0; (environmentStringLength = String::GetLength(*lpEnvironmentStrings, environmentStringLength)) != 0; ++lpEnvironmentStrings)
 			{
 				String environmentString(*lpEnvironmentStrings, environmentStringLength);
 				auto   environmentStringSplitOffset = environmentString.IndexOf('=');
