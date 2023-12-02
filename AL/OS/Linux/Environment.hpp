@@ -66,23 +66,20 @@ namespace AL::OS::Linux
 		// @throw AL::Exception
 		static Void Enumerate(const OnEnumCallback& callback)
 		{
-			auto lpEnvironmentStrings = environ;
-
-			for (size_t environmentStringLength = 0; (environmentStringLength = String::GetLength(*lpEnvironmentStrings, environmentStringLength)) != 0; ++lpEnvironmentStrings)
+			if (auto lpEnvironmentStrings = environ)
 			{
-				String environmentString(*lpEnvironmentStrings, environmentStringLength);
-				auto   environmentStringSplitOffset = environmentString.IndexOf('=');
-
-				if (environmentStringSplitOffset == String::NPOS)
-					continue;
-
-				auto environmentName  = environmentString.SubString(0, environmentStringSplitOffset);
-				auto environmentValue = environmentString.SubString(environmentStringSplitOffset + 1);
-
-				if (!callback(environmentName, environmentValue))
+				for (auto lpEnvironmentString = *lpEnvironmentStrings; lpEnvironmentString != nullptr; lpEnvironmentString = *++lpEnvironmentStrings)
 				{
+					String environmentString(lpEnvironmentString);
+					auto   environmentStringSplitOffset = environmentString.IndexOf('=');
+					auto   environmentName              = environmentString.SubString(0, environmentStringSplitOffset);
+					auto   environmentValue             = environmentString.SubString(environmentStringSplitOffset + 1);
 
-					break;
+					if (!callback(environmentName, environmentValue))
+					{
+
+						break;
+					}
 				}
 			}
 		}
