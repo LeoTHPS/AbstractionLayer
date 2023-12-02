@@ -11,11 +11,25 @@
 
 namespace AL::OS
 {
+#if defined(AL_PLATFORM_LINUX)
+	// @throw AL::Exception
+	// @return AL::False to stop
+	typedef Linux::EnvironmentOnEnumCallback   EnvironmentOnEnumCallback;
+#elif defined(AL_PLATFORM_WINDOWS)
+	// @throw AL::Exception
+	// @return AL::False to stop
+	typedef Windows::EnvironmentOnEnumCallback EnvironmentOnEnumCallback;
+#endif
+
 	class Environment
 	{
 		Environment() = delete;
 
 	public:
+		// @throw AL::Exception
+		// @return AL::False to stop
+		typedef EnvironmentOnEnumCallback OnEnumCallback;
+
 		// @throw AL::Exception
 		static Bool Get(String& value, const String& name)
 		{
@@ -62,6 +76,20 @@ namespace AL::OS
 #elif defined(AL_PLATFORM_WINDOWS)
 			Windows::Environment::Delete(
 				name
+			);
+#endif
+		}
+
+		// @throw AL::Exception
+		static Void Enumerate(const OnEnumCallback& callback)
+		{
+#if defined(AL_PLATFORM_LINUX)
+			Linux::Environment::Enumerate(
+				callback
+			);
+#elif defined(AL_PLATFORM_WINDOWS)
+			Windows::Environment::Enumerate(
+				callback
 			);
 #endif
 		}

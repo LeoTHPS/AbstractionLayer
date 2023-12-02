@@ -9,11 +9,19 @@
 
 namespace AL::OS::Windows
 {
+	// @throw AL::Exception
+	// @return AL::False to stop
+	typedef Function<Bool(const String& name, const String& value)> EnvironmentOnEnumCallback;
+
 	class Environment
 	{
 		Environment() = delete;
 
 	public:
+		// @throw AL::Exception
+		// @return AL::False to stop
+		typedef EnvironmentOnEnumCallback OnEnumCallback;
+
 		// @throw AL::Exception
 		static Bool Get(String& value, const String& name)
 		{
@@ -79,6 +87,38 @@ namespace AL::OS::Windows
 				throw SystemException(
 					"SetEnvironmentVariableA"
 				);
+			}
+		}
+
+		// @throw AL::Exception
+		static Void Enumerate(const OnEnumCallback& callback)
+		{
+			::LPCH lpEnvironmentStrings;
+
+			if ((lpEnvironmentStrings = ::GetEnvironmentStrings()) == NULL)
+			{
+
+				throw SystemException(
+					"GetEnvironmentStrings"
+				);
+			}
+
+			for (size_t environmentStringLength; (environmentStringLength = String::GetLength(lpEnvironmentStrings, environmentStringLength)) != 0; lpEnvironmentStrings += (environmentStringLength + 1))
+			{
+				String environmentString(lpEnvironmentStrings, environmentStringLength);
+				auto   environmentStringSplitOffset = environmentString.IndexOf('=');
+
+				if (environmentStringSplitOffset == String::NPOS)
+					continue;
+
+				auto environmentName  = environmentString.SubString(0, environmentStringSplitOffset - 1);
+				auto environmentValue = environmentString.SubString(environmentStringSplitOffset + 1);
+
+				if (!callback(environmentName, environmentValue))
+				{
+
+					break;
+				}
 			}
 		}
 	};
