@@ -8,6 +8,9 @@ namespace AL::Collections
 	template<typename T_CHAR>
 	class _StringBuilder
 	{
+		typedef typename Conditional<Is_Type<T_CHAR, typename AL::String::Char>::Value, AL::WString, AL::String>::Type T_OPPOSITE_STRING;
+		typedef typename T_OPPOSITE_STRING::Char                                                                       T_OPPOSITE_CHAR;
+
 		_String<T_CHAR> buffer;
 		Bool            appendAsDecimal  = True;
 		size_t          appendAsHexCount = 0;
@@ -172,6 +175,35 @@ namespace AL::Collections
 
 			return *this;
 		}
+		_StringBuilder& Append(const T_OPPOSITE_CHAR* value)
+		{
+			T_OPPOSITE_STRING string(
+				value
+			);
+
+			Append(
+				string
+			);
+
+			return *this;
+		}
+		_StringBuilder& Append(const T_OPPOSITE_STRING& value)
+		{
+			if constexpr (Is_Type<Char, AL::String::Char>::Value)
+			{
+				buffer.Append(
+					value.ToString()
+				);
+			}
+			else
+			{
+				buffer.Append(
+					value.ToWString()
+				);
+			}
+
+			return *this;
+		}
 
 		template<typename T>
 		_StringBuilder& operator << (T value)
@@ -207,6 +239,22 @@ namespace AL::Collections
 			return *this;
 		}
 		_StringBuilder& operator << (const String& value)
+		{
+			Append(
+				value
+			);
+
+			return *this;
+		}
+		_StringBuilder& operator << (const T_OPPOSITE_CHAR* value)
+		{
+			Append(
+				value
+			);
+
+			return *this;
+		}
+		_StringBuilder& operator << (const T_OPPOSITE_STRING& value)
 		{
 			Append(
 				value
