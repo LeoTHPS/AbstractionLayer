@@ -551,80 +551,80 @@ namespace AL::Collections
 		virtual Iterator      begin() override
 		{
 			return Iterator(
-				lpFirst->lpNext
+				(lpFirst != nullptr) ? lpFirst->lpNext : nullptr
 			);
 		}
 		virtual ConstIterator begin() const override
 		{
 			return ConstIterator(
-				lpFirst->lpNext
+				(lpFirst != nullptr) ? lpFirst->lpNext : nullptr
 			);
 		}
 
 		virtual Iterator      end() override
 		{
 			return Iterator(
-				lpLast
+				(lpFirst != nullptr) ? lpLast : nullptr
 			);
 		}
 		virtual ConstIterator end() const override
 		{
 			return ConstIterator(
-				lpLast
+				(lpFirst != nullptr) ? lpLast : nullptr
 			);
 		}
 
 		virtual ConstIterator cbegin() const override
 		{
 			return ConstIterator(
-				lpFirst->lpNext
+				(lpFirst != nullptr) ? lpFirst->lpNext : nullptr
 			);
 		}
 
 		virtual ConstIterator cend() const override
 		{
 			return ConstIterator(
-				lpLast
+				(lpFirst != nullptr) ? lpLast : nullptr
 			);
 		}
 
 		virtual ReverseIterator      rbegin() override
 		{
 			return ReverseIterator(
-				lpLast->lpPrevious
+				(lpFirst != nullptr) ? lpLast->lpPrevious : nullptr
 			);
 		}
 		virtual ConstReverseIterator rbegin() const override
 		{
 			return ConstReverseIterator(
-				lpLast->lpPrevious
+				(lpFirst != nullptr) ? lpLast->lpPrevious : nullptr
 			);
 		}
 
 		virtual ReverseIterator      rend() override
 		{
 			return ReverseIterator(
-				lpFirst
+				(lpFirst != nullptr) ? lpFirst : nullptr
 			);
 		}
 		virtual ConstReverseIterator rend() const override
 		{
 			return ConstReverseIterator(
-				lpFirst
+				(lpFirst != nullptr) ? lpFirst : nullptr
 			);
 		}
 
 		virtual ConstReverseIterator crbegin() const override
 		{
 			return ConstReverseIterator(
-				lpLast->lpPrevious
+				(lpFirst != nullptr) ? lpLast->lpPrevious : nullptr
 			);
 		}
 
 		virtual ConstReverseIterator crend() const override
 		{
 			return ConstReverseIterator(
-				lpFirst
+				(lpFirst != nullptr) ? lpFirst : nullptr
 			);
 		}
 

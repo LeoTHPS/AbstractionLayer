@@ -660,80 +660,80 @@ namespace AL::Collections
 		virtual Iterator      begin() override
 		{
 			return Iterator(
-				&lpValues[0]
+				(lpValues != nullptr) ? &lpValues[0] : nullptr
 			);
 		}
 		virtual ConstIterator begin() const override
 		{
 			return ConstIterator(
-				&lpValues[0]
+				(lpValues != nullptr) ? &lpValues[0] : nullptr
 			);
 		}
 
 		virtual Iterator      end() override
 		{
 			return Iterator(
-				&lpValues[GetCapacity()]
+				(lpValues != nullptr) ? &lpValues[GetCapacity()] : nullptr
 			);
 		}
 		virtual ConstIterator end() const override
 		{
 			return ConstIterator(
-				&lpValues[GetCapacity()]
+				(lpValues != nullptr) ? &lpValues[GetCapacity()] : nullptr
 			);
 		}
 
 		virtual ConstIterator cbegin() const override
 		{
 			return ConstIterator(
-				&lpValues[0]
+				(lpValues != nullptr) ? &lpValues[0] : nullptr
 			);
 		}
 
 		virtual ConstIterator cend() const override
 		{
 			return ConstIterator(
-				&lpValues[GetCapacity()]
+				(lpValues != nullptr) ? &lpValues[GetCapacity()] : nullptr
 			);
 		}
 
 		virtual ReverseIterator      rbegin() override
 		{
 			return ReverseIterator(
-				&lpValues[GetCapacity() - 1]
+				(lpValues != nullptr) ? &lpValues[GetCapacity() - 1] : nullptr
 			);
 		}
 		virtual ConstReverseIterator rbegin() const override
 		{
 			return ConstReverseIterator(
-				&lpValues[GetCapacity() - 1]
+				(lpValues != nullptr) ? &lpValues[GetCapacity() - 1] : nullptr
 			);
 		}
 
 		virtual ReverseIterator      rend() override
 		{
 			return ReverseIterator(
-				&lpValues[0] - 1
+				(lpValues != nullptr) ? (&lpValues[0] - 1) : nullptr
 			);
 		}
 		virtual ConstReverseIterator rend() const override
 		{
 			return ConstReverseIterator(
-				&lpValues[0] - 1
+				(lpValues != nullptr) ? (&lpValues[0] - 1) : nullptr
 			);
 		}
 
 		virtual ConstReverseIterator crbegin() const override
 		{
 			return ConstReverseIterator(
-				&lpValues[GetCapacity() - 1]
+				(lpValues != nullptr) ? &lpValues[GetCapacity() - 1] : nullptr
 			);
 		}
 
 		virtual ConstReverseIterator crend() const override
 		{
 			return ConstReverseIterator(
-				&lpValues[0] - 1
+				(lpValues != nullptr) ? (&lpValues[0] - 1) : nullptr
 			);
 		}
 
