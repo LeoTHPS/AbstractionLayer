@@ -76,7 +76,7 @@ namespace AL::OS::Linux
 				if (environmentStringSplitOffset == String::NPOS)
 					continue;
 
-				auto environmentName  = environmentString.SubString(0, environmentStringSplitOffset - 1);
+				auto environmentName  = environmentString.SubString(0, environmentStringSplitOffset);
 				auto environmentValue = environmentString.SubString(environmentStringSplitOffset + 1);
 
 				if (!callback(environmentName, environmentValue))

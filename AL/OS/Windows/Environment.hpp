@@ -103,7 +103,7 @@ namespace AL::OS::Windows
 				);
 			}
 
-			for (size_t environmentStringLength; (environmentStringLength = String::GetLength(lpEnvironmentStrings, environmentStringLength)) != 0; lpEnvironmentStrings += (environmentStringLength + 1))
+			for (size_t environmentStringLength = 0; (environmentStringLength = String::GetLength(lpEnvironmentStrings, environmentStringLength)) != 0; lpEnvironmentStrings += (environmentStringLength + 1))
 			{
 				String environmentString(lpEnvironmentStrings, environmentStringLength);
 				auto   environmentStringSplitOffset = environmentString.IndexOf('=');
@@ -111,7 +111,7 @@ namespace AL::OS::Windows
 				if (environmentStringSplitOffset == String::NPOS)
 					continue;
 
-				auto environmentName  = environmentString.SubString(0, environmentStringSplitOffset - 1);
+				auto environmentName  = environmentString.SubString(0, environmentStringSplitOffset);
 				auto environmentValue = environmentString.SubString(environmentStringSplitOffset + 1);
 
 				if (!callback(environmentName, environmentValue))

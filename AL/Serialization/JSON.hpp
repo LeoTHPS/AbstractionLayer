@@ -58,7 +58,7 @@ namespace AL::Serialization
 
 		struct
 		{
-			String String;
+			AL::String String;
 
 			union
 			{
@@ -123,7 +123,6 @@ namespace AL::Serialization
 			value.isDecimal = False;
 			value.isInteger = False;
 		}
-
 		JSONValue(const JSONValue& value)
 			: isNull(
 				value.isNull
@@ -158,6 +157,42 @@ namespace AL::Serialization
 			}
 		{
 		}
+		JSONValue(int8 value)
+			: isNumber(
+				True
+			),
+			isInteger(
+				True
+			),
+			value{
+				.Integer = value
+			}
+		{
+		}
+		JSONValue(int16 value)
+			: isNumber(
+				True
+			),
+			isInteger(
+				True
+			),
+			value{
+				.Integer = value
+			}
+		{
+		}
+		JSONValue(int32 value)
+			: isNumber(
+				True
+			),
+			isInteger(
+				True
+			),
+			value{
+				.Integer = value
+			}
+		{
+		}
 		JSONValue(int64 value)
 			: isNumber(
 				True
@@ -167,6 +202,66 @@ namespace AL::Serialization
 			),
 			value{
 				.Integer = value
+			}
+		{
+		}
+		JSONValue(uint8 value)
+			: isNumber(
+				True
+			),
+			isInteger(
+				True
+			),
+			value{
+				.Integer = value
+			}
+		{
+		}
+		JSONValue(uint16 value)
+			: isNumber(
+				True
+			),
+			isInteger(
+				True
+			),
+			value{
+				.Integer = value
+			}
+		{
+		}
+		JSONValue(uint32 value)
+			: isNumber(
+				True
+			),
+			isInteger(
+				True
+			),
+			value{
+				.Integer = value
+			}
+		{
+		}
+		JSONValue(uint64 value)
+			: isNumber(
+				True
+			),
+			isInteger(
+				True
+			),
+			value{
+				.Integer = static_cast<int64>(value)
+			}
+		{
+		}
+		JSONValue(Float value)
+			: isNumber(
+				True
+			),
+			isDecimal(
+				True
+			),
+			value{
+				.Decimal = value
 			}
 		{
 		}
@@ -419,7 +514,6 @@ namespace AL::Serialization
 			)
 		{
 		}
-
 		JSONArray(const JSONArray& array);
 
 		template<size_t S>
@@ -662,7 +756,6 @@ namespace AL::Serialization
 			)
 		{
 		}
-
 		JSONObject(const JSONObject& object)
 		{
 			for (auto& member : object.members)
