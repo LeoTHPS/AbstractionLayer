@@ -103,21 +103,22 @@ namespace AL::OS::Windows
 				);
 			}
 
-			for (size_t environmentStringLength = 0; (environmentStringLength = String::GetLength(lpEnvironmentStrings, environmentStringLength)) != 0; lpEnvironmentStrings += (environmentStringLength + 1))
+			for (size_t i = 0, j = 0; (lpEnvironmentStrings[i] != '\0') || (lpEnvironmentStrings[i + 1] != '\0'); ++i)
 			{
-				String environmentString(lpEnvironmentStrings, environmentStringLength);
-				auto   environmentStringSplitOffset = environmentString.IndexOf('=');
-
-				if (environmentStringSplitOffset == String::NPOS)
-					continue;
-
-				auto environmentName  = environmentString.SubString(0, environmentStringSplitOffset);
-				auto environmentValue = environmentString.SubString(environmentStringSplitOffset + 1);
-
-				if (!callback(environmentName, environmentValue))
+				if (lpEnvironmentStrings[i] == '\0')
 				{
+					String environmentString(&lpEnvironmentStrings[j], i - j);
+					auto   environmentStringSplitOffset = environmentString.IndexOf('=');
+					auto   environmentName              = environmentString.SubString(0, environmentStringSplitOffset);
+					auto   environmentValue             = environmentString.SubString(environmentStringSplitOffset + 1);
 
-					break;
+					j = i + 1;
+
+					if (!callback(environmentName, environmentValue))
+					{
+
+						break;
+					}
 				}
 			}
 		}
