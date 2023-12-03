@@ -66,7 +66,7 @@ namespace AL::OS::Linux
 		// @throw AL::Exception
 		static Void Enumerate(const OnEnumCallback& callback)
 		{
-			if (auto lpEnvironmentStrings = environ)
+			if (auto lpEnvironmentStrings = ::environ)
 			{
 				for (auto lpEnvironmentString = *lpEnvironmentStrings; lpEnvironmentString != nullptr; lpEnvironmentString = *++lpEnvironmentStrings)
 				{
