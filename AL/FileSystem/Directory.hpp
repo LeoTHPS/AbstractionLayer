@@ -10,11 +10,12 @@
 #if defined(AL_PLATFORM_LINUX)
 	#include <fcntl.h>
 	#include <dirent.h>
+	#include <unistd.h>
 
 	#include <sys/stat.h>
 	#include <sys/types.h>
 #elif defined(AL_PLATFORM_WINDOWS)
-
+	#undef GetCurrentDirectory
 #else
 	#error Platform not supported
 #endif
@@ -41,6 +42,56 @@ namespace AL::FileSystem
 		Directory(const Directory&) = delete;
 
 	public:
+		// @throw AL::Exception
+		static Directory OpenCurrent()
+		{
+#if defined(AL_PLATFORM_LINUX)
+			if (auto lpPath = ::getcwd(nullptr, 0))
+			{
+				String path(
+					lpPath
+				);
+
+				::free(
+					lpPath
+				);
+
+				return Directory(
+					AL::Move(path)
+				);
+			}
+
+			throw OS::SystemException(
+				"getcwd"
+			);
+#elif defined(AL_PLATFORM_WINDOWS)
+			::DWORD bufferSize;
+
+			if ((bufferSize = ::GetCurrentDirectoryA(0, nullptr)) == 0)
+			{
+
+				throw OS::SystemException(
+					"GetCurrentDirectoryA"
+				);
+			}
+
+			String path(
+				String::END,
+				bufferSize - 1
+			);
+
+			if ((bufferSize = ::GetCurrentDirectoryA(bufferSize, &path[0])) == 0)
+			{
+
+				throw OS::SystemException(
+					"GetCurrentDirectoryA"
+				);
+			}
+
+			return Directory(AL::Move(path));
+#endif
+		}
+
 		// @throw AL::Exception
 		static Bool Exists(const Path& path)
 		{
@@ -685,4 +736,10 @@ namespace AL::FileSystem
 			return True;
 		}
 	};
+
+	// @throw AL::Exception
+	inline Directory GetCurrentDirectory()
+	{
+		return Directory::OpenCurrent();
+	}
 }
