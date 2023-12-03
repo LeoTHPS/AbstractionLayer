@@ -191,61 +191,6 @@ namespace AL::Serialization
 		{
 		}
 
-		JSONValue(JSONValue&& value)
-			: isNull(
-				value.isNull
-			),
-			isNumber(
-				value.isNumber
-			),
-			isString(
-				value.isString
-			),
-			isBoolean(
-				value.isBoolean
-			),
-			isDecimal(
-				value.isDecimal
-			),
-			isInteger(
-				value.isInteger
-			),
-			value(
-				Move(value.value)
-			)
-		{
-			value.isNull    = True;
-			value.isNumber  = False;
-			value.isString  = False;
-			value.isBoolean = False;
-			value.isDecimal = False;
-			value.isInteger = False;
-		}
-		JSONValue(const JSONValue& value)
-			: isNull(
-				value.isNull
-			),
-			isNumber(
-				value.isNumber
-			),
-			isString(
-				value.isString
-			),
-			isBoolean(
-				value.isBoolean
-			),
-			isDecimal(
-				value.isDecimal
-			),
-			isInteger(
-				value.isInteger
-			),
-			value(
-				value.value
-			)
-		{
-		}
-
 		JSONValue(Bool value)
 			: isBoolean(
 				true
@@ -391,6 +336,61 @@ namespace AL::Serialization
 			value{
 				.String = value
 			}
+		{
+		}
+
+		JSONValue(JSONValue&& value)
+			: isNull(
+				value.isNull
+			),
+			isNumber(
+				value.isNumber
+			),
+			isString(
+				value.isString
+			),
+			isBoolean(
+				value.isBoolean
+			),
+			isDecimal(
+				value.isDecimal
+			),
+			isInteger(
+				value.isInteger
+			),
+			value(
+				Move(value.value)
+			)
+		{
+			value.isNull    = True;
+			value.isNumber  = False;
+			value.isString  = False;
+			value.isBoolean = False;
+			value.isDecimal = False;
+			value.isInteger = False;
+		}
+		JSONValue(const JSONValue& value)
+			: isNull(
+				value.isNull
+			),
+			isNumber(
+				value.isNumber
+			),
+			isString(
+				value.isString
+			),
+			isBoolean(
+				value.isBoolean
+			),
+			isDecimal(
+				value.isDecimal
+			),
+			isInteger(
+				value.isInteger
+			),
+			value(
+				value.value
+			)
 		{
 		}
 
@@ -613,17 +613,6 @@ namespace AL::Serialization
 		{
 		}
 		JSONArray(const JSONArray& array);
-
-		template<size_t S>
-		JSONArray(IJSON(&&json)[S])
-		{
-			for (auto& j : json)
-			{
-				if (j.IsArray())       Add(Move(reinterpret_cast<JSONArray&>(j)));
-				else if (j.IsValue())  Add(Move(reinterpret_cast<JSONValue&>(j)));
-				else if (j.IsObject()) Add(Move(reinterpret_cast<JSONObject&>(j)));
-			}
-		}
 
 		virtual ~JSONArray()
 		{
