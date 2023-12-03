@@ -33,6 +33,104 @@ namespace AL::Serialization
 			return wstring.ToString();
 		}
 		virtual WString ToWString() const = 0;
+
+	protected:
+		static WString Encode(const String& value)
+		{
+			return Encode(value.ToWString());
+		}
+		static WString Encode(const WString& value)
+		{
+			WStringBuilder sb;
+
+			for (auto c : value)
+			{
+				switch (c)
+				{
+					case L'\b':
+						sb << L"\\b";
+						break;
+
+					case L'\f':
+						sb << L"\\f";
+						break;
+
+					case L'\n':
+						sb << L"\\n";
+						break;
+
+					case L'\r':
+						sb << L"\\r";
+						break;
+
+					case L'\t':
+						sb << L"\\t";
+						break;
+
+					case L'"':
+						sb << L"\\\"";
+						break;
+
+					case L'\\':
+						sb << L"\\\\";
+						break;
+
+					default:
+						sb << c;
+						break;
+				}
+			}
+
+			return sb.ToString();
+		}
+
+		static String Decode(const String& value)
+		{
+			return Decode(value.ToWString());
+		}
+		static String Decode(const WString& value)
+		{
+			StringBuilder sb;
+
+			for (auto it = value.begin(); it != value.end(); ++it)
+			{
+				if (*it != L'\\')
+				{
+					sb << *it;
+
+					continue;
+				}
+
+				switch (*++it)
+				{
+					case L'b':
+						sb << L'\b';
+						break;
+
+					case L'f':
+						sb << L'\f';
+						break;
+
+					case L'n':
+						sb << L'\n';
+						break;
+
+					case L'r':
+						sb << L'\r';
+						break;
+
+					case L't':
+						sb << L'\t';
+						break;
+
+					default:
+						sb << *it;
+						break;
+				}
+			}
+
+			return sb.ToString();
+		}
 	};
 
 	class JSONArray;
@@ -401,7 +499,7 @@ namespace AL::Serialization
 			else if (IsString())
 			{
 				sb.Append(L'"');
-				sb.Append(GetString());
+				sb.Append(Encode(GetString()));
 				sb.Append(L'"');
 			}
 			else if (IsBoolean())
@@ -825,7 +923,7 @@ namespace AL::Serialization
 				else
 				{
 					sb.Append(L'"');
-					sb.Append(member.Name);
+					sb.Append(Encode(member.Name));
 					sb.Append(L"\":");
 					sb.Append(member.lpValue->ToWString());
 				}
