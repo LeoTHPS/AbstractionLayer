@@ -571,7 +571,7 @@ namespace AL
 		template<typename T>
 		static T    FromBase32Hex(const String& string)
 		{
-			return FromBase32Hex(
+			return FromBase32Hex<T>(
 				string,
 				0,
 				string.GetLength()
