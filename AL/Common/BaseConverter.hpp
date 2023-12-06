@@ -58,7 +58,7 @@ namespace AL
 		template<typename T>
 		static T    Decode(const String& string)
 		{
-			return Decode(
+			return Decode<T>(
 				string,
 				0,
 				string.GetLength()
@@ -463,7 +463,7 @@ namespace AL
 		template<typename T>
 		static T    FromBase16(const String& string)
 		{
-			return FromBase16(
+			return FromBase16<T>(
 				string,
 				0,
 				string.GetLength()
