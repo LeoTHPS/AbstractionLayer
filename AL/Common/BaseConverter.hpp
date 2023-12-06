@@ -58,18 +58,42 @@ namespace AL
 		template<typename T>
 		static T    Decode(const String& string)
 		{
+			return Decode(
+				string,
+				0,
+				string.GetLength()
+			);
+		}
+		template<typename T>
+		static T    Decode(const String& string, size_t offset, size_t length)
+		{
 			BaseConverterBuffer buffer;
-			Decode(buffer, string);
+			Decode(buffer, string, offset, length);
 
 			return *reinterpret_cast<T*>(
 				&buffer[0]
 			);
 		}
+
 		static Bool Decode(BaseConverterBuffer& buffer, const String& string)
 		{
-			auto length = string.GetLength();
+			if (!Decode(buffer, string, 0, string.GetLength()))
+			{
 
+				return False;
+			}
+
+			return True;
+		}
+		static Bool Decode(BaseConverterBuffer& buffer, const String& string, size_t offset, size_t length)
+		{
 			if ((length % 2) != 0)
+			{
+
+				return False;
+			}
+
+			if ((offset + length) >= string.GetLength())
 			{
 
 				return False;
@@ -124,7 +148,7 @@ namespace AL
 			};
 
 			auto lpBuffer = &buffer[0];
-			auto lpSource = string.GetCString();
+			auto lpSource = &string[offset];
 
 			for (size_t i = 0; i < length; i += 2, ++lpBuffer)
 			{
@@ -174,8 +198,17 @@ namespace AL
 		template<typename T>
 		static T    Decode(const String& string)
 		{
+			return Decode<T>(
+				string,
+				0,
+				string.GetLength()
+			);
+		}
+		template<typename T>
+		static T    Decode(const String& string, size_t offset, size_t length)
+		{
 			BaseConverterBuffer buffer;
-			Decode(buffer, string);
+			Decode(buffer, string, offset, length);
 
 			return *reinterpret_cast<T*>(
 				&buffer[0]
@@ -183,11 +216,23 @@ namespace AL
 		}
 		static Bool Decode(BaseConverterBuffer& buffer, const String& string)
 		{
-			return Decode(
-				buffer,
-				string,
-				CHARACTER_TABLE
-			);
+			if (!Decode(buffer, string, 0, string.GetLength()))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		static Bool Decode(BaseConverterBuffer& buffer, const String& string, size_t offset, size_t length)
+		{
+			if (!Decode(buffer, string, offset, length, CHARACTER_TABLE))
+			{
+
+				return False;
+			}
+
+			return True;
 		}
 
 		template<typename T>
@@ -210,8 +255,17 @@ namespace AL
 		template<typename T>
 		static T    DecodeHex(const String& string)
 		{
+			return DecodeHex<T>(
+				string,
+				0,
+				string.GetLength()
+			);
+		}
+		template<typename T>
+		static T    DecodeHex(const String& string, size_t offset, size_t length)
+		{
 			BaseConverterBuffer buffer;
-			DecodeHex(buffer, string);
+			DecodeHex(buffer, string, offset, length);
 
 			return *reinterpret_cast<T*>(
 				&buffer[0]
@@ -219,16 +273,27 @@ namespace AL
 		}
 		static Bool DecodeHex(BaseConverterBuffer& buffer, const String& string)
 		{
+			return DecodeHex(
+				buffer,
+				string,
+				0,
+				string.GetLength()
+			);
+		}
+		static Bool DecodeHex(BaseConverterBuffer& buffer, const String& string, size_t offset, size_t length)
+		{
 			return Decode(
 				buffer,
 				string,
+				offset,
+				length,
 				CHARACTER_TABLE_HEX
 			);
 		}
 
 	private:
 		static String Encode(const Void* lpBuffer, size_t size, const String::Char(&table)[32]);
-		static Bool   Decode(BaseConverterBuffer& buffer, const String& string, const String::Char(&table)[32]);
+		static Bool   Decode(BaseConverterBuffer& buffer, const String& string, size_t offset, size_t length, const String::Char(&table)[32]);
 	};
 	template<>
 	class _BaseConverter<64>
@@ -270,8 +335,17 @@ namespace AL
 		template<typename T>
 		static T    Decode(const String& string)
 		{
+			return Decode<T>(
+				string,
+				0,
+				string.GetLength()
+			);
+		}
+		template<typename T>
+		static T    Decode(const String& string, size_t offset, size_t length)
+		{
 			BaseConverterBuffer buffer;
-			Decode(buffer, string);
+			Decode(buffer, string, offset, length);
 
 			return *reinterpret_cast<T*>(
 				&buffer[0]
@@ -279,11 +353,23 @@ namespace AL
 		}
 		static Bool Decode(BaseConverterBuffer& buffer, const String& string)
 		{
-			return Decode(
-				buffer,
-				string,
-				CHARACTER_TABLE
-			);
+			if (!Decode(buffer, string, 0, string.GetLength()))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		static Bool Decode(BaseConverterBuffer& buffer, const String& string, size_t offset, size_t length)
+		{
+			if (!Decode(buffer, string, offset, length, CHARACTER_TABLE))
+			{
+
+				return False;
+			}
+
+			return True;
 		}
 
 		template<typename T>
@@ -306,8 +392,17 @@ namespace AL
 		template<typename T>
 		static T    DecodeUrl(const String& string)
 		{
+			return DecodeUrl<T>(
+				string,
+				0,
+				string.GetLength()
+			);
+		}
+		template<typename T>
+		static T    DecodeUrl(const String& string, size_t offset, size_t length)
+		{
 			BaseConverterBuffer buffer;
-			DecodeUrl(buffer, string);
+			DecodeUrl(buffer, string, offset, length);
 
 			return *reinterpret_cast<T*>(
 				&buffer[0]
@@ -315,16 +410,28 @@ namespace AL
 		}
 		static Bool DecodeUrl(BaseConverterBuffer& buffer, const String& string)
 		{
-			return Decode(
-				buffer,
-				string,
-				CHARACTER_TABLE_URL
-			);
+			if (!DecodeUrl(buffer, string, 0, string.GetLength()))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		static Bool DecodeUrl(BaseConverterBuffer& buffer, const String& string, size_t offset, size_t length)
+		{
+			if (!Decode(buffer, string, offset, length, CHARACTER_TABLE_URL))
+			{
+
+				return False;
+			}
+
+			return True;
 		}
 
 	private:
 		static String Encode(const Void* lpBuffer, size_t size, const String::Char(&table)[64]);
-		static Bool   Decode(BaseConverterBuffer& buffer, const String& string, const String::Char(&table)[64]);
+		static Bool   Decode(BaseConverterBuffer& buffer, const String& string, size_t offset, size_t length, const String::Char(&table)[64]);
 	};
 
 	class BaseConverter
@@ -356,13 +463,34 @@ namespace AL
 		template<typename T>
 		static T    FromBase16(const String& string)
 		{
+			return FromBase16(
+				string,
+				0,
+				string.GetLength()
+			);
+		}
+		template<typename T>
+		static T    FromBase16(const String& string, size_t offset, size_t length)
+		{
 			return _BaseConverter16::Decode<T>(
-				string
+				string,
+				offset,
+				length
 			);
 		}
 		static Bool FromBase16(Buffer& buffer, const String& string)
 		{
-			if (!_BaseConverter16::Decode(buffer, string))
+			if (!FromBase16(buffer, string, 0, string.GetLength()))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		static Bool FromBase16(Buffer& buffer, const String& string, size_t offset, size_t length)
+		{
+			if (!_BaseConverter16::Decode(buffer, string, offset, length))
 			{
 
 				return False;
@@ -389,13 +517,34 @@ namespace AL
 		template<typename T>
 		static T    FromBase32(const String& string)
 		{
+			return FromBase32<T>(
+				string,
+				0,
+				string.GetLength()
+			);
+		}
+		template<typename T>
+		static T    FromBase32(const String& string, size_t offset, size_t length)
+		{
 			return _BaseConverter32::Decode<T>(
-				string
+				string,
+				offset,
+				length
 			);
 		}
 		static Bool FromBase32(Buffer& buffer, const String& string)
 		{
-			if (!_BaseConverter32::Decode(buffer, string))
+			if (!FromBase32(buffer, string, 0, string.GetLength()))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		static Bool FromBase32(Buffer& buffer, const String& string, size_t offset, size_t length)
+		{
+			if (!_BaseConverter32::Decode(buffer, string, offset, length))
 			{
 
 				return False;
@@ -422,13 +571,34 @@ namespace AL
 		template<typename T>
 		static T    FromBase32Hex(const String& string)
 		{
+			return FromBase32Hex(
+				string,
+				0,
+				string.GetLength()
+			);
+		}
+		template<typename T>
+		static T    FromBase32Hex(const String& string, size_t offset, size_t length)
+		{
 			return _BaseConverter32::DecodeHex<T>(
-				string
+				string,
+				offset,
+				length
 			);
 		}
 		static Bool FromBase32Hex(Buffer& buffer, const String& string)
 		{
-			if (!_BaseConverter32::DecodeHex(buffer, string))
+			if (!FromBase32Hex(buffer, string, 0, string.GetLength()))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		static Bool FromBase32Hex(Buffer& buffer, const String& string, size_t offset, size_t length)
+		{
+			if (!_BaseConverter32::DecodeHex(buffer, string, offset, length))
 			{
 
 				return False;
@@ -455,13 +625,34 @@ namespace AL
 		template<typename T>
 		static T    FromBase64(const String& string)
 		{
+			return FromBase64<T>(
+				string,
+				0,
+				string.GetLength()
+			);
+		}
+		template<typename T>
+		static T    FromBase64(const String& string, size_t offset, size_t length)
+		{
 			return _BaseConverter64::Decode<T>(
-				string
+				string,
+				offset,
+				length
 			);
 		}
 		static Bool FromBase64(Buffer& buffer, const String& string)
 		{
-			if (!_BaseConverter64::Decode(buffer, string))
+			if (!FromBase64(buffer, string, 0, string.GetLength()))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		static Bool FromBase64(Buffer& buffer, const String& string, size_t offset, size_t length)
+		{
+			if (!_BaseConverter64::Decode(buffer, string, offset, length))
 			{
 
 				return False;
@@ -488,13 +679,34 @@ namespace AL
 		template<typename T>
 		static T    FromBase64Url(const String& string)
 		{
+			return FromBase64Url<T>(
+				string,
+				0,
+				string.GetLength()
+			);
+		}
+		template<typename T>
+		static T    FromBase64Url(const String& string, size_t offset, size_t length)
+		{
 			return _BaseConverter64::DecodeUrl<T>(
-				string
+				string,
+				offset,
+				length
 			);
 		}
 		static Bool FromBase64Url(Buffer& buffer, const String& string)
 		{
-			if (!_BaseConverter64::DecodeUrl(buffer, string))
+			if (!FromBase64Url(buffer, string, 0, string.GetLength()))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		static Bool FromBase64Url(Buffer& buffer, const String& string, size_t offset, size_t length)
+		{
+			if (!_BaseConverter64::DecodeUrl(buffer, string, offset, length))
 			{
 
 				return False;
@@ -529,13 +741,35 @@ namespace AL
 		template<typename T>
 		static T    Decode(const String& string)
 		{
-			return BaseConverter::FromBase16<T>(
-				string
+			return Decode<T>(
+				string,
+				0,
+				string.GetLength()
 			);
 		}
+		template<typename T>
+		static T    Decode(const String& string, size_t offset, size_t length)
+		{
+			return BaseConverter::FromBase16<T>(
+				string,
+				offset,
+				length
+			);
+		}
+
 		static Bool Decode(Buffer& buffer, const String& string)
 		{
-			if (!BaseConverter::FromBase16(buffer, string))
+			if (!Decode(buffer, string, 0, string.GetLength()))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		static Bool Decode(Buffer& buffer, const String& string, size_t offset, size_t length)
+		{
+			if (!BaseConverter::FromBase16(buffer, string, offset, length))
 			{
 
 				return False;
@@ -570,13 +804,34 @@ namespace AL
 		template<typename T>
 		static T    Decode(const String& string)
 		{
+			return Decode<T>(
+				string,
+				0,
+				string.GetLength()
+			);
+		}
+		template<typename T>
+		static T    Decode(const String& string, size_t offset, size_t length)
+		{
 			return BaseConverter::FromBase32<T>(
-				string
+				string,
+				offset,
+				length
 			);
 		}
 		static Bool Decode(Buffer& buffer, const String& string)
 		{
-			if (!BaseConverter::FromBase32(buffer, string))
+			if (!Decode(buffer, string, 0, string.GetLength()))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		static Bool Decode(Buffer& buffer, const String& string, size_t offset, size_t length)
+		{
+			if (!BaseConverter::FromBase32(buffer, string, offset, length))
 			{
 
 				return False;
@@ -603,13 +858,34 @@ namespace AL
 		template<typename T>
 		static T    DecodeHex(const String& string)
 		{
+			return DecodeHex<T>(
+				string,
+				0,
+				string.GetLength()
+			);
+		}
+		template<typename T>
+		static T    DecodeHex(const String& string, size_t offset, size_t length)
+		{
 			return BaseConverter::FromBase32Hex<T>(
-				string
+				string,
+				offset,
+				length
 			);
 		}
 		static Bool DecodeHex(Buffer& buffer, const String& string)
 		{
-			if (!BaseConverter::FromBase32Hex(buffer, string))
+			if (!DecodeHex(buffer, string, 0, string.GetLength()))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		static Bool DecodeHex(Buffer& buffer, const String& string, size_t offset, size_t length)
+		{
+			if (!BaseConverter::FromBase32Hex(buffer, string, offset, length))
 			{
 
 				return False;
@@ -644,13 +920,34 @@ namespace AL
 		template<typename T>
 		static T    Decode(const String& string)
 		{
+			return Decode<T>(
+				string,
+				0,
+				string.GetLength()
+			);
+		}
+		template<typename T>
+		static T    Decode(const String& string, size_t offset, size_t length)
+		{
 			return BaseConverter::FromBase64<T>(
-				string
+				string,
+				offset,
+				length
 			);
 		}
 		static Bool Decode(Buffer& buffer, const String& string)
 		{
-			if (!BaseConverter::FromBase64(buffer, string))
+			if (!Decode(buffer, string, 0, string.GetLength()))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		static Bool Decode(Buffer& buffer, const String& string, size_t offset, size_t length)
+		{
+			if (!BaseConverter::FromBase64(buffer, string, offset, length))
 			{
 
 				return False;
@@ -677,13 +974,34 @@ namespace AL
 		template<typename T>
 		static T    DecodeUrl(const String& string)
 		{
+			return DecodeUrl<T>(
+				string,
+				0,
+				string.GetLength()
+			);
+		}
+		template<typename T>
+		static T    DecodeUrl(const String& string, size_t offset, size_t length)
+		{
 			return BaseConverter::FromBase64Url<T>(
-				string
+				string,
+				offset,
+				length
 			);
 		}
 		static Bool DecodeUrl(Buffer& buffer, const String& string)
 		{
-			if (!BaseConverter::FromBase64Url(buffer, string))
+			if (!DecodeUrl(buffer, string, 0, string.GetLength()))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+		static Bool DecodeUrl(Buffer& buffer, const String& string, size_t offset, size_t length)
+		{
+			if (!BaseConverter::FromBase64Url(buffer, string, offset, length))
 			{
 
 				return False;
