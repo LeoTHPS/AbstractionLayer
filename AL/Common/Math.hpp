@@ -67,6 +67,12 @@ namespace AL
 		}
 
 		template<typename T>
+		static constexpr T Rad(T value)
+		{
+			return value * Rad2Deg;
+		}
+
+		template<typename T>
 		static constexpr T Sin(T value)
 		{
 			return ::std::sin(
