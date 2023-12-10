@@ -250,7 +250,7 @@ namespace AL::Collections
 		template<size_t S, size_t ... INDEXES>
 		Array(T(&&values)[S], Index_Sequence<INDEXES ...>)
 			: lpValues(
-				new T[S] { Move(values[INDEXES]) ... }
+				new T[S] { AL::Move(values[INDEXES]) ... }
 			),
 			capacity(
 				S
@@ -448,7 +448,7 @@ namespace AL::Collections
 		template<size_t S>
 		Array(Type(&&values)[S])
 			: Array(
-				Move(values),
+				AL::Move(values),
 				typename Make_Index_Sequence<S>::Type {}
 			)
 		{
@@ -857,7 +857,7 @@ namespace AL::Collections
 				Free(lpValues);
 			}
 
-			lpValues = new Type[S] { Move(values[INDEXES]) ... };
+			lpValues = new Type[S] { AL::Move(values[INDEXES]) ... };
 			capacity = S;
 		}
 		template<size_t S, size_t ... INDEXES>
