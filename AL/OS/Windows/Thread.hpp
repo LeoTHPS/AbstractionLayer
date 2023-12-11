@@ -73,10 +73,12 @@ namespace AL::OS::Windows
 			{
 				if (hThread != NULL)
 				{
-
-					::CloseHandle(
-						hThread
-					);
+					if (!IsDetatched())
+					{
+						::CloseHandle(
+							hThread
+						);
+					}
 				}
 			}
 
