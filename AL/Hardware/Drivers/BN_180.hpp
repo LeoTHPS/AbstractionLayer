@@ -15,6 +15,8 @@ namespace AL::Hardware::Drivers
 		UARTDevice device;
 
 	public:
+		static constexpr uint32 DEFAULT_SPEED = 9600;
+
 		BN_180(BN_180&& bn180)
 			: isOpen(
 				bn180.isOpen
@@ -27,7 +29,7 @@ namespace AL::Hardware::Drivers
 		}
 
 #if defined(AL_PLATFORM_PICO)
-		BN_180(::uart_inst* uart, GPIOPin rx, GPIOPin tx, uint32 speed = 9600)
+		BN_180(::uart_inst* uart, GPIOPin rx, GPIOPin tx, uint32 speed = DEFAULT_SPEED)
 			: device(
 				uart,
 				rx,
@@ -38,7 +40,7 @@ namespace AL::Hardware::Drivers
 		{
 		}
 #elif defined(AL_PLATFORM_LINUX)
-		BN_180(FileSystem::Path&& path, uint32 speed = 9600)
+		BN_180(FileSystem::Path&& path, uint32 speed = DEFAULT_SPEED)
 			: device(
 				Move(path),
 				speed,
@@ -46,7 +48,7 @@ namespace AL::Hardware::Drivers
 			)
 		{
 		}
-		BN_180(const FileSystem::Path& path, uint32 speed = 9600)
+		BN_180(const FileSystem::Path& path, uint32 speed = DEFAULT_SPEED)
 			: BN_180(
 				FileSystem::Path(path),
 				speed
@@ -54,7 +56,7 @@ namespace AL::Hardware::Drivers
 		{
 		}
 #elif defined(AL_PLATFORM_WINDOWS)
-		BN_180(FileSystem::Path&& path, uint32 speed = 9600)
+		BN_180(FileSystem::Path&& path, uint32 speed = DEFAULT_SPEED)
 			: device(
 				Move(path),
 				speed,
@@ -62,7 +64,7 @@ namespace AL::Hardware::Drivers
 			)
 		{
 		}
-		BN_180(const FileSystem::Path& path, uint32 speed = 9600)
+		BN_180(const FileSystem::Path& path, uint32 speed = DEFAULT_SPEED)
 			: BN_180(
 				FileSystem::Path(path),
 				speed
