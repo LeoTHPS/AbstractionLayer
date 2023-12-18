@@ -23,9 +23,6 @@ namespace AL::Lua54
 {
 	class Lua;
 
-	template<typename ... T>
-	using Tuple = Collections::Tuple<T ...>;
-
 	template<typename F>
 	class Function;
 	template<typename T, typename ... TArgs>
@@ -248,15 +245,15 @@ namespace AL::Lua54
 		{
 			template<typename T>
 			class Detour;
-			template<typename T, typename ... TArgs>
-			class Detour<T(*)(TArgs ...)>
+			template<typename T, typename ... T_ARGS>
+			class Detour<T(*)(T_ARGS ...)>
 			{
 			public:
 				static int Execute(::lua_State* lua)
 				{
 					return Execute(
 						lua,
-						typename Make_Index_Sequence<sizeof ...(TArgs)>::Type {}
+						typename Make_Index_Sequence<sizeof ...(T_ARGS)>::Type {}
 					);
 				}
 
@@ -265,7 +262,7 @@ namespace AL::Lua54
 				static int Execute(::lua_State* lua, Index_Sequence<INDEXES ...>)
 				{
 					auto value = F(
-						CFunction::Peek<INDEXES, TArgs ...>(lua) ...
+						Get<INDEXES, T_ARGS ...>(lua) ...
 					);
 
 					Push<T>(
@@ -276,15 +273,15 @@ namespace AL::Lua54
 					return 1;
 				}
 			};
-			template<typename ... TArgs>
-			class Detour<Void(*)(TArgs ...)>
+			template<typename ... T_ARGS>
+			class Detour<Void(*)(T_ARGS ...)>
 			{
 			public:
 				static int Execute(::lua_State* lua)
 				{
 					return Execute(
 						lua,
-						typename Make_Index_Sequence<sizeof ...(TArgs)>::Type {}
+						typename Make_Index_Sequence<sizeof ...(T_ARGS)>::Type {}
 					);
 				}
 
@@ -293,22 +290,22 @@ namespace AL::Lua54
 				static int Execute(::lua_State* lua, Index_Sequence<INDEXES ...>)
 				{
 					F(
-						CFunction::Peek<INDEXES, TArgs ...>(lua) ...
+						Get<INDEXES, T_ARGS ...>(lua) ...
 					);
 
 					return 0;
 				}
 			};
-			template<typename ... T, typename ... TArgs>
-			class Detour<Tuple<T ...>(*)(TArgs ...)>
+			template<typename ... T_RETURN, typename ... T_ARGS>
+			class Detour<Collections::Tuple<T_RETURN ...>(*)(T_ARGS ...)>
 			{
 			public:
 				static int Execute(::lua_State* lua)
 				{
 					return Execute(
 						lua,
-						typename Make_Index_Sequence<sizeof ...(T)>::Type {},
-						typename Make_Index_Sequence<sizeof ...(TArgs)>::Type {}
+						typename Make_Index_Sequence<sizeof ...(T_RETURN)>::Type {},
+						typename Make_Index_Sequence<sizeof ...(T_ARGS)>::Type {}
 					);
 				}
 
@@ -317,15 +314,15 @@ namespace AL::Lua54
 				static int Execute(::lua_State* lua, Index_Sequence<I_RETURN ...>, Index_Sequence<I_ARGS ...>)
 				{
 					auto value = F(
-						CFunction::Peek<I_ARGS, TArgs ...>(lua) ...
+						Get<I_ARGS, T_ARGS ...>(lua) ...
 					);
 
-					Push(
+					PushTuple<T_RETURN ...>(
 						lua,
 						value
 					);
 
-					return sizeof ...(T);
+					return sizeof ...(T_RETURN);
 				}
 			};
 
@@ -341,9 +338,9 @@ namespace AL::Lua54
 
 		private:
 			template<size_t INDEX, typename ... T>
-			static constexpr auto Peek(::lua_State* lua)
+			static constexpr auto Get(::lua_State* lua)
 			{
-				return Lua::Peek<typename Get_Type_Sequence<INDEX, T ...>::Type>(
+				return Peek<typename Get_Type_Sequence<INDEX, T ...>::Type>(
 					lua,
 					1 + INDEX
 				);
@@ -363,10 +360,7 @@ namespace AL::Lua54
 			public:
 				static constexpr Void Execute(::lua_State* lua, T_ARGS ... args)
 				{
-					Push<T_ARGS ...>(
-						lua,
-						Forward<T_ARGS>(args) ...
-					);
+					(Push<T_ARGS>(lua, Forward<T_ARGS>(args)), ...);
 
 					Extensions::call(
 						lua,
@@ -381,10 +375,7 @@ namespace AL::Lua54
 			public:
 				static constexpr T_RETURN Execute(::lua_State* lua, T_ARGS ... args)
 				{
-					Push<T_ARGS ...>(
-						lua,
-						Forward<T_ARGS>(args) ...
-					);
+					(Push<T_ARGS>(lua, Forward<T_ARGS>(args)), ...);
 
 					Extensions::call(
 						lua,
@@ -399,10 +390,10 @@ namespace AL::Lua54
 				}
 			};
 			template<typename ... T_RETURN, typename ... T_ARGS>
-			class Detour<Tuple<T_RETURN ...>(T_ARGS ...)>
+			class Detour<Collections::Tuple<T_RETURN ...>(T_ARGS ...)>
 			{
 			public:
-				static constexpr Tuple<T_RETURN ...> Execute(::lua_State* lua, T_ARGS ... args)
+				static constexpr Collections::Tuple<T_RETURN ...> Execute(::lua_State* lua, T_ARGS ... args)
 				{
 					return Execute(
 						lua,
@@ -413,21 +404,18 @@ namespace AL::Lua54
 
 			private:
 				template<size_t INDEX>
-				static constexpr auto Peek(::lua_State* lua)
+				static constexpr auto Get(::lua_State* lua)
 				{
-					return Lua::Peek<typename Get_Type_Sequence<INDEX, T_RETURN ...>::Type>(
+					return Peek<typename Get_Type_Sequence<INDEX, T_RETURN ...>::Type>(
 						lua,
 						1 + INDEX
 					);
 				}
 
 				template<size_t ... INDEXES>
-				static constexpr Tuple<T_RETURN ...> Execute(::lua_State* lua, T_ARGS ... args, Index_Sequence<INDEXES ...>)
+				static constexpr Collections::Tuple<T_RETURN ...> Execute(::lua_State* lua, T_ARGS ... args, Index_Sequence<INDEXES ...>)
 				{
-					Push<T_ARGS ...>(
-						lua,
-						Forward<T_ARGS>(args) ...
-					);
+					(Push<T_ARGS>(lua, Forward<T_ARGS>(args)), ...);
 
 					Extensions::call(
 						lua,
@@ -435,8 +423,8 @@ namespace AL::Lua54
 						sizeof ...(T_RETURN)
 					);
 
-					return Tuple<T_RETURN ...>(
-						Peek<INDEXES>(lua) ...
+					return Collections::Tuple<T_RETURN ...>(
+						Get<INDEXES>(lua) ...
 					);
 				}
 			};
@@ -853,10 +841,7 @@ namespace AL::Lua54
 				"Lua not created"
 			);
 
-			Push<T ...>(
-				GetHandle(),
-				Forward<T>(value) ...
-			);
+			(Push<T>(GetHandle(), Forward<T>(value)), ...);
 		}
 
 		template<typename ... T>
@@ -871,7 +856,7 @@ namespace AL::Lua54
 				return Pop<T ...>(GetHandle());
 			else
 			{
-				Tuple<T ...> value;
+				Collections::Tuple<T ...> value;
 
 				Pop(
 					GetHandle(),
@@ -907,7 +892,7 @@ namespace AL::Lua54
 				return Peek<T ...>(GetHandle(), index);
 			else
 			{
-				Tuple<T ...> value;
+				Collections::Tuple<T ...> value;
 
 				Peek(
 					GetHandle(),
@@ -1318,25 +1303,6 @@ namespace AL::Lua54
 				static_assert(false, "Type not supported");
 			}
 		}
-		template<typename ... T>
-		static constexpr Void Push(::lua_State* lua, T ... value)
-		{
-			(Push<T>(lua, Forward<T>(value)), ...);
-		}
-		template<typename ... T>
-		static constexpr Void Push(::lua_State* lua, const Tuple<T ...>& value)
-		{
-			Push(
-				lua,
-				value,
-				typename Make_Index_Sequence<sizeof ...(T)>::Type {}
-			);
-		}
-		template<size_t ... INDEXES, typename ... T>
-		static constexpr Void Push(::lua_State* lua, const Tuple<T ...>& value)
-		{
-			(Push(lua, value.template Get<INDEXES>()), ...);
-		}
 
 		template<typename T>
 		static auto Pop(::lua_State* lua)
@@ -1352,18 +1318,6 @@ namespace AL::Lua54
 			);
 
 			return value;
-		}
-		template<size_t INDEX, typename ... T>
-		static constexpr Void Pop(::lua_State* lua, Tuple<T ...>& value)
-		{
-			value.template Set<INDEX>(
-				Pop<typename Get_Type_Sequence<INDEX, T ...>::Type>(lua)
-			);
-		}
-		template<size_t ... INDEXES, typename ... T>
-		static constexpr Void Pop(::lua_State* lua, Tuple<T ...>& value, Index_Sequence<INDEXES ...>)
-		{
-			(Pop<INDEXES, T>(lua, value), ...);
 		}
 
 		template<typename T>
@@ -1460,17 +1414,46 @@ namespace AL::Lua54
 				static_assert(false, "Type not supported");
 			}
 		}
+
+		template<typename ... T>
+		static constexpr Void PushTuple(::lua_State* lua, const Collections::Tuple<T ...>& value)
+		{
+			PushTuple<T ...>(
+				lua,
+				value,
+				typename Make_Index_Sequence<sizeof ...(T)>::Type {}
+			);
+		}
+		template<typename ... T, size_t ... INDEXES>
+		static constexpr Void PushTuple(::lua_State* lua, const Collections::Tuple<T ...>& value, Index_Sequence<INDEXES ...>)
+		{
+			(Push<T>(lua, value.template Get<INDEXES>()), ...);
+		}
+
 		template<size_t INDEX, typename ... T>
-		static constexpr Void Peek(::lua_State* lua, size_t index, Tuple<T ...>& value)
+		static constexpr Void PopTuple(::lua_State* lua, Collections::Tuple<T ...>& value)
+		{
+			value.template Set<INDEX>(
+				Pop<typename Get_Type_Sequence<INDEX, T ...>::Type>(lua)
+			);
+		}
+		template<size_t ... INDEXES, typename ... T>
+		static constexpr Void PopTuple(::lua_State* lua, Collections::Tuple<T ...>& value, Index_Sequence<INDEXES ...>)
+		{
+			(PopTuple<INDEXES, T>(lua, value), ...);
+		}
+
+		template<size_t INDEX, typename ... T>
+		static constexpr Void PeekTuple(::lua_State* lua, size_t index, Collections::Tuple<T ...>& value)
 		{
 			value.template Set<INDEX>(
 				Peek<typename Get_Type_Sequence<INDEX, T ...>::Type>(lua, index + INDEX)
 			);
 		}
 		template<size_t ... INDEXES, typename ... T>
-		static constexpr Void Peek(::lua_State* lua, size_t index, Tuple<T ...>& value, Index_Sequence<INDEXES ...>)
+		static constexpr Void PeekTuple(::lua_State* lua, size_t index, Collections::Tuple<T ...>& value, Index_Sequence<INDEXES ...>)
 		{
-			(Peek<INDEXES, T>(lua, index, value), ...);
+			(PeekTuple<INDEXES, T>(lua, index, value), ...);
 		}
 	};
 }
