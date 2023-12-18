@@ -265,7 +265,7 @@ namespace AL::Lua54
 				static int Execute(::lua_State* lua, Index_Sequence<INDEXES ...>)
 				{
 					auto value = F(
-						Peek<INDEXES, TArgs ...>(lua) ...
+						CFunction::Peek<INDEXES, TArgs ...>(lua) ...
 					);
 
 					Push<T>(
@@ -293,7 +293,7 @@ namespace AL::Lua54
 				static int Execute(::lua_State* lua, Index_Sequence<INDEXES ...>)
 				{
 					F(
-						Peek<INDEXES, TArgs ...>(lua) ...
+						CFunction::Peek<INDEXES, TArgs ...>(lua) ...
 					);
 
 					return 0;
@@ -317,7 +317,7 @@ namespace AL::Lua54
 				static int Execute(::lua_State* lua, Index_Sequence<I_RETURN ...>, Index_Sequence<I_ARGS ...>)
 				{
 					auto value = F(
-						Peek<I_ARGS, TArgs ...>(lua) ...
+						CFunction::Peek<I_ARGS, TArgs ...>(lua) ...
 					);
 
 					Push(
@@ -1406,14 +1406,13 @@ namespace AL::Lua54
 			}
 			else if constexpr (Is_Type<T, char*>::Value)
 			{
-				return Extensions::getString(
-					lua,
-					index
+				return const_cast<char*>(
+					Extensions::getstring(lua, index)
 				);
 			}
 			else if constexpr (Is_Type<T, const char*>::Value)
 			{
-				return Extensions::getString(
+				return Extensions::getstring(
 					lua,
 					index
 				);
