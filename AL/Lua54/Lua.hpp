@@ -118,6 +118,17 @@ namespace AL::Lua54
 			}
 		}
 
+		operator Bool() const
+		{
+			if (lua == nullptr)
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+
 		T operator () (TArgs ... args) const;
 
 		Function& operator = (Function&& function)
