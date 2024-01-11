@@ -223,7 +223,7 @@ namespace AL::Hardware::Pico
 				"I2C not open"
 			);
 
-			if (::i2c_write_blocking(GetI2C(), address, reinterpret_cast<const ::uint8_t*>(lpBuffer), size, nostop) != ::PICO_ERROR_GENERIC)
+			if (::i2c_write_blocking(GetI2C(), address, reinterpret_cast<const ::uint8_t*>(lpBuffer), size, nostop) == ::PICO_ERROR_GENERIC)
 			{
 
 				throw OS::SystemException(
