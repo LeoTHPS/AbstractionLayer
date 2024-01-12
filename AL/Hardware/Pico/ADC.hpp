@@ -17,7 +17,9 @@ namespace AL::Hardware::Pico
 		ADC0 = 0x01, // GPIO 26
 		ADC1 = 0x02, // GPIO 27
 		ADC2 = 0x04, // GPIO 28
-		ADC3 = 0x08  // GPIO 29 (Chip Temperature)
+		ADC3 = 0x08, // GPIO 29 (Chip Temperature)
+
+		All  = ADC0 | ADC1 | ADC2 | ADC3
 	};
 
 	class ADC
@@ -96,7 +98,7 @@ namespace AL::Hardware::Pico
 			if (BitMask<ADCChannels>::IsSet(channel, ADCChannels::ADC0))
 			{
 				::adc_select_input(
-					26
+					0
 				);
 
 				data = ::adc_read();
@@ -104,7 +106,7 @@ namespace AL::Hardware::Pico
 			else if (BitMask<ADCChannels>::IsSet(channel, ADCChannels::ADC1))
 			{
 				::adc_select_input(
-					27
+					1
 				);
 
 				data = ::adc_read();
@@ -112,7 +114,7 @@ namespace AL::Hardware::Pico
 			else if (BitMask<ADCChannels>::IsSet(channel, ADCChannels::ADC2))
 			{
 				::adc_select_input(
-					28
+					2
 				);
 
 				data = ::adc_read();
@@ -120,7 +122,7 @@ namespace AL::Hardware::Pico
 			else if (BitMask<ADCChannels>::IsSet(channel, ADCChannels::ADC3))
 			{
 				::adc_select_input(
-					29
+					3
 				);
 
 				data = ::adc_read();
