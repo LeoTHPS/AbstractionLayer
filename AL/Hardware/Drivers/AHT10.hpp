@@ -39,6 +39,8 @@ namespace AL::Hardware::Drivers
 	public:
 		inline static const I2CAddress DEVICE_ADDRESS = 0x38;
 
+		static constexpr uint32        DEFAULT_SPEED  = 100000;
+
 		AHT10(AHT10&& aht10)
 			: isOpen(
 				aht10.isOpen
@@ -72,7 +74,7 @@ namespace AL::Hardware::Drivers
 		}
 
 #if defined(AL_PLATFORM_PICO)
-		AHT10(::i2c_inst* i2c, GPIOPin scl, GPIOPin sda, uint32 baud, I2CAddress address = DEVICE_ADDRESS)
+		AHT10(::i2c_inst* i2c, GPIOPin scl, GPIOPin sda, uint32 baud = DEFAULT_SPEED, I2CAddress address = DEVICE_ADDRESS)
 			: isBusAllocated(
 				True
 			),
@@ -91,7 +93,7 @@ namespace AL::Hardware::Drivers
 		{
 		}
 #elif defined(AL_PLATFORM_LINUX)
-		AHT10(FileSystem::Path&& path, uint32 baud, I2CAddress address = DEVICE_ADDRESS)
+		AHT10(FileSystem::Path&& path, uint32 baud = DEFAULT_SPEED, I2CAddress address = DEVICE_ADDRESS)
 			: isBusAllocated(
 				True
 			),
@@ -107,7 +109,7 @@ namespace AL::Hardware::Drivers
 			)
 		{
 		}
-		AHT10(const FileSystem::Path& path, uint32 baud, I2CAddress address = DEVICE_ADDRESS)
+		AHT10(const FileSystem::Path& path, uint32 baud = DEFAULT_SPEED, I2CAddress address = DEVICE_ADDRESS)
 			: AHT10(
 				FileSystem::Path(path),
 				baud,
