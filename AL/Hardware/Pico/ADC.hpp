@@ -18,8 +18,9 @@ namespace AL::Hardware::Pico
 		ADC1 = 0x02, // GPIO 27
 		ADC2 = 0x04, // GPIO 28
 		ADC3 = 0x08, // GPIO 29
+		ADC4 = 0x10, // Chip Temperature
 
-		All  = ADC0 | ADC1 | ADC2 | ADC3
+		All  = ADC0 | ADC1 | ADC2 | ADC3 | ADC4
 	};
 
 	class ADC
@@ -30,6 +31,15 @@ namespace AL::Hardware::Pico
 		BitMask<ADCChannels> channels;
 
 	public:
+		static constexpr Float CalculateTemperatureC(ReadData adcValue, Float adcVoltage = 3.3f)
+		{
+			return 27 - ((adcValue * (adcVoltage / 0xFFF)) - 0.706f) / 0.001721f;
+		}
+		static constexpr Float CalculateTemperatureF(ReadData adcValue, Float adcVoltage = 3.3f)
+		{
+			return (CalculateTemperatureC(adcValue, adcVoltage) * 9.0f / 5.0f) + 32.0f;
+		}
+
 		static constexpr ReadData DATA_MAX = 0xFFF;
 
 		ADC(ADC&& adc)
@@ -74,6 +84,7 @@ namespace AL::Hardware::Pico
 			if (channels.IsSet(ADCChannels::ADC1)) ::adc_gpio_init(27);
 			if (channels.IsSet(ADCChannels::ADC2)) ::adc_gpio_init(28);
 			if (channels.IsSet(ADCChannels::ADC3)) ::adc_gpio_init(29);
+			if (channels.IsSet(ADCChannels::ADC4)) ::adc_set_temp_sensor_enabled(true);
 
 			isOpen = True;
 		}
@@ -132,21 +143,15 @@ namespace AL::Hardware::Pico
 
 				data += ::adc_read();
 			}
-		}
 
-		// @throw AL::Exception
-		virtual Void ReadTemperature(ReadData& data)
-		{
-			AL_ASSERT(
-				IsOpen(),
-				"ADC not open"
-			);
+			if (BitMask<ADCChannels>::IsSet(channel, ADCChannels::ADC4))
+			{
+				::adc_select_input(
+					4
+				);
 
-			::adc_select_input(
-				4
-			);
-
-			data = ::adc_read();
+				data += ::adc_read();
+			}
 		}
 
 		ADC& operator = (ADC&& adc)
