@@ -37,12 +37,26 @@ namespace AL::Serialization
 
 		GGA = 0x100,
 		GLL = 0x200,
-		GSV = 0x400,
-		RMC = 0x800,
-		VTG = 0x1000
+		GSA = 0x400,
+		GSV = 0x800,
+		RMC = 0x1000,
+		VTG = 0x2000
 	};
 
 	AL_DEFINE_ENUM_FLAG_OPERATORS(NMEASentences);
+
+	enum class NMEAFixModes : uint8
+	{
+		Manual,
+		Automatic
+	};
+
+	enum class NMEAFixTypes : uint8
+	{
+		None  = 1,
+		Fix2D = 2,
+		Fix3D = 3
+	};
 
 	enum class NMEAFixQualities : uint8
 	{
@@ -76,6 +90,13 @@ namespace AL::Serialization
 
 			struct
 			{
+				uint32       PRN;
+				NMEAFixModes FixMode;
+				NMEAFixTypes FixType;
+			} GSA;
+
+			struct
+			{
 				uint32        MessageCount;
 				uint32        MessageIndex;
 				NMEASatellite Satellites[4];
@@ -94,6 +115,7 @@ namespace AL::Serialization
 
 			struct
 			{
+				Bool   Valid;
 				Double Heading;
 				Double HeadingMagnetic;
 				Bool   HeadingIsRelTrueNorth;
@@ -106,382 +128,362 @@ namespace AL::Serialization
 
 	class NMEA
 	{
+		typedef Collections::Array<String> _StringChunks;
+
 		NMEA() = delete;
 
 	public:
 		// @throw AL::Exception
-		// @return AL::False on not supported
-		static Bool FromString(NMEASentence& sentence, const String& string)
+		static Void FromString(NMEASentence& sentence, const String& string)
 		{
-			if (!string.StartsWith('$'))
+			if (!string.StartsWith('$') || !string.EndsWith("\r\n"))
 			{
 
 				throw Exception(
-					"Invalid first character"
+					"Invalid format"
 				);
 			}
 
-			if (!string.EndsWith("\r\n"))
+			auto stringChunks = string.Split(',');
+			stringChunks[0] = stringChunks[0].SubString(1);
+			stringChunks[stringChunks.GetSize() - 1] = stringChunks[stringChunks.GetSize() - 1].SubString(0, stringChunks[stringChunks.GetSize() - 1].GetLength() - 2);
+
+			if (!stringChunks[stringChunks.GetSize() - 1].StartsWith('*'))
+			{
+				auto tmp = stringChunks[stringChunks.GetSize() - 1].Split('*');
+
+				if (tmp.GetSize() != 2)
+				{
+
+					throw Exception(
+						"Invalid format"
+					);
+				}
+
+				stringChunks.SetSize(stringChunks.GetSize() + 1);
+				stringChunks[stringChunks.GetSize() - 2] = Move(tmp[0]);
+				stringChunks[stringChunks.GetSize() - 1] = Move(tmp[1]);
+			}
+
+			if (stringChunks[0].StartsWith("GA"))      sentence.Type = NMEASentences::GA;
+			else if (stringChunks[0].StartsWith("GB")) sentence.Type = NMEASentences::GB;
+			else if (stringChunks[0].StartsWith("GI")) sentence.Type = NMEASentences::GI;
+			else if (stringChunks[0].StartsWith("GL")) sentence.Type = NMEASentences::GL;
+			else if (stringChunks[0].StartsWith("GN")) sentence.Type = NMEASentences::GN;
+			else if (stringChunks[0].StartsWith("GP")) sentence.Type = NMEASentences::GP;
+			else if (stringChunks[0].StartsWith("GQ")) sentence.Type = NMEASentences::GQ;
+			else throw Exception("Invalid talker id");
+
+			if (stringChunks[0].CompareAt("GGA", 2))
+			{
+				sentence.Type.Add(NMEASentences::GGA);
+
+				try
+				{
+					FromString_GGA(
+						sentence,
+						stringChunks
+					);
+				}
+				catch (Exception& exception)
+				{
+
+					throw Exception(
+						Move(exception),
+						"Error parsing GGA"
+					);
+				}
+			}
+			else if (stringChunks[0].CompareAt("GLL", 2))
+			{
+				sentence.Type.Add(NMEASentences::GLL);
+
+				try
+				{
+					FromString_GLL(
+						sentence,
+						stringChunks
+					);
+				}
+				catch (Exception& exception)
+				{
+
+					throw Exception(
+						Move(exception),
+						"Error parsing GLL"
+					);
+				}
+			}
+			else if (stringChunks[0].CompareAt("GSA", 2))
+			{
+				sentence.Type.Add(NMEASentences::GSA);
+
+				try
+				{
+					FromString_GSA(
+						sentence,
+						stringChunks
+					);
+				}
+				catch (Exception& exception)
+				{
+
+					throw Exception(
+						Move(exception),
+						"Error parsing GSA"
+					);
+				}
+			}
+			else if (stringChunks[0].CompareAt("GSV", 2))
+			{
+				sentence.Type.Add(NMEASentences::GSV);
+
+				try
+				{
+					FromString_GSV(
+						sentence,
+						stringChunks
+					);
+				}
+				catch (Exception& exception)
+				{
+
+					throw Exception(
+						Move(exception),
+						"Error parsing GSV"
+					);
+				}
+			}
+			else if (stringChunks[0].CompareAt("RMC", 2))
+			{
+				sentence.Type.Add(NMEASentences::RMC);
+
+				try
+				{
+					FromString_RMC(
+						sentence,
+						stringChunks
+					);
+				}
+				catch (Exception& exception)
+				{
+
+					throw Exception(
+						Move(exception),
+						"Error parsing RMC"
+					);
+				}
+			}
+			else if (stringChunks[0].CompareAt("VTG", 2))
+			{
+				sentence.Type.Add(NMEASentences::VTG);
+
+				try
+				{
+					FromString_VTG(
+						sentence,
+						stringChunks
+					);
+				}
+				catch (Exception& exception)
+				{
+
+					throw Exception(
+						Move(exception),
+						"Error parsing VTG"
+					);
+				}
+			}
+			else
 			{
 
 				throw Exception(
-					"Invalid last characters"
+					"Invalid frame type"
 				);
 			}
-
-			auto message = string.SubString(
-				1,
-				string.GetLength() - 3
-			);
-
-			auto messageChunks = message.Split(
-				L','
-			);
-
-			sentence = NMEASentence();
-
-			if (!FromString(sentence, messageChunks))
-			{
-
-				return False;
-			}
-
-			return True;
 		}
 		// @throw AL::Exception
-		// @return AL::False on not supported
-		static Bool FromString(NMEASentence& sentence, const WString& wstring)
+		static Void FromString(NMEASentence& sentence, const WString& wstring)
 		{
-			auto string = wstring.ToString();
-
-			if (!FromString(sentence, string))
-			{
-
-				return False;
-			}
-
-			return True;
+			FromString(
+				sentence,
+				wstring.ToString()
+			);
 		}
 
 	private:
 		// @throw AL::Exception
-		static Bool FromString(NMEASentence& sentence, const Collections::Array<String>& wstringChunks)
+		// https://receiverhelp.trimble.com/alloy-gnss/en-us/NMEA-0183messages_GGA.html
+		static Void FromString_GGA(NMEASentence& sentence, const _StringChunks& stringChunks)
 		{
-			auto& type = wstringChunks[0];
-
-			// Talker Field
-			{
-				if (type.StartsWith("GA"))
-				{
-					sentence.Type.Add(
-						NMEASentences::GA
-					);
-				}
-				else if (type.StartsWith("GB"))
-				{
-					sentence.Type.Add(
-						NMEASentences::GB
-					);
-				}
-				else if (type.StartsWith("GI"))
-				{
-					sentence.Type.Add(
-						NMEASentences::GI
-					);
-				}
-				else if (type.StartsWith("GL"))
-				{
-					sentence.Type.Add(
-						NMEASentences::GL
-					);
-				}
-				else if (type.StartsWith("GN"))
-				{
-					sentence.Type.Add(
-						NMEASentences::GN
-					);
-				}
-				else if (type.StartsWith("GP"))
-				{
-					sentence.Type.Add(
-						NMEASentences::GP
-					);
-				}
-				else if (type.StartsWith("GQ"))
-				{
-					sentence.Type.Add(
-						NMEASentences::GQ
-					);
-				}
-				else
-				{
-
-					return False;
-				}
-			}
-
-			// Message Type
-			{
-				if (type.EndsWith("GGA", True))
-				{
-					sentence.Type.Add(
-						NMEASentences::GGA
-					);
-
-					FromString_GGA(
-						sentence,
-						wstringChunks
-					);
-
-					return True;
-				}
-				else if (type.EndsWith("GLL", True))
-				{
-					sentence.Type.Add(
-						NMEASentences::GLL
-					);
-
-					FromString_GLL(
-						sentence,
-						wstringChunks
-					);
-
-					return True;
-				}
-				else if (type.EndsWith("GSV", True))
-				{
-					sentence.Type.Add(
-						NMEASentences::GSV
-					);
-
-					FromString_GSV(
-						sentence,
-						wstringChunks
-					);
-
-					return True;
-				}
-				else if (type.EndsWith("RMC", True))
-				{
-					sentence.Type.Add(
-						NMEASentences::RMC
-					);
-
-					FromString_RMC(
-						sentence,
-						wstringChunks
-					);
-
-					return True;
-				}
-				else if (type.EndsWith("VTG", True))
-				{
-					sentence.Type.Add(
-						NMEASentences::VTG
-					);
-
-					FromString_VTG(
-						sentence,
-						wstringChunks
-					);
-
-					return True;
-				}
-			}
-
-			return False;
-		}
-		// @throw AL::Exception
-		static Void FromString_GGA(NMEASentence& sentence, const Collections::Array<String>& wstringChunks)
-		{
-			if (wstringChunks.GetSize() != 15)
+			if (stringChunks.GetSize() < 11)
 			{
 
 				throw Exception(
-					"Unexpected chunk count"
+					"Invalid format"
 				);
 			}
 
-			sentence.GGA.Time = FromString_Time(
-				wstringChunks[1]
-			);
-
-			if ((sentence.GGA.FixQuality = AL::FromString<NMEAFixQualities>(wstringChunks[6])) != NMEAFixQualities::Invalid)
+			if (stringChunks[1].GetLength() != 0)
 			{
+				sentence.GGA.Time = FromString_Time(
+					stringChunks[1]
+				);
+			}
+
+			if ((sentence.GGA.FixQuality = AL::FromString<NMEAFixQualities>(stringChunks[6])) != NMEAFixQualities::Invalid)
+			{
+				if (!stringChunks[10].Compare('M'))
+				{
+
+					throw Exception(
+						"Invalid height unit"
+					);
+				}
+
+				if (!stringChunks[12].Compare('M'))
+				{
+
+					throw Exception(
+						"Invalid separation unit"
+					);
+				}
+
 				sentence.GGA.NumberOfSatellitesInUse = AL::FromString<uint32>(
-					wstringChunks[7]
+					stringChunks[7]
 				);
 
 				sentence.GGA.RelativeAccuracyH = AL::FromString<Double>(
-					wstringChunks[8]
+					stringChunks[8]
 				);
 
 				sentence.GGA.Latitude = FromString_Latitude(
-					wstringChunks[2]
+					stringChunks[2]
 				);
 
+				if (stringChunks[3].Compare('S'))
 				{
-					Regex::MatchCollection matches;
-
-					if (!Regex::Match(matches, "^([NS])$", wstringChunks[3]))
+					if (sentence.GGA.Latitude > 0)
 					{
-
-						throw Exception(
-							"Invalid format"
-						);
+						sentence.GGA.Latitude = -sentence.GGA.Latitude;
 					}
-
-					if (matches[1].Compare("S"))
-					{
-						if (sentence.GGA.Latitude > 0)
-						{
-							sentence.GGA.Latitude = -sentence.GGA.Latitude;
-						}
-					}
-					else if (sentence.GGA.Latitude < 0)
-					{
-						sentence.GGA.Latitude = +sentence.GGA.Latitude;
-					}
+				}
+				else if (sentence.GGA.Latitude < 0)
+				{
+					sentence.GGA.Latitude = +sentence.GGA.Latitude;
 				}
 
 				sentence.GGA.Longitude = FromString_Longitude(
-					wstringChunks[4]
+					stringChunks[4]
 				);
 
+				if (stringChunks[5].Compare('W'))
 				{
-					Regex::MatchCollection matches;
-
-					if (!Regex::Match(matches, "^([EW])$", wstringChunks[5]))
+					if (sentence.GGA.Longitude > 0)
 					{
-
-						throw Exception(
-							"Invalid format"
-						);
+						sentence.GGA.Longitude = -sentence.GGA.Longitude;
 					}
-
-					if (matches[1].Compare("W"))
-					{
-						if (sentence.GGA.Longitude > 0)
-						{
-							sentence.GGA.Longitude = -sentence.GGA.Longitude;
-						}
-					}
-					else if (sentence.GGA.Longitude < 0)
-					{
-						sentence.GGA.Longitude = +sentence.GGA.Longitude;
-					}
+				}
+				else if (sentence.GGA.Longitude < 0)
+				{
+					sentence.GGA.Longitude = +sentence.GGA.Longitude;
 				}
 
 				sentence.GGA.Altitude = AL::FromString<Double>(
-					wstringChunks[9]
+					stringChunks[9]
 				);
-
-				{
-					Regex::MatchCollection matches;
-
-					if (!Regex::Match(matches, "^([A-Z])$", wstringChunks[10]) || !matches[1].Compare("M"))
-					{
-
-						throw Exception(
-							"Invalid format"
-						);
-					}
-				}
 			}
 		}
 		// @throw AL::Exception
-		static Void FromString_GLL(NMEASentence& sentence, const Collections::Array<String>& wstringChunks)
+		// https://receiverhelp.trimble.com/alloy-gnss/en-us/NMEA-0183messages_GLL.html
+		static Void FromString_GLL(NMEASentence& sentence, const _StringChunks& stringChunks)
 		{
-			if (wstringChunks.GetSize() != 8)
+			if (stringChunks.GetSize() < 7)
 			{
 
 				throw Exception(
-					"Unexpected chunk count"
+					"Invalid format"
 				);
 			}
 
-			sentence.GLL.Time = FromString_Time(
-				wstringChunks[5]
-			);
+			if (stringChunks[5].GetLength() != 0)
+			{
+				sentence.GLL.Time = FromString_Time(
+					stringChunks[5]
+				);
+			}
 
-			if ((sentence.GLL.Valid = wstringChunks[6].Compare("A")) != False)
+			if ((sentence.GLL.Valid = stringChunks[6].Compare('A')) != False)
 			{
 				sentence.GLL.Latitude = FromString_Latitude(
-					wstringChunks[1]
+					stringChunks[1]
 				);
 
+				if (stringChunks[2].Compare('S'))
 				{
-					Regex::MatchCollection matches;
-
-					if (!Regex::Match(matches, "^([NS])$", wstringChunks[2]))
+					if (sentence.GLL.Latitude > 0)
 					{
-
-						throw Exception(
-							"Invalid format"
-						);
+						sentence.GLL.Latitude = -sentence.GLL.Latitude;
 					}
-
-					if (matches[1].Compare("S"))
-					{
-						if (sentence.GLL.Latitude > 0)
-						{
-							sentence.GLL.Latitude = -sentence.GLL.Latitude;
-						}
-					}
-					else if (sentence.GLL.Latitude < 0)
-					{
-						sentence.GLL.Latitude = +sentence.GLL.Latitude;
-					}
+				}
+				else if (sentence.GLL.Latitude < 0)
+				{
+					sentence.GLL.Latitude = +sentence.GLL.Latitude;
 				}
 
 				sentence.GLL.Longitude = FromString_Longitude(
-					wstringChunks[3]
+					stringChunks[3]
 				);
 
+				if (stringChunks[4].Compare('W'))
 				{
-					Regex::MatchCollection matches;
-
-					if (!Regex::Match(matches, "^([EW])$", wstringChunks[4]))
+					if (sentence.GLL.Longitude > 0)
 					{
-
-						throw Exception(
-							"Invalid format"
-						);
+						sentence.GLL.Longitude = -sentence.GLL.Longitude;
 					}
-
-					if (matches[1].Compare("W"))
-					{
-						if (sentence.GLL.Longitude > 0)
-						{
-							sentence.GLL.Longitude = -sentence.GLL.Longitude;
-						}
-					}
-					else if (sentence.GLL.Longitude < 0)
-					{
-						sentence.GLL.Longitude = +sentence.GLL.Longitude;
-					}
+				}
+				else if (sentence.GLL.Longitude < 0)
+				{
+					sentence.GLL.Longitude = +sentence.GLL.Longitude;
 				}
 			}
 		}
 		// @throw AL::Exception
-		static Void FromString_GSV(NMEASentence& sentence, const Collections::Array<String>& wstringChunks)
+		// https://receiverhelp.trimble.com/alloy-gnss/en-us/NMEA-0183messages_gsa.html
+		static Void FromString_GSA(NMEASentence& sentence, const _StringChunks& stringChunks)
 		{
-			if (wstringChunks.GetSize() < 4)
+			if (stringChunks.GetSize() < 4)
 			{
 
 				throw Exception(
-					"Unexpected chunk count"
+					"Invalid format"
+				);
+			}
+
+			sentence.GSA.PRN     = AL::FromString<uint32>(stringChunks[3]);
+			sentence.GSA.FixMode = AL::FromString<NMEAFixModes>(stringChunks[1]);
+			sentence.GSA.FixType = AL::FromString<NMEAFixTypes>(stringChunks[2]);
+		}
+		// @throw AL::Exception
+		// https://receiverhelp.trimble.com/alloy-gnss/en-us/NMEA-0183messages_GSV.html
+		static Void FromString_GSV(NMEASentence& sentence, const _StringChunks& stringChunks)
+		{
+			if (stringChunks.GetSize() < 4)
+			{
+
+				throw Exception(
+					"Invalid format"
 				);
 			}
 
 			sentence.GSV.MessageCount = AL::FromString<uint32>(
-				wstringChunks[1]
+				stringChunks[1]
 			);
 			sentence.GSV.MessageIndex = AL::FromString<uint32>(
-				wstringChunks[2]
+				stringChunks[2]
 			);
 			sentence.GSV.SatellitesInView = AL::FromString<uint32>(
-				wstringChunks[3]
+				stringChunks[3]
 			);
 
 			size_t satelliteCount;
@@ -500,7 +502,7 @@ namespace AL::Serialization
 				}
 			}
 
-			if (wstringChunks.GetSize() < (4 + (satelliteCount * 4)))
+			if (stringChunks.GetSize() < (4 + (satelliteCount * 4)))
 			{
 
 				throw Exception(
@@ -513,172 +515,176 @@ namespace AL::Serialization
 				auto j = 4 + (i * 4);
 
 				sentence.GSV.Satellites[i].PRN = AL::FromString<uint32>(
-					wstringChunks[j + 0]
+					stringChunks[j + 0]
 				);
 				sentence.GSV.Satellites[i].Elevation = AL::FromString<uint32>(
-					wstringChunks[j + 1]
+					stringChunks[j + 1]
 				);
 				sentence.GSV.Satellites[i].Azimuth = AL::FromString<uint32>(
-					wstringChunks[j + 2]
+					stringChunks[j + 2]
 				);
 				sentence.GSV.Satellites[i].SNR = AL::FromString<uint32>(
-					wstringChunks[j + 3]
+					stringChunks[j + 3]
 				);
 			}
 		}
 		// @throw AL::Exception
-		static Void FromString_RMC(NMEASentence& sentence, const Collections::Array<String>& wstringChunks)
+		// https://receiverhelp.trimble.com/alloy-gnss/en-us/NMEA-0183messages_RMC.html
+		static Void FromString_RMC(NMEASentence& sentence, const _StringChunks& stringChunks)
 		{
-			if (wstringChunks.GetSize() != 13)
+			if (stringChunks.GetSize() < 10)
 			{
 
 				throw Exception(
-					"Unexpected chunk count"
+					"Invalid format"
 				);
 			}
 
-			sentence.RMC.DateTime.Time = FromString_Time(
-				wstringChunks[1]
-			);
-
-			if ((sentence.RMC.Valid = wstringChunks[2].Compare("A")) != False)
+			if (stringChunks[1].GetLength() != 0)
 			{
-				{
-					Regex::MatchCollection matches;
+				sentence.RMC.DateTime.Time = FromString_Time(
+					stringChunks[1]
+				);
+			}
 
-					if (!Regex::Match(matches, "^([AV])$", wstringChunks[2]))
-					{
-
-						throw Exception(
-							"Invalid format"
-						);
-					}
-				}
-
+			if ((sentence.RMC.Valid = stringChunks[2].Compare('A')) != False)
+			{
 				sentence.RMC.Latitude = FromString_Latitude(
-					wstringChunks[3]
+					stringChunks[3]
 				);
 
+				if (stringChunks[4].Compare('S'))
 				{
-					Regex::MatchCollection matches;
-
-					if (!Regex::Match(matches, "^([NS])$", wstringChunks[4]))
+					if (sentence.RMC.Latitude > 0)
 					{
-
-						throw Exception(
-							"Invalid format"
-						);
+						sentence.RMC.Latitude = -sentence.RMC.Latitude;
 					}
-
-					if (matches[1].Compare("S"))
-					{
-						if (sentence.RMC.Latitude > 0)
-						{
-							sentence.RMC.Latitude = -sentence.RMC.Latitude;
-						}
-					}
-					else if (sentence.RMC.Latitude < 0)
-					{
-						sentence.RMC.Latitude = +sentence.RMC.Latitude;
-					}
+				}
+				else if (sentence.RMC.Latitude < 0)
+				{
+					sentence.RMC.Latitude = +sentence.RMC.Latitude;
 				}
 
 				sentence.RMC.Longitude = FromString_Longitude(
-					wstringChunks[5]
+					stringChunks[5]
 				);
 
+				if (stringChunks[6].Compare('W'))
 				{
-					Regex::MatchCollection matches;
-
-					if (!Regex::Match(matches, "^([EW])$", wstringChunks[6]))
+					if (sentence.RMC.Longitude > 0)
 					{
-
-						throw Exception(
-							"Invalid format"
-						);
+						sentence.RMC.Longitude = -sentence.RMC.Longitude;
 					}
-
-					if (matches[1].Compare("W"))
-					{
-						if (sentence.RMC.Longitude > 0)
-						{
-							sentence.RMC.Longitude = -sentence.RMC.Longitude;
-						}
-					}
-					else if (sentence.RMC.Longitude < 0)
-					{
-						sentence.RMC.Longitude = +sentence.RMC.Longitude;
-					}
+				}
+				else if (sentence.RMC.Longitude < 0)
+				{
+					sentence.RMC.Longitude = +sentence.RMC.Longitude;
 				}
 
 				sentence.RMC.GroundSpeedInKnots = AL::FromString<Float>(
-					wstringChunks[7]
+					stringChunks[7]
 				);
 				sentence.RMC.Variation = AL::FromString<Double>(
-					wstringChunks[8]
+					stringChunks[8]
 				);
 
 				{
 					Regex::MatchCollection matches;
 
-					if (!Regex::Match(matches, "^(\\d{2})(\\d{2})(\\d{2})$", wstringChunks[9]))
+					if (!Regex::Match(matches, "^(\\d{2})(\\d{2})(\\d{2})$", stringChunks[9]))
 					{
 
 						throw Exception(
-							"Invalid format"
+							"Invalid date format"
 						);
 					}
 
-					sentence.RMC.DateTime.Month = AL::FromString<AL::uint8>(matches[2]);
 					sentence.RMC.DateTime.Day   = AL::FromString<AL::uint8>(matches[1]);
+					sentence.RMC.DateTime.Month = AL::FromString<AL::uint8>(matches[2]);
 					sentence.RMC.DateTime.Year  = AL::FromString<AL::uint8>(matches[3]);
 				}
 			}
 		}
 		// @throw AL::Exception
-		static Void FromString_VTG(NMEASentence& sentence, const Collections::Array<String>& wstringChunks)
+		// https://receiverhelp.trimble.com/alloy-gnss/en-us/NMEA-0183messages_VTG.html
+		static Void FromString_VTG(NMEASentence& sentence, const _StringChunks& stringChunks)
 		{
-			if (wstringChunks.GetSize() != 10)
+			if (stringChunks.GetSize() < 10)
 			{
 
 				throw Exception(
-					"Unexpected chunk count"
+					"Invalid format"
 				);
 			}
 
-			sentence.VTG.Heading = AL::FromString<Double>(
-				wstringChunks[1]
-			);
-			sentence.VTG.HeadingIsRelTrueNorth = wstringChunks[2].Compare(
-				"T"
-			);
-			sentence.VTG.HeadingMagnetic = AL::FromString<Double>(
-				wstringChunks[3]
-			);
-			sentence.VTG.HeadingIsRelMagneticNorth = wstringChunks[4].Compare(
-				"M"
-			);
-			sentence.VTG.SpeedInKnots = AL::FromString<Double>(
-				wstringChunks[5]
-			);
-			sentence.VTG.GroundSpeedInKPH = AL::FromString<Double>(
-				wstringChunks[7]
-			);
+			if ((sentence.VTG.Valid = !stringChunks[9].Compare('N')) == True)
+			{
+				if (!stringChunks[6].Compare('N'))
+				{
+
+					throw Exception(
+						"Invalid speed unit"
+					);
+				}
+
+				if (!stringChunks[8].Compare('K'))
+				{
+
+					throw Exception(
+						"Invalid ground speed unit"
+					);
+				}
+
+				sentence.VTG.Heading = AL::FromString<Double>(
+					stringChunks[1]
+				);
+				sentence.VTG.HeadingIsRelTrueNorth = stringChunks[2].Compare(
+					'T'
+				);
+				sentence.VTG.HeadingMagnetic = AL::FromString<Double>(
+					stringChunks[3]
+				);
+				sentence.VTG.HeadingIsRelMagneticNorth = stringChunks[4].Compare(
+					'M'
+				);
+				sentence.VTG.SpeedInKnots = AL::FromString<Double>(
+					stringChunks[5]
+				);
+				sentence.VTG.GroundSpeedInKPH = AL::FromString<Double>(
+					stringChunks[7]
+				);
+			}
 		}
 
 		// @throw AL::Exception
 		static NMEATime FromString_Time(const String& string)
 		{
-			NMEATime               time;
-			Regex::MatchCollection matches;
-
-			if (Regex::Match(matches, "^(\\d\\d)(\\d\\d)(\\d\\d).(\\d\\d)$", string))
+			if (string.GetLength() != 9)
 			{
-				time.Hours       = AL::FromString<uint32>(matches[1]);
-				time.Minutes     = AL::FromString<uint32>(matches[2]);
-				time.Seconds     = AL::FromString<uint32>(matches[3]);
-				time.Deciseconds = AL::FromString<uint32>(matches[4]);
+
+				throw Exception(
+					"Invalid time format"
+				);
 			}
+
+			NMEATime time;
+			String   buffer(String::END, 2);
+
+			buffer[0] = string[0];
+			buffer[1] = string[1];
+			time.Hours = AL::FromString<uint32>(buffer);
+
+			buffer[0] = string[2];
+			buffer[1] = string[3];
+			time.Minutes = AL::FromString<uint32>(buffer);
+
+			buffer[0] = string[4];
+			buffer[1] = string[5];
+			time.Seconds = AL::FromString<uint32>(buffer);
+
+			buffer[0] = string[7];
+			buffer[1] = string[8];
+			time.Deciseconds = AL::FromString<uint32>(buffer);
 
 			return time;
 		}
