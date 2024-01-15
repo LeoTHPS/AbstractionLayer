@@ -11,6 +11,12 @@ namespace AL::Serialization
 		uint32 Deciseconds;
 	};
 
+	struct NMEADateTime
+	{
+		NMEATime Time;
+		uint8    Month, Day, Year;
+	};
+
 	struct NMEASatellite
 	{
 		uint32 PRN;
@@ -78,12 +84,12 @@ namespace AL::Serialization
 
 			struct
 			{
-				NMEATime Time;
-				Bool     Valid;
-				Double   Latitude;
-				Double   Longitude;
-				Double   Variation;
-				Float    GroundSpeedInKnots;
+				NMEADateTime DateTime;
+				Bool         Valid;
+				Double       Latitude;
+				Double       Longitude;
+				Double       Variation;
+				Float        GroundSpeedInKnots;
 			} RMC;
 
 			struct
@@ -531,7 +537,7 @@ namespace AL::Serialization
 				);
 			}
 
-			sentence.RMC.Time = FromString_Time(
+			sentence.RMC.DateTime.Time = FromString_Time(
 				wstringChunks[1]
 			);
 
@@ -611,6 +617,22 @@ namespace AL::Serialization
 				sentence.RMC.Variation = AL::FromString<Double>(
 					wstringChunks[8]
 				);
+
+				{
+					Regex::MatchCollection matches;
+
+					if (!Regex::Match(matches, "^(\\d{2})(\\d{2})(\\d{2})$", wstringChunks[9]))
+					{
+
+						throw Exception(
+							"Invalid format"
+						);
+					}
+
+					sentence.RMC.DateTime.Month = AL::FromString<AL::uint8>(matches[2]);
+					sentence.RMC.DateTime.Day   = AL::FromString<AL::uint8>(matches[1]);
+					sentence.RMC.DateTime.Year  = AL::FromString<AL::uint8>(matches[3]);
+				}
 			}
 		}
 		// @throw AL::Exception
