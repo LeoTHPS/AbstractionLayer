@@ -549,6 +549,14 @@ namespace AL::Serialization
 
 			if ((sentence.RMC.Valid = stringChunks[2].Compare('A')) != False)
 			{
+				if (stringChunks[9].GetLength() != 6)
+				{
+
+					throw Exception(
+						"Invalid date format"
+					);
+				}
+
 				sentence.RMC.Latitude = FromString_Latitude(
 					stringChunks[3]
 				);
@@ -589,19 +597,19 @@ namespace AL::Serialization
 				);
 
 				{
-					Regex::MatchCollection matches;
+					String buffer(String::END, 3);
 
-					if (!Regex::Match(matches, "^(\\d{2})(\\d{2})(\\d{2})$", stringChunks[9]))
-					{
+					buffer[0] = stringChunks[9][0];
+					buffer[1] = stringChunks[9][1];
+					sentence.RMC.DateTime.Day = AL::FromString<AL::uint8>(buffer);
 
-						throw Exception(
-							"Invalid date format"
-						);
-					}
+					buffer[0] = stringChunks[9][2];
+					buffer[1] = stringChunks[9][3];
+					sentence.RMC.DateTime.Month = AL::FromString<AL::uint8>(buffer);
 
-					sentence.RMC.DateTime.Day   = AL::FromString<AL::uint8>(matches[1]);
-					sentence.RMC.DateTime.Month = AL::FromString<AL::uint8>(matches[2]);
-					sentence.RMC.DateTime.Year  = AL::FromString<AL::uint8>(matches[3]);
+					buffer[0] = stringChunks[9][4];
+					buffer[1] = stringChunks[9][5];
+					sentence.RMC.DateTime.Year = AL::FromString<AL::uint8>(buffer);
 				}
 			}
 		}
