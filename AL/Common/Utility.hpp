@@ -58,6 +58,15 @@ namespace AL
 		);
 	}
 
+	template<typename T>
+	inline Void memcpy(T& destination, const T& source)
+	{
+		::std::memcpy(
+			&destination,
+			&source,
+			sizeof(T)
+		);
+	}
 	template<typename T, size_t S>
 	inline Void memcpy(T(&destination)[S], const T(&source)[S])
 	{
@@ -76,6 +85,15 @@ namespace AL
 		);
 	}
 
+	template<typename T>
+	inline Void memmove(T& destination, const T& source)
+	{
+		::std::memmove(
+			&destination,
+			&source,
+			sizeof(T)
+		);
+	}
 	template<typename T, size_t S>
 	inline Void memmove(T(&destination)[S], const T(&source)[S])
 	{
@@ -94,6 +112,17 @@ namespace AL
 		);
 	}
 
+	template<typename T>
+	inline Bool memcmp(const T& value, const T& value2)
+	{
+		if (::std::memcmp(&value, &value2, sizeof(T)) != 0)
+		{
+
+			return False;
+		}
+
+		return True;
+	}
 	template<typename T, size_t S>
 	inline Bool memcmp(const T(&array)[S], const T(&array2)[S])
 	{
