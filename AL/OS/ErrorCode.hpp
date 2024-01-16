@@ -14,7 +14,7 @@
 namespace AL::OS
 {
 #if defined(AL_PLATFORM_PICO)
-	typedef typename Get_Enum_Or_Integer_Base<::pico_error_codes>::Type                                          ErrorCode;
+	typedef int8                                                                                                 ErrorCode;
 #elif defined(AL_PLATFORM_LINUX)
 	typedef typename Get_Enum_Or_Integer_Base<typename Remove_Modifiers<decltype(errno)>::Type>::Type            ErrorCode;
 #elif defined(AL_PLATFORM_WINDOWS)
@@ -61,9 +61,24 @@ namespace AL::OS
 	inline String GetErrorString(ErrorCode errorCode)
 	{
 #if defined(AL_PLATFORM_PICO)
-		return ToString(
-			errorCode
-		);
+		String string;
+
+		switch (errorCode)
+		{
+			case PICO_ERROR_NONE:                   string.Assign("Success"); break;
+			case PICO_ERROR_TIMEOUT:                string.Assign("Timeout"); break;
+			case PICO_ERROR_GENERIC:                string.Assign("Generic"); break;
+			case PICO_ERROR_NO_DATA:                string.Assign("No data"); break;
+			case PICO_ERROR_NOT_PERMITTED:          string.Assign("Not permitted"); break;
+			case PICO_ERROR_INVALID_ARG:            string.Assign("Invalid arg"); break;
+			case PICO_ERROR_IO:                     string.Assign("IO"); break;
+			case PICO_ERROR_BADAUTH:                string.Assign("Bad auth"); break;
+			case PICO_ERROR_CONNECT_FAILED:         string.Assign("Connect failed"); break;
+			case PICO_ERROR_INSUFFICIENT_RESOURCES: string.Assign("Insufficient resources"); break;
+			default:                                string.Assign(ToString(errorCode)); break;
+		}
+
+		return string;
 #elif defined(AL_PLATFORM_LINUX)
 		typedef typename Remove_Modifiers<decltype(errno)>::Type Base;
 
