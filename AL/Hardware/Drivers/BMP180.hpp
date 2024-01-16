@@ -74,16 +74,19 @@ namespace AL::Hardware::Drivers
 		};
 #pragma pack(pop)
 
-		Bool      isOpen = False;
-		Bool      isBusAllocated = False;
+		Bool             isOpen         = False;
+		Bool             isBusAllocated = False;
 
-		I2CBus*   lpBus;
-		I2CDevice device;
+		I2CBus*          lpBus;
+		I2CDevice        device;
 
-		Double    refPressure;
+		Double           refPressure;
+		calibration_data calibrationData;
 
 	public:
 		inline static const I2CAddress DEVICE_ADDRESS = 0x77;
+
+		static constexpr uint32        DEFAULT_SPEED  = 3000000;
 
 		BMP180(BMP180&& bmp180)
 			: isOpen(
@@ -100,9 +103,12 @@ namespace AL::Hardware::Drivers
 			),
 			refPressure(
 				bmp180.refPressure
+			),
+			calibrationData(
+				Move(bmp180.calibrationData)
 			)
 		{
-			bmp180.isOpen = False;
+			bmp180.isOpen         = False;
 			bmp180.isBusAllocated = False;
 		}
 
@@ -124,7 +130,7 @@ namespace AL::Hardware::Drivers
 		}
 
 #if defined(AL_PLATFORM_PICO)
-		BMP180(::i2c_inst* i2c, GPIOPin scl, GPIOPin sda, uint32 baud, I2CAddress address = DEVICE_ADDRESS)
+		BMP180(::i2c_inst* i2c, GPIOPin scl, GPIOPin sda, uint32 baud = DEFAULT_SPEED, I2CAddress address = DEVICE_ADDRESS)
 			: isBusAllocated(
 				True
 			),
@@ -146,7 +152,7 @@ namespace AL::Hardware::Drivers
 			);
 		}
 #elif defined(AL_PLATFORM_LINUX)
-		BMP180(FileSystem::Path&& path, uint32 baud, I2CAddress address = DEVICE_ADDRESS)
+		BMP180(FileSystem::Path&& path, uint32 baud = DEFAULT_SPEED, I2CAddress address = DEVICE_ADDRESS)
 			: isBusAllocated(
 				True
 			),
@@ -165,7 +171,7 @@ namespace AL::Hardware::Drivers
 				1013.25
 			);
 		}
-		BMP180(const FileSystem::Path& path, uint32 baud, I2CAddress address = DEVICE_ADDRESS)
+		BMP180(const FileSystem::Path& path, uint32 baud = DEFAULT_SPEED, I2CAddress address = DEVICE_ADDRESS)
 			: BMP180(
 				FileSystem::Path(path),
 				baud,
@@ -260,6 +266,44 @@ namespace AL::Hardware::Drivers
 				}
 			}
 
+			try
+			{
+				SoftReset();
+			}
+			catch (Exception& exception)
+			{
+				if (isBusAllocated)
+				{
+
+					lpBus->Close();
+				}
+
+				throw Exception(
+					Move(exception),
+					"Error soft resetting device"
+				);
+			}
+
+			try
+			{
+				ReadCalibrationData(
+					calibrationData
+				);
+			}
+			catch (Exception& exception)
+			{
+				if (isBusAllocated)
+				{
+
+					lpBus->Close();
+				}
+
+				throw Exception(
+					Move(exception),
+					"Error reading calibration data"
+				);
+			}
+
 			isOpen = True;
 		}
 
@@ -278,6 +322,35 @@ namespace AL::Hardware::Drivers
 		}
 
 		// @throw AL::Exception
+		virtual Bool TestIO()
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"BMP180 not open"
+			);
+
+			uint8 chipId;
+
+			try
+			{
+				device.WriteRead(
+					uint8(0xD0),
+					chipId
+				);
+			}
+			catch (Exception& exception)
+			{
+
+				throw Exception(
+					Move(exception),
+					"Error reading chip id"
+				);
+			}
+
+			return chipId == 0x55;
+		}
+
+		// @throw AL::Exception
 		virtual Void Read(Channel channel, ReadData& data) override
 		{
 			AL_ASSERT(
@@ -293,148 +366,9 @@ namespace AL::Hardware::Drivers
 				flags
 			);
 
-			calibration_data calibration_data;
-
-			try
-			{
-				device.WriteRead(
-					uint8(0xAA),
-					calibration_data
-				);
-			}
-			catch (Exception& exception)
-			{
-
-				throw Exception(
-					Move(exception),
-					"Error reading calibration data"
-				);
-			}
-
-			calibration_data.AC1 = BitConverter::FromBigEndian(calibration_data.AC1);
-			calibration_data.AC2 = BitConverter::FromBigEndian(calibration_data.AC2);
-			calibration_data.AC3 = BitConverter::FromBigEndian(calibration_data.AC3);
-			calibration_data.AC4 = BitConverter::FromBigEndian(calibration_data.AC4);
-			calibration_data.AC5 = BitConverter::FromBigEndian(calibration_data.AC5);
-			calibration_data.AC6 = BitConverter::FromBigEndian(calibration_data.AC6);
-			calibration_data.B1 = BitConverter::FromBigEndian(calibration_data.B1);
-			calibration_data.B2 = BitConverter::FromBigEndian(calibration_data.B2);
-			calibration_data.MB = BitConverter::FromBigEndian(calibration_data.MB);
-			calibration_data.MC = BitConverter::FromBigEndian(calibration_data.MC);
-			calibration_data.MD = BitConverter::FromBigEndian(calibration_data.MD);
-
-			{
-				uint8 data[2] =
-				{
-					0xF4,
-					0x2E
-				};
-
-				try
-				{
-					device.Write(
-						data
-					);
-				}
-				catch (Exception& exception)
-				{
-
-					throw Exception(
-						Move(exception),
-						"Error triggering device"
-					);
-				}
-			}
-
-			Sleep(
-				TimeSpan::FromMicroseconds(4500)
-			);
-
-			uncompensated_temperature_data temperature_data;
-
-			try
-			{
-				device.WriteRead(
-					uint8(0xF6),
-					temperature_data
-				);
-			}
-			catch (Exception& exception)
-			{
-
-				throw Exception(
-					Move(exception),
-					"Error reading temperature data"
-				);
-			}
-
-			int32 temperature_uncompensated = (temperature_data.MSB << 8) + temperature_data.LSB;
-			int32 temperature_x1 = ((temperature_uncompensated - calibration_data.AC6) * calibration_data.AC5) >> 15;
-			int32 temperature_x2 = (calibration_data.MC << 11) / (temperature_x1 + calibration_data.MD);
-			int32 temperature_b5 = temperature_x1 + temperature_x2;
-			int32 temperature = (temperature_b5 + 8) >> 4;
-
-			{
-				uint8 data[2] =
-				{
-					0xF4,
-					static_cast<uint8>(0x34 + (oss << 6))
-				};
-
-				try
-				{
-					device.Write(
-						data
-					);
-				}
-				catch (Exception& exception)
-				{
-
-					throw Exception(
-						Move(exception),
-						"Error triggering device"
-					);
-				}
-			}
-
-			Sleep(
-				!oss ? TimeSpan::FromMicroseconds(4500) : TimeSpan::FromMilliseconds((3 << oss) + 1)
-			);
-
-			uncompensated_pressure_data pressure_data;
-
-			try
-			{
-				device.WriteRead(
-					uint8(0xF6),
-					pressure_data
-				);
-			}
-			catch (Exception& exception)
-			{
-
-				throw Exception(
-					Move(exception),
-					"Error reading pressure data"
-				);
-			}
-
-			int32 pressure_uncompensated = ((pressure_data.MSB << 16) + (pressure_data.LSB << 8) + pressure_data.XLSB) >> (8 - oss);
-			int32 pressure_b6 = temperature_b5 - 4000;
-			int32 pressure_x1 = (calibration_data.B2 * ((pressure_b6 * pressure_b6) >> 12)) >> 11;
-			int32 pressure_x2 = (calibration_data.AC2 * pressure_b6) >> 11;
-			int32 pressure_x3 = pressure_x1 + pressure_x2;
-			int32 pressure_b3 = (((calibration_data.AC1 * 4 + pressure_x3) << oss) + 2) / 4;
-			pressure_x1 = (calibration_data.AC3 * pressure_b6) >> 13;
-			pressure_x2 = (calibration_data.B1 * ((pressure_b6 * pressure_b6) >> 12)) >> 16;
-			pressure_x3 = ((pressure_x1 + pressure_x2) + 2) >> 2;
-			uint32 pressure_b4 = (calibration_data.AC4 * static_cast<uint32>(pressure_x3 + 32768)) >> 15;
-			uint32 pressure_b7 = static_cast<uint32>(pressure_uncompensated - pressure_b3) * (50000 >> oss);
-			int32 pressure = (pressure_b7 < 0x80000000) ? ((pressure_b7 << 1) / pressure_b4) : ((pressure_b7 / pressure_b4) << 1);
-			pressure_x1 = (pressure >> 8) * (pressure >> 8);
-			pressure_x1 = (pressure_x1 * 3038) >> 16;
-			pressure_x2 = (-7357 * pressure) >> 16;
-			pressure += (pressure_x1 + pressure_x2 + 3791) >> 4;
+			int32 pressure, temperature, temperature_b5;
+			MeasureAndReadTemperature(temperature, temperature_b5);
+			MeasureAndReadPressure(pressure, oss, temperature_b5);
 
 			if (flags.IsSet(BMP180DataFlags::Pressure_Pa))
 			{
@@ -481,8 +415,13 @@ namespace AL::Hardware::Drivers
 		}
 
 		// @throw AL::Exception
-		Void ReadDeviceInfo(uint8& chipId, uint8& chipVersion)
+		virtual Void ReadDeviceInfo(uint8& chipId, uint8& chipVersion)
 		{
+			AL_ASSERT(
+				IsOpen(),
+				"BMP180 not open"
+			);
+
 			device_info info;
 
 			try
@@ -497,11 +436,11 @@ namespace AL::Hardware::Drivers
 
 				throw Exception(
 					Move(exception),
-					"Error reading device info"
+					"Error reading device info registers"
 				);
 			}
 
-			chipId = info.Id;
+			chipId      = info.Id;
 			chipVersion = info.Version;
 		}
 
@@ -522,6 +461,10 @@ namespace AL::Hardware::Drivers
 			);
 
 			refPressure = bmp180.refPressure;
+
+			calibrationData = Move(
+				bmp180.calibrationData
+			);
 
 			return *this;
 		}
@@ -548,6 +491,195 @@ namespace AL::Hardware::Drivers
 		}
 
 	private:
+		// @throw AL::Exception
+		Void SoftReset()
+		{
+			uint8 value[] =
+			{
+				0xAA,
+				0xB6
+			};
+
+			try
+			{
+				device.Write(
+					value
+				);
+			}
+			catch (Exception& exception)
+			{
+
+				throw Exception(
+					Move(exception),
+					"Error writing soft reset register"
+				);
+			}
+		}
+
+		// @throw AL::Exception
+		Void ReadCalibrationData(calibration_data& value)
+		{
+			try
+			{
+				device.WriteRead(
+					uint8(0xAA),
+					value
+				);
+			}
+			catch (Exception& exception)
+			{
+
+				throw Exception(
+					Move(exception),
+					"Error reading calibration register"
+				);
+			}
+
+			for (size_t i = 0; i < sizeof(calibration_data); i += 2)
+			{
+				if (auto word = reinterpret_cast<const uint16*>(&value)[i / 2]; (word == 0x0000) || (word == 0xFFFF))
+				{
+
+					throw Exception(
+						"Error communicating with device"
+					);
+				}
+			}
+
+			value.AC1 = BitConverter::FromBigEndian(value.AC1);
+			value.AC2 = BitConverter::FromBigEndian(value.AC2);
+			value.AC3 = BitConverter::FromBigEndian(value.AC3);
+			value.AC4 = BitConverter::FromBigEndian(value.AC4);
+			value.AC5 = BitConverter::FromBigEndian(value.AC5);
+			value.AC6 = BitConverter::FromBigEndian(value.AC6);
+			value.B1  = BitConverter::FromBigEndian(value.B1);
+			value.B2  = BitConverter::FromBigEndian(value.B2);
+			value.MB  = BitConverter::FromBigEndian(value.MB);
+			value.MC  = BitConverter::FromBigEndian(value.MC);
+			value.MD  = BitConverter::FromBigEndian(value.MD);
+		}
+
+		// @throw AL::Exception
+		Void MeasureAndReadPressure(int32& value, uint8 oss, int32 temperature_b5)
+		{
+			{
+				uint8 data[2] =
+				{
+					0xF4,
+					static_cast<uint8>(0x34 + (oss << 6))
+				};
+
+				try
+				{
+					device.Write(
+						data
+					);
+				}
+				catch (Exception& exception)
+				{
+
+					throw Exception(
+						Move(exception),
+						"Error triggering device"
+					);
+				}
+			}
+
+			Sleep(
+				!oss ? TimeSpan::FromMicroseconds(4500) : TimeSpan::FromMilliseconds((3 << oss) + 1)
+			);
+
+			uncompensated_pressure_data pressure_data;
+
+			try
+			{
+				device.WriteRead(
+					uint8(0xF6),
+					pressure_data
+				);
+			}
+			catch (Exception& exception)
+			{
+
+				throw Exception(
+					Move(exception),
+					"Error reading pressure data"
+				);
+			}
+
+			int32 pressure_uncompensated = ((pressure_data.MSB << 16) + (pressure_data.LSB << 8) + pressure_data.XLSB) >> (8 - oss);
+			int32 pressure_b6            = temperature_b5 - 4000;
+			int32 pressure_x1            = (calibrationData.B2 * ((pressure_b6 * pressure_b6) >> 12)) >> 11;
+			int32 pressure_x2            = (calibrationData.AC2 * pressure_b6) >> 11;
+			int32 pressure_x3            = pressure_x1 + pressure_x2;
+			int32 pressure_b3            = (((calibrationData.AC1 * 4 + pressure_x3) << oss) + 2) / 4;
+			pressure_x1                  = (calibrationData.AC3 * pressure_b6) >> 13;
+			pressure_x2                  = (calibrationData.B1 * ((pressure_b6 * pressure_b6) >> 12)) >> 16;
+			pressure_x3                  = ((pressure_x1 + pressure_x2) + 2) >> 2;
+			uint32 pressure_b4           = (calibrationData.AC4 * static_cast<uint32>(pressure_x3 + 32768)) >> 15;
+			uint32 pressure_b7           = static_cast<uint32>(pressure_uncompensated - pressure_b3) * (50000 >> oss);
+			int32 pressure               = (pressure_b7 < 0x80000000) ? ((pressure_b7 << 1) / pressure_b4) : ((pressure_b7 / pressure_b4) << 1);
+			pressure_x1                  = (pressure >> 8) * (pressure >> 8);
+			pressure_x1                  = (pressure_x1 * 3038) >> 16;
+			pressure_x2                  = (-7357 * pressure) >> 16;
+			value                        = pressure + ((pressure_x1 + pressure_x2 + 3791) >> 4);
+		}
+
+		// @throw AL::Exception
+		Void MeasureAndReadTemperature(int32& temperature, int32& temperature_b5)
+		{
+			{
+				uint8 data[2] =
+				{
+					0xF4,
+					0x2E
+				};
+
+				try
+				{
+					device.Write(
+						data
+					);
+				}
+				catch (Exception& exception)
+				{
+
+					throw Exception(
+						Move(exception),
+						"Error triggering device"
+					);
+				}
+			}
+
+			Sleep(
+				TimeSpan::FromMicroseconds(4500)
+			);
+
+			uncompensated_temperature_data temperature_data;
+
+			try
+			{
+				device.WriteRead(
+					uint8(0xF6),
+					temperature_data
+				);
+			}
+			catch (Exception& exception)
+			{
+
+				throw Exception(
+					Move(exception),
+					"Error reading temperature data"
+				);
+			}
+
+			int32 temperature_uncompensated = (temperature_data.MSB << 8) + temperature_data.LSB;
+			int32 temperature_x1            = ((temperature_uncompensated - calibrationData.AC6) * calibrationData.AC5) >> 15;
+			int32 temperature_x2            = (calibrationData.MC << 11) / (temperature_x1 + calibrationData.MD);
+			temperature_b5                  = temperature_x1 + temperature_x2;
+			temperature                     = (temperature_b5 + 8) >> 4;
+		}
+
 		static uint8 GetOssFromFlags(const BitMask<BMP180DataFlags>& flags)
 		{
 			uint8 oss = 0;
