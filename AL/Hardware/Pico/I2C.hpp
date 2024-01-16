@@ -197,7 +197,8 @@ namespace AL::Hardware::Pico
 			{
 
 				throw OS::SystemException(
-					"i2c_read_blocking"
+					"i2c_read_blocking",
+					::PICO_ERROR_GENERIC
 				);
 			}
 		}
@@ -227,7 +228,8 @@ namespace AL::Hardware::Pico
 			{
 
 				throw OS::SystemException(
-					"i2c_write_blocking"
+					"i2c_write_blocking",
+					::PICO_ERROR_GENERIC
 				);
 			}
 		}
