@@ -13,24 +13,20 @@ static void AL_Serialization_NMEA()
 	using namespace AL;
 	using namespace AL::Serialization;
 
-	AL::size_t   i = 0;
 	NMEASentence sentence;
 
-	for (auto message : AL_Serialization_NMEA_Messages)
+	for (AL::size_t i = 0; i < (sizeof(AL_Serialization_NMEA_Messages) / sizeof(AL_Serialization_NMEA_Messages[0])); ++i)
 	{
+		NMEA::FromString(
+			sentence,
+			AL_Serialization_NMEA_Messages[i]
+		);
+
 #if defined(AL_TEST_SHOW_CONSOLE_OUTPUT)
 		OS::Console::WriteLine(
-			ToString(i++ + 6)
+			ToString(i)
 		);
-#endif
 
-		if (!NMEA::FromString(sentence, message))
-		{
-
-			continue;
-		}
-
-#if defined(AL_TEST_SHOW_CONSOLE_OUTPUT)
 		// Type
 		{
 			OS::Console::Write(
@@ -227,11 +223,18 @@ static void AL_Serialization_NMEA()
 				);
 
 				OS::Console::WriteLine(
+					"Date: %lu/%lu/%lu",
+					sentence.RMC.DateTime.Month,
+					sentence.RMC.DateTime.Day,
+					sentence.RMC.DateTime.Year
+				);
+
+				OS::Console::WriteLine(
 					"Time: %lu:%lu:%lu.%lu",
-					sentence.RMC.Time.Hours,
-					sentence.RMC.Time.Minutes,
-					sentence.RMC.Time.Seconds,
-					sentence.RMC.Time.Deciseconds
+					sentence.RMC.DateTime.Time.Hours,
+					sentence.RMC.DateTime.Time.Minutes,
+					sentence.RMC.DateTime.Time.Seconds,
+					sentence.RMC.DateTime.Time.Deciseconds
 				);
 
 				OS::Console::WriteLine(
@@ -256,6 +259,11 @@ static void AL_Serialization_NMEA()
 			}
 			else if (sentence.Type.IsSet(AL::Serialization::NMEASentences::VTG))
 			{
+				OS::Console::WriteLine(
+					"Valid: %s",
+					ToString(sentence.VTG.Valid).GetCString()
+				);
+
 				OS::Console::WriteLine(
 					"Speed: %.f (Knots)",
 					sentence.VTG.SpeedInKnots
