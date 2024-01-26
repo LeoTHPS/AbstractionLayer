@@ -189,6 +189,13 @@ namespace AL::Lua54
 			return True;
 		}
 	};
+	template<typename T, typename ... TArgs>
+	class Function<T(*)(TArgs ...)>
+		: public Function<T(TArgs ...)>
+	{
+	public:
+		using Function<T(TArgs ...)>::Function;
+	};
 
 	class Exception
 		: public AL::Exception
@@ -757,6 +764,11 @@ namespace AL::Lua54
 		};
 		template<typename T, typename ... TArgs>
 		struct Is_LuaFunction<Function<T(TArgs ...)>>
+		{
+			static constexpr Bool Value = True;
+		};
+		template<typename T, typename ... TArgs>
+		struct Is_LuaFunction<Function<T(*)(TArgs ...)>>
 		{
 			static constexpr Bool Value = True;
 		};
@@ -1390,6 +1402,13 @@ namespace AL::Lua54
 				);
 			}
 			else if constexpr (Is_Type<T, String&>::Value)
+			{
+				return Extensions::getString(
+					lua,
+					index
+				);
+			}
+			else if constexpr (Is_Type<T, const String&>::Value)
 			{
 				return Extensions::getString(
 					lua,
