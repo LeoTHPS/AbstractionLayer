@@ -9,17 +9,26 @@
 	#error Platform not supported
 #endif
 
+#include "AL/Collections/Array.hpp"
+
 namespace AL::OS
 {
 #if defined(AL_PLATFORM_LINUX)
-	typedef Linux::ProcessId                        ProcessId;
-	typedef Linux::ProcessExitCode                  ProcessExitCode;
-	typedef Linux::ProcessStartInfo                 ProcessStartInfo;
+	typedef Linux::ProcessId           ProcessId;
+	typedef Linux::ProcessExitCode     ProcessExitCode;
+	typedef Collections::Array<String> ProcessCommandLine;
 #elif defined(AL_PLATFORM_WINDOWS)
-	typedef Windows::ProcessId                      ProcessId;
-	typedef Windows::ProcessExitCode                ProcessExitCode;
-	typedef Windows::ProcessStartInfo               ProcessStartInfo;
+	typedef Windows::ProcessId         ProcessId;
+	typedef Windows::ProcessExitCode   ProcessExitCode;
+	typedef Collections::Array<String> ProcessCommandLine;
 #endif
+
+	struct ProcessStartInfo
+	{
+		String             Path;
+		ProcessCommandLine CommandLine;
+		String             WorkingDirectory;
+	};
 
 	// @throw AL::Exception
 	// @return AL::False to stop enumeration
@@ -73,11 +82,49 @@ namespace AL::OS
 		}
 
 		// @throw AL::Exception
-		static Void Create(Process& process, const ProcessStartInfo& startInfo)
+		static Void Create(Process& process, ProcessStartInfo&& startInfo)
 		{
+#if defined(AL_PLATFORM_LINUX)
+			Linux::ProcessStartInfo _startInfo =
+			{
+				.Path             = Move(startInfo.Path),
+				.CommandLine      = Move(startInfo.CommandLine),
+				.WorkingDirectory = Move(startInfo.WorkingDirectory)
+			};
+#elif defined(AL_PLATFORM_WINDOWS)
+			Windows::ProcessStartInfo _startInfo =
+			{
+				.Path             = Move(startInfo.Path),
+				.CommandLine      = [&startInfo]()
+				{
+					AL::size_t        i = 0;
+					AL::StringBuilder sb;
+
+					for (auto& arg : startInfo.CommandLine)
+					{
+						if (i++ != 0)
+							sb << ' ';
+
+						sb << arg;
+					}
+
+					return sb.ToString();
+				}(),
+				.WorkingDirectory = Move(startInfo.WorkingDirectory)
+			};
+#endif
+
 			_Process::Create(
 				process.process,
-				startInfo
+				_startInfo
+			);
+		}
+		// @throw AL::Exception
+		static Void Create(Process& process, const ProcessStartInfo& startInfo)
+		{
+			Create(
+				process,
+				ProcessStartInfo(startInfo)
 			);
 		}
 

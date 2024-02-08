@@ -24,12 +24,13 @@ namespace AL::OS::Windows
 {
 	typedef uint32 ProcessId;
 	typedef int32  ProcessExitCode;
+	typedef String ProcessCommandLine;
 
 	struct ProcessStartInfo
 	{
-		String Path;
-		String CommandLine;
-		String WorkingDirectory;
+		String             Path;
+		ProcessCommandLine CommandLine;
+		String             WorkingDirectory;
 	};
 
 	// @throw AL::Exception

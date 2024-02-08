@@ -25,14 +25,15 @@
 
 namespace AL::OS::Linux
 {
-	typedef ::pid_t ProcessId;
-	typedef uint8   ProcessExitCode;
+	typedef ::pid_t                    ProcessId;
+	typedef uint8                      ProcessExitCode;
+	typedef Collections::Array<String> ProcessCommandLine;
 
 	struct ProcessStartInfo
 	{
-		String Path;
-		String CommandLine;
-		String WorkingDirectory;
+		String             Path;
+		ProcessCommandLine CommandLine;
+		String             WorkingDirectory;
 	};
 
 	// @throw AL::Exception
@@ -147,23 +148,23 @@ namespace AL::OS::Linux
 					exit(0);
 				}
 
-				auto args = startInfo.CommandLine.Split(
-					' '
-				);
-
-				Collections::Array<char*> argPointers(
-					args.GetSize() + 1
-				);
-
-				for (AL::size_t i = 0; i < args.GetSize(); ++i)
+				auto args = [&startInfo]()
 				{
+					Collections::Array<char*> value(
+						startInfo.CommandLine.GetSize() + 1
+					);
 
-					argPointers[i] = &args[i][0];
-				}
+					size_t i = 0;
 
-				argPointers[argPointers.GetSize() - 1] = nullptr;
+					for (auto& v : startInfo.CommandLine)
+						value[i++] = const_cast<char*>(v.GetCString());
 
-				if (::execv(startInfo.Path.GetCString(), &argPointers[0]) == -1)
+					value[i] = nullptr;
+
+					return value;
+				}();
+
+				if (::execv(startInfo.Path.GetCString(), &args[0]) == -1)
 				{
 
 					exit(0);
