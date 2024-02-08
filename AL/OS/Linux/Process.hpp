@@ -151,10 +151,12 @@ namespace AL::OS::Linux
 				auto args = [&startInfo]()
 				{
 					Collections::Array<char*> value(
-						startInfo.CommandLine.GetSize() + 1
+						startInfo.CommandLine.GetSize() + 2
 					);
 
 					size_t i = 0;
+
+					value[i++] = const_cast<char*>(startInfo.Path.GetCString());
 
 					for (auto& v : startInfo.CommandLine)
 						value[i++] = const_cast<char*>(v.GetCString());
