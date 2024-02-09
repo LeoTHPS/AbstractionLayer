@@ -79,7 +79,7 @@ namespace AL::OS::Pico
 		}
 
 		template<typename T>
-		static Bool TryPop(T& arg, std::uint32_t timeout_ms)
+		static Bool TryPop(T& arg, uint32 timeout_ms)
 		{
 			if (!::multicore_fifo_pop_timeout_us(timeout_ms * 1000, reinterpret_cast<uint32_t*>(&arg)))
 			{
