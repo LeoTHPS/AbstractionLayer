@@ -5,6 +5,8 @@
 	#error Platform not supported
 #endif
 
+#include "AL/OS/Timer.hpp"
+
 #include <hardware/gpio.h>
 
 namespace AL::Hardware::Pico
