@@ -308,6 +308,14 @@ namespace AL::FileSystem
 		}
 
 		// @throw AL::Exception
+		Void WriteLine()
+		{
+			WriteLine(
+				nullptr,
+				0
+			);
+		}
+		// @throw AL::Exception
 		Void WriteLine(String::Char value)
 		{
 			WriteLine(
