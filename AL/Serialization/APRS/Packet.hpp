@@ -318,6 +318,9 @@ namespace AL::Serialization::APRS
 		}
 
 		Packet()
+			: type(
+				PacketTypes::Unknown
+			)
 		{
 		}
 
