@@ -258,7 +258,7 @@ namespace AL::OS::Windows
 			}
 
 			BitMask<ConsoleColors> colors(value);
-			BitMask<::DWORD>       attributes(bufferInfo.wAttributes);
+			BitMask<::WORD>        attributes(bufferInfo.wAttributes);
 
 			attributes.Set(FOREGROUND_RED,       colors.IsSet(ConsoleColors::Red));
 			attributes.Set(FOREGROUND_BLUE,      colors.IsSet(ConsoleColors::Blue));
@@ -289,7 +289,7 @@ namespace AL::OS::Windows
 			}
 
 			BitMask<ConsoleColors> colors(value);
-			BitMask<::DWORD>       attributes(bufferInfo.wAttributes);
+			BitMask<::WORD>        attributes(bufferInfo.wAttributes);
 
 			attributes.Set(BACKGROUND_RED,       colors.IsSet(ConsoleColors::Red));
 			attributes.Set(BACKGROUND_BLUE,      colors.IsSet(ConsoleColors::Blue));
