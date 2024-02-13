@@ -531,9 +531,9 @@ namespace AL::Serialization::APRS
 			Float distance_z      = 0;
 
 			if (GetAltitude() >= position.GetAltitude())
-				distance_z = GetAltitude() - position.GetAltitude();
+				distance_z = static_cast<Float>(GetAltitude() - position.GetAltitude());
 			else
-				distance_z = position.GetAltitude() - GetAltitude();
+				distance_z = static_cast<Float>(position.GetAltitude() - GetAltitude());
 
 			return ((distance * 6371) * 3280.84f) + distance_z;
 		}

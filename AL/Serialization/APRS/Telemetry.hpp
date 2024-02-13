@@ -42,7 +42,7 @@ namespace AL::Serialization::APRS
 
 			auto packet = Packet::Create(Move(sender), Move(tocall), Move(path), "");
 
-			return Telemetry(Move(packet), analog, (digital[7] << 7) | (digital[6] << 6) | (digital[5] << 5) | (digital[4] << 4) | (digital[3] << 3) | (digital[2] << 2) | (digital[1] << 1) | digital[0], sequence);
+			return Telemetry(Move(packet), analog, (static_cast<uint8>(digital[7]) << 7) | (static_cast<uint8>(digital[6]) << 6) | (static_cast<uint8>(digital[5]) << 5) | (static_cast<uint8>(digital[4]) << 4) | (static_cast<uint8>(digital[3]) << 3) | (static_cast<uint8>(digital[2]) << 2) | (static_cast<uint8>(digital[1]) << 1) | static_cast<uint8>(digital[0]), sequence);
 		}
 		// @throw AL::Exception
 		static Telemetry Create(const String& sender, const String& tocall, const DigiPath& path, const uint8(&analog)[5], const Bool(&digital)[8], uint16 sequence)
@@ -58,7 +58,7 @@ namespace AL::Serialization::APRS
 
 			auto packet = Packet::CreateIS(Move(sender), Move(tocall), Move(path), Move(igate), qConstruct, "");
 
-			return Telemetry(Move(packet), analog, (digital[7] << 7) | (digital[6] << 6) | (digital[5] << 5) | (digital[4] << 4) | (digital[3] << 3) | (digital[2] << 2) | (digital[1] << 1) | digital[0], sequence);
+			return Telemetry(Move(packet), analog, (static_cast<uint8>(digital[7]) << 7) | (static_cast<uint8>(digital[6]) << 6) | (static_cast<uint8>(digital[5]) << 5) | (static_cast<uint8>(digital[4]) << 4) | (static_cast<uint8>(digital[3]) << 3) | (static_cast<uint8>(digital[2]) << 2) | (static_cast<uint8>(digital[1]) << 1) | static_cast<uint8>(digital[0]), sequence);
 		}
 		// @throw AL::Exception
 		static Telemetry CreateIS(const String& sender, const String& tocall, const DigiPath& path, const String& igate, QConstructs qConstruct, const uint8(&analog)[5], const Bool(&digital)[8], uint16 sequence)
@@ -195,7 +195,7 @@ namespace AL::Serialization::APRS
 		}
 		Void SetValues(const uint8(&analog)[5], const Bool(&digital)[8])
 		{
-			SetValues(analog, (digital[7] << 7) | (digital[6] << 6) | (digital[5] << 5) | (digital[4] << 4) | (digital[3] << 3) | (digital[2] << 2) | (digital[1] << 1) | digital[0]);
+			SetValues(analog, (static_cast<uint8>(digital[7]) << 7) | (static_cast<uint8>(digital[6]) << 6) | (static_cast<uint8>(digital[5]) << 5) | (static_cast<uint8>(digital[4]) << 4) | (static_cast<uint8>(digital[3]) << 3) | (static_cast<uint8>(digital[2]) << 2) | (static_cast<uint8>(digital[1]) << 1) | static_cast<uint8>(digital[0]));
 		}
 
 		Bool SetSequence(uint16 value)
