@@ -704,12 +704,38 @@ namespace AL::Collections
 		template<typename T_ITERATOR>
 		T_ITERATOR Insert(T_ITERATOR it, const Type& value)
 		{
-			it = Insert(
-				it,
-				Type(value)
+			auto size = GetSize();
+
+			size_t i = &(*it) - &container[0];
+
+			if (size == GetCapacity())
+			{
+
+				Reserve(
+					1
+				);
+			}
+
+			for (size_t j = size; j > i; --j)
+			{
+				Array<Type>::Move(
+					&container[j - 1],
+					&container[(j - 1) + 1],
+					1
+				);
+			}
+
+			Array<Type>::Copy(
+				&value,
+				&container[i],
+				1
 			);
 
-			return it;
+			++this->size;
+
+			return T_ITERATOR(
+				&container[i]
+			);
 		}
 		template<typename T_ITERATOR>
 		T_ITERATOR Insert(T_ITERATOR it, const Type* lpValues, size_t count)

@@ -538,12 +538,23 @@ namespace AL::Collections
 		template<typename T_ITERATOR>
 		T_ITERATOR Insert(T_ITERATOR it, const Type& value)
 		{
-			auto _it = Insert(
-				it,
-				Type(value)
+			auto lpNextNode = it.lpNode;
+			auto lpPrevNode = it.lpNode->lpPrevious;
+
+			auto lpNewNode = new LinkedListNode<T>(
+				value
 			);
 
-			return _it;
+			lpNewNode->lpNext = lpNextNode;
+			lpNextNode->lpPrevious = lpNewNode;
+			lpNewNode->lpPrevious = lpPrevNode;
+			lpPrevNode->lpNext = lpNewNode;
+
+			++size;
+
+			return T_ITERATOR(
+				lpNewNode
+			);
 		}
 		template<typename T_ITERATOR>
 		T_ITERATOR Insert(T_ITERATOR it, const Type* lpValues, size_t count);
