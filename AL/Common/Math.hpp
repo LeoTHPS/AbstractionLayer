@@ -69,7 +69,7 @@ namespace AL
 		template<typename T>
 		static constexpr T Rad(T value)
 		{
-			return value * Rad2Deg;
+			return static_cast<T>(value * Rad2Deg);
 		}
 
 		template<typename T>
