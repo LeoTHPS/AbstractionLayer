@@ -61,8 +61,14 @@ namespace AL::APRS
 		AuthenticationFailed
 	};
 
+	typedef Void* ClientPacketMonitorHandle;
+
 	// @throw AL::Exception
 	typedef Function<Void()>                                   ClientMessageCallback;
+	// @throw AL::Exception
+	typedef Function<Bool(const Packet& packet)>               ClientPacketFilterCallback;
+	// @throw AL::Exception
+	typedef Function<Void(const Packet& packet)>               ClientPacketMonitorCallback;
 
 	// @throw AL::Exception
 	typedef EventHandler<Void(ClientConnectionTypes type)>     ClientOnConnectEventHandler;
@@ -671,6 +677,12 @@ namespace AL::APRS
 			}
 		};
 
+		struct _PacketMonitorContext
+		{
+			ClientPacketFilterCallback  Filter;
+			ClientPacketMonitorCallback Callback;
+		};
+
 		struct _MessageCallbackContext
 		{
 			String                Station;
@@ -695,6 +707,7 @@ namespace AL::APRS
 		IConnection*                                     lpConnection;
 		ClientConnectionTypes                            connectionType = ClientConnectionTypes::None;
 
+		Collections::LinkedList<_PacketMonitorContext*>  packetMonitors;
 		Collections::LinkedList<_MessageCallbackContext> messageCallbacks;
 
 		Client(const Client&) = delete;
@@ -767,6 +780,9 @@ namespace AL::APRS
 			),
 			connectionType(
 				client.connectionType
+			),
+			packetMonitors(
+				Move(client.packetMonitors)
 			),
 			messageCallbacks(
 				Move(client.messageCallbacks)
@@ -851,6 +867,13 @@ namespace AL::APRS
 
 				Disconnect();
 			}
+
+			for (auto it = packetMonitors.rbegin(); it != packetMonitors.rend(); )
+			{
+				delete *it;
+
+				packetMonitors.Erase(it++);
+			}
 		}
 
 		Bool IsBlocking() const
@@ -932,6 +955,29 @@ namespace AL::APRS
 			}
 
 			isBlocking = set;
+		}
+
+		auto AddPacketMonitor(ClientPacketFilterCallback&& filter, ClientPacketMonitorCallback&& callback)
+		{
+			auto lpContext = new _PacketMonitorContext
+			{
+				.Filter   = Move(filter),
+				.Callback = Move(callback)
+			};
+
+			packetMonitors.PushBack(lpContext);
+
+			return static_cast<ClientPacketMonitorHandle>(lpContext);
+		}
+
+		Void RemovePacketMonitor(ClientPacketMonitorHandle monitor)
+		{
+			if (auto it = packetMonitors.Find(reinterpret_cast<_PacketMonitorContext*>(monitor)); it != packetMonitors.end())
+			{
+				delete *it;
+
+				packetMonitors.Erase(it);
+			}
 		}
 
 		// @throw AL::Exception
@@ -1190,6 +1236,14 @@ namespace AL::APRS
 				OnReceivePacket.Execute(
 					packet
 				);
+
+				for (auto packetMonitor : packetMonitors)
+				{
+					if (packetMonitor->Filter(packet))
+					{
+						packetMonitor->Callback(packet);
+					}
+				}
 
 				switch (packet.GetType())
 				{
@@ -1617,6 +1671,7 @@ namespace AL::APRS
 			connectionType   = client.connectionType;
 			client.connectionType = ClientConnectionTypes::None;
 
+			packetMonitors   = Move(client.packetMonitors);
 			messageCallbacks = Move(client.messageCallbacks);
 
 			OnConnect              = Move(client.OnConnect);
