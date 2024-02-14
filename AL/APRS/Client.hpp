@@ -61,8 +61,6 @@ namespace AL::APRS
 		AuthenticationFailed
 	};
 
-	typedef Void* ClientPacketMonitorHandle;
-
 	// @throw AL::Exception
 	typedef Function<Void()>                                   ClientMessageCallback;
 	// @throw AL::Exception
@@ -957,7 +955,7 @@ namespace AL::APRS
 			isBlocking = set;
 		}
 
-		auto AddPacketMonitor(ClientPacketFilterCallback&& filter, ClientPacketMonitorCallback&& callback)
+		Void AddPacketMonitor(ClientPacketFilterCallback&& filter, ClientPacketMonitorCallback&& callback)
 		{
 			auto lpContext = new _PacketMonitorContext
 			{
@@ -966,18 +964,6 @@ namespace AL::APRS
 			};
 
 			packetMonitors.PushBack(lpContext);
-
-			return static_cast<ClientPacketMonitorHandle>(lpContext);
-		}
-
-		Void RemovePacketMonitor(ClientPacketMonitorHandle monitor)
-		{
-			if (auto it = packetMonitors.Find(reinterpret_cast<_PacketMonitorContext*>(monitor)); it != packetMonitors.end())
-			{
-				delete *it;
-
-				packetMonitors.Erase(it);
-			}
 		}
 
 		// @throw AL::Exception
