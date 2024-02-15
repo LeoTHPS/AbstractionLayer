@@ -52,6 +52,35 @@ namespace AL::Serialization::APRS
 		}
 
 	public:
+		static Float CalculateDistance(Float latitude1, Float longitude1, Float latitude2, Float longitude2)
+		{
+			auto latitude_delta  = Math::Rad(latitude2 - latitude1);
+			auto longitude_delta = Math::Rad(longitude2 - longitude1);
+			auto latitude_1      = Math::Rad(latitude1);
+			auto latitude_2      = Math::Rad(latitude2);
+			auto a               = Math::Sin(latitude_delta / 2) * Math::Sin(latitude_delta / 2) + Math::Sin(longitude_delta / 2) * Math::Sin(longitude_delta / 2) * Math::Cos(latitude_1) * Math::Cos(latitude_2);
+			auto distance        = 2 * Math::Atan2(Math::Sqrt(a), Math::Sqrt(1 - a));
+
+			return (distance * 6371) * 3280.84f;
+		}
+		static Float CalculateDistance3D(int32 altitude1, Float latitude1, Float longitude1, int32 altitude2, Float latitude2, Float longitude2)
+		{
+			auto  latitude_delta  = Math::Rad(latitude2 - latitude1);
+			auto  longitude_delta = Math::Rad(longitude2 - longitude1);
+			auto  latitude_1      = Math::Rad(latitude1);
+			auto  latitude_2      = Math::Rad(latitude2);
+			auto  a               = Math::Sin(latitude_delta / 2) * Math::Sin(latitude_delta / 2) + Math::Sin(longitude_delta / 2) * Math::Sin(longitude_delta / 2) * Math::Cos(latitude_1) * Math::Cos(latitude_2);
+			auto  distance        = 2 * Math::Atan2(Math::Sqrt(a), Math::Sqrt(1 - a));
+			Float distance_z      = 0;
+
+			if (altitude1 >= altitude2)
+				distance_z = static_cast<Float>(altitude1 - altitude2);
+			else
+				distance_z = static_cast<Float>(altitude2 - altitude1);
+
+			return ((distance * 6371) * 3280.84f) + distance_z;
+		}
+
 		// @throw AL::Exception
 		static Position Create(String&& sender, String&& tocall, DigiPath&& path, int32 altitude, Float latitude, Float longitude, String::Char symbolTable, String::Char symbolTableKey, String&& comment = "", Bool isMessagingEnabled = False, Bool isCompressionEnabled = False)
 		{
@@ -511,31 +540,11 @@ namespace AL::Serialization::APRS
 
 		Float CalculateDistance(const Position& position) const
 		{
-			auto latitude_delta  = Math::Rad(position.GetLatitude() - GetLatitude());
-			auto longitude_delta = Math::Rad(position.GetLongitude() - GetLongitude());
-			auto latitude_1      = Math::Rad(GetLatitude());
-			auto latitude_2      = Math::Rad(position.GetLatitude());
-			auto a               = Math::Sin(latitude_delta / 2) * Math::Sin(latitude_delta / 2) + Math::Sin(longitude_delta / 2) * Math::Sin(longitude_delta / 2) * Math::Cos(latitude_1) * Math::Cos(latitude_2);
-			auto distance        = 2 * Math::Atan2(Math::Sqrt(a), Math::Sqrt(1 - a));
-
-			return (distance * 6371) * 3280.84f;
+			return CalculateDistance(GetLatitude(), GetLongitude(), position.GetLatitude(), position.GetLongitude());
 		}
 		Float CalculateDistance3D(const Position& position) const
 		{
-			auto  latitude_delta  = Math::Rad(position.GetLatitude() - GetLatitude());
-			auto  longitude_delta = Math::Rad(position.GetLongitude() - GetLongitude());
-			auto  latitude_1      = Math::Rad(GetLatitude());
-			auto  latitude_2      = Math::Rad(position.GetLatitude());
-			auto  a               = Math::Sin(latitude_delta / 2) * Math::Sin(latitude_delta / 2) + Math::Sin(longitude_delta / 2) * Math::Sin(longitude_delta / 2) * Math::Cos(latitude_1) * Math::Cos(latitude_2);
-			auto  distance        = 2 * Math::Atan2(Math::Sqrt(a), Math::Sqrt(1 - a));
-			Float distance_z      = 0;
-
-			if (GetAltitude() >= position.GetAltitude())
-				distance_z = static_cast<Float>(GetAltitude() - position.GetAltitude());
-			else
-				distance_z = static_cast<Float>(position.GetAltitude() - GetAltitude());
-
-			return ((distance * 6371) * 3280.84f) + distance_z;
+			return CalculateDistance3D(GetAltitude(), GetLatitude(), GetLongitude(), position.GetAltitude(), position.GetLatitude(), position.GetLongitude());
 		}
 
 		Packet ToPacket(Bool include_is_fields) const
