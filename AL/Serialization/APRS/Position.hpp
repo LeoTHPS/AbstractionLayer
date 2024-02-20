@@ -322,6 +322,8 @@ namespace AL::Serialization::APRS
 
 			if (!isCompressionEnabled)
 			{
+				// http://www.aprs.org/aprs12/datum.txt
+
 				latitude  = (latitudeHours + (latitudeMinutes / 60.0f) + (latitudeSeconds / 6000.0f)) * ((latitudeNorthSouth == 'N' ? 1 : -1));
 				longitude = (longitudeHours + (longitudeMinutes / 60.0f) + (longitudeSeconds / 6000.0f)) * ((longitudeWestEast == 'E') ? 1 : -1);
 			}
