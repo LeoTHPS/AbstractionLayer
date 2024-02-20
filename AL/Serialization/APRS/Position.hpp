@@ -211,7 +211,10 @@ namespace AL::Serialization::APRS
 				};
 
 				if (!match_IsValid(matches, 3) || !match_IsValid(matches, 4) || !match_IsValid(matches, 6))
+				{
+
 					return False;
+				}
 
 				comment        = Move(matches[8]);
 				latitude       = 90 - (((matches[3][0] - 33) * 753571) + ((matches[3][1] - 33) * 8281) + ((matches[3][2] - 33) * 91) + (matches[3][3] - 33)) / 380926.0f;
@@ -285,17 +288,17 @@ namespace AL::Serialization::APRS
 
 				if (Regex::Match(matches, "^[\\/@]((\\d+)[hz\\/](\\d{2})(\\d{2})\\.(\\d{2})([NS])(.)(\\d{3})(\\d{2})\\.(\\d{2})([EW])(.))(.*)$", value.GetContent()))
 				{
-					latitudeHours      = AL::FromString<int16>(matches[3]);
-					latitudeMinutes    = AL::FromString<uint16>(matches[4]);
-					latitudeSeconds    = AL::FromString<uint16>(matches[5]);
-					latitudeNorthSouth = matches[6][0];
-					symbolTable        = matches[7][0];
-					longitudeHours     = AL::FromString<int16>(matches[8]);
-					longitudeMinutes   = AL::FromString<int16>(matches[9]);
-					longitudeSeconds   = AL::FromString<int16>(matches[10]);
-					longitudeWestEast  = matches[11][0];
-					symbolTableKey     = matches[12][0];
-					comment            = Move(matches[13]);
+					latitudeHours      = AL::FromString<int16>(matches[2]);
+					latitudeMinutes    = AL::FromString<uint16>(matches[3]);
+					latitudeSeconds    = AL::FromString<uint16>(matches[4]);
+					latitudeNorthSouth = matches[5][0];
+					symbolTable        = matches[6][0];
+					longitudeHours     = AL::FromString<int16>(matches[7]);
+					longitudeMinutes   = AL::FromString<int16>(matches[8]);
+					longitudeSeconds   = AL::FromString<int16>(matches[9]);
+					longitudeWestEast  = matches[10][0];
+					symbolTableKey     = matches[11][0];
+					comment            = Move(matches[12]);
 				}
 				else if (Regex::Match(matches, "^[\\/@]((.)([!-{]){4}([!-{]){4}(.)([!-{]){2}(.))(.*)$", value.GetContent()))
 				{
