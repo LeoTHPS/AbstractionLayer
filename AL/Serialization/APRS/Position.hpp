@@ -183,16 +183,37 @@ namespace AL::Serialization::APRS
 			String::Char symbolTableKey     = '\0';
 
 			Float        latitude           = 0;
-			int16        latitudeHours      = 0;
+			uint16       latitudeHours      = 0;
 			uint16       latitudeMinutes    = 0;
 			uint16       latitudeSeconds    = 0;
 			String::Char latitudeNorthSouth = 'N';
 
 			Float        longitude          = 0;
-			int16        longitudeHours     = 0;
+			uint16       longitudeHours     = 0;
 			uint16       longitudeMinutes   = 0;
 			uint16       longitudeSeconds   = 0;
 			String::Char longitudeWestEast  = 'E';
+
+			auto matches_GetUInt16 = [](Regex::MatchCollection& matches, size_t offset)
+			{
+				auto& source = matches[offset];
+
+				for (size_t i = 0; i < source.GetLength(); ++i)
+				{
+					if (source[i] == '0')
+						continue;
+					else if (i == 0)
+						break;
+
+					return AL::FromString<uint16>(
+						source.SubString(i)
+					);
+				}
+
+				return AL::FromString<uint16>(
+					source
+				);
+			};
 
 			auto matches_Decompress = [&symbolTable, &symbolTableKey, &latitude, &longitude, &comment, &altitude](Regex::MatchCollection& matches)
 			{
@@ -249,14 +270,14 @@ namespace AL::Serialization::APRS
 
 				if (Regex::Match(matches, "^[!=]((\\d{2})(\\d{2})\\.(\\d{2})([NS])(.)(\\d{3})(\\d{2})\\.(\\d{2})([EW])(.))(.*)$", value.GetContent()))
 				{
-					latitudeHours      = AL::FromString<int16>(matches[2]);
-					latitudeMinutes    = AL::FromString<uint16>(matches[3]);
-					latitudeSeconds    = AL::FromString<uint16>(matches[4]);
+					latitudeHours      = matches_GetUInt16(matches, 2);
+					latitudeMinutes    = matches_GetUInt16(matches, 3);
+					latitudeSeconds    = matches_GetUInt16(matches, 4);
 					latitudeNorthSouth = matches[5][0];
 					symbolTable        = matches[6][0];
-					longitudeHours     = AL::FromString<int16>(matches[7]);
-					longitudeMinutes   = AL::FromString<int16>(matches[8]);
-					longitudeSeconds   = AL::FromString<int16>(matches[9]);
+					longitudeHours     = matches_GetUInt16(matches, 7);
+					longitudeMinutes   = matches_GetUInt16(matches, 8);
+					longitudeSeconds   = matches_GetUInt16(matches, 9);
 					longitudeWestEast  = matches[10][0];
 					symbolTableKey     = matches[11][0];
 					comment            = Move(matches[12]);
@@ -288,14 +309,14 @@ namespace AL::Serialization::APRS
 
 				if (Regex::Match(matches, "^[\\/@]((\\d+)[hz\\/](\\d{2})(\\d{2})\\.(\\d{2})([NS])(.)(\\d{3})(\\d{2})\\.(\\d{2})([EW])(.))(.*)$", value.GetContent()))
 				{
-					latitudeHours      = AL::FromString<int16>(matches[3]);
-					latitudeMinutes    = AL::FromString<uint16>(matches[4]);
-					latitudeSeconds    = AL::FromString<uint16>(matches[5]);
+					latitudeHours      = matches_GetUInt16(matches, 3);
+					latitudeMinutes    = matches_GetUInt16(matches, 4);
+					latitudeSeconds    = matches_GetUInt16(matches, 5);
 					latitudeNorthSouth = matches[6][0];
 					symbolTable        = matches[7][0];
-					longitudeHours     = AL::FromString<int16>(matches[8]);
-					longitudeMinutes   = AL::FromString<int16>(matches[9]);
-					longitudeSeconds   = AL::FromString<int16>(matches[10]);
+					longitudeHours     = matches_GetUInt16(matches, 8);
+					longitudeMinutes   = matches_GetUInt16(matches, 9);
+					longitudeSeconds   = matches_GetUInt16(matches, 10);
 					longitudeWestEast  = matches[11][0];
 					symbolTableKey     = matches[12][0];
 					comment            = Move(matches[13]);
@@ -324,8 +345,8 @@ namespace AL::Serialization::APRS
 			{
 				// http://www.aprs.org/aprs12/datum.txt
 
-				latitude  = (latitudeHours + (latitudeMinutes / 60.0f) + (latitudeSeconds / 6000.0f)) * ((latitudeNorthSouth == 'N' ? 1 : -1));
-				longitude = (longitudeHours + (longitudeMinutes / 60.0f) + (longitudeSeconds / 6000.0f)) * ((longitudeWestEast == 'E') ? 1 : -1);
+				latitude  = (latitudeHours  + (latitudeMinutes / 60.0f)  + (latitudeSeconds / 6000.0f))  * ((latitudeNorthSouth == 'N') ? 1 : -1);
+				longitude = (longitudeHours + (longitudeMinutes / 60.0f) + (longitudeSeconds / 6000.0f)) * ((longitudeWestEast  == 'E') ? 1 : -1);
 			}
 
 			return Position(Move(value), altitude, latitude, longitude, Move(comment), symbolTable, symbolTableKey, isMessagingEnabled, isCompressionEnabled);
