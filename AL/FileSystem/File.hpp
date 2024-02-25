@@ -815,7 +815,7 @@ namespace AL::FileSystem
 #elif defined(AL_PLATFORM_WINDOWS)
 			::LARGE_INTEGER li;
 
-			if (!::SetFilePointerEx(GetHandle(), { .QuadPart = static_cast<::LONGLONG>(GetReadPosition()) }, &li, FILE_BEGIN))
+			if (!::SetFilePointerEx(GetHandle(), { .QuadPart = static_cast<::LONGLONG>(GetWritePosition()) }, &li, FILE_BEGIN))
 			{
 
 				throw OS::SystemException(
