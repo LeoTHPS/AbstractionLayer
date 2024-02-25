@@ -37,13 +37,17 @@ namespace AL::FileSystem
 
 	class File
 	{
-		Bool   isOpen = False;
+		Bool     isOpen = False;
 
-		FILE*  lpFile;
+#if defined(AL_PLATFORM_LINUX)
+		FILE*    lpFile;
+#elif defined(AL_PLATFORM_WINDOWS)
+		::HANDLE hFile;
+#endif
 
-		Path   path;
-		uint64 readPosition = 0;
-		uint64 writePosition = 0;
+		Path     path;
+		uint64   readPosition = 0;
+		uint64   writePosition = 0;
 
 		File(const File&) = delete;
 
@@ -228,103 +232,83 @@ namespace AL::FileSystem
 				return False;
 			}
 
-			::FILE* lpSource;
+			File sourceFile(
+				source
+			);
 
-			if ((lpSource = ::std::fopen(source.GetCString(), "rb")) == NULL)
+			try
 			{
-
-				throw OS::SystemException(
-					"fopen"
-				);
-			}
-
-			::FILE* lpDestination;
-
-			if ((lpDestination = ::std::fopen(destination.GetCString(), "wb")) == NULL)
-			{
-				::std::fclose(
-					lpSource
-				);
-
-				throw OS::SystemException(
-					"fopen"
-				);
-			}
-
-			static constexpr size_t BUFFER_SIZE = 0x400;
-
-			auto lpBuffer = new uint8[BUFFER_SIZE];
-
-			while (!::std::feof(lpSource))
-			{
-				size_t bytesRead;
-
-				if ((bytesRead = ::std::fread(lpBuffer, 1, BUFFER_SIZE, lpSource)) == 0)
+				if (!sourceFile.Open(FileOpenModes::Read | FileOpenModes::Binary))
 				{
-					if (!::std::feof(lpSource))
+
+					return True;
+				}
+			}
+			catch (Exception& exception)
+			{
+
+				throw Exception(
+					AL::Move(exception),
+					"Error opening source file"
+				);
+			};
+
+			File destinationFile(
+				destination
+			);
+
+			try
+			{
+				destinationFile.Open(
+					FileOpenModes::Write | FileOpenModes::Truncate | FileOpenModes::Binary
+				);
+			}
+			catch (Exception& exception)
+			{
+				sourceFile.Close();
+
+				throw Exception(
+					AL::Move(exception),
+					"Error opening destination file"
+				);
+			};
+
+			static constexpr uint16 BUFFER_SIZE = 0x400;
+
+			auto   lpBuffer   = new uint8[BUFFER_SIZE];
+			size_t bufferSize = 0;
+
+			try
+			{
+				while ((bufferSize = sourceFile.Read(lpBuffer, BUFFER_SIZE)) != 0)
+				{
+					for (size_t i = 0; i < bufferSize; )
 					{
-						delete[] lpBuffer;
-
-						::std::fclose(
-							lpDestination
-						);
-							
-						::std::fclose(
-							lpSource
-						);
-
-						throw OS::SystemException(
-							"fread"
+						i += destinationFile.Write(
+							lpBuffer,
+							bufferSize - i
 						);
 					}
 				}
+			}
+			catch (Exception& exception)
+			{
+				delete[] lpBuffer;
 
-				if (::std::fwrite(lpBuffer, 1, bytesRead, lpDestination) == 0)
-				{
-					delete[] lpBuffer;
+				sourceFile.Close();
+				destinationFile.Close();
 
-					::std::fclose(
-						lpDestination
-					);
-						
-					::std::fclose(
-						lpSource
-					);
-
-					throw OS::SystemException(
-						"fwrite"
-					);
-				}
-
-				::std::clearerr(
-					lpDestination
+				throw Exception(
+					AL::Move(exception),
+					"Error copying %u bytes",
+					BUFFER_SIZE
 				);
 			}
 
 			delete[] lpBuffer;
 
-			if (::std::fflush(lpDestination) == EOF)
-			{
-				::std::fclose(
-					lpDestination
-				);
-					
-				::std::fclose(
-					lpSource
-				);
-
-				throw OS::SystemException(
-					"fflush"
-				);
-			}
-
-			::std::fclose(
-				lpDestination
-			);
-
-			::std::fclose(
-				lpSource
-			);
+			sourceFile.Close();
+			destinationFile.Close();
 
 			return True;
 		}
@@ -378,9 +362,15 @@ namespace AL::FileSystem
 			: isOpen(
 				file.isOpen
 			),
+#if defined(AL_PLATFORM_LINUX)
 			lpFile(
 				file.lpFile
 			),
+#elif defined(AL_PLATFORM_WINDOWS)
+			hFile(
+				file.hFile
+			),
+#endif
 			path(
 				AL::Move(file.path)
 			),
@@ -439,6 +429,15 @@ namespace AL::FileSystem
 		const Path& GetPath() const
 		{
 			return path;
+		}
+
+		auto GetHandle() const
+		{
+#if defined(AL_PLATFORM_LINUX)
+			return lpFile;
+#elif defined(AL_PLATFORM_WINDOWS)
+			return hFile;
+#endif
 		}
 
 		// @throw AL::Exception
@@ -513,6 +512,7 @@ namespace AL::FileSystem
 				"FileOpenModes::Append and FileOpenModes::Truncate are exclusive"
 			);
 
+#if defined(AL_PLATFORM_LINUX)
 			char _mode[4] = { 0 };
 
 			if (FileOpenModeMask::IsSet(mode, FileOpenModes::Read | FileOpenModes::Write))
@@ -608,6 +608,29 @@ namespace AL::FileSystem
 					errorCode
 				);
 			}
+#elif defined(AL_PLATFORM_WINDOWS)
+			BitMask<::DWORD> access;
+			access.Set(FILE_GENERIC_READ,  FileOpenModeMask::IsSet(mode, FileOpenModes::Read));
+			access.Set(FILE_GENERIC_WRITE, FileOpenModeMask::IsSet(mode, FileOpenModes::Write));
+
+			if ((hFile = ::CreateFileA(GetPath().GetString().GetCString(), access.Value, FILE_SHARE_READ, nullptr, FileOpenModeMask::IsSet(mode, FileOpenModes::Truncate) ? OPEN_ALWAYS : OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
+			{
+				auto errorCode = OS::GetLastError();
+
+				if (errorCode == ERROR_FILE_NOT_FOUND)
+				{
+
+					return False;
+				}
+
+				throw OS::SystemException(
+					"CreateFileA",
+					errorCode
+				);
+			}
+#else
+			throw NotImplementedException();
+#endif
 
 			if (FileOpenModeMask::IsSet(mode, FileOpenModes::Append))
 			{
@@ -629,6 +652,8 @@ namespace AL::FileSystem
 				}
 			}
 
+			isOpen = True;
+
 			return True;
 		}
 
@@ -636,9 +661,15 @@ namespace AL::FileSystem
 		{
 			if (IsOpen())
 			{
+#if defined(AL_PLATFORM_LINUX)
 				::std::fclose(
-					lpFile
+					GetHandle()
 				);
+#elif defined(AL_PLATFORM_WINDOWS)
+				::CloseHandle(
+					GetHandle()
+				);
+#endif
 
 				isOpen = False;
 			}
@@ -680,7 +711,10 @@ namespace AL::FileSystem
 				"File not open"
 			);
 
-			if (::std::fseek(lpFile, static_cast<long>(GetReadPosition()), SEEK_SET) == -1)
+			size_t bytesRead = 0;
+
+#if defined(AL_PLATFORM_LINUX)
+			if (::std::fseek(GetHandle(), static_cast<long>(GetReadPosition()), SEEK_SET) == -1)
 			{
 
 				throw OS::SystemException(
@@ -688,11 +722,9 @@ namespace AL::FileSystem
 				);
 			}
 
-			size_t bytesRead;
-
-			if ((bytesRead = ::std::fread(lpBuffer, 1, size, lpFile)) == 0)
+			if ((bytesRead = ::std::fread(lpBuffer, 1, size, GetHandle())) == 0)
 			{
-				if (!::feof(lpFile))
+				if (!::feof(GetHandle()))
 				{
 
 					throw OS::SystemException(
@@ -700,6 +732,46 @@ namespace AL::FileSystem
 					);
 				}
 			}
+#elif defined(AL_PLATFORM_WINDOWS)
+			::LARGE_INTEGER li;
+
+			if (!::SetFilePointerEx(GetHandle(), { .QuadPart = static_cast<::LONGLONG>(GetReadPosition()) }, &li, FILE_BEGIN))
+			{
+
+				throw OS::SystemException(
+					"SetFilePointerEx"
+				);
+			}
+
+			for (::DWORD numberOfBytesRead = 0; bytesRead < size; bytesRead += numberOfBytesRead)
+			{
+				auto numberOfBytesToRead = size - bytesRead;
+
+				if (numberOfBytesToRead > Integer<::DWORD>::Maximum)
+					numberOfBytesToRead = Integer<::DWORD>::Maximum;
+
+				if (!::ReadFile(GetHandle(), &reinterpret_cast<uint8*>(lpBuffer)[bytesRead], static_cast<::DWORD>(numberOfBytesToRead), &numberOfBytesRead, nullptr))
+				{
+
+					throw OS::SystemException(
+						"ReadFile"
+					);
+				}
+
+				if (numberOfBytesRead == 0)
+				{
+					if (bytesRead == 0)
+					{
+
+						return False;
+					}
+
+					break;
+				}
+			}
+#else
+			throw NotImplementedException();
+#endif
 
 			readPosition += bytesRead;
 				
@@ -714,7 +786,10 @@ namespace AL::FileSystem
 				"File not open"
 			);
 
-			if (::std::fseek(lpFile, static_cast<long>(GetWritePosition()), SEEK_SET) == -1)
+			size_t bytesWritten = 0;
+
+#if defined(AL_PLATFORM_LINUX)
+			if (::std::fseek(GetHandle(), static_cast<long>(GetWritePosition()), SEEK_SET) == -1)
 			{
 
 				throw OS::SystemException(
@@ -722,9 +797,7 @@ namespace AL::FileSystem
 				);
 			}
 
-			size_t bytesWritten;
-
-			if ((bytesWritten = ::std::fwrite(lpBuffer, 1, size, lpFile)) == 0)
+			if ((bytesWritten = ::std::fwrite(lpBuffer, 1, size, GetHandle())) == 0)
 			{
 
 				throw OS::SystemException(
@@ -732,13 +805,42 @@ namespace AL::FileSystem
 				);
 			}
 
-			if (::std::fflush(lpFile) == EOF)
+			if (::std::fflush(GetHandle()) == EOF)
 			{
 
 				throw OS::SystemException(
 					"fflush"
 				);
 			}
+#elif defined(AL_PLATFORM_WINDOWS)
+			::LARGE_INTEGER li;
+
+			if (!::SetFilePointerEx(GetHandle(), { .QuadPart = static_cast<::LONGLONG>(GetReadPosition()) }, &li, FILE_BEGIN))
+			{
+
+				throw OS::SystemException(
+					"SetFilePointerEx"
+				);
+			}
+
+			for (::DWORD numberOfBytesWritten = 0; bytesWritten < size; bytesWritten += numberOfBytesWritten)
+			{
+				auto numberOfBytesToWrite = size - bytesWritten;
+
+				if (numberOfBytesToWrite > Integer<::DWORD>::Maximum)
+					numberOfBytesToWrite = Integer<::DWORD>::Maximum;
+
+				if (!::WriteFile(GetHandle(), &reinterpret_cast<const uint8*>(lpBuffer)[bytesWritten], static_cast<::DWORD>(numberOfBytesToWrite), &numberOfBytesWritten, nullptr))
+				{
+
+					throw OS::SystemException(
+						"WriteFile"
+					);
+				}
+			}
+#else
+			throw NotImplementedException();
+#endif
 
 			writePosition += bytesWritten;
 
@@ -749,22 +851,41 @@ namespace AL::FileSystem
 		{
 			Close();
 
-			isOpen = file.isOpen;
+			isOpen      = file.isOpen;
 			file.isOpen = False;
 
+#if defined(AL_PLATFORM_LINUX)
 			lpFile = file.lpFile;
+#elif defined(AL_PLATFORM_WINDOWS)
+			hFile = file.hFile;
+#endif
 
 			path = AL::Move(
 				file.path
 			);
 
-			readPosition = file.readPosition;
+			readPosition  = file.readPosition;
 			writePosition = file.writePosition;
 
 			return *this;
 		}
 
-		Bool operator == (const File& file) const;
+		Bool operator == (const File& file) const
+		{
+			if (IsOpen() != file.IsOpen())
+			{
+
+				return False;
+			}
+
+			if (IsOpen() && (GetHandle() != file.GetHandle()))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
 		Bool operator != (const File& file) const
 		{
 			if (operator==(file))
