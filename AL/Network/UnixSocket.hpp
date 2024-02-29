@@ -30,7 +30,8 @@ namespace AL::Network
 		static constexpr Bool IS_TCP_SOCKET = Is_Base_Of<TcpSocket, T_SOCKET>::Value;
 		static constexpr Bool IS_UDP_SOCKET = Is_Base_Of<UdpSocket, T_SOCKET>::Value;
 
-		Bool                   isOpen = False;
+		Bool                   isOpen     = False;
+		Bool                   isBlocking = False;
 
 		FileSystem::Path       path;
 
@@ -98,9 +99,30 @@ namespace AL::Network
 			return isOpen;
 		}
 
+		Bool IsBlocking() const
+		{
+			return isBlocking;
+		}
+
 		auto& GetPath() const
 		{
 			return path;
+		}
+
+		// @throw AL::Exception
+		virtual Void SetBlocking(Bool set = True)
+		{
+#if defined(AL_PLATFORM_LINUX)
+			if (IsOpen())
+			{
+
+				socket.SetBlocking(
+					set
+				);
+			}
+#endif
+
+			isBlocking = set;
 		}
 
 		// @throw AL::Exception
@@ -254,11 +276,14 @@ namespace AL::Network
 			// TODO: implement
 			throw AL::NotImplementedException();
 #elif defined(AL_PLATFORM_WINDOWS)
-			if (!pipe.Read(lpBuffer, size, numberOfBytesReceived))
+			do
 			{
+				if (!pipe.Read(lpBuffer, size, numberOfBytesReceived))
+				{
 
-				return False;
-			}
+					return False;
+				}
+			} while (IsBlocking() && (numberOfBytesReceived == 0));
 #endif
 
 			return True;
