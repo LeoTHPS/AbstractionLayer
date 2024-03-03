@@ -8,7 +8,7 @@ AL_INCLUDE   ?= ..
 
 #CPPFLAGS     += -DNDEBUG
 CPPFLAGS     += -DAL_TEST_SHOW_CONSOLE_OUTPUT
-CXXFLAGS     += -Wall -Wfatal-errors -g -Og -std=c++20 -I. -I"$(AL_INCLUDE)"
+CXXFLAGS     += -Wall -Wfatal-errors -g -O0 -std=c++20 -I. -I"$(AL_INCLUDE)"
 #CXXFLAGS     += -Wno-unused-function -Wno-unused-variable -Wno-unused-lambda-capture -Wno-unused-private-field
 #CXXFLAGS     += -Wno-format-security
 
@@ -24,11 +24,12 @@ endif
 
 ifdef PLATFORM
 	ifeq ($(PLATFORM), LINUX)
-#		libusb-1.0-0-dev libi2c-dev libgpiod-dev libgl-dev libglu1-mesa-dev liblua5.4-dev libsqlite3-dev
+#		libusb-1.0-0-dev libi2c-dev libgpiod-dev libgl-dev libglu1-mesa-dev liblua5.4-dev libsqlite3-dev libssl-dev
 
 		LDLIBS += -ldl -lpthread -lusb-1.0 -li2c -lgpiod
 		LDLIBS += -lGL -lGLU
 		LDLIBS += -llua5.4
+		LDLIBS += -lssl -lcrypto
 		LDLIBS += -lsqlite3
 	endif
 
@@ -40,6 +41,7 @@ ifdef PLATFORM
 		LDLIBS += -ld3d11 -ld2d1 -ldxguid -ldwrite -lwinmm -ldsound -lwindowscodecs -lOle32
 		LDLIBS += -lopengl32 -lglu32
 		LDLIBS += -llua
+		LDLIBS += -lssl -lcrypto
 		LDLIBS += -lsqlite3
 	endif
 endif
