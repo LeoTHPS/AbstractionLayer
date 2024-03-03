@@ -288,19 +288,19 @@ namespace AL::OS::Windows
 					return nullptr;
 
 				case WindowCursors::Arrow:
-					return ::LoadCursorA(NULL, IDC_ARROW);
+					return ::LoadCursor(NULL, IDC_ARROW);
 
 				case WindowCursors::Beam:
-					return ::LoadCursorA(NULL, IDC_IBEAM);
+					return ::LoadCursor(NULL, IDC_IBEAM);
 
 				case WindowCursors::Wait:
-					return ::LoadCursorA(NULL, IDC_WAIT);
+					return ::LoadCursor(NULL, IDC_WAIT);
 
 				case WindowCursors::Hand:
-					return ::LoadCursorA(NULL, IDC_HAND);
+					return ::LoadCursor(NULL, IDC_HAND);
 
 				case WindowCursors::Help:
-					return ::LoadCursorA(NULL, IDC_HELP);
+					return ::LoadCursor(NULL, IDC_HELP);
 
 				case WindowCursors::UserDefined:
 					throw OperationNotSupportedException();
