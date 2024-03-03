@@ -151,22 +151,22 @@ namespace AL::OS::Windows
 					throw NotImplementedException();
 
 				case WindowIcons::Default:
-					return ::LoadIconA(NULL, IDI_APPLICATION);;
+					return ::LoadIcon(NULL, IDI_APPLICATION);;
 
 				case WindowIcons::Asterisk:
-					return ::LoadIconA(NULL, IDI_ASTERISK);
+					return ::LoadIcon(NULL, IDI_ASTERISK);
 
 				case WindowIcons::Error:
-					return ::LoadIconA(NULL, IDI_ERROR);
+					return ::LoadIcon(NULL, IDI_ERROR);
 
 				case WindowIcons::Question:
-					return ::LoadIconA(NULL, IDI_QUESTION);
+					return ::LoadIcon(NULL, IDI_QUESTION);
 
 				case WindowIcons::Shield:
-					return ::LoadIconA(NULL, IDI_SHIELD);
+					return ::LoadIcon(NULL, IDI_SHIELD);
 
 				case WindowIcons::Warning:
-					return ::LoadIconA(NULL, IDI_WARNING);
+					return ::LoadIcon(NULL, IDI_WARNING);
 			}
 
 			return nullptr;

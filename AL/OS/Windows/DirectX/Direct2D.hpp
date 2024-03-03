@@ -2099,7 +2099,7 @@ namespace AL::OS::Windows::DirectX
 				"Direct2D target not created"
 			);
 
-			GetTarget()->DrawTextA(
+			GetTarget()->DrawText(
 				text.GetCString(),
 				static_cast<::UINT>(text.GetLength()),
 				textFormat,

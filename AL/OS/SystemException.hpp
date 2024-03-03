@@ -23,6 +23,9 @@ namespace AL::OS
 				GetErrorString(
 					errorCode
 				)
+			),
+			errorCode(
+				errorCode
 			)
 		{
 		}
@@ -42,6 +45,9 @@ namespace AL::OS
 				"Error calling '%s': %s",
 				&function[0],
 				GetErrorString(errorCode).GetCString()
+			),
+			errorCode(
+				errorCode
 			)
 		{
 		}
