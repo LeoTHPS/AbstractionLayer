@@ -79,9 +79,9 @@ namespace AL::OS::Pico
 		}
 
 		template<typename T>
-		static Bool TryPop(T& arg, uint32 timeout_ms)
+		static Bool TryPop(T& arg, TimeSpan timeout)
 		{
-			if (!::multicore_fifo_pop_timeout_us(timeout_ms * 1000, reinterpret_cast<uint32_t*>(&arg)))
+			if (!::multicore_fifo_pop_timeout_us(timeout.ToMicroseconds(), reinterpret_cast<uint32_t*>(&arg)))
 			{
 
 				return False;
@@ -97,8 +97,10 @@ namespace AL::OS::Pico
 		template<typename T, typename ... TArgs>
 		static constexpr Void PushAll(T arg, TArgs ... args)
 		{
+			static_assert(sizeof(T) <= sizeof(::uint32_t));
+
 			::multicore_fifo_push_blocking(
-				reinterpret_cast<uint32_t>(arg)
+				reinterpret_cast<::uint32_t>(arg)
 			);
 
 			PushAll(
@@ -112,6 +114,8 @@ namespace AL::OS::Pico
 		template<typename T, typename ... TArgs>
 		static constexpr Void PopAll(T& arg, TArgs& ... args)
 		{
+			static_assert(sizeof(T) <= sizeof(::uint32_t));
+
 			arg = reinterpret_cast<T>(
 				::multicore_fifo_pop_blocking()
 			);

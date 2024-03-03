@@ -29,7 +29,6 @@ namespace AL::Hardware::Pico
 			return isOpen;
 		}
 
-		// @throw AL::Exception
 		static Void Open()
 		{
 			AL_ASSERT(
@@ -66,7 +65,6 @@ namespace AL::Hardware::Pico
 			}
 		}
 
-		// @throw AL::Exception
 		static Void Read(Bool& value)
 		{
 			AL_ASSERT(
@@ -77,7 +75,6 @@ namespace AL::Hardware::Pico
 			value = ::gpio_get(PINS_LED);
 		}
 
-		// @throw AL::Exception
 		static Void Write(Bool value)
 		{
 			AL_ASSERT(
