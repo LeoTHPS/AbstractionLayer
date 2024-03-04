@@ -465,38 +465,6 @@ namespace AL::Collections
 			);
 		}
 
-		Void Insert(size_t index, Char c)
-		{
-			container.Insert(
-				index,
-				c
-			);
-		}
-		Void Insert(size_t index, const _String& string)
-		{
-			container.Insert(
-				index,
-				string.GetCString(),
-				string.GetLength()
-			);
-		}
-		Void Insert(size_t index, const Char* lpBuffer)
-		{
-			container.Insert(
-				index,
-				lpBuffer,
-				GetLength(lpBuffer)
-			);
-		}
-		Void Insert(size_t index, const Char* lpBuffer, size_t length)
-		{
-			container.Insert(
-				index,
-				lpBuffer,
-				length
-			);
-		}
-
 		template<typename T_ITERATOR>
 		Void Insert(T_ITERATOR it, Char c)
 		{
