@@ -194,6 +194,25 @@ namespace AL::Serialization::APRS
 			uint16       longitudeSeconds   = 0;
 			String::Char longitudeWestEast  = 'E';
 
+			auto matches_GetInt16 = [](Regex::MatchCollection& matches, size_t offset)->int16
+			{
+				auto& source = matches[offset];
+				Bool  isPositive = *source.GetCString() != '-';
+
+				for (size_t i = 1; i < source.GetLength(); ++i)
+				{
+					if (source[i] == '0')
+						continue;
+					else if (i == 0)
+						break;
+
+					return AL::FromString<int16>(source.SubString(i)) * (isPositive ? 1 : -1);
+				}
+
+				return AL::FromString<int16>(
+					source
+				);
+			};
 			auto matches_GetUInt16 = [](Regex::MatchCollection& matches, size_t offset)
 			{
 				auto& source = matches[offset];
@@ -298,7 +317,10 @@ namespace AL::Serialization::APRS
 						matches[1]
 					);
 
-					altitude = AL::FromString<int16>(matches[2]);
+					altitude = matches_GetInt16(
+						matches,
+						2
+					);
 				}
 			}
 			// Lat/Long Position Report Format - with Timestamp
@@ -337,7 +359,10 @@ namespace AL::Serialization::APRS
 						matches[1]
 					);
 
-					altitude = AL::FromString<int16>(matches[2]);
+					altitude = matches_GetInt16(
+						matches,
+						2
+					);
 				}
 			}
 
