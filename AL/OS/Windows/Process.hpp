@@ -71,7 +71,7 @@ namespace AL::OS::Windows
 			::HANDLE hProcess;
 			Bool     isCurrentProcess;
 
-			if (isCurrentProcess = (id == ::GetCurrentProcessId()))
+			if ((isCurrentProcess = (id == ::GetCurrentProcessId())) != False)
 			{
 
 				hProcess = ::GetCurrentProcess();
