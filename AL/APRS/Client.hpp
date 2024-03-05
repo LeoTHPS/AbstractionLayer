@@ -1284,72 +1284,65 @@ namespace AL::APRS
 							*lpBuffer  = String::END;
 							value      = reinterpret_cast<const char*>(&buffer[offset - i]);
 
-							if (ssid != 0)
+							if (ssid == 0)
 							{
 								if (value.Compare("WIDE1", True))
 								{
 									value = String::Format(
-										"%s1-%u",
-										value.GetCString(),
-										ssid
+										"%s-1",
+										value.GetCString()
 									);
 								}
 								else if (value.Compare("WIDE2", True))
 								{
 									value = String::Format(
-										"%s2-%u",
-										value.GetCString(),
-										ssid
+										"%s-2",
+										value.GetCString()
 									);
 								}
 								else if (value.Compare("WIDE3", True))
 								{
 									value = String::Format(
-										"%s3-%u",
-										value.GetCString(),
-										ssid
+										"%s-3",
+										value.GetCString()
 									);
 								}
 								else if (value.Compare("WIDE4", True))
 								{
 									value = String::Format(
-										"%s4-%u",
-										value.GetCString(),
-										ssid
+										"%s-4",
+										value.GetCString()
 									);
 								}
 								else if (value.Compare("WIDE5", True))
 								{
 									value = String::Format(
-										"%s5-%u",
-										value.GetCString(),
-										ssid
+										"%s-5",
+										value.GetCString()
 									);
 								}
 								else if (value.Compare("WIDE6", True))
 								{
 									value = String::Format(
-										"%s6-%u",
-										value.GetCString(),
-										ssid
+										"%s-6",
+										value.GetCString()
 									);
 								}
 								else if (value.Compare("WIDE7", True))
 								{
 									value = String::Format(
-										"%s7-%u",
-										value.GetCString(),
-										ssid
+										"%s-7",
+										value.GetCString()
 									);
 								}
-								else
-								{
-									value = String::Format(
-										"%s-%u",
-										value.GetCString(),
-										ssid
-									);
-								}
+							}
+							else
+							{
+								value = String::Format(
+									"%s-%u",
+									value.GetCString(),
+									ssid
+								);
 							}
 
 							return isLastStation ? -1 : 1;
