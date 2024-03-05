@@ -38,6 +38,7 @@ namespace AL::Serialization::APRS
 		Unknown,
 
 		Message,
+		Weather,
 		Position,
 		Telemetry
 	};
@@ -63,7 +64,7 @@ namespace AL::Serialization::APRS
 
 		return sb.ToString();
 	}
-	Bool   DigiPath_FromString(DigiPath& path, const String& value);
+	Bool          DigiPath_FromString(DigiPath& path, const String& value);
 
 	// TODO: support AL::ToString
 	static String QConstruct_ToString(QConstructs value)
@@ -144,6 +145,7 @@ namespace AL::Serialization::APRS
 	class Packet
 	{
 		friend class Message;
+		friend class Weather;
 		friend class Position;
 		friend class Telemetry;
 

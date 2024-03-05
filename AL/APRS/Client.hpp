@@ -1280,29 +1280,74 @@ namespace AL::APRS
 
 						if ((i == 6) || (*lpBuffer == 0x20))
 						{
-							auto ssid = *lpBuffer & 0x0F;
-							*lpBuffer = String::END;
-							value     = reinterpret_cast<const char*>(&buffer[offset - i]);
+							uint8 ssid = *lpBuffer & 0x0F;
+							*lpBuffer  = String::END;
+							value      = reinterpret_cast<const char*>(&buffer[offset - i]);
 
 							if (ssid != 0)
 							{
-								auto ssidString = ToString(ssid);
-
-								if (value.Compare("WIDE", True))
+								if (value.Compare("WIDE1", True))
 								{
 									value = String::Format(
-										"%s%s-%s",
+										"%s1-%u",
 										value.GetCString(),
-										ssidString.GetCString(),
-										ssidString.GetCString()
+										ssid
+									);
+								}
+								else if (value.Compare("WIDE2", True))
+								{
+									value = String::Format(
+										"%s2-%u",
+										value.GetCString(),
+										ssid
+									);
+								}
+								else if (value.Compare("WIDE3", True))
+								{
+									value = String::Format(
+										"%s3-%u",
+										value.GetCString(),
+										ssid
+									);
+								}
+								else if (value.Compare("WIDE4", True))
+								{
+									value = String::Format(
+										"%s4-%u",
+										value.GetCString(),
+										ssid
+									);
+								}
+								else if (value.Compare("WIDE5", True))
+								{
+									value = String::Format(
+										"%s5-%u",
+										value.GetCString(),
+										ssid
+									);
+								}
+								else if (value.Compare("WIDE6", True))
+								{
+									value = String::Format(
+										"%s6-%u",
+										value.GetCString(),
+										ssid
+									);
+								}
+								else if (value.Compare("WIDE7", True))
+								{
+									value = String::Format(
+										"%s7-%u",
+										value.GetCString(),
+										ssid
 									);
 								}
 								else
 								{
 									value = String::Format(
-										"%s-%s",
+										"%s-%u",
 										value.GetCString(),
-										ssidString.GetCString()
+										ssid
 									);
 								}
 							}
