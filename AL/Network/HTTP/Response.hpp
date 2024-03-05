@@ -1,12 +1,14 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#include "Header.hpp"
-#include "Versions.hpp"
-#include "StatusCodes.hpp"
+#include "AL/Serialization/HTTP/Response.hpp"
 
 namespace AL::Network::HTTP
 {
+	typedef Serialization::HTTP::Header      Header;
+	typedef Serialization::HTTP::Versions    Versions;
+	typedef Serialization::HTTP::StatusCodes StatusCodes;
+
 	class Response
 	{
 		Header      header;

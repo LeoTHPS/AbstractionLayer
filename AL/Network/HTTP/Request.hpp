@@ -1,12 +1,7 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#include "Uri.hpp"
-#include "Header.hpp"
 #include "Response.hpp"
-#include "Versions.hpp"
-#include "StatusCodes.hpp"
-#include "RequestMethods.hpp"
 
 #if AL_HAS_INCLUDE(<openssl/ssl.h>)
 	#include "AL/OpenSSL/SSL.hpp"
@@ -14,15 +9,26 @@
 	#define AL_NETWORK_HTTP_REQUEST_OPENSSL_ENABLED
 #endif
 
+#include "AL/Collections/Array.hpp"
+
 #include "AL/Network/DNS.hpp"
 #include "AL/Network/IPAddress.hpp"
 #include "AL/Network/TcpSocket.hpp"
 #include "AL/Network/SocketExtensions.hpp"
 
-#include "AL/Collections/Array.hpp"
+#include "AL/Serialization/HTTP/Request.hpp"
 
 namespace AL::Network::HTTP
 {
+	typedef Serialization::Uri                  Uri;
+	typedef Serialization::UriQuery             UriQuery;
+	typedef Serialization::UriAuthority         UriAuthority;
+
+	typedef Serialization::HTTP::Header         Header;
+	typedef Serialization::HTTP::Versions       Versions;
+	typedef Serialization::HTTP::StatusCodes    StatusCodes;
+	typedef Serialization::HTTP::RequestMethods RequestMethods;
+
 	class Request
 	{
 		class Socket
@@ -357,7 +363,7 @@ namespace AL::Network::HTTP
 				StringBuilder sb;
 				Execute_AppendMethod(sb, GetMethod());
 				sb << " ";
-				Execute_AppendPath(sb, uri);
+				Execute_AppendPathAndQuery(sb, uri);
 				sb << " ";
 				Execute_AppendVersion(sb, GetVersion());
 				sb << CRLF;
@@ -372,12 +378,12 @@ namespace AL::Network::HTTP
 			// TODO: optionally reuse socket if HTTP/1.1
 			// TODO: do a better job at detecting ports
 
-			Bool       enableSSL = False;
-
 			IPEndPoint serverEP =
 			{
 				.Port = uri.GetAuthority().Port
 			};
+
+			Bool       enableSSL = False;
 
 			if (serverEP.Port == 0)
 			{
@@ -618,17 +624,6 @@ namespace AL::Network::HTTP
 		}
 
 	private:
-		static Void Execute_AppendPath(StringBuilder& sb, const Uri& uri)
-		{
-			sb << '/';
-
-			if (uri.GetPath().GetLength() != 0)
-			{
-
-				sb << uri.GetPath();
-			}
-		}
-
 		static Void Execute_AppendHeader(StringBuilder& sb, Versions version, const Header& header, const Uri& uri, const char* crlf)
 		{
 			Bool isHostSet = False;
@@ -673,64 +668,38 @@ namespace AL::Network::HTTP
 		// @throw AL::Exception
 		static Void Execute_AppendMethod(StringBuilder& sb, RequestMethods method)
 		{
-			switch (method)
-			{
-				case RequestMethods::GET:
-					sb << AL_NETWORK_HTTP_REQUEST_METHOD_GET;
-					break;
-
-				case RequestMethods::HEAD:
-					sb << AL_NETWORK_HTTP_REQUEST_METHOD_HEAD;
-					break;
-
-				case RequestMethods::POST:
-					sb << AL_NETWORK_HTTP_REQUEST_METHOD_POST;
-					break;
-
-				case RequestMethods::PUT:
-					sb << AL_NETWORK_HTTP_REQUEST_METHOD_PUT;
-					break;
-
-				case RequestMethods::DELETE:
-					sb << AL_NETWORK_HTTP_REQUEST_METHOD_DELETE;
-					break;
-
-				case RequestMethods::CONNECT:
-					sb << AL_NETWORK_HTTP_REQUEST_METHOD_CONNECT;
-					break;
-
-				case RequestMethods::OPTIONS:
-					sb << AL_NETWORK_HTTP_REQUEST_METHOD_OPTIONS;
-					break;
-
-				case RequestMethods::TRACE:
-					sb << AL_NETWORK_HTTP_REQUEST_METHOD_TRACE;
-					break;
-
-				case RequestMethods::PATCH:
-					sb << AL_NETWORK_HTTP_REQUEST_METHOD_PATCH;
-					break;
-
-				default:
-					throw NotImplementedException();
-			}
+			sb << Serialization::HTTP::RequestMethods_ToString(method);
 		}
 
 		// @throw AL::Exception
 		static Void Execute_AppendVersion(StringBuilder& sb, Versions version)
 		{
-			switch (version)
+			sb << Serialization::HTTP::Versions_ToString(version);
+		}
+
+		static Void Execute_AppendPathAndQuery(StringBuilder& sb, const Uri& uri)
+		{
+			sb << '/';
+
+			if (uri.GetPath().GetLength() != 0)
 			{
-				case Versions::HTTP_1_0:
-					sb << AL_NETWORK_HTTP_VERSION_1_0;
-					break;
 
-				case Versions::HTTP_1_1:
-					sb << AL_NETWORK_HTTP_VERSION_1_1;
-					break;
+				sb << uri.GetPath();
+			}
 
-				default:
-					throw NotImplementedException();
+			if (uri.GetQuery().GetSize() != 0)
+			{
+				sb << '?';
+
+				size_t i = 0;
+
+				for (auto& pair : uri.GetQuery())
+				{
+					if (i++ != 0)
+						sb << '&';
+
+					sb << pair.Key << '=' << Uri::Encode(pair.Value);
+				}
 			}
 		}
 
