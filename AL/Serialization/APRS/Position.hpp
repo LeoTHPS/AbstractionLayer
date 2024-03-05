@@ -12,6 +12,8 @@ namespace AL::Serialization::APRS
 
 		Packet       packet;
 
+		uint16       speed;
+		uint16       course;
 		int32        altitude;
 		Float        latitude;
 		Float        longitude;
@@ -20,7 +22,7 @@ namespace AL::Serialization::APRS
 		String::Char symbolTable;
 		String::Char symbolTableKey;
 
-		Position(Packet&& packet, int32 altitude, Float latitude, Float longitude, String&& comment, String::Char symbolTable, String::Char symbolTableKey, Bool isMessagingEnabled, Bool isCompressionEnabled)
+		Position(Packet&& packet, uint16 speed, uint16 course, int32 altitude, Float latitude, Float longitude, String&& comment, String::Char symbolTable, String::Char symbolTableKey, Bool isMessagingEnabled, Bool isCompressionEnabled)
 			: isMessagingEnabled(
 				isMessagingEnabled
 			),
@@ -29,6 +31,12 @@ namespace AL::Serialization::APRS
 			),
 			packet(
 				Move(packet)
+			),
+			speed(
+				speed
+			),
+			course(
+				course
 			),
 			altitude(
 				altitude
@@ -52,6 +60,7 @@ namespace AL::Serialization::APRS
 		}
 
 	public:
+		// @return distance in feet
 		static Float CalculateDistance(Float latitude1, Float longitude1, Float latitude2, Float longitude2)
 		{
 			auto latitude_delta  = Math::Rad(latitude2 - latitude1);
@@ -63,6 +72,7 @@ namespace AL::Serialization::APRS
 
 			return (distance * 6371) * 3280.84f;
 		}
+		// @return distance in feet
 		static Float CalculateDistance3D(int32 altitude1, Float latitude1, Float longitude1, int32 altitude2, Float latitude2, Float longitude2)
 		{
 			auto  latitude_delta  = Math::Rad(latitude2 - latitude1);
@@ -82,8 +92,14 @@ namespace AL::Serialization::APRS
 		}
 
 		// @throw AL::Exception
-		static Position Create(String&& sender, String&& tocall, DigiPath&& path, int32 altitude, Float latitude, Float longitude, String::Char symbolTable, String::Char symbolTableKey, String&& comment = "", Bool isMessagingEnabled = False, Bool isCompressionEnabled = False)
+		static Position Create(String&& sender, String&& tocall, DigiPath&& path, int32 altitude, Float latitude, Float longitude, String::Char symbolTable, String::Char symbolTableKey, uint16 speed, uint16 course, String&& comment = "", Bool isMessagingEnabled = False, Bool isCompressionEnabled = False)
 		{
+			if (!Validate_Speed(speed))
+				throw Exception("Invalid speed");
+
+			if (!Validate_Course(course))
+				throw Exception("Invalid course");
+
 			if (!Validate_Altitude(altitude))
 				throw Exception("Invalid altitude");
 
@@ -101,11 +117,17 @@ namespace AL::Serialization::APRS
 
 			auto packet = Packet::Create(Move(sender), Move(tocall), Move(path), "");
 
-			return Position(Move(packet), altitude, latitude, longitude, Move(comment), symbolTable, symbolTableKey, isMessagingEnabled, isCompressionEnabled);
+			return Position(Move(packet), speed, course, altitude, latitude, longitude, Move(comment), symbolTable, symbolTableKey, isMessagingEnabled, isCompressionEnabled);
 		}
 		// @throw AL::Exception
-		static Position Create(const String& sender, const String& tocall, const DigiPath& path, int32 altitude, Float latitude, Float longitude, String::Char symbolTable, String::Char symbolTableKey, const String& comment = "", Bool isMessagingEnabled = False, Bool isCompressionEnabled = False)
+		static Position Create(const String& sender, const String& tocall, const DigiPath& path, int32 altitude, Float latitude, Float longitude, String::Char symbolTable, String::Char symbolTableKey, uint16 speed, uint16 course, const String& comment = "", Bool isMessagingEnabled = False, Bool isCompressionEnabled = False)
 		{
+			if (!Validate_Speed(speed))
+				throw Exception("Invalid speed");
+
+			if (!Validate_Course(course))
+				throw Exception("Invalid course");
+
 			if (!Validate_Altitude(altitude))
 				throw Exception("Invalid altitude");
 
@@ -123,12 +145,18 @@ namespace AL::Serialization::APRS
 
 			auto packet = Packet::Create(String(sender), String(tocall), DigiPath(path), "");
 
-			return Position(Move(packet), altitude, latitude, longitude, String(comment), symbolTable, symbolTableKey, isMessagingEnabled, isCompressionEnabled);
+			return Position(Move(packet), speed, course, altitude, latitude, longitude, String(comment), symbolTable, symbolTableKey, isMessagingEnabled, isCompressionEnabled);
 		}
 
 		// @throw AL::Exception
-		static Position CreateIS(String&& sender, String&& tocall, DigiPath&& path, String&& igate, QConstructs qConstruct, int32 altitude, Float latitude, Float longitude, String::Char symbolTable, String::Char symbolTableKey, String&& comment = "", Bool isMessagingEnabled = False, Bool isCompressionEnabled = False)
+		static Position CreateIS(String&& sender, String&& tocall, DigiPath&& path, String&& igate, QConstructs qConstruct, int32 altitude, Float latitude, Float longitude, String::Char symbolTable, String::Char symbolTableKey, uint16 speed, uint16 course, String&& comment = "", Bool isMessagingEnabled = False, Bool isCompressionEnabled = False)
 		{
+			if (!Validate_Speed(speed))
+				throw Exception("Invalid speed");
+
+			if (!Validate_Course(course))
+				throw Exception("Invalid course");
+
 			if (!Validate_Altitude(altitude))
 				throw Exception("Invalid altitude");
 
@@ -146,11 +174,17 @@ namespace AL::Serialization::APRS
 
 			auto packet = Packet::CreateIS(Move(sender), Move(tocall), Move(path), Move(igate), qConstruct, "");
 
-			return Position(Move(packet), altitude, latitude, longitude, Move(comment), symbolTable, symbolTableKey, isMessagingEnabled, isCompressionEnabled);
+			return Position(Move(packet), speed, course, altitude, latitude, longitude, Move(comment), symbolTable, symbolTableKey, isMessagingEnabled, isCompressionEnabled);
 		}
 		// @throw AL::Exception
-		static Position CreateIS(const String& sender, const String& tocall, const DigiPath& path, const String& igate, QConstructs qConstruct, int32 altitude, Float latitude, Float longitude, String::Char symbolTable, String::Char symbolTableKey, const String& comment = "", Bool isMessagingEnabled = False, Bool isCompressionEnabled = False)
+		static Position CreateIS(const String& sender, const String& tocall, const DigiPath& path, const String& igate, QConstructs qConstruct, int32 altitude, Float latitude, Float longitude, String::Char symbolTable, String::Char symbolTableKey, uint16 speed, uint16 course, const String& comment = "", Bool isMessagingEnabled = False, Bool isCompressionEnabled = False)
 		{
+			if (!Validate_Speed(speed))
+				throw Exception("Invalid speed");
+
+			if (!Validate_Course(course))
+				throw Exception("Invalid course");
+
 			if (!Validate_Altitude(altitude))
 				throw Exception("Invalid altitude");
 
@@ -168,7 +202,7 @@ namespace AL::Serialization::APRS
 
 			auto packet = Packet::CreateIS(String(sender), String(tocall), DigiPath(path), String(igate), qConstruct, "");
 
-			return Position(Move(packet), altitude, latitude, longitude, String(comment), symbolTable, symbolTableKey, isMessagingEnabled, isCompressionEnabled);
+			return Position(Move(packet), speed, course, altitude, latitude, longitude, String(comment), symbolTable, symbolTableKey, isMessagingEnabled, isCompressionEnabled);
 		}
 
 		// @throw AL::Exception
@@ -178,6 +212,8 @@ namespace AL::Serialization::APRS
 			Bool isCompressionEnabled = False;
 
 			String       comment;
+			uint16       speed              = 0;
+			uint16       course             = 0;
 			int32        altitude           = 0;
 			String::Char symbolTable        = '\0';
 			String::Char symbolTableKey     = '\0';
@@ -310,18 +346,6 @@ namespace AL::Serialization::APRS
 				}
 				else
 					throw Exception("Invalid format");
-
-				if (Regex::Match(matches, "(\\/A=(-?\\d+))", comment))
-				{
-					comment.Remove(
-						matches[1]
-					);
-
-					altitude = matches_GetInt16(
-						matches,
-						2
-					);
-				}
 			}
 			// Lat/Long Position Report Format - with Timestamp
 			// Lat/Long Position Report Format - with Data Extension and Timestamp
@@ -352,6 +376,11 @@ namespace AL::Serialization::APRS
 				}
 				else
 					throw Exception("Invalid format");
+			}
+
+			if (!isCompressionEnabled)
+			{
+				Regex::MatchCollection matches;
 
 				if (Regex::Match(matches, "(\\/A=(-?\\d+))", comment))
 				{
@@ -364,17 +393,24 @@ namespace AL::Serialization::APRS
 						2
 					);
 				}
-			}
 
-			if (!isCompressionEnabled)
-			{
+				if (Regex::Match(matches, "^((\\d{3})\\/(\\d{3}))", comment))
+				{
+					comment.Remove(
+						matches[1]
+					);
+
+					speed  = matches_GetUInt16(matches, 3);
+					course = matches_GetUInt16(matches, 2);
+				}
+
 				// http://www.aprs.org/aprs12/datum.txt
 
 				latitude  = (latitudeHours  + (latitudeMinutes / 60.0f)  + (latitudeSeconds / 6000.0f))  * ((latitudeNorthSouth == 'N') ? 1 : -1);
 				longitude = (longitudeHours + (longitudeMinutes / 60.0f) + (longitudeSeconds / 6000.0f)) * ((longitudeWestEast  == 'E') ? 1 : -1);
 			}
 
-			return Position(Move(value), altitude, latitude, longitude, Move(comment), symbolTable, symbolTableKey, isMessagingEnabled, isCompressionEnabled);
+			return Position(Move(value), speed, course, altitude, latitude, longitude, Move(comment), symbolTable, symbolTableKey, isMessagingEnabled, isCompressionEnabled);
 		}
 		// @throw AL::Exception
 		static Position FromPacket(const Packet& value)
@@ -426,6 +462,16 @@ namespace AL::Serialization::APRS
 		auto& GetSender() const
 		{
 			return packet.GetSender();
+		}
+
+		auto GetSpeed() const
+		{
+			return speed;
+		}
+
+		auto GetCourse() const
+		{
+			return course;
 		}
 
 		auto GetAltitude() const
@@ -489,6 +535,32 @@ namespace AL::Serialization::APRS
 		Bool SetSender(const String& value)
 		{
 			return packet.SetSender(value);
+		}
+
+		Bool SetSpeed(uint16 value)
+		{
+			if (!Validate_Speed(value))
+			{
+
+				return False;
+			}
+
+			speed = value;
+
+			return True;
+		}
+
+		Bool SetCourse(uint16 value)
+		{
+			if (!Validate_Course(value))
+			{
+
+				return False;
+			}
+
+			course = value;
+
+			return True;
 		}
 
 		Bool SetAltitude(int32 value)
@@ -621,6 +693,9 @@ namespace AL::Serialization::APRS
 					ToPacket_AppendCompressed(sb, GetAltitude(), GetLatitude(), GetLongitude(), GetSymbolTable(), GetSymbolTableKey());
 			}
 
+			if (!IsCompressionEnabled())
+				sb << String::Format("%03u/%03u", GetCourse(), GetSpeed());
+
 			sb << GetComment();
 
 			return !include_is_fields ? Packet::Create(String(GetSender()), String(GetToCall()), DigiPath(GetPath()), sb.ToString()) :
@@ -660,6 +735,16 @@ namespace AL::Serialization::APRS
 		}
 
 	private:
+		static Bool Validate_Speed(uint16 value)
+		{
+			return Math::IsInRange<uint16>(value, 0, 999);
+		}
+
+		static Bool Validate_Course(uint16 value)
+		{
+			return Math::IsInRange<uint16>(value, 0, 360);
+		}
+
 		static Bool Validate_Altitude(int32 value)
 		{
 			return Math::IsInRange<int32>(value, -0xFFFFF, 0xFFFFFF);

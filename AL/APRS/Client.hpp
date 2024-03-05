@@ -11,6 +11,7 @@
 
 #include "AL/Serialization/APRS/Packet.hpp"
 #include "AL/Serialization/APRS/Message.hpp"
+#include "AL/Serialization/APRS/Weather.hpp"
 #include "AL/Serialization/APRS/Position.hpp"
 #include "AL/Serialization/APRS/Telemetry.hpp"
 
@@ -22,6 +23,7 @@ namespace AL::APRS
 {
 	typedef Serialization::APRS::Packet      Packet;
 	typedef Serialization::APRS::Message     Message;
+	typedef Serialization::APRS::Weather     Weather;
 	typedef Serialization::APRS::Position    Position;
 	typedef Serialization::APRS::Telemetry   Telemetry;
 
@@ -88,6 +90,11 @@ namespace AL::APRS
 	typedef EventHandler<Void(const Message& message)>         ClientOnSendMessageEventHandler;
 	// @throw AL::Exception
 	typedef EventHandler<Void(const Message& message)>         ClientOnReceiveMessageEventHandler;
+
+	// @throw AL::Exception
+	typedef EventHandler<Void(const Weather& weather)>         ClientOnSendWeatherEventHandler;
+	// @throw AL::Exception
+	typedef EventHandler<Void(const Weather& weather)>         ClientOnReceiveWeatherEventHandler;
 
 	// @throw AL::Exception
 	typedef EventHandler<Void(const Position& position)>       ClientOnSendPositionEventHandler;
@@ -1455,6 +1462,11 @@ namespace AL::APRS
 		Event<ClientOnReceiveMessageEventHandler>       OnReceiveMessage;
 
 		// @throw AL::Exception
+		Event<ClientOnSendWeatherEventHandler>          OnSendWeather;
+		// @throw AL::Exception
+		Event<ClientOnReceiveWeatherEventHandler>       OnReceiveWeather;
+
+		// @throw AL::Exception
 		Event<ClientOnSendPositionEventHandler>         OnSendPosition;
 		// @throw AL::Exception
 		Event<ClientOnReceivePositionEventHandler>      OnReceivePosition;
@@ -2361,13 +2373,52 @@ namespace AL::APRS
 
 		// @throw AL::Exception
 		// @return AL::False on connection closed
-		Bool SendPosition(int32 altitude, Float latitude, Float longitude)
+		Bool SendWeather(DateTime&& time, uint16 windSpeed, uint16 windSpeedGust, uint16 windDirection, uint16 rainfallLastHour, uint16 rainfallLast24Hours, uint16 rainfallSinceMidnight, uint8 humidity, int16 temperature, uint32 barometricPressure)
 		{
-			return SendPosition(altitude, latitude, longitude, "");
+			auto weather = Weather::Create(
+				String(GetStation()),
+				"APRS",
+				DigiPath(GetPath()),
+				Move(time),
+				windSpeed,
+				windSpeedGust,
+				windDirection,
+				rainfallLastHour,
+				rainfallLast24Hours,
+				rainfallSinceMidnight,
+				humidity,
+				temperature,
+				barometricPressure
+			);
+
+			if (!Send(weather.ToPacket(False)))
+			{
+
+				return False;
+			}
+
+			OnSendWeather.Execute(
+				weather
+			);
+
+			return True;
 		}
 		// @throw AL::Exception
 		// @return AL::False on connection closed
-		Bool SendPosition(int32 altitude, Float latitude, Float longitude, String&& comment)
+		Bool SendWeather(const DateTime& time, uint16 windSpeed, uint16 windSpeedGust, uint16 windDirection, uint16 rainfallLastHour, uint16 rainfallLast24Hours, uint16 rainfallSinceMidnight, uint8 humidity, int16 temperature, uint32 barometricPressure)
+		{
+			return SendWeather(DateTime(time), windSpeed, windSpeedGust, windDirection, rainfallLastHour, rainfallLast24Hours, rainfallSinceMidnight, humidity, temperature, barometricPressure);
+		}
+
+		// @throw AL::Exception
+		// @return AL::False on connection closed
+		Bool SendPosition(int32 altitude, Float latitude, Float longitude, AL::uint16 speed, AL::uint16 course)
+		{
+			return SendPosition(altitude, latitude, longitude, speed, course, "");
+		}
+		// @throw AL::Exception
+		// @return AL::False on connection closed
+		Bool SendPosition(int32 altitude, Float latitude, Float longitude, AL::uint16 speed, AL::uint16 course, String&& comment)
 		{
 			auto position = Position::Create(
 				String(GetStation()),
@@ -2378,6 +2429,8 @@ namespace AL::APRS
 				longitude,
 				GetSymbolTable(),
 				GetSymbolTableKey(),
+				speed,
+				course,
 				Move(comment),
 				True,
 				IsCompressionEnabled()
@@ -2397,9 +2450,9 @@ namespace AL::APRS
 		}
 		// @throw AL::Exception
 		// @return AL::False on connection closed
-		Bool SendPosition(int32 altitude, Float latitude, Float longitude, const String& comment)
+		Bool SendPosition(int32 altitude, Float latitude, Float longitude, AL::uint16 speed, AL::uint16 course, const String& comment)
 		{
-			return SendPosition(altitude, latitude, longitude, String(comment));
+			return SendPosition(altitude, latitude, longitude, speed, course, String(comment));
 		}
 
 		// @throw AL::Exception
