@@ -592,7 +592,7 @@ namespace AL::Collections
 				Array<Type>::Move(
 					&container[_i + _count],
 					&container[_i],
-					_count
+					_count + 1
 				);
 			};
 
