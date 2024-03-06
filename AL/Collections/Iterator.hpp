@@ -115,14 +115,22 @@ namespace AL::Collections
 
 		if constexpr (Iterator_Is_Random_Access<T>::Value)
 		{
-			difference = reinterpret_cast<ssize_t>(last.operator->()) - reinterpret_cast<ssize_t>(first.operator->());
+			difference  = reinterpret_cast<ssize_t>(last.operator->()) - reinterpret_cast<ssize_t>(first.operator->());
 			difference /= sizeof(typename T::value_type);
 		}
 		else
 		{
-			for (auto it = first; it != last; ++it)
+			if (first <= last)
 			{
-				++difference;
+				for (auto it = first; it != last; ++it, ++difference)
+				{
+				}
+			}
+			else
+			{
+				for (auto it = last; it != first; ++it, --difference)
+				{
+				}
 			}
 		}
 
