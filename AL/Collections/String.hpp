@@ -1461,8 +1461,6 @@ namespace AL::Collections
 					it,
 					it + length
 				);
-
-				container[GetLength()] = END;
 			}
 		}
 
