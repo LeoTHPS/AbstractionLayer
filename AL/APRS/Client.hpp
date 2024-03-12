@@ -2071,13 +2071,13 @@ namespace AL::APRS
 							break;
 						}
 
-						if (message.GetContent().Compare("ack", True) && (message.GetId().GetLength() != 0))
+						if (Regex::MatchCollection matches; Regex::Match(matches, "^ack(\\S{1,5})$", message.GetContent()))
 						{
 							if (message.GetDestination().Compare(GetStation(), True))
 							{
 								ClientMessageCallback callback;
 
-								if (FindScheduledMessageCallback(callback, message.GetSender(), message.GetId()))
+								if (FindScheduledMessageCallback(callback, message.GetSender(), matches[1]))
 									callback();
 							}
 						}
