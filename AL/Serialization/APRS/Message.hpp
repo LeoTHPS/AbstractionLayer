@@ -101,7 +101,7 @@ namespace AL::Serialization::APRS
 		{
 			Regex::MatchCollection matches;
 
-			if (!Regex::Match(matches, "^:([^ :]+)\\s*:([^\\{]*)(\\{(.+))?$", value.GetContent()))
+			if (!Regex::Match(matches, "^:([^ :]+)\\s*:([^\\{]*)(\\{(\\S{1,5}))?$", value.GetContent()))
 				throw Exception("Invalid message format");
 
 			if (!Packet::Validate_StationName(matches[1], False))
