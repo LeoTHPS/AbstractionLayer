@@ -61,8 +61,7 @@ namespace AL::Network
 #if defined(AL_PLATFORM_LINUX)
 			,
 			socket(
-				AddressFamilies::Unix,
-				Forward<TArgs>(args) ...
+				AddressFamilies::Unix
 			),
 			remoteEP{
 				.Host = IPAddress::FromString(GetPath().GetString()),
@@ -165,7 +164,7 @@ namespace AL::Network
 					throw Exception(
 						Move(exception),
 						"Error connecting T_SOCKET to '%s'",
-						GetPath().GetCString().GetCString()
+						GetPath().GetString().GetCString()
 					);
 				}
 			}
