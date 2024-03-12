@@ -361,7 +361,7 @@ namespace AL::Hardware
 			::spi_ioc_transfer transfer = { };
 			transfer.len           = static_cast<decltype(transfer.len)>(size);
 			transfer.rx_buf        = reinterpret_cast<decltype(::spi_ioc_transfer::rx_buf)>(lpBuffer);
-			transfer.tx_buf        = nullptr;
+			transfer.tx_buf        = 0;
 			transfer.speed_hz      = static_cast<decltype(transfer.speed_hz)>(GetSpeed());
 			transfer.bits_per_word = static_cast<decltype(transfer.bits_per_word)>(GetBitCount());
 
