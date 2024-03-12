@@ -315,7 +315,9 @@ namespace AL::Network
 					if (!socket.SendTo(lpBuffer, size, numberOfBytesSent, ep))
 					{
 
-						return 0;
+						throw Exception(
+							"No route to host"
+						);
 					}
 				} while (IsBlocking() && (numberOfBytesSent == 0));
 			}
