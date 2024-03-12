@@ -773,6 +773,43 @@ namespace AL::Lua54
 			static constexpr Bool Value = True;
 		};
 
+		template<typename T>
+		struct Is_Type_Pushable
+		{
+			static constexpr Bool Value =
+				Is_Type<T, Bool>::Value ||
+				Is_Type<T, char>::Value ||
+				Is_Type<T, char*>::Value ||
+				Is_Type<T, const char*>::Value ||
+				Is_Type<T, String>::Value ||
+				Is_Type<T, String&>::Value ||
+				Is_Type<T, const String&>::Value ||
+				Is_Decimal<T>::Value ||
+				Is_Enum_Or_Integer<T>::Value ||
+				Is_Pointer<T>::Value ||
+				Is_Reference<T>::Value;
+		};
+
+		template<typename T>
+		struct Is_Type_Peekable
+		{
+			static constexpr Bool Value =
+				Is_CFunction<T>::Value ||
+				Is_LuaFunction<T>::Value ||
+				Is_Type<T, ::std::nullptr_t>::Value ||
+				Is_Type<T, Bool>::Value ||
+				Is_Type<T, char>::Value ||
+				Is_Type<T, char*>::Value ||
+				Is_Type<T, const char*>::Value ||
+				Is_Type<T, String>::Value ||
+				Is_Type<T, String&>::Value ||
+				Is_Type<T, const String&>::Value ||
+				Is_Decimal<T>::Value ||
+				Is_Enum_Or_Integer<T>::Value ||
+				Is_Pointer<T>::Value ||
+				Is_Reference<T>::Value;
+		};
+
 		template<typename F>
 		struct CFunction_To_LuaFunction;
 		template<typename T, typename ... TArgs>
@@ -1234,6 +1271,11 @@ namespace AL::Lua54
 		template<typename T>
 		static Void Push(::lua_State* lua, T value)
 		{
+			static_assert(
+				Is_Type_Pushable<T>::Value,
+				"Type not supported"
+			);
+
 			if constexpr (Is_Type<T, Bool>::Value)
 			{
 				Extensions::pushboolean(
@@ -1321,10 +1363,6 @@ namespace AL::Lua54
 					const_cast<Void*>(&value)
 				);
 			}
-			else
-			{
-				static_assert(false, "Type not supported");
-			}
 		}
 
 		template<typename T>
@@ -1346,6 +1384,11 @@ namespace AL::Lua54
 		template<typename T>
 		static auto Peek(::lua_State* lua, size_t index)
 		{
+			static_assert(
+				Is_Type_Peekable<T>::Value,
+				"Type not supported"
+			);
+
 			if constexpr (Is_CFunction<T>::Value)
 			{
 				return typename CFunction_To_LuaFunction<T>::Type(
@@ -1438,10 +1481,6 @@ namespace AL::Lua54
 				return *reinterpret_cast<typename Remove_Reference<T>::Type*>(
 					Extensions::getlightuserdata(lua, index)
 				);
-			}
-			else
-			{
-				static_assert(false, "Type not supported");
 			}
 		}
 
