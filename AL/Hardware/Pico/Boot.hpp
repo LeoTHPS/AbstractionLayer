@@ -16,10 +16,7 @@ namespace AL::Hardware::Pico
 	public:
 		static Void Reboot()
 		{
-			::reset_usb_boot(
-				0,
-				1
-			);
+			*reinterpret_cast<volatile uint32*>(PPB_BASE + 0xED0C) = 0x05FA0004;
 		}
 
 		static Void RebootToMassStorage()
