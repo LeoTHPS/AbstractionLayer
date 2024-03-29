@@ -26,6 +26,14 @@ namespace AL
 		}
 
 		template<typename T>
+		static constexpr T Abs(T value)
+		{
+			return ::std::abs(
+				value
+			);
+		}
+
+		template<typename T>
 		static constexpr T Exp(T value)
 		{
 			return ::std::exp(
@@ -45,6 +53,22 @@ namespace AL
 		static constexpr T Log(T value)
 		{
 			return ::std::log(
+				value
+			);
+		}
+
+		template<typename T>
+		static constexpr T Log2(T value)
+		{
+			return ::std::log2(
+				value
+			);
+		}
+
+		template<typename T>
+		static constexpr T Log10(T value)
+		{
+			return ::std::log10(
 				value
 			);
 		}
