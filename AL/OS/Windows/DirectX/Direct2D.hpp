@@ -2271,3 +2271,22 @@ namespace AL::OS::Windows::DirectX
 		}
 	};
 }
+
+// @throw AL::Exception
+inline auto AL::OS::Windows::DirectX::TextLayout::GetMetrics(Direct2D& direct2D, const TextFormat& format, const String& string)
+{
+	TextLayout layout;
+
+	direct2D.CreateTextLayout(layout, format, string, 10000, 10000);
+
+	return layout.GetMetrics();
+}
+// @throw AL::Exception
+inline auto AL::OS::Windows::DirectX::TextLayout::GetMetrics(Direct2D& direct2D, const TextFormat& format, const WString& string)
+{
+	TextLayout layout;
+
+	direct2D.CreateTextLayout(layout, format, string, 10000, 10000);
+
+	return layout.GetMetrics();
+}
