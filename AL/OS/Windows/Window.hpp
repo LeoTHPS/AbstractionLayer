@@ -2672,6 +2672,9 @@ namespace AL::OS::Windows
 				}
 				break;
 
+				case WM_SETCURSOR:
+					return FALSE;
+
 				case WM_CLOSE:
 				{
 					isClosing = False;
