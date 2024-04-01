@@ -100,6 +100,11 @@ namespace AL::Lua54
 			Release();
 		}
 
+		Bool IsNull() const
+		{
+			return (lua != nullptr) && (reference == -1);
+		}
+
 		Void Release()
 		{
 			if (lpReferenceCount != nullptr)
