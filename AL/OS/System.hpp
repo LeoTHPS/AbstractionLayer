@@ -161,8 +161,8 @@ namespace AL::OS
 			integer.Low.Value  = time.dwLowDateTime;
 			integer.High.Value = time.dwHighDateTime;
 
-			return Timestamp::FromSeconds(
-				(integer.Value - 116444736000000000) / 10000000
+			return Timestamp::FromNanoseconds(
+				(integer.Value - 116444736000000000) * 100
 			);
 #endif
 		}
