@@ -316,8 +316,9 @@ namespace AL::Collections
 				);
 			}
 
-			lpBuffer_R = &buffer[0];
-			lpBuffer_W = &buffer[0];
+			lpBuffer_R     = &buffer[0];
+			lpBuffer_W     = &buffer[0];
+			bufferCapacity = value;
 
 			return True;
 		}
