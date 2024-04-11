@@ -222,7 +222,7 @@ namespace AL::Collections
 
 		Bool IsSelfHosted() const
 		{
-			return lpBuffer_R != &buffer[0];
+			return lpBuffer_R == &buffer[0];
 		}
 
 		auto GetBuffer() const
