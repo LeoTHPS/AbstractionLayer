@@ -1278,78 +1278,37 @@ namespace AL::APRS
 
 				auto buffer_ReadStation = [&buffer](String& value, size_t offset)
 				{
-					auto lpBuffer      = &buffer[offset];
-					Bool isLastStation = (buffer[offset + 6] & 0x01) == 0x01;
+					auto   lpBuffer      = &buffer[offset];
+					Bool   isLastStation = (buffer[offset + 6] & 0x01) == 0x01;
+					size_t stationLength = 0;
 
-					for (size_t i = 0; offset < buffer.GetSize(); ++offset, ++i, ++lpBuffer)
+					for (size_t i = 0, j = offset; (i < 7) && (j < buffer.GetSize()); ++i, ++j, ++lpBuffer, ++stationLength)
 					{
 						*lpBuffer >>= 1;
 
-						if ((i == 6) || (*lpBuffer == 0x20))
+						if (*lpBuffer == 0x20)
+							for (; i < 6; ++i, ++lpBuffer)
+								*lpBuffer = String::END;
+
+						if (i == 6)
 						{
 							uint8 ssid = *lpBuffer & 0x0F;
-							*lpBuffer  = String::END;
-							value      = reinterpret_cast<const char*>(&buffer[offset - i]);
+							value.Assign(reinterpret_cast<const char*>(&buffer[offset]), stationLength);
 
-							if (ssid == 0)
+							if (ssid != 0)
+								value = String::Format("%s-%u", value.GetCString(), ssid);
+							else if (value.StartsWith("WIDE", True))
 							{
-								if (value.Compare("WIDE1", True))
+								switch (value[4])
 								{
-									value = String::Format(
-										"%s-1",
-										value.GetCString()
-									);
+									case '1': value.Append("-1"); break;
+									case '2': value.Append("-2"); break;
+									case '3': value.Append("-3"); break;
+									case '4': value.Append("-4"); break;
+									case '5': value.Append("-5"); break;
+									case '6': value.Append("-6"); break;
+									case '7': value.Append("-7"); break;
 								}
-								else if (value.Compare("WIDE2", True))
-								{
-									value = String::Format(
-										"%s-2",
-										value.GetCString()
-									);
-								}
-								else if (value.Compare("WIDE3", True))
-								{
-									value = String::Format(
-										"%s-3",
-										value.GetCString()
-									);
-								}
-								else if (value.Compare("WIDE4", True))
-								{
-									value = String::Format(
-										"%s-4",
-										value.GetCString()
-									);
-								}
-								else if (value.Compare("WIDE5", True))
-								{
-									value = String::Format(
-										"%s-5",
-										value.GetCString()
-									);
-								}
-								else if (value.Compare("WIDE6", True))
-								{
-									value = String::Format(
-										"%s-6",
-										value.GetCString()
-									);
-								}
-								else if (value.Compare("WIDE7", True))
-								{
-									value = String::Format(
-										"%s-7",
-										value.GetCString()
-									);
-								}
-							}
-							else
-							{
-								value = String::Format(
-									"%s-%u",
-									value.GetCString(),
-									ssid
-								);
 							}
 
 							return isLastStation ? -1 : 1;
@@ -1390,10 +1349,13 @@ namespace AL::APRS
 					return -1;
 				}
 
-				value.Assign(
-					reinterpret_cast<const char*>(&buffer[14 + (pathSize * 7) + 2]),
-					buffer.GetSize() - (14 + (pathSize * 7) + 2)
-				);
+				auto lpValue     = reinterpret_cast<const char*>(&buffer[14 + (pathSize * 7) + 2]);
+				auto valueLength = (buffer.GetSize() - (14 + (pathSize * 7) + 2));
+
+				if (lpValue[valueLength - 1] == '\r')
+					--valueLength;
+
+				value.Assign(lpValue, valueLength);
 
 				return 1;
 			}
@@ -1401,8 +1363,86 @@ namespace AL::APRS
 			// @return AL::False on connection closed
 			Bool WriteFrame(const String& source, const String& tocall, const String& path, const String& value)
 			{
-				// TODO: implement
-				throw NotImplementedException();
+				auto pathChunks     = path.Split(',');
+				auto pathChunkCount = pathChunks.GetSize();
+				FrameBuffer buffer(14 + (pathChunkCount * 7) + 2 + value.GetLength());
+
+				auto buffer_WriteStation = [&buffer](size_t offset, const String& value, bool endOfList = false)
+				{
+					auto buffer_WriteGenericStation = [&buffer](size_t offset, const AL::String& value, bool endOfList)
+					{
+						size_t i = 0;
+
+						for (size_t j = 0; j < value.GetLength(); ++i, ++j)
+							buffer[offset + i] = value[j] << 1;
+
+						for (; i < 6; ++i)
+							buffer[offset + i] = 0x40;
+
+						if (endOfList)
+							buffer[offset + i] |= 0x01;
+					};
+
+					if (value.StartsWith("WIDE1", True))
+						return buffer_WriteGenericStation(offset, "WIDE1", endOfList);
+					else if (value.StartsWith("WIDE2", True))
+						return buffer_WriteGenericStation(offset, "WIDE2", endOfList);
+					else if (value.StartsWith("WIDE3", True))
+						return buffer_WriteGenericStation(offset, "WIDE3", endOfList);
+					else if (value.StartsWith("WIDE4", True))
+						return buffer_WriteGenericStation(offset, "WIDE4", endOfList);
+					else if (value.StartsWith("WIDE5", True))
+						return buffer_WriteGenericStation(offset, "WIDE5", endOfList);
+					else if (value.StartsWith("WIDE6", True))
+						return buffer_WriteGenericStation(offset, "WIDE6", endOfList);
+					else if (value.StartsWith("WIDE7", True))
+						return buffer_WriteGenericStation(offset, "WIDE7", endOfList);
+
+					auto lpValue  = value.GetCString();
+					auto lpBuffer = &buffer[offset];
+
+					for (size_t i = 0; (i < 9) && (i < value.GetLength()); ++i, ++lpValue, ++lpBuffer)
+					{
+						*lpBuffer = *lpValue << 1;
+
+						if (*lpValue == '-')
+						{
+							auto ssid = FromString<uint8>(++lpValue) & 0x0F;
+
+							for (; i < 6; ++i, ++lpBuffer)
+								*lpBuffer = 0x40;
+
+							*lpBuffer = ssid << 1;
+
+							if (endOfList)
+								*lpBuffer |= 0x01;
+
+							break;
+						}
+
+						if (i == (value.GetLength() - 1))
+						{
+							++i;
+							++lpBuffer;
+
+							for (; i < 6; ++i, ++lpBuffer)
+								*lpBuffer = 0x40;
+
+							if (endOfList)
+								*lpBuffer = 0x01;
+						}
+					}
+				};
+
+				buffer_WriteStation(0, tocall);
+				buffer_WriteStation(7, source);
+				for (size_t i = 0; i < pathChunkCount; ++i)
+					buffer_WriteStation(14 + (i * 7), pathChunks[i], i == (pathChunkCount - 1));
+				buffer[14 + (pathChunkCount * 7)]     = 0x03;
+				buffer[14 + (pathChunkCount * 7) + 1] = 0xF0;
+				memcpy(&buffer[14 + (pathChunkCount * 7) + 2], value.GetCString(), value.GetLength());
+
+				return lpConnection->WriteCommand(COMMAND_DATA, buffer);
 			}
 		};
 
