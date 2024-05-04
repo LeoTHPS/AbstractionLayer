@@ -80,7 +80,7 @@ namespace AL
 		template<typename F>
 		Void Register(F&& function)
 		{
-			Register<EventPriorities::Standard, F>(
+			Register<EventPriorities::Standard>(
 				Move(function)
 			);
 		}
