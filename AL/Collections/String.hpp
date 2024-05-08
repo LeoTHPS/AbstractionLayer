@@ -361,7 +361,7 @@ namespace AL::Collections
 		Void ShrinkToFit()
 		{
 			container.SetCapacity(
-				GetLength() + 1
+				GetLength(GetCString()) + 1
 			);
 
 			container[GetLength()] = END;
