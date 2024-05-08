@@ -248,6 +248,45 @@ namespace AL::SQLite3
 			return context.Result;
 		}
 
+		static auto EscapeString(const String& value)
+		{
+			String string(String::END, value.GetLength() * 2);
+
+			for (size_t i = 0, j = 0; i < value.GetLength(); ++i, ++j)
+			{
+				switch (value[i])
+				{
+					case '"':
+					case '\'':
+						string[j++] = '\\';
+						break;
+				}
+
+				string[j] = value[i];
+			}
+
+			string.ShrinkToFit();
+
+			return string;
+		}
+
+		static auto UnescapeString(const String& value)
+		{
+			String string(String::END, value.GetLength());
+
+			for (size_t i = 0, j = 0; i < value.GetLength(); ++i, ++j)
+			{
+				if (value[i] == '\\')
+					++i;
+
+				string[j] = value[i];
+			}
+
+			string.ShrinkToFit();
+
+			return string;
+		}
+
 		Database& operator = (Database&& database)
 		{
 			if (IsOpen())
