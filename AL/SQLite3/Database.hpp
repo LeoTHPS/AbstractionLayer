@@ -185,8 +185,7 @@ namespace AL::SQLite3
 		}
 
 		// @throw AL::Exception
-		template<typename ... TArgs>
-		auto Query(const String::Char* format, TArgs ... args)
+		auto Query(const String& value)
 		{
 			AL_ASSERT(
 				IsOpen(),
@@ -195,16 +194,13 @@ namespace AL::SQLite3
 
 			struct Context
 			{
-				String              Query;
 				DatabaseQueryResult Result;
 				::sqlite3_callback  Callback;
-				Database*           lpDatabase;
 			};
 
 			Context context =
 			{
-				.Query      = String::Format(format, Forward<TArgs>(args) ...),
-				.Callback   = [](void* _lpParam, int _column_count, char** _column_values, char** _column_names)->int
+				.Callback = [](void* _lpParam, int _column_count, char** _column_values, char** _column_names)->int
 				{
 					auto lpContext = reinterpret_cast<Context*>(
 						_lpParam
@@ -232,11 +228,10 @@ namespace AL::SQLite3
 					);
 
 					return SQLITE_OK;
-				},
-				.lpDatabase = this
+				}
 			};
 
-			if (::sqlite3_exec(GetHandle(), context.Query.GetCString(), context.Callback, &context, nullptr) != SQLITE_OK)
+			if (::sqlite3_exec(GetHandle(), value.GetCString(), context.Callback, &context, nullptr) != SQLITE_OK)
 			{
 
 				throw SQLiteException(
@@ -246,6 +241,12 @@ namespace AL::SQLite3
 			}
 
 			return context.Result;
+		}
+		// @throw AL::Exception
+		template<typename ... TArgs>
+		auto Query(const String::Char* format, TArgs ... args)
+		{
+			return Query(String::Format(format, Forward<TArgs>(args) ...));
 		}
 
 		static auto EscapeString(const String& value)
