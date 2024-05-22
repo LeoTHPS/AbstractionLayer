@@ -50,6 +50,41 @@ namespace AL::SQLite3
 
 	AL_DEFINE_ENUM_FLAG_OPERATORS(DatabaseFlags);
 
+	enum class DatabaseErrors : AL::uint8
+	{
+		Ok         = SQLITE_OK,
+		Error      = SQLITE_ERROR,
+		Internal   = SQLITE_INTERNAL,
+		Perm       = SQLITE_PERM,
+		Abort      = SQLITE_ABORT,
+		Busy       = SQLITE_BUSY,
+		Locked     = SQLITE_LOCKED,
+		NoMemory   = SQLITE_NOMEM,
+		ReadOnly   = SQLITE_READONLY,
+		Interrupt  = SQLITE_INTERRUPT,
+		IOError    = SQLITE_IOERR,
+		Corrupt    = SQLITE_CORRUPT,
+		NotFound   = SQLITE_NOTFOUND,
+		Full       = SQLITE_FULL,
+		CantOpen   = SQLITE_CANTOPEN,
+		Protocol   = SQLITE_PROTOCOL,
+		Empty      = SQLITE_EMPTY,
+		Schema     = SQLITE_SCHEMA,
+		TooBig     = SQLITE_TOOBIG,
+		Constraint = SQLITE_CONSTRAINT,
+		Mismatch   = SQLITE_MISMATCH,
+		Misuse     = SQLITE_MISUSE,
+		NoLFS      = SQLITE_NOLFS,
+		Auth       = SQLITE_AUTH,
+		Format     = SQLITE_FORMAT,
+		Range      = SQLITE_RANGE,
+		NotADB     = SQLITE_NOTADB,
+		Notice     = SQLITE_NOTICE,
+		Warning    = SQLITE_WARNING,
+		Row        = SQLITE_ROW,
+		Done       = SQLITE_DONE
+	};
+
 	struct DatabaseQueryResultRow
 	{
 		Collections::Array<String> Columns;
@@ -64,6 +99,7 @@ namespace AL::SQLite3
 
 		FileSystem::Path       path;
 		BitMask<DatabaseFlags> flags;
+		DatabaseErrors         error = DatabaseErrors::Ok;
 
 		::sqlite3*             db = nullptr;
 
@@ -79,6 +115,9 @@ namespace AL::SQLite3
 			),
 			flags(
 				Move(database.flags)
+			),
+			error(
+				database.error
 			),
 			db(
 				database.db
@@ -134,6 +173,11 @@ namespace AL::SQLite3
 			return db;
 		}
 
+		auto GetLastError() const
+		{
+			return error;
+		}
+
 		auto GetChangeCount() const
 		{
 			return static_cast<AL::uint64>(IsOpen() ? ::sqlite3_changes64(GetHandle()) : 0);
@@ -161,15 +205,18 @@ namespace AL::SQLite3
 			if (GetFlags().IsSet(DatabaseFlags::Memory))       flags |= SQLITE_OPEN_MEMORY;
 			if (GetFlags().IsSet(DatabaseFlags::NoMutex))      flags |= SQLITE_OPEN_NOMUTEX;
 			if (GetFlags().IsSet(DatabaseFlags::FullMutex))    flags |= SQLITE_OPEN_FULLMUTEX;
-	#if defined(AL_PLATFORM_WINDOWS)
+#if defined(AL_PLATFORM_WINDOWS)
 			if (GetFlags().IsSet(DatabaseFlags::NoFollow))     flags |= SQLITE_OPEN_NOFOLLOW;
-	#endif
+#endif
 			if (GetFlags().IsSet(DatabaseFlags::SharedCache))  flags |= SQLITE_OPEN_SHAREDCACHE;
 			if (GetFlags().IsSet(DatabaseFlags::PrivateCache)) flags |= SQLITE_OPEN_PRIVATECACHE;
 
-			if ((::sqlite3_open_v2(GetPath().GetString().GetCString(), &db, flags, nullptr)) != SQLITE_OK)
+			int error;
+
+			if ((error = ::sqlite3_open_v2(GetPath().GetString().GetCString(), &db, flags, nullptr)) != SQLITE_OK)
 			{
-				db = nullptr;
+				db          = nullptr;
+				this->error = static_cast<DatabaseErrors>(error);
 
 				throw SQLiteException(
 					db,
@@ -241,11 +288,14 @@ namespace AL::SQLite3
 				}
 			};
 
+			error = DatabaseErrors::Ok;
+
 			if (::sqlite3_exec(GetHandle(), value.GetCString(), context.Callback, &context, nullptr) != SQLITE_OK)
 			{
+				error = static_cast<DatabaseErrors>(::sqlite3_errcode(GetHandle()));
 
 				throw SQLiteException(
-					db,
+					GetHandle(),
 					"sqlite3_exec"
 				);
 			}
@@ -316,6 +366,8 @@ namespace AL::SQLite3
 			flags = Move(
 				database.flags
 			);
+
+			error = database.error;
 
 			db = database.db;
 			database.db = nullptr;
