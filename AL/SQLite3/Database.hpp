@@ -134,6 +134,11 @@ namespace AL::SQLite3
 			return db;
 		}
 
+		auto GetLastInsertRowID() const
+		{
+			return ::sqlite3_last_insert_rowid(GetHandle());
+		}
+
 		// @throw AL::Exception
 		Void Open()
 		{
