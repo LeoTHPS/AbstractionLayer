@@ -134,9 +134,14 @@ namespace AL::SQLite3
 			return db;
 		}
 
+		auto GetChangeCount() const
+		{
+			return static_cast<AL::uint64>(IsOpen() ? ::sqlite3_changes64(GetHandle()) : 0);
+		}
+
 		auto GetLastInsertRowID() const
 		{
-			return ::sqlite3_last_insert_rowid(GetHandle());
+			return static_cast<AL::uint64>(IsOpen() ? ::sqlite3_last_insert_rowid(GetHandle()) : 0);
 		}
 
 		// @throw AL::Exception
