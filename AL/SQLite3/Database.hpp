@@ -50,41 +50,6 @@ namespace AL::SQLite3
 
 	AL_DEFINE_ENUM_FLAG_OPERATORS(DatabaseFlags);
 
-	enum class DatabaseErrors : AL::uint8
-	{
-		Ok         = SQLITE_OK,
-		Error      = SQLITE_ERROR,
-		Internal   = SQLITE_INTERNAL,
-		Perm       = SQLITE_PERM,
-		Abort      = SQLITE_ABORT,
-		Busy       = SQLITE_BUSY,
-		Locked     = SQLITE_LOCKED,
-		NoMemory   = SQLITE_NOMEM,
-		ReadOnly   = SQLITE_READONLY,
-		Interrupt  = SQLITE_INTERRUPT,
-		IOError    = SQLITE_IOERR,
-		Corrupt    = SQLITE_CORRUPT,
-		NotFound   = SQLITE_NOTFOUND,
-		Full       = SQLITE_FULL,
-		CantOpen   = SQLITE_CANTOPEN,
-		Protocol   = SQLITE_PROTOCOL,
-		Empty      = SQLITE_EMPTY,
-		Schema     = SQLITE_SCHEMA,
-		TooBig     = SQLITE_TOOBIG,
-		Constraint = SQLITE_CONSTRAINT,
-		Mismatch   = SQLITE_MISMATCH,
-		Misuse     = SQLITE_MISUSE,
-		NoLFS      = SQLITE_NOLFS,
-		Auth       = SQLITE_AUTH,
-		Format     = SQLITE_FORMAT,
-		Range      = SQLITE_RANGE,
-		NotADB     = SQLITE_NOTADB,
-		Notice     = SQLITE_NOTICE,
-		Warning    = SQLITE_WARNING,
-		Row        = SQLITE_ROW,
-		Done       = SQLITE_DONE
-	};
-
 	struct DatabaseQueryResultRow
 	{
 		Collections::Array<String> Columns;
@@ -99,7 +64,7 @@ namespace AL::SQLite3
 
 		FileSystem::Path       path;
 		BitMask<DatabaseFlags> flags;
-		DatabaseErrors         error = DatabaseErrors::Ok;
+		uint8                  error = SQLITE_OK;
 
 		::sqlite3*             db = nullptr;
 
@@ -180,12 +145,12 @@ namespace AL::SQLite3
 
 		auto GetChangeCount() const
 		{
-			return static_cast<AL::uint64>(IsOpen() ? ::sqlite3_changes64(GetHandle()) : 0);
+			return static_cast<uint64>(IsOpen() ? ::sqlite3_changes64(GetHandle()) : 0);
 		}
 
 		auto GetLastInsertRowID() const
 		{
-			return static_cast<AL::uint64>(IsOpen() ? ::sqlite3_last_insert_rowid(GetHandle()) : 0);
+			return static_cast<uint64>(IsOpen() ? ::sqlite3_last_insert_rowid(GetHandle()) : 0);
 		}
 
 		// @throw AL::Exception
@@ -211,12 +176,9 @@ namespace AL::SQLite3
 			if (GetFlags().IsSet(DatabaseFlags::SharedCache))  flags |= SQLITE_OPEN_SHAREDCACHE;
 			if (GetFlags().IsSet(DatabaseFlags::PrivateCache)) flags |= SQLITE_OPEN_PRIVATECACHE;
 
-			int error;
-
 			if ((error = ::sqlite3_open_v2(GetPath().GetString().GetCString(), &db, flags, nullptr)) != SQLITE_OK)
 			{
-				db          = nullptr;
-				this->error = static_cast<DatabaseErrors>(error);
+				db = nullptr;
 
 				throw Exception(
 					db,
@@ -287,11 +249,11 @@ namespace AL::SQLite3
 				}
 			};
 
-			error = DatabaseErrors::Ok;
+			error = SQLITE_OK;
 
 			if (::sqlite3_exec(GetHandle(), value.GetCString(), context.Callback, &context, nullptr) != SQLITE_OK)
 			{
-				error = static_cast<DatabaseErrors>(::sqlite3_errcode(GetHandle()));
+				error = ::sqlite3_errcode(GetHandle());
 
 				throw Exception(
 					GetHandle(),
@@ -321,23 +283,6 @@ namespace AL::SQLite3
 						string[j++] = '\\';
 						break;
 				}
-
-				string[j] = value[i];
-			}
-
-			string.ShrinkToFit();
-
-			return string;
-		}
-
-		static auto UnescapeString(const String& value)
-		{
-			String string(String::END, value.GetLength());
-
-			for (size_t i = 0, j = 0; i < value.GetLength(); ++i, ++j)
-			{
-				if (value[i] == '\\')
-					++i;
 
 				string[j] = value[i];
 			}
