@@ -5,6 +5,7 @@
 	#error Platform not supported
 #endif
 
+#include "AL/OS/Mutex.hpp"
 #include "AL/OS/SystemException.hpp"
 
 namespace AL::OS::Windows
