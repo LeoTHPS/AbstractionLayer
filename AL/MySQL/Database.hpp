@@ -22,6 +22,10 @@ namespace AL::MySQL
 
 	typedef Collections::LinkedList<DatabaseQueryResultRow> DatabaseQueryResult;
 
+	// @throw AL::Exception
+	typedef EventHandler<Void()> DatabaseOnConnectEventHandler;
+	typedef EventHandler<Void()> DatabaseOnDisconnectEventHandler;
+
 	class Database
 	{
 		bool     isConnected = False;
@@ -33,6 +37,10 @@ namespace AL::MySQL
 		Database(const Database&) = delete;
 
 	public:
+		// @throw AL::Exception
+		Event<DatabaseOnConnectEventHandler>    OnConnect;
+		Event<DatabaseOnDisconnectEventHandler> OnDisconnect;
+
 		Database()
 		{
 		}
@@ -98,6 +106,22 @@ namespace AL::MySQL
 				throw Exception("mysql_real_connect", GetLastError(), errorString);
 			}
 
+			isConnected = True;
+
+			try
+			{
+				OnConnect.Execute();
+			}
+			catch (AL::Exception&)
+			{
+				::mysql_close(GetHandle());
+				db = nullptr;
+
+				isConnected = False;
+
+				throw;
+			}
+
 			return True;
 		}
 		Void Disconnect()
@@ -108,6 +132,8 @@ namespace AL::MySQL
 				db = nullptr;
 
 				isConnected = False;
+
+				OnDisconnect.Execute();
 			}
 		}
 
