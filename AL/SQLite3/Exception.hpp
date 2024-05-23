@@ -9,16 +9,16 @@
 
 namespace AL::SQLite3
 {
-	class SQLiteException
-		: public Exception
+	class Exception
+		: public AL::Exception
 	{
 		String function;
 		int    errorCode;
 
 	public:
 		template<size_t S>
-		SQLiteException(::sqlite3* db, const char(&function)[S])
-			: Exception(
+		Exception(::sqlite3* db, const char(&function)[S])
+			: AL::Exception(
 				"Error calling '%s': %s",
 				&function[0],
 				::sqlite3_errmsg(db)
@@ -33,8 +33,8 @@ namespace AL::SQLite3
 		}
 
 		template<size_t S>
-		SQLiteException(::sqlite3* db, const char(&function)[S], int errorCode)
-			: Exception(
+		Exception(::sqlite3* db, const char(&function)[S], int errorCode)
+			: AL::Exception(
 				"Error calling '%s': %s",
 				&function[0],
 				::sqlite3_errstr(errorCode)

@@ -1,7 +1,7 @@
 #pragma once
 #include "AL/Common.hpp"
 
-#include "SQLiteException.hpp"
+#include "Exception.hpp"
 
 #include "AL/FileSystem/Path.hpp"
 
@@ -218,7 +218,7 @@ namespace AL::SQLite3
 				db          = nullptr;
 				this->error = static_cast<DatabaseErrors>(error);
 
-				throw SQLiteException(
+				throw Exception(
 					db,
 					"sqlite3_open_v2"
 				);
@@ -294,7 +294,7 @@ namespace AL::SQLite3
 			{
 				error = static_cast<DatabaseErrors>(::sqlite3_errcode(GetHandle()));
 
-				throw SQLiteException(
+				throw Exception(
 					GetHandle(),
 					"sqlite3_exec"
 				);
