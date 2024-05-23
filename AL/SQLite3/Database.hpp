@@ -226,7 +226,6 @@ namespace AL::SQLite3
 
 			isOpen = True;
 		}
-
 		Void Close()
 		{
 			if (IsOpen())
