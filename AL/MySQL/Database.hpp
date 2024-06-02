@@ -85,7 +85,7 @@ namespace AL::MySQL
 			if ((db = ::mysql_init(nullptr)) == nullptr)
 				throw Exception("mysql_init", CR_OUT_OF_MEMORY, "");
 
-			if (::mysql_real_connect(GetHandle(), host.GetCString(), username.GetCString(), password.GetCString(), nullptr, port, nullptr, 0) == nullptr)
+			if (::mysql_real_connect(GetHandle(), host.GetCString(), username.GetCString(), password.GetCString(), nullptr, port, nullptr, CLIENT_COMPRESS | CLIENT_REMEMBER_OPTIONS) == nullptr)
 			{
 				switch (error = ::mysql_errno(GetHandle()))
 				{
