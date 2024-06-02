@@ -531,6 +531,14 @@ namespace AL::OS::Windows::DirectX
 			return GetResource()->GetFontSize();
 		}
 
+		auto GetFontName() const
+		{
+			WString value(WString::END, GetResource()->GetFontFamilyNameLength());
+			GetResource()->GetFontFamilyName(&value[0], value.GetSize());
+
+			return value.ToString();
+		}
+
 		auto GetFontStyle() const
 		{
 			return static_cast<FontStyle>(
