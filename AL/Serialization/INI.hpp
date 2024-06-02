@@ -211,6 +211,8 @@ namespace AL::Serialization
 		template<typename T>
 		auto GetStruct() const
 		{
+			static_assert(Is_POD<T>::Value);
+
 			AL_ASSERT(
 				IsStruct(),
 				"INIField type is not struct"
@@ -265,6 +267,8 @@ namespace AL::Serialization
 		template<typename T>
 		auto GetInteger() const
 		{
+			static_assert(Is_Enum_Or_Integer<T>::Value);
+
 			AL_ASSERT(
 				IsInteger(),
 				"INIField type is not integer"
@@ -278,6 +282,8 @@ namespace AL::Serialization
 		template<typename T>
 		auto GetDecimal() const
 		{
+			static_assert(Is_Enum_Or_Integer<T>::Value || Is_Decimal<T>::Value);
+
 			AL_ASSERT(
 				IsDecimal(),
 				"INIField type is not decimal"
@@ -300,6 +306,8 @@ namespace AL::Serialization
 		template<typename T>
 		Void SetStruct(const T& value)
 		{
+			static_assert(Is_POD<T>::Value);
+
 			SetStructAsBuffer(
 				&value,
 				sizeof(T)
@@ -339,6 +347,8 @@ namespace AL::Serialization
 		template<typename T>
 		Void SetInteger(T value, Bool hexadecimal = False)
 		{
+			static_assert(Is_Enum_Or_Integer<T>::Value);
+
 			if (hexadecimal)
 			{
 				this->value = WString::Format(
@@ -362,6 +372,8 @@ namespace AL::Serialization
 		template<typename T>
 		Void SetDecimal(T value)
 		{
+			static_assert(Is_Enum_Or_Integer<T>::Value || Is_Decimal<T>::Value);
+
 			this->value = ToWString(
 				value
 			);
