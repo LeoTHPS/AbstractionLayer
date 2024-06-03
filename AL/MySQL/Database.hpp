@@ -22,6 +22,7 @@ namespace AL::MySQL
 	};
 
 	typedef Collections::LinkedList<DatabaseQueryResultRow> DatabaseQueryResult;
+	typedef Collections::LinkedList<DatabaseQueryResult>    DatabaseQueryResults;
 
 	class Database
 	{
@@ -78,7 +79,7 @@ namespace AL::MySQL
 			if ((db = ::mysql_init(nullptr)) == nullptr)
 				throw Exception("mysql_init", CR_OUT_OF_MEMORY, "");
 
-			if (::mysql_real_connect(GetHandle(), host.GetCString(), username.GetCString(), password.GetCString(), nullptr, port, nullptr, CLIENT_COMPRESS | CLIENT_REMEMBER_OPTIONS) == nullptr)
+			if (::mysql_real_connect(GetHandle(), host.GetCString(), username.GetCString(), password.GetCString(), nullptr, port, nullptr, CLIENT_COMPRESS | CLIENT_MULTI_STATEMENTS | CLIENT_REMEMBER_OPTIONS) == nullptr)
 			{
 				switch (error = ::mysql_errno(GetHandle()))
 				{
@@ -116,7 +117,7 @@ namespace AL::MySQL
 
 		// @throw AL::Exception
 		// @return AL::False on connection closed
-		Bool Query(DatabaseQueryResult& result, const String& value)
+		Bool Query(DatabaseQueryResults& results, const String& value)
 		{
 			AL_ASSERT(IsConnected(), "Database not connected");
 
@@ -135,8 +136,10 @@ namespace AL::MySQL
 				throw Exception("mysql_real_query", GetLastError(), errorString);
 			}
 
-			if (auto mysqlResult = ::mysql_store_result(GetHandle()))
+			while (auto mysqlResult = ::mysql_store_result(GetHandle()))
 			{
+				DatabaseQueryResult result;
+
 				auto mysqlFieldCount = ::mysql_num_fields(mysqlResult);
 
 				while (auto mysqlRow = ::mysql_fetch_row(mysqlResult))
@@ -161,6 +164,17 @@ namespace AL::MySQL
 				}
 
 				::mysql_free_result(mysqlResult);
+
+				results.PushBack(AL::Move(result));
+
+				if ((error = ::mysql_next_result(GetHandle())) > 0)
+					throw Exception("mysql_next_result");
+				else if (GetLastError() == -1)
+				{
+					error = 0;
+
+					break;
+				}
 			}
 
 			return True;
@@ -168,9 +182,9 @@ namespace AL::MySQL
 		// @throw AL::Exception
 		// @return AL::False on connection closed
 		template<typename ... TArgs>
-		Bool Query(DatabaseQueryResult& result, const String::Char* format, TArgs ... args)
+		Bool Query(DatabaseQueryResults& results, const String::Char* format, TArgs ... args)
 		{
-			return Query(result, String::Format(format, Forward<TArgs>(args) ...));
+			return Query(results, String::Format(format, Forward<TArgs>(args) ...));
 		}
 
 		auto EscapeString(const String& value)
