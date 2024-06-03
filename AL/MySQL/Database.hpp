@@ -4,6 +4,7 @@
 #include "Exception.hpp"
 
 #include "AL/Collections/Array.hpp"
+#include "AL/Collections/LinkedList.hpp"
 
 #if !AL_HAS_INCLUDE(<mysql.h>)
 	#error Missing mysql.h
@@ -22,10 +23,6 @@ namespace AL::MySQL
 
 	typedef Collections::LinkedList<DatabaseQueryResultRow> DatabaseQueryResult;
 
-	// @throw AL::Exception
-	typedef EventHandler<Void()> DatabaseOnConnectEventHandler;
-	typedef EventHandler<Void()> DatabaseOnDisconnectEventHandler;
-
 	class Database
 	{
 		bool     isConnected = False;
@@ -37,10 +34,6 @@ namespace AL::MySQL
 		Database(const Database&) = delete;
 
 	public:
-		// @throw AL::Exception
-		Event<DatabaseOnConnectEventHandler>    OnConnect;
-		Event<DatabaseOnDisconnectEventHandler> OnDisconnect;
-
 		Database()
 		{
 		}
@@ -108,20 +101,6 @@ namespace AL::MySQL
 
 			isConnected = True;
 
-			try
-			{
-				OnConnect.Execute();
-			}
-			catch (AL::Exception&)
-			{
-				::mysql_close(GetHandle());
-				db = nullptr;
-
-				isConnected = False;
-
-				throw;
-			}
-
 			return True;
 		}
 		Void Disconnect()
@@ -132,13 +111,12 @@ namespace AL::MySQL
 				db = nullptr;
 
 				isConnected = False;
-
-				OnDisconnect.Execute();
 			}
 		}
 
 		// @throw AL::Exception
-		auto Query(const String& value)
+		// @return AL::False on connection closed
+		Bool Query(DatabaseQueryResult& result, const String& value)
 		{
 			AL_ASSERT(IsConnected(), "Database not connected");
 
@@ -151,49 +129,48 @@ namespace AL::MySQL
 					case CR_SERVER_LOST:
 					case CR_SERVER_GONE_ERROR:
 						Disconnect();
-						break;
+						return False;
 				}
 
 				throw Exception("mysql_real_query", GetLastError(), errorString);
 			}
 
-			DatabaseQueryResult queryResult;
-
-			if (auto result = ::mysql_store_result(GetHandle()))
+			if (auto mysqlResult = ::mysql_store_result(GetHandle()))
 			{
-				auto fieldCount = ::mysql_num_fields(result);
+				auto mysqlFieldCount = ::mysql_num_fields(mysqlResult);
 
-				while (auto row = ::mysql_fetch_row(result))
+				while (auto mysqlRow = ::mysql_fetch_row(mysqlResult))
 				{
-					auto lengths = ::mysql_fetch_lengths(result);
+					auto mysqlLengths = ::mysql_fetch_lengths(mysqlResult);
 
-					DatabaseQueryResultRow queryResultRow =
+					DatabaseQueryResultRow resultRow =
 					{
-						.Columns = decltype(DatabaseQueryResultRow::Columns)(fieldCount),
-						.Values  = decltype(DatabaseQueryResultRow::Values)(fieldCount)
+						.Columns = decltype(DatabaseQueryResultRow::Columns)(mysqlFieldCount),
+						.Values  = decltype(DatabaseQueryResultRow::Values)(mysqlFieldCount)
 					};
 
-					auto fields = ::mysql_fetch_fields(result);
+					auto mysqlFields = ::mysql_fetch_fields(mysqlResult);
 
-					for (size_t i = 0; i < fieldCount; ++i)
+					for (size_t i = 0; i < mysqlFieldCount; ++i)
 					{
-						queryResultRow.Columns[i] = fields[i].name;
-						queryResultRow.Values[i]  = AL::String(row[i], lengths[i]);
+						resultRow.Columns[i] = mysqlFields[i].name;
+						resultRow.Values[i]  = AL::String(mysqlRow[i], mysqlLengths[i]);
 					}
 
-					queryResult.PushBack(AL::Move(queryResultRow));
+					result.PushBack(AL::Move(resultRow));
 				}
 
-				::mysql_free_result(result);
+				::mysql_free_result(mysqlResult);
 			}
 
-			return queryResult;
+			return True;
 		}
 		// @throw AL::Exception
+		// @return AL::False on connection closed
 		template<typename ... TArgs>
-		auto Query(const String::Char* format, TArgs ... args)
+		Bool Query(DatabaseQueryResult& result, const String::Char* format, TArgs ... args)
 		{
-			return Query(String::Format(format, Forward<TArgs>(args) ...));
+			return Query(result, String::Format(format, Forward<TArgs>(args) ...));
 		}
 
 		auto EscapeString(const String& value)
@@ -217,7 +194,8 @@ namespace AL::MySQL
 		}
 
 		// @throw AL::Exception
-		Void SelectDatabase(const String& value)
+		// @return AL::False on connection closed
+		Bool SelectDatabase(const String& value)
 		{
 			AL_ASSERT(IsConnected(), "Database not connected");
 
@@ -230,11 +208,13 @@ namespace AL::MySQL
 					case CR_SERVER_LOST:
 					case CR_SERVER_GONE_ERROR:
 						Disconnect();
-						break;
+						return False;
 				}
 
 				throw Exception("mysql_select_db", GetLastError(), errorString);
 			}
+
+			return True;
 		}
 	};
 }
