@@ -121,11 +121,9 @@ namespace AL::MySQL
 		{
 			AL_ASSERT(IsConnected(), "Database not connected");
 
-			if ((error = ::mysql_real_query(GetHandle(), value.GetCString(), value.GetLength())) != 0)
+			if (::mysql_real_query(GetHandle(), value.GetCString(), value.GetLength()) != 0)
 			{
-				String errorString(::mysql_error(GetHandle()));
-
-				switch (GetLastError())
+				switch (error = ::mysql_errno(GetHandle()))
 				{
 					case CR_SERVER_LOST:
 					case CR_SERVER_GONE_ERROR:
@@ -133,7 +131,7 @@ namespace AL::MySQL
 						return False;
 				}
 
-				throw Exception("mysql_real_query", GetLastError(), errorString);
+				throw Exception(GetHandle(), "mysql_real_query");
 			}
 
 			while (auto mysqlResult = ::mysql_store_result(GetHandle()))
@@ -157,7 +155,7 @@ namespace AL::MySQL
 					for (size_t i = 0; i < mysqlFieldCount; ++i)
 					{
 						resultRow.Columns[i] = mysqlFields[i].name;
-						resultRow.Values[i]  = AL::String(mysqlRow[i], mysqlLengths[i]);
+						resultRow.Values[i]  = String(mysqlRow[i], mysqlLengths[i]);
 					}
 
 					result.PushBack(AL::Move(resultRow));
@@ -167,15 +165,17 @@ namespace AL::MySQL
 
 				results.PushBack(AL::Move(result));
 
-				if ((error = ::mysql_next_result(GetHandle())) > 0)
-					throw Exception("mysql_next_result");
-				else if (GetLastError() == -1)
+				if (int ret; (ret = ::mysql_next_result(GetHandle())) > 0)
 				{
-					error = 0;
+					error = ::mysql_errno(GetHandle());
 
-					break;
+					throw Exception(GetHandle(), "mysql_next_result");
 				}
+				else if (ret == -1)
+					break;
 			}
+
+			error = 0;
 
 			return True;
 		}
@@ -195,12 +195,7 @@ namespace AL::MySQL
 			size_t stringLength;
 
 			if ((stringLength = ::mysql_real_escape_string(GetHandle(), &string[0], value.GetCString(), value.GetLength())) == -1)
-			{
-
-				throw Exception(
-					"mysql_real_escape_string"
-				);
-			}
+				throw Exception(GetHandle(), "mysql_real_escape_string");
 
 			string.SetCapacity(stringLength);
 
@@ -213,11 +208,9 @@ namespace AL::MySQL
 		{
 			AL_ASSERT(IsConnected(), "Database not connected");
 
-			if ((error = ::mysql_select_db(GetHandle(), value.GetCString())) != 0)
+			if (::mysql_select_db(GetHandle(), value.GetCString()) != 0)
 			{
-				String errorString(::mysql_error(GetHandle()));
-
-				switch (GetLastError())
+				switch (error = ::mysql_errno(GetHandle()))
 				{
 					case CR_SERVER_LOST:
 					case CR_SERVER_GONE_ERROR:
@@ -225,8 +218,10 @@ namespace AL::MySQL
 						return False;
 				}
 
-				throw Exception("mysql_select_db", GetLastError(), errorString);
+				throw Exception(GetHandle(), "mysql_select_db");
 			}
+
+			error = 0;
 
 			return True;
 		}
