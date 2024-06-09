@@ -12,6 +12,7 @@
 
 #include <mysql.h>
 #include <errmsg.h>
+#include <mysqld_error.h>
 
 namespace AL::MySQL
 {
