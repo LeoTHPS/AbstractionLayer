@@ -8,6 +8,8 @@ namespace AL
 		uint64 value;
 
 	public:
+		static constexpr uint64 Zero = 0;
+
 		static Timestamp FromNanoseconds(uint64 value)
 		{
 			return Timestamp(
