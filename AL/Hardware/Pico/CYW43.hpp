@@ -191,6 +191,10 @@ namespace AL::Hardware::Pico
 			}
 		};
 
+		class WiFi;
+
+		class Bluetooth;
+
 		static Bool IsOpen()
 		{
 			return isOpen;
@@ -349,9 +353,34 @@ namespace AL::Hardware::Pico
 				"CYW43 already open"
 			);
 
-			Open(
-				Countries::Worldwide
-			);
+			OS::ErrorCode errorCode;
+
+			if ((errorCode = ::cyw43_arch_init()) != PICO_ERROR_NONE)
+			{
+
+				throw OS::SystemException(
+					"cyw43_arch_init",
+					errorCode
+				);
+			}
+
+			try
+			{
+				LED::Write(
+					False
+				);
+			}
+			catch (Exception& exception)
+			{
+				::cyw43_arch_deinit();
+
+				throw Exception(
+					Move(exception),
+					"Error disabling LED"
+				);
+			}
+
+			isOpen = True;
 		}
 		// @throw AL::Exception
 		static Void Open(Countries country)
