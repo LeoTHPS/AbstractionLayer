@@ -99,9 +99,10 @@ namespace AL::OS::Pico
 		{
 			static_assert(sizeof(T) <= sizeof(::uint32_t));
 
-			::multicore_fifo_push_blocking(
-				reinterpret_cast<::uint32_t>(arg)
-			);
+			if constexpr (Is_Enum_Or_Integer<T>::Value)
+				::multicore_fifo_push_blocking(static_cast<::uint32_t>(arg));
+			else
+				::multicore_fifo_push_blocking(reinterpret_cast<::uint32_t>(arg));
 
 			PushAll(
 				args ...
@@ -116,9 +117,10 @@ namespace AL::OS::Pico
 		{
 			static_assert(sizeof(T) <= sizeof(::uint32_t));
 
-			arg = reinterpret_cast<T>(
-				::multicore_fifo_pop_blocking()
-			);
+			if constexpr (Is_Enum_Or_Integer<T>::Value)
+				arg = static_cast<T>(::multicore_fifo_pop_blocking());
+			else
+				arg = reinterpret_cast<T>(::multicore_fifo_pop_blocking());
 
 			PopAll(
 				args ...
