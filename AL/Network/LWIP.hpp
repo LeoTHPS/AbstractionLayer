@@ -451,6 +451,8 @@ namespace AL::Network
 					"TcpSocket already connected"
 				);
 
+				OS::Console::WriteLine("flags = 0x%04X", flags.Value);
+
 				Sync([this, &ep, timeout]()
 				{
 					ErrorCode errorCode;
@@ -483,10 +485,15 @@ namespace AL::Network
 				while (IsConnecting())
 				{
 					Poll();
+
+					if (GetLastErrorCode() == ::ERR_ABRT)
+						break;
 				}
 
 				if (flags.IsSet(IOFlags::Timeout))
 				{
+					OS::Console::WriteLine("flags = 0x%04X", flags.Value);
+
 					Close();
 
 					try
@@ -508,6 +515,8 @@ namespace AL::Network
 
 					return False;
 				}
+
+				OS::Console::WriteLine("flags = 0x%04X", flags.Value);
 
 				if (!IsConnected())
 				{
@@ -1066,12 +1075,12 @@ namespace AL::Network
 						static_cast<::u16_t>(rxBufferSize)
 					);
 
-					// OS::Console::WriteLine(
-					// 	HexConverter::Encode(
-					// 		&rxContext.Buffer[0],
-					// 		rxBufferSize
-					// 	)
-					// );
+					OS::Console::WriteLine(
+						HexConverter::Encode(
+							&rxContext.Buffer[0],
+							rxBufferSize
+						)
+					);
 
 					lpSocket->rxContexts.PushBack(
 						Move(rxContext)
@@ -1344,6 +1353,8 @@ namespace AL::Network
 					size = Integer<::u16_t>::Maximum;
 				}
 
+				Sync_Begin();
+
 				auto buffer = ::pbuf_alloc_reference(
 					const_cast<Void*>(lpBuffer),
 					static_cast<::u16_t>(size),
@@ -1352,15 +1363,13 @@ namespace AL::Network
 
 				ErrorCode errorCode;
 
-				Sync_Begin();
-
 				if ((errorCode = ::udp_send(pcb, buffer)) != ::ERR_OK)
 				{
-					Sync_End();
-
 					::pbuf_free(
 						buffer
 					);
+
+					Sync_End();
 
 					if (errorCode == ::ERR_RTE)
 					{
@@ -1375,11 +1384,11 @@ namespace AL::Network
 					);
 				}
 
-				Sync_End();
-
 				::pbuf_free(
 					buffer
 				);
+
+				Sync_End();
 
 				numberOfBytesSent = size;
 
@@ -1401,6 +1410,8 @@ namespace AL::Network
 					size = Integer<::u16_t>::Maximum;
 				}
 
+				Sync_Begin();
+
 				auto buffer = ::pbuf_alloc_reference(
 					const_cast<Void*>(lpBuffer),
 					static_cast<::u16_t>(size),
@@ -1411,15 +1422,13 @@ namespace AL::Network
 
 				auto address = ep.Host.ToNative();
 
-				Sync_Begin();
-
 				if ((errorCode = ::udp_sendto(pcb, buffer, &address, ep.Port)) != ::ERR_OK)
 				{
-					Sync_End();
-
 					::pbuf_free(
 						buffer
 					);
+
+					Sync_End();
 
 					if (errorCode == ::ERR_RTE)
 					{
@@ -1434,11 +1443,11 @@ namespace AL::Network
 					);
 				}
 
-				Sync_End();
-
 				::pbuf_free(
 					buffer
 				);
+
+				Sync_End();
 
 				numberOfBytesSent = size;
 

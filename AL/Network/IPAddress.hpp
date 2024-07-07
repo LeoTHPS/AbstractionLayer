@@ -186,6 +186,46 @@ namespace AL::Network
 #endif
 		}
 
+		static auto Broadcast()
+		{
+#if defined(AL_PLATFORM_PICO)
+	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV4)
+			return IPAddress(
+				BitConverter::HostToNetwork(IPADDR_BROADCAST)
+			);
+	#endif
+#elif defined(AL_PLATFORM_LINUX)
+			return IPAddress(
+				in_addr
+				{
+					.s_addr = BitConverter::HostToNetwork(INADDR_BROADCAST)
+				}
+			);
+#elif defined(AL_PLATFORM_WINDOWS)
+			return IPAddress( 
+				in_addr
+				{
+					.S_un =
+					{
+						.S_addr = BitConverter::HostToNetwork(INADDR_BROADCAST)
+					}
+				}
+			);
+#endif
+		}
+		static auto Broadcast6()
+		{
+#if defined(AL_PLATFORM_PICO)
+	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV6)
+			// TODO: implement
+	#endif
+#elif defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
+			return IPAddress(
+				::in6addr_broadcast
+			);
+#endif
+		}
+
 		// @throw AL::Exception
 		static IPAddress FromNative(const ip_addr& value)
 		{

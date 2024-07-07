@@ -585,8 +585,9 @@ namespace AL::Network
 				);
 			}
 
-			localEP  = socket.GetLocalEndPoint();
-			remoteEP = socket.GetRemoteEndPoint();
+			localEP     = socket.GetLocalEndPoint();
+			remoteEP    = socket.GetRemoteEndPoint();
+			isConnected = True;
 #elif defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
 			auto isBlocking = IsBlocking();
 
