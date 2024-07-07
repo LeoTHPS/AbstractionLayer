@@ -8,6 +8,7 @@
 #include "AL/OS/Timer.hpp"
 
 #include <hardware/pll.h>
+#include <hardware/clocks.h>
 
 namespace AL::Hardware::Pico
 {
@@ -57,6 +58,30 @@ namespace AL::Hardware::Pico
 		}
 
 		// @param ref_div Input clock divider
+		// @param frequency Requested frequency
+		// @return AL::False if frequency is not attainable
+		static Bool Init(::PLL pll, uint32 frequency)
+		{
+			::uint vco;
+			::uint post_div[2];
+
+			if (!::check_sys_clock_khz(frequency / 1000, &vco, &post_div[0], &post_div[1]))
+			{
+
+				return False;
+			}
+
+			Init(
+				pll,
+				PLL_COMMON_REFDIV,
+				vco,
+				post_div[0],
+				post_div[1]
+			);
+
+			return True;
+		}
+		// @param ref_div Input clock divider
 		// @param vco_freq Requested output from the VCO (voltage controlled oscillator)
 		// @param post_div1 Post Divider 1 - range 1-7. Must be >= post_div2
 		// @param post_div2 Post Divider 2 - range 1-7
@@ -72,7 +97,7 @@ namespace AL::Hardware::Pico
 		}
 
 		// This will turn off the power to the specified PLL.
-		// Note this function does not currently check if the PLL is in use before powering it off so should be used with care.
+		// Note this function does not currently check if the PLL is in use before powering it off and should be used with care.
 		static Void Deinit(::PLL pll)
 		{
 			::pll_deinit(
