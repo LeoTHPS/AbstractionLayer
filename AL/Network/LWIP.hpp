@@ -451,8 +451,6 @@ namespace AL::Network
 					"TcpSocket already connected"
 				);
 
-				OS::Console::WriteLine("flags = 0x%04X", flags.Value);
-
 				Sync([this, &ep, timeout]()
 				{
 					ErrorCode errorCode;
@@ -492,8 +490,6 @@ namespace AL::Network
 
 				if (flags.IsSet(IOFlags::Timeout))
 				{
-					OS::Console::WriteLine("flags = 0x%04X", flags.Value);
-
 					Close();
 
 					try
@@ -515,8 +511,6 @@ namespace AL::Network
 
 					return False;
 				}
-
-				OS::Console::WriteLine("flags = 0x%04X", flags.Value);
 
 				if (!IsConnected())
 				{
