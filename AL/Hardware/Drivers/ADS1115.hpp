@@ -13,12 +13,8 @@ namespace AL::Hardware::Drivers
 	enum class ADS1115Gains : uint8
 	{
 		// FS = +6.144V
-		// This parameter expresses the full-scale range of the ADC scaling.
-		// In no event should more than VDD + 0.3V be applied to this device.
 		FS_2_3,
 		// FS = +4.096V
-		// This parameter expresses the full-scale range of the ADC scaling.
-		// In no event should more than VDD + 0.3V be applied to this device.
 		FS_1,
 		// FS = +2.048V
 		FS_2,
@@ -30,7 +26,7 @@ namespace AL::Hardware::Drivers
 		FS_16,
 
 		// FS = +2.048V
-		Default = FS_2
+		Default = FS_2_3
 	};
 
 	enum class ADS1115DataRates : uint8
