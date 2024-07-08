@@ -13,20 +13,20 @@ namespace AL::Hardware::Drivers
 	enum class ADS1115Gains : uint8
 	{
 		// FS = +6.144V
-		FS_2_3,
+		FS_6_144,
 		// FS = +4.096V
-		FS_1,
+		FS_4_096,
 		// FS = +2.048V
-		FS_2,
+		FS_2_048,
 		// FS = +1.024V
-		FS_4,
+		FS_1_024,
 		// FS = +0.512V
-		FS_8,
+		FS_0_512,
 		// FS = +0.256V
-		FS_16,
+		FS_0_256,
 
 		// FS = +2.048V
-		Default = FS_2_3
+		Default = FS_6_144
 	};
 
 	enum class ADS1115DataRates : uint8
