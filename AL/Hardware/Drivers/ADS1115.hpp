@@ -128,7 +128,8 @@ namespace AL::Hardware::Drivers
 		typedef ADS1115Gains           Gains;
 		typedef ADS1115DataRates       DataRates;
 
-		static constexpr ReadData      DATA_MAX              = 0xFFFF;
+		static constexpr ReadData      DATA_MIN              = -0x7FFF;
+		static constexpr ReadData      DATA_MAX              =  0x7FFF;
 
 		static constexpr uint32        DEFAULT_SPEED         = 400000;
 
