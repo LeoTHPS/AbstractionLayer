@@ -1349,10 +1349,16 @@ namespace AL::Network
 
 				Sync_Begin();
 
-				auto buffer = ::pbuf_alloc_reference(
-					const_cast<Void*>(lpBuffer),
+				auto buffer = ::pbuf_alloc(
+					::PBUF_TRANSPORT,
 					static_cast<::u16_t>(size),
 					::PBUF_RAM
+				);
+
+				memcpy(
+					buffer->payload,
+					buffer,
+					size
 				);
 
 				ErrorCode errorCode;
@@ -1406,10 +1412,16 @@ namespace AL::Network
 
 				Sync_Begin();
 
-				auto buffer = ::pbuf_alloc_reference(
-					const_cast<Void*>(lpBuffer),
+				auto buffer = ::pbuf_alloc(
+					::PBUF_TRANSPORT,
 					static_cast<::u16_t>(size),
 					::PBUF_RAM
+				);
+
+				memcpy(
+					buffer->payload,
+					buffer,
+					size
 				);
 
 				ErrorCode errorCode;

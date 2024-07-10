@@ -217,12 +217,10 @@ namespace AL::Network
 		{
 #if defined(AL_PLATFORM_PICO)
 	#if defined(AL_DEPENDENCY_PICO_CYW43_LWIP_IPV6)
-			// TODO: implement
+			return Broadcast().Cast(AddressFamilies::IPv6);
 	#endif
 #elif defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
-			return IPAddress(
-				::in6addr_broadcast
-			);
+			return Broadcast().Cast(AddressFamilies::IPv6);
 #endif
 		}
 
