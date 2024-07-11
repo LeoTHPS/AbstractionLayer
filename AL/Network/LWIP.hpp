@@ -1069,12 +1069,12 @@ namespace AL::Network
 						static_cast<::u16_t>(rxBufferSize)
 					);
 
-					OS::Console::WriteLine(
-						HexConverter::Encode(
-							&rxContext.Buffer[0],
-							rxBufferSize
-						)
-					);
+					// OS::Console::WriteLine(
+					// 	HexConverter::Encode(
+					// 		&rxContext.Buffer[0],
+					// 		rxBufferSize
+					// 	)
+					// );
 
 					lpSocket->rxContexts.PushBack(
 						Move(rxContext)
