@@ -1357,7 +1357,7 @@ namespace AL::Network
 
 				memcpy(
 					buffer->payload,
-					buffer,
+					lpBuffer,
 					size
 				);
 
@@ -1420,7 +1420,7 @@ namespace AL::Network
 
 				memcpy(
 					buffer->payload,
-					buffer,
+					lpBuffer,
 					size
 				);
 

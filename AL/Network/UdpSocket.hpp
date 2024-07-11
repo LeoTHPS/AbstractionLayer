@@ -200,6 +200,19 @@ namespace AL::Network
 					"WSASocketW"
 				);
 			}
+
+			::BOOL broadcast = TRUE;
+
+			if (::setsockopt(GetHandle(), SOL_SOCKET, SO_BROADCAST, reinterpret_cast<const char*>(&broadcast), sizeof(::BOOL)))
+			{
+				::closesocket(
+					socket
+				);
+
+				throw SocketException(
+					"setsockopt"
+				);
+			}
 #else
 			throw PlatformNotSupportedException();
 #endif
