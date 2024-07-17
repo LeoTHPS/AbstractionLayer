@@ -1051,7 +1051,7 @@ namespace AL::OS::Windows::DirectX
 		}
 
 		// @throw AL::Exception
-		Void CreateTarget(HWND hWnd)
+		Void CreateTarget(HWND hWnd, Bool vsync = True)
 		{
 			AL_ASSERT(
 				IsCreated(),
@@ -1081,7 +1081,9 @@ namespace AL::OS::Windows::DirectX
 			);
 
 			auto hwndProperties = ::D2D1::HwndRenderTargetProperties(
-				hWnd
+				hWnd,
+				::D2D1::SizeU(),
+				vsync ? ::D2D1_PRESENT_OPTIONS_NONE : ::D2D1_PRESENT_OPTIONS_IMMEDIATELY
 			);
 
 			typename HWNDTarget::Type* lpTarget;
