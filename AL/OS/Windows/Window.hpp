@@ -2485,12 +2485,11 @@ namespace AL::OS::Windows
 
 				case WM_PAINT:
 				{
-					auto device = GDI::Device::BeginPaint(
-						hWND
-					);
-
 					if (IsPaintEnabled())
 					{
+						auto device = GDI::Device::BeginPaint(
+							hWND
+						);
 
 						OnPaint(
 							device
@@ -2675,9 +2674,6 @@ namespace AL::OS::Windows
 					);
 				}
 				break;
-
-				case WM_SETCURSOR:
-					return FALSE;
 
 				case WM_CLOSE:
 				{
