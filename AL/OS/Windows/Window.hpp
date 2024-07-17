@@ -2581,8 +2581,31 @@ namespace AL::OS::Windows
 							break;
 
 						case SIZE_MAXIMIZED:
+						{
 							isMaximized = True;
-							break;
+
+							auto width = static_cast<typename WindowResolution::Type>(
+								LOWORD(lParam)
+							);
+							auto height = static_cast<typename WindowResolution::Type>(
+								HIWORD(lParam)
+							);
+
+							if (!OnResolutionChanging(width, height))
+							{
+
+								return 0;
+							}
+
+							windowResolution.Width  = width;
+							windowResolution.Height = height;
+
+							OnResolutionChanged(
+								windowResolution.Width,
+								windowResolution.Height
+							);
+						}
+						break;
 
 						case SIZE_RESTORED:
 						{
