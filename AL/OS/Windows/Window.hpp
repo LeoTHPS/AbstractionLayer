@@ -1767,6 +1767,10 @@ namespace AL::OS::Windows
 				SW_SHOW
 			);
 
+			::SetCursor(
+				GetCursor().GetHandle()
+			);
+
 			try
 			{
 				SetResolution(
