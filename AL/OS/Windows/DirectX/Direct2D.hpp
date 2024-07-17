@@ -17,6 +17,8 @@
 
 #include "AL/FileSystem/Path.hpp"
 
+#include "AL/OS/SystemException.hpp"
+
 #if AL_HAS_INCLUDE(<d2d1_3.h>)
 	#include <d2d1_3.h>
 #elif AL_HAS_INCLUDE(<d2d1_2.h>)
@@ -838,14 +840,12 @@ namespace AL::OS::Windows::DirectX
 
 	class Direct2D
 	{
-		typedef Direct2DResource<ID2D1Factory1> Factory;
-		typedef Direct2DResource<ID2D1RenderTarget> Target;
+		typedef Direct2DResource<::ID2D1Factory1>         Factory;
+		typedef DirectWriteResource<::IDWriteFactory1>    DWFactory;
+		typedef Direct2DResource<::IWICImagingFactory>    WICFactory;
 
-		typedef Direct2DResource<ID2D1HwndRenderTarget> HWNDTarget;
-
-		typedef Direct2DResource<IWICImagingFactory> WICFactory;
-
-		typedef DirectWriteResource<IDWriteFactory1> DWFactory;
+		typedef Direct2DResource<::ID2D1RenderTarget>     Target;
+		typedef Direct2DResource<::ID2D1HwndRenderTarget> HWNDTarget;
 
 		Factory    factory;
 		DWFactory  dwFactory;
@@ -1063,26 +1063,30 @@ namespace AL::OS::Windows::DirectX
 				"Direct2D target already created"
 			);
 
-			::FLOAT dpiX, dpiY;
-
-			GetFactory()->GetDesktopDpi(
-				&dpiX,
-				&dpiY
-			);
-
 			auto properties = ::D2D1::RenderTargetProperties(
 				::D2D1_RENDER_TARGET_TYPE_HARDWARE,
 				D2D1::PixelFormat(
 					::DXGI_FORMAT_UNKNOWN,
 					::D2D1_ALPHA_MODE_PREMULTIPLIED
-				),
-				dpiX,
-				dpiY
+				)
 			);
+
+			::RECT rect;
+
+			if (!::GetClientRect(hWnd, &rect))
+			{
+
+				throw OS::SystemException(
+					"GetClientRect"
+				);
+			}
 
 			auto hwndProperties = ::D2D1::HwndRenderTargetProperties(
 				hWnd,
-				::D2D1::SizeU(),
+				::D2D1::SizeU(
+					rect.right - rect.left,
+					rect.bottom - rect.top
+				),
 				vsync ? ::D2D1_PRESENT_OPTIONS_NONE : ::D2D1_PRESENT_OPTIONS_IMMEDIATELY
 			);
 
@@ -1124,21 +1128,12 @@ namespace AL::OS::Windows::DirectX
 				);
 			}
 
-			::FLOAT dpiX, dpiY;
-
-			GetFactory()->GetDesktopDpi(
-				&dpiX,
-				&dpiY
-			);
-
 			auto properties = ::D2D1::RenderTargetProperties(
 				::D2D1_RENDER_TARGET_TYPE_DEFAULT,
 				::D2D1::PixelFormat(
 					::DXGI_FORMAT_UNKNOWN,
 					::D2D1_ALPHA_MODE_PREMULTIPLIED
-				),
-				dpiX,
-				dpiY
+				)
 			);
 
 			::HRESULT hResult;
@@ -2173,16 +2168,13 @@ namespace AL::OS::Windows::DirectX
 				"Direct2D target not created"
 			);
 
-			::D2D1_COLOR_F colorf =
-			{
-				.r = color.R / 255.0f,
-				.g = color.G / 255.0f,
-				.b = color.B / 255.0f,
-				.a = color.A / 255.0f
-			};
-
 			lpTarget->Clear(
-				colorf
+				::D2D1::ColorF(
+					color.R / 255.0f,
+					color.G / 255.0f,
+					color.B / 255.0f,
+					color.A / 255.0f
+				)
 			);
 		}
 
