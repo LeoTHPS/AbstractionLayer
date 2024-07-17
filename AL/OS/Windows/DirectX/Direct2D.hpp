@@ -2173,11 +2173,13 @@ namespace AL::OS::Windows::DirectX
 				"Direct2D target not created"
 			);
 
-			::D2D1_COLOR_F colorf;
-			colorf.a = color.A * 255.0f;
-			colorf.r = color.R * 255.0f;
-			colorf.g = color.G * 255.0f;
-			colorf.b = color.B * 255.0f;
+			::D2D1_COLOR_F colorf =
+			{
+				.r = color.R / 255.0f,
+				.g = color.G / 255.0f,
+				.b = color.B / 255.0f,
+				.a = color.A / 255.0f
+			};
 
 			lpTarget->Clear(
 				colorf
