@@ -137,7 +137,7 @@ namespace AL::OS::Windows::GDI
 			::COLORREF prevBackground;
 			::COLORREF prevForeground;
 
-			if ((prevBackground = ::SetBkColor(GetHandle(), (static_cast<::COLORREF>(background.B) << 16) | (static_cast<::COLORREF>(background.G) << 8) | static_cast<::COLORREF>(background.R))) == CLR_INVALID)
+			if ((prevBackground = ::SetBkColor(GetHandle(), RGB(background.R, background.G, background.B))) == CLR_INVALID)
 			{
 
 				throw GDIException(
@@ -145,7 +145,7 @@ namespace AL::OS::Windows::GDI
 				);
 			}
 
-			if ((prevForeground = ::SetTextColor(GetHandle(), (static_cast<::COLORREF>(foreground.B) << 16) | (static_cast<::COLORREF>(foreground.G) << 8) | static_cast<::COLORREF>(foreground.R))) == CLR_INVALID)
+			if ((prevForeground = ::SetTextColor(GetHandle(), RGB(foreground.R, foreground.G, foreground.B))) == CLR_INVALID)
 			{
 
 				throw GDIException(
@@ -195,6 +195,27 @@ namespace AL::OS::Windows::GDI
 
 				throw GDIException(
 					"FillRect"
+				);
+			}
+		}
+
+		// @throw AL::Exception
+		template<typename T>
+		Void DrawRectangle(const Drawing::Rectangle<T>& rectangle, const SolidColorBrush& brush)
+		{
+			::RECT rect =
+			{
+				.left   = BitConverter::Cast<::LONG>(rectangle.Left),
+				.top    = BitConverter::Cast<::LONG>(rectangle.Top),
+				.right  = BitConverter::Cast<::LONG>(rectangle.Right),
+				.bottom = BitConverter::Cast<::LONG>(rectangle.Bottom)
+			};
+
+			if (::FrameRect(GetHandle(), &rect, brush.GetHandle()) == 0)
+			{
+
+				throw GDIException(
+					"FrameRect"
 				);
 			}
 		}
