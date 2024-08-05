@@ -262,6 +262,12 @@ namespace AL
 			return ((value - min) < (max - value)) ? min : max;
 		}
 
+		template<typename T>
+		static constexpr T Difference(T value1, T value2)
+		{
+			return (value1 <= value2) ? (value2 - value1) : (value1 - value2);
+		}
+
 	private:
 		template<typename T_VALUE>
 		static constexpr auto _Subtract(T_VALUE value)
