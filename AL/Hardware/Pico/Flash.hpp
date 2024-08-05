@@ -17,6 +17,7 @@ namespace AL::Hardware::Pico
 		static uint64 GetUniqueId()
 		{
 			::uint8_t value[FLASH_UNIQUE_ID_SIZE_BYTES];
+			static_assert(sizeof(uint64) == FLASH_UNIQUE_ID_SIZE_BYTES);
 
 			::flash_get_unique_id(
 				&value[0]
