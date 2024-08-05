@@ -14,15 +14,15 @@ namespace AL::Hardware::Pico
 		Flash() = delete;
 
 	public:
-		static uint8 GetUniqueId()
+		static uint64 GetUniqueId()
 		{
-			::uint8_t value;
+			::uint8_t value[FLASH_UNIQUE_ID_SIZE_BYTES];
 
 			::flash_get_unique_id(
-				&value
+				&value[0]
 			);
 
-			return value;
+			return *reinterpret_cast<const uint64*>(&value[0]);
 		}
 
 		// @return AL::False if program is running from flash
