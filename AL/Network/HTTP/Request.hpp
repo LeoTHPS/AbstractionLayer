@@ -96,6 +96,28 @@ namespace AL::Network::HTTP
 					);
 				}
 
+				try
+				{
+					if (!socket.Connect(ep))
+					{
+
+						throw Exception(
+							"Connection timed out"
+						);
+					}
+				}
+				catch (Exception& exception)
+				{
+					socket.Close();
+
+					throw Exception(
+						Move(exception),
+						"Error connecting to %s:%u",
+						ep.Host.ToString().GetCString(),
+						ep.Port
+					);
+				}
+
 #if defined(AL_NETWORK_HTTP_REQUEST_OPENSSL_ENABLED)
 				if (isSslEnabled)
 				{
@@ -129,43 +151,14 @@ namespace AL::Network::HTTP
 							"Error setting OpenSSL::SSL file descriptor"
 						);
 					}
-				}
-#endif
 
-				try
-				{
-					if (!socket.Connect(ep))
-					{
-
-						throw Exception(
-							"Connection timed out"
-						);
-					}
-				}
-				catch (Exception& exception)
-				{
-#if defined(AL_NETWORK_HTTP_REQUEST_OPENSSL_ENABLED)
-					ssl.Destroy();
-#endif
-					socket.Close();
-
-					throw Exception(
-						Move(exception),
-						"Error connecting to %s:%u",
-						ep.Host.ToString().GetCString(),
-						ep.Port
-					);
-				}
-
-#if defined(AL_NETWORK_HTTP_REQUEST_OPENSSL_ENABLED)
-				if (isSslEnabled)
-				{
 					try
 					{
 						ssl.Connect();
 					}
 					catch (Exception& exception)
 					{
+						ssl.Destroy();
 						socket.Close();
 
 						throw Exception(
@@ -473,7 +466,7 @@ namespace AL::Network::HTTP
 
 			try
 			{
-				if (!socket.Write(request.GetCString(), request.GetSize()))
+				if (!socket.Write(request.GetCString(), request.GetLength()))
 				{
 
 					throw Exception(
@@ -679,7 +672,11 @@ namespace AL::Network::HTTP
 
 		static Void Execute_AppendPathAndQuery(StringBuilder& sb, const Uri& uri)
 		{
-			sb << '/';
+			if (!uri.GetPath().StartsWith('/'))
+			{
+
+				sb << '/';
+			}
 
 			if (uri.GetPath().GetLength() != 0)
 			{

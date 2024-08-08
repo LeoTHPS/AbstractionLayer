@@ -571,7 +571,13 @@ namespace AL::Serialization
 		}
 		static Void ToString_AppendPathQueryFragment(StringBuilder& sb, const String& path, const UriQuery& query, const String& fragment)
 		{
-			sb << '/' << path;
+			if (!path.StartsWith('/'))
+			{
+
+				sb << '/';
+			}
+
+			sb << path;
 
 			if (query.GetSize() != 0)
 			{
