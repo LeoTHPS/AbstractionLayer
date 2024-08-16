@@ -93,7 +93,7 @@ namespace AL
 				return False;
 			}
 
-			if ((offset + length) >= string.GetLength())
+			if ((offset + length) > string.GetLength())
 			{
 
 				return False;
@@ -136,7 +136,7 @@ namespace AL
 					c1,
 					c1_IsDigit
 				);
-				
+
 				auto b2 = char_to_hex_table_index(
 					c2,
 					c2_IsDigit
@@ -165,16 +165,204 @@ namespace AL
 	template<>
 	class _BaseConverter<32>
 	{
-		static constexpr String::Char CHARACTER_TABLE[32] =
+		static constexpr String::Char CHARACTER_TABLE_REVERSE_NOT_FOUND = 0x7F;
+
+		static constexpr String::Char CHARACTER_TABLE[] =
 		{
 			'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
 			'2', '3', '4', '5', '6', '7'
 		};
 
-		static constexpr String::Char CHARACTER_TABLE_HEX[32] =
+		static constexpr String::Char CHARACTER_TABLE_REVERSE[] =
+		{
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			26,
+			27,
+			28,
+			29,
+			30,
+			31,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			0,
+			1,
+			2,
+			3,
+			4,
+			5,
+			6,
+			7,
+			8,
+			9,
+			10,
+			11,
+			12,
+			13,
+			14,
+			15,
+			16,
+			17,
+			18,
+			19,
+			20,
+			21,
+			22,
+			23,
+			24,
+			25
+		};
+
+		static constexpr String::Char CHARACTER_TABLE_HEX[] =
 		{
 			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
 			'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V'
+		};
+
+		static constexpr String::Char CHARACTER_TABLE_HEX_REVERSE[] =
+		{
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			0,
+			1,
+			2,
+			3,
+			4,
+			5,
+			6,
+			7,
+			8,
+			9,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			CHARACTER_TABLE_REVERSE_NOT_FOUND,
+			10,
+			11,
+			12,
+			13,
+			14,
+			15,
+			16,
+			17,
+			18,
+			19,
+			20,
+			21,
+			22,
+			23,
+			24,
+			25,
+			26,
+			27,
+			28,
+			29,
+			30,
+			31
 		};
 
 	public:
@@ -226,7 +414,7 @@ namespace AL
 		}
 		static Bool Decode(BaseConverterBuffer& buffer, const String& string, size_t offset, size_t length)
 		{
-			if (!Decode(buffer, string, offset, length, CHARACTER_TABLE))
+			if (!Decode(buffer, string, offset, length, CHARACTER_TABLE, CHARACTER_TABLE_REVERSE))
 			{
 
 				return False;
@@ -287,13 +475,87 @@ namespace AL
 				string,
 				offset,
 				length,
-				CHARACTER_TABLE_HEX
+				CHARACTER_TABLE_HEX,
+				CHARACTER_TABLE_HEX_REVERSE
 			);
 		}
 
 	private:
 		static String Encode(const Void* lpBuffer, size_t size, const String::Char(&table)[32]);
-		static Bool   Decode(BaseConverterBuffer& buffer, const String& string, size_t offset, size_t length, const String::Char(&table)[32]);
+		template<size_t S_TABLE, size_t S_REVERSE_TABLE>
+		static Bool   Decode(BaseConverterBuffer& buffer, const String& string, size_t offset, size_t length, const String::Char(&table)[S_TABLE], const String::Char(&reverseTable)[S_REVERSE_TABLE])
+		{
+			if ((offset + length) > string.GetLength())
+			{
+
+				return False;
+			}
+
+			auto bufferSize = [](const String& _string, size_t _offset, size_t _length)
+			{
+				size_t bits     = 0;
+				auto   lpString = &_string[_offset];
+
+				for (size_t i = 0; i < _length; ++i, ++lpString)
+				{
+					if (*lpString == '=')
+					{
+
+						break;
+					}
+
+					bits += 5;
+				}
+
+				if (auto r = bits % 8; bits && r)
+					bits += 8 - r;
+
+				return bits / 8;
+			}(string, offset, length);
+
+			buffer.SetCapacity(
+				bufferSize
+			);
+
+			auto  lpBuffer = &buffer[0];
+			auto  lpSource = &string[offset];
+
+			for (size_t i = 0, j = 0; i < length; ++i, ++lpSource)
+			{
+				if (*lpSource == '=')
+				{
+
+					break;
+				}
+
+				if (*lpSource >= S_REVERSE_TABLE)
+				{
+
+					return False;
+				}
+
+				auto value = reverseTable[*lpSource];
+
+				if (value == CHARACTER_TABLE_REVERSE_NOT_FOUND)
+				{
+
+					return False;
+				}
+
+				for (size_t b = 0; b < 5; ++b)
+				{
+					*lpBuffer |= ((value & (1 << (4 - b))) >> (4 - b)) << (7 - j);
+
+					if (++j == 8)
+					{
+						j = 0;
+						++lpBuffer;
+					}
+				}
+			}
+
+			return True;
+		}
 	};
 	template<>
 	class _BaseConverter<64>
