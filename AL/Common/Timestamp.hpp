@@ -164,7 +164,7 @@ namespace AL
 
 		Bool operator > (Timestamp time) const
 		{
-			if (value < time.value)
+			if (value <= time.value)
 			{
 
 				return False;
@@ -174,7 +174,7 @@ namespace AL
 		}
 		Bool operator < (Timestamp time) const
 		{
-			if (value > time.value)
+			if (value >= time.value)
 			{
 
 				return False;
