@@ -76,6 +76,12 @@ namespace AL::Network
 			isBound(
 				tcpSocket.isBound
 			),
+			isNoDelay(
+				tcpSocket.isNoDelay
+			),
+			isBlocking(
+				tcpSocket.isBlocking
+			),
 			isConnected(
 				tcpSocket.isConnected
 			),
@@ -1122,6 +1128,9 @@ namespace AL::Network
 			isBound = tcpSocket.isBound;
 			tcpSocket.isBound = False;
 
+			isNoDelay = tcpSocket.isNoDelay;
+			tcpSocket.isNoDelay = False;
+
 			isBlocking = tcpSocket.isBlocking;
 			tcpSocket.isBlocking = True;
 
@@ -1136,21 +1145,11 @@ namespace AL::Network
 			tcpSocket.isWinSockLoaded = False;
 #endif
 
-			type = tcpSocket.type;
-
-			localEP = Move(
-				tcpSocket.localEP
-			);
-
-			remoteEP = Move(
-				tcpSocket.remoteEP
-			);
-
+			type          = tcpSocket.type;
+			socket        = Move(tcpSocket.socket);
+			localEP       = Move(tcpSocket.localEP);
+			remoteEP      = Move(tcpSocket.remoteEP);
 			addressFamily = tcpSocket.addressFamily;
-
-			socket = Move(
-				tcpSocket.socket
-			);
 
 			return *this;
 		}
