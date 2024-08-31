@@ -105,8 +105,7 @@ namespace AL::OS::Windows
 			return colors.Value;
 		}
 
-		// @throw AL::Exception
-		static Void Open()
+		static Bool Open()
 		{
 			AL_ASSERT(
 				!IsOpen(),
@@ -116,24 +115,17 @@ namespace AL::OS::Windows
 			if (!::AllocConsole())
 			{
 
-				throw SystemException(
-					"AllocConsole"
-				);
+				return False;
 			}
-		}
 
-		// @throw AL::Exception
+			return True;
+		}
 		static Void Close()
 		{
 			if (IsOpen())
 			{
-				if (!::FreeConsole())
-				{
 
-					throw SystemException(
-						"FreeConsole"
-					);
-				}
+				::FreeConsole();
 			}
 		}
 
