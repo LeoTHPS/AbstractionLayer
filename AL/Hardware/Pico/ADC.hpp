@@ -70,7 +70,6 @@ namespace AL::Hardware::Pico
 			return channels;
 		}
 
-		// @throw AL::Exception
 		virtual Void Open() override
 		{
 			AL_ASSERT(
@@ -98,7 +97,6 @@ namespace AL::Hardware::Pico
 			}
 		}
 
-		// @throw AL::Exception
 		virtual Void Read(Channel channel, ReadData& data) override
 		{
 			AL_ASSERT(
