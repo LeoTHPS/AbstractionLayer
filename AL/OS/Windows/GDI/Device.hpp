@@ -10,6 +10,7 @@
 
 #include "AL/Drawing/Color.hpp"
 #include "AL/Drawing/Colors.hpp"
+#include "AL/Drawing/Vector.hpp"
 #include "AL/Drawing/Rectangle.hpp"
 
 #include <wingdi.h>
@@ -92,6 +93,84 @@ namespace AL::OS::Windows::GDI
 		auto GetHandle() const
 		{
 			return hDC;
+		}
+
+		// @throw AL::Exception
+		auto MeasureString(const String& value) const
+		{
+			::TEXTMETRICA metrics;
+
+			if (!::GetTextMetricsA(GetHandle(), &metrics))
+			{
+
+				throw GDIException(
+					"GetTextMetricsA"
+				);
+			}
+
+			metrics.tmMaxCharWidth;
+		}
+
+		// @throw AL::Exception
+		template<typename T>
+		Void DrawLine(T point1X, T point1Y, T point2X, T point2Y, Drawing::Color color, T width = 1)
+		{
+			::HPEN hPen;
+
+			if ((hPen = ::CreatePen(PS_SOLID, BitConverter::Cast<int>(width), RGB(color.R, color.G, color.B))) == NULL)
+			{
+
+				throw GDIException(
+					"CreatePen"
+				);
+			}
+
+			::HGDIOBJ hPrevPen;
+
+			if ((hPrevPen = ::SelectObject(GetHandle(), hPen)) == NULL)
+			{
+				::DeleteObject(hPen);
+
+				throw GDIException(
+					"SelectObject"
+				);
+			}
+
+			if (!::MoveToEx(GetHandle(), BitConverter::Cast<int>(point1X), BitConverter::Cast<int>(point1Y), nullptr))
+			{
+				::SelectObject(GetHandle(), hPrevPen);
+				::DeleteObject(hPen);
+
+				throw GDIException(
+					"MoveToEx"
+				);
+			}
+
+			if (!::LineTo(GetHandle(), BitConverter::Cast<int>(point2X), BitConverter::Cast<int>(point2Y)))
+			{
+				::SelectObject(GetHandle(), hPrevPen);
+				::DeleteObject(hPen);
+
+				throw GDIException(
+					"LineTo"
+				);
+			}
+
+			::SelectObject(GetHandle(), hPrevPen);
+			::DeleteObject(hPen);
+		}
+		// @throw AL::Exception
+		template<typename T>
+		Void DrawLine(const Drawing::Vector2<T>& point1, const Drawing::Vector2<T>& point2, Drawing::Color color, T width = 1)
+		{
+			DrawLine(
+				point1.X,
+				point1.Y,
+				point2.X,
+				point2.Y,
+				color,
+				width
+			);
 		}
 
 		// @throw AL::Exception
