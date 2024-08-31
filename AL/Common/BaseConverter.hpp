@@ -103,6 +103,35 @@ namespace AL
 				length / 2
 			);
 
+			return Decode(
+				&buffer[0],
+				buffer.GetSize(),
+				string,
+				offset,
+				length
+			);
+		}
+
+		static Bool Decode(Void* lpBuffer, size_t size, const String& string, size_t offset, size_t length)
+		{
+			if ((length % 2) != 0)
+			{
+
+				return False;
+			}
+
+			if (size < (length / 2))
+			{
+
+				return False;
+			}
+
+			if ((offset + length) > string.GetLength())
+			{
+
+				return False;
+			}
+
 			auto try_get_byte = [](uint8& _value, const String::Char* _lpString, size_t _offset)
 			{
 				auto c1 = _lpString[_offset];
@@ -147,12 +176,12 @@ namespace AL
 				return True;
 			};
 
-			auto lpBuffer = &buffer[0];
-			auto lpSource = &string[offset];
+			auto lpSource     = &string[offset];
+			auto lpByteBuffer = reinterpret_cast<uint8*>(lpBuffer);
 
-			for (size_t i = 0; i < length; i += 2, ++lpBuffer)
+			for (size_t i = 0; i < length; i += 2, ++lpByteBuffer)
 			{
-				if (!try_get_byte(*lpBuffer, lpSource, i))
+				if (!try_get_byte(*lpByteBuffer, lpSource, i))
 				{
 
 					return False;
@@ -760,6 +789,16 @@ namespace AL
 
 			return True;
 		}
+		static Bool FromBase16(Void* lpBuffer, size_t size, const String& string, size_t offset, size_t length)
+		{
+			if (!_BaseConverter16::Decode(lpBuffer, size, string, offset, length))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
 
 		template<typename T>
 		static String ToBase32(const T& value)
@@ -1032,6 +1071,17 @@ namespace AL
 		static Bool Decode(Buffer& buffer, const String& string, size_t offset, size_t length)
 		{
 			if (!BaseConverter::FromBase16(buffer, string, offset, length))
+			{
+
+				return False;
+			}
+
+			return True;
+		}
+
+		static Bool Decode(Void* lpBuffer, size_t size, const String& string, size_t offset, size_t length)
+		{
+			if (!BaseConverter::FromBase16(lpBuffer, size, string, offset, length))
 			{
 
 				return False;
