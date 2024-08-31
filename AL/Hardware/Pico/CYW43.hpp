@@ -38,7 +38,10 @@ namespace AL::Hardware::Pico
 		WPA_TKIP_PSK,
 
 		WPA2_AES_PSK,
-		WPA2_MIXED_PSK
+		WPA2_MIXED_PSK,
+
+		WPA3_SAE_AES_PSK,
+		WPA3_WPA2_AES_PSK
 	};
 
 	enum class CYW43Countries : uint32
@@ -100,10 +103,14 @@ namespace AL::Hardware::Pico
 
 	enum class CYW43LinkStatus : int8
 	{
+		// Connected to wifi with an IP address
+		Up      = CYW43_LINK_UP,
 		// Wifi down
 		Down    = CYW43_LINK_DOWN,
 		// Connected to wifi
 		Join    = CYW43_LINK_JOIN,
+		// Connected to wifi, but no IP address
+		NoIP    = CYW43_LINK_NOIP,
 		// Connection failed
 		Fail    = CYW43_LINK_FAIL,
 		// No matching SSID found (could be out of range, or down)
@@ -790,6 +797,14 @@ namespace AL::Hardware::Pico
 
 				case AuthTypes::WPA2_MIXED_PSK:
 					result = CYW43_AUTH_WPA2_MIXED_PSK;
+					return True;
+
+				case AuthTypes::WPA3_SAE_AES_PSK:
+					result = CYW43_AUTH_WPA3_SAE_AES_PSK;
+					return True;
+
+				case AuthTypes::WPA3_WPA2_AES_PSK:
+					result = CYW43_AUTH_WPA3_WPA2_AES_PSK;
 					return True;
 			}
 
