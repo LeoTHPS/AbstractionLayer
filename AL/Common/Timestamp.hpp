@@ -134,11 +134,24 @@ namespace AL
 			return *this;
 		}
 
-		TimeSpan operator - (TimeSpan time) const
+		Timestamp operator + (TimeSpan time) const
+		{
+			return Timestamp(
+				value + time.ToNanoseconds()
+			);
+		}
+		Timestamp operator + (Timestamp time) const
+		{
+			return Timestamp(
+				value + time.value
+			);
+		}
+
+		Timestamp operator - (TimeSpan time) const
 		{
 			auto ms = time.ToNanoseconds();
 
-			return TimeSpan(
+			return Timestamp(
 				(value >= ms) ? (value - ms) : ((~0 - ms) + value)
 			);
 		}
