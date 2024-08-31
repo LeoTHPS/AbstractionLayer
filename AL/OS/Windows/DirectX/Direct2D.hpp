@@ -963,6 +963,34 @@ namespace AL::OS::Windows::DirectX
 			return False;
 		}
 
+		// @return AL::False if not supported
+		Bool SetClientSize(uint32 width, uint32 height)
+		{
+			AL_ASSERT(
+				IsCreated(),
+				"Direct2D not created"
+			);
+
+			AL_ASSERT(
+				IsTargetCreated(),
+				"Direct2D target not created"
+			);
+
+			if (hwndTarget.IsCreated())
+			{
+				hwndTarget->Resize(
+					::D2D1::SizeU(
+						width,
+						height
+					)
+				);
+
+				return True;
+			}
+
+			return False;
+		}
+
 		// @throw AL::Exception
 		Void Create(Bool multithreaded = False)
 		{
@@ -1391,6 +1419,107 @@ namespace AL::OS::Windows::DirectX
 			brush = lpBrush;
 		}
 
+		// @throw AL::Exception
+		Void CreateBitmap(Bitmap& bitmap, ::HMODULE hModule, int resource, Bool color = True)
+		{
+			AL_ASSERT(
+				IsCreated(),
+				"Direct2D not created"
+			);
+
+			AL_ASSERT(
+				IsTargetCreated(),
+				"Direct2D target not created"
+			);
+
+			auto hResourceInfo = ::FindResourceA(
+				hModule,
+				MAKEINTRESOURCEA(resource),
+				RT_BITMAP
+			);
+
+			if (hResourceInfo == nullptr)
+			{
+
+				throw OS::SystemException(
+					"FindResourceA"
+				);
+			}
+
+			auto hResourceData = ::LoadResource(
+				hModule,
+				hResourceInfo
+			);
+
+			if (hResourceData == nullptr)
+			{
+
+				throw OS::SystemException(
+					"LoadResource"
+				);
+			}
+
+			auto lpResourceBuffer = ::LockResource(
+				hResourceData
+			);
+
+			if (lpResourceBuffer == nullptr)
+			{
+				::FreeResource(
+					hResourceData
+				);
+
+				throw OS::SystemException(
+					"LockResource"
+				);
+			}
+
+			auto resourceBufferSize = ::SizeofResource(
+				hModule,
+				hResourceInfo
+			);
+
+			if (resourceBufferSize == 0)
+			{
+				UnlockResource(
+					hResourceData
+				);
+
+				::FreeResource(
+					hResourceData
+				);
+			}
+
+			try
+			{
+				CreateBitmap(
+					bitmap,
+					lpResourceBuffer,
+					resourceBufferSize,
+					color
+				);
+			}
+			catch (Exception&)
+			{
+				UnlockResource(
+					hResourceData
+				);
+
+				::FreeResource(
+					hResourceData
+				);
+
+				throw;
+			}
+
+			UnlockResource(
+				hResourceData
+			);
+
+			::FreeResource(
+				hResourceData
+			);
+		}
 		// @throw AL::Exception
 		Void CreateBitmap(Bitmap& bitmap, const FileSystem::Path& path, Bool color = True)
 		{
