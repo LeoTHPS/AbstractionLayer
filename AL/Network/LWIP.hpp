@@ -129,6 +129,7 @@ namespace AL::Network
 
 			BitMask<IOFlags> flags;
 			OS::Timer        timer;
+			TcpSocket*       lpChild;
 			TimeSpan         timeout;
 			IPEndPoint       localEP;
 			IPEndPoint       remoteEP;
@@ -138,6 +139,20 @@ namespace AL::Network
 
 			::tcp_pcb*       pcb;
 			::err_t          errorCode;
+
+			TcpSocket(AddressFamilies addressFamily, ::tcp_pcb* pcb)
+				: Socket(
+					SocketTypes::Tcp,
+					addressFamily
+				),
+				pcb(
+					pcb
+				),
+				errorCode(
+					::ERR_OK
+				)
+			{
+			}
 
 		public:
 			typedef typename Socket::Handle Handle;
@@ -424,8 +439,42 @@ namespace AL::Network
 					"TcpSocket not listening"
 				);
 
-				// TODO: implement
-				throw NotImplementedException();
+				this->lpChild = &socket;
+				this->timeout = timer.GetElapsed() + timeout;
+
+				flags.Add(
+					IOFlags::AcceptInProgress
+				);
+
+				while (flags.IsSet(IOFlags::AcceptInProgress))
+				{
+					Poll();
+
+					if (GetLastErrorCode() == ::ERR_ABRT)
+						break;
+				}
+
+				flags.Remove(
+					IOFlags::AcceptInProgress
+				);
+
+				if (flags.IsSet(IOFlags::Timeout))
+				{
+					SetLastErrorCode(
+						::ERR_TIMEOUT
+					);
+
+					return False;
+				}
+
+				if (lpChild == nullptr)
+				{
+
+					throw SocketException(
+						"tcp_accept",
+						GetLastErrorCode()
+					);
+				}
 
 				return True;
 			}
@@ -854,6 +903,7 @@ namespace AL::Network
 				::tcp_poll(pcb, &TcpSocket::OnPoll, 1);
 				::tcp_sent(pcb, &TcpSocket::OnSend);
 				::tcp_recv(pcb, &TcpSocket::OnReceive);
+				::tcp_accept(pcb, &TcpSocket::OnAccept);
 			}
 
 			Void CloseConnection()
@@ -883,6 +933,25 @@ namespace AL::Network
 					lpParam
 				);
 
+				if (lpSocket->flags.IsSet(IOFlags::AcceptInProgress))
+				{
+					if (lpSocket->timer.GetElapsed() >= lpSocket->timeout)
+					{
+						// OS::Console::WriteLine(
+						// 	"[LWIP::TcpSocket::OnPoll] [lpParam: 0x%p, pcb: 0x%p] Accept timed out",
+						// 	lpParam,
+						// 	pcb
+						// );
+
+						lpSocket->flags.Add(
+							IOFlags::Timeout
+						);
+
+						lpSocket->Abort();
+
+						return ::ERR_ABRT;
+					}
+				}
 				if (lpSocket->flags.IsSet(IOFlags::ConnectInProgress))
 				{
 					if (lpSocket->timer.GetElapsed() >= lpSocket->timeout)
@@ -957,7 +1026,47 @@ namespace AL::Network
 				// 	errorCode
 				// );
 
-				// TODO: implement
+				if (!lpSocket->flags.IsSet(IOFlags::AcceptInProgress))
+				{
+					if ((errorCode != ::ERR_OK) || (pcb == nullptr))
+					{
+
+						return ::ERR_VAL;
+					}
+
+					::tcp_close(
+						pcb
+					);
+
+					return ::ERR_OK;
+				}
+
+				if ((errorCode != ::ERR_OK) || (pcb == nullptr))
+				{
+					lpSocket->SetLastErrorCode(
+						errorCode
+					);
+
+					lpSocket->lpChild = nullptr;
+
+					lpSocket->flags.Remove(
+						IOFlags::AcceptInProgress
+					);
+
+					return ::ERR_VAL;
+				}
+
+				*lpSocket->lpChild = TcpSocket(lpSocket->GetAddressFamily(), pcb);
+				lpSocket->lpChild->localEP =
+				{
+					.Host = IPAddress::FromNative(pcb->local_ip),
+					.Port = pcb->local_port
+				};
+				lpSocket->lpChild->remoteEP =
+				{
+					.Host = IPAddress::FromNative(pcb->remote_ip),
+					.Port = pcb->remote_port
+				};
 
 				return ::ERR_OK;
 			}
