@@ -371,6 +371,8 @@ namespace AL::Hardware::Pico
 				);
 			}
 
+			isOpen = True;
+
 			try
 			{
 				LED::Write(
@@ -381,13 +383,13 @@ namespace AL::Hardware::Pico
 			{
 				::cyw43_arch_deinit();
 
+				isOpen = False;
+
 				throw Exception(
 					Move(exception),
 					"Error disabling LED"
 				);
 			}
-
-			isOpen = True;
 		}
 		// @throw AL::Exception
 		static Void Open(Countries country)
@@ -408,6 +410,8 @@ namespace AL::Hardware::Pico
 				);
 			}
 
+			isOpen = True;
+
 			try
 			{
 				LED::Write(
@@ -418,13 +422,13 @@ namespace AL::Hardware::Pico
 			{
 				::cyw43_arch_deinit();
 
+				isOpen = False;
+
 				throw Exception(
 					Move(exception),
 					"Error disabling LED"
 				);
 			}
-
-			isOpen = True;
 		}
 
 		static Void Close()
@@ -455,8 +459,8 @@ namespace AL::Hardware::Pico
 		static Void Scan(const CYW43ScanCallback& callback)
 		{
 			AL_ASSERT(
-				!IsOpen(),
-				"CYW43 already open"
+				IsOpen(),
+				"CYW43 not open"
 			);
 
 			OS::ErrorCode errorCode;
@@ -473,7 +477,7 @@ namespace AL::Hardware::Pico
 				.scan_type = 0  // 0=active, 1=passive
 			};
 
-			cyw43_arch_enable_sta_mode();
+			::cyw43_arch_enable_sta_mode();
 
 			if ((errorCode = ::cyw43_wifi_scan(&cyw43_state, &options, &context, &OnScan)) != PICO_ERROR_NONE)
 			{
@@ -490,6 +494,7 @@ namespace AL::Hardware::Pico
 
 			while (::cyw43_wifi_scan_active(&cyw43_state))
 			{
+
 				Poll();
 			}
 		}
@@ -822,9 +827,9 @@ namespace AL::Hardware::Pico
 				return True;
 			}
 
-			if (value & 0x01)
+			if (value & 0x04)
 			{
-				result = AuthTypes::WEP_PSK;
+				result = AuthTypes::WPA2_MIXED_PSK;
 
 				return True;
 			}
@@ -836,9 +841,9 @@ namespace AL::Hardware::Pico
 				return True;
 			}
 
-			if (value & 0x04)
+			if (value & 0x01)
 			{
-				result = AuthTypes::WPA2_MIXED_PSK;
+				result = AuthTypes::WEP_PSK;
 
 				return True;
 			}
