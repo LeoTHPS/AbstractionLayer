@@ -159,15 +159,21 @@
 #define _AL_CONCAT(__value1__, __value2__) __value1__##__value2__
 
 #if defined(AL_DEBUG)
-	#if defined(AL_COMPILER_GNU)
-		#define AL_ASSERT(__condition__, __message__) _GLIBCXX_DEBUG_ASSERT((__condition__))
-	#elif defined(AL_COMPILER_MSVC)
-		#define AL_ASSERT(__condition__, __message__) _ASSERT_EXPR((__condition__), L##__message__)
-	#elif defined(AL_COMPILER_CLANG)
-		#define AL_ASSERT(__condition__, __message__) _GLIBCXX_DEBUG_ASSERT((__condition__))
+	#if defined(AL_PLATFORM_PICO)
+		extern "C" void __assert(const char*, int, const char*) __attribute__((__noreturn__));
+
+		#define AL_ASSERT(__condition__, __message__)     ((void)((!!(__condition__)) || (::__assert(__FILE__, __LINE__, __message__), 0)))
+	#else
+		#if defined(AL_COMPILER_GNU)
+			#define AL_ASSERT(__condition__, __message__) _GLIBCXX_DEBUG_ASSERT((__condition__))
+		#elif defined(AL_COMPILER_MSVC)
+			#define AL_ASSERT(__condition__, __message__) _ASSERT_EXPR((__condition__), L##__message__)
+		#elif defined(AL_COMPILER_CLANG)
+			#define AL_ASSERT(__condition__, __message__) _GLIBCXX_DEBUG_ASSERT((__condition__))
+		#endif
 	#endif
 #else
-	#define AL_ASSERT(__condition__, __message__)     ((void)0)
+	#define AL_ASSERT(__condition__, __message__)         ((void)0)
 #endif
 
 #if defined(__has_include)
@@ -227,6 +233,7 @@
 	#include <pico.h>
 
 	#include <pico/time.h> // sleep_us/busy_wait_us
+	#include <pico/assert.h>
 	#include <pico/stdlib.h>
 
 	#if !PICO_NO_FLASH
