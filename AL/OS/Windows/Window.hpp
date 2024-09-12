@@ -1603,7 +1603,7 @@ namespace AL::OS::Windows
 
 		// @throw AL::Exception
 		// @return AL::False on closed
-		Bool Update(TimeSpan delta, Bool block = False)
+		Bool Update(TimeSpan delta)
 		{
 			AL_ASSERT(
 				IsCreated(),
@@ -1618,22 +1618,21 @@ namespace AL::OS::Windows
 			::MSG msg;
 			msg.message = WM_NULL;
 
-			while ((block && ::GetMessageA(&msg, GetHandle(), 0, 0)) || (!block && ::PeekMessageA(&msg, GetHandle(), 0, 0, PM_REMOVE)))
+			while (::PeekMessageA(&msg, GetHandle(), 0, 0, PM_REMOVE))
 			{
 				::TranslateMessage(
 					&msg
 				);
 
-				if (msg.message == WM_QUIT)
-				{
-					isOpen = False;
-
-					return False;
-				}
-
 				::DispatchMessageA(
 					&msg
 				);
+
+				if (!IsOpen())
+				{
+
+					return False;
+				}
 			}
 
 			OnUpdate(
@@ -2722,6 +2721,7 @@ namespace AL::OS::Windows
 
 				case WM_DESTROY:
 					PostQuitMessage(0);
+					isOpen = False;
 					break;
 			}
 
