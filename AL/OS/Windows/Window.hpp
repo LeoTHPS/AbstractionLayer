@@ -2668,6 +2668,10 @@ namespace AL::OS::Windows
 				}
 				break;
 
+				case WM_SETCURSOR:
+					::SetCursor(GetCursor().GetHandle());
+					return TRUE;
+
 				case WM_SETTEXT:
 				{
 					auto lpTitle = reinterpret_cast<const String::Char*>(
