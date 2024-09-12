@@ -1603,7 +1603,7 @@ namespace AL::OS::Windows
 
 		// @throw AL::Exception
 		// @return AL::False on closed
-		Bool Update(TimeSpan delta)
+		Bool Update(TimeSpan delta, Bool block = False)
 		{
 			AL_ASSERT(
 				IsCreated(),
@@ -1618,7 +1618,7 @@ namespace AL::OS::Windows
 			::MSG msg;
 			msg.message = WM_NULL;
 
-			while (::PeekMessageA(&msg, NULL, 0, 0, PM_REMOVE))
+			while ((block && ::GetMessageA(&msg, GetHandle(), 0, 0)) || (!block && ::PeekMessageA(&msg, GetHandle(), 0, 0, PM_REMOVE)))
 			{
 				::TranslateMessage(
 					&msg
