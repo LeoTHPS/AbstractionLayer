@@ -1435,7 +1435,7 @@ namespace AL::OS::Windows::DirectX
 			auto hResourceInfo = ::FindResourceA(
 				hModule,
 				MAKEINTRESOURCEA(resource),
-				RT_BITMAP
+				"Image"
 			);
 
 			if (hResourceInfo == nullptr)
