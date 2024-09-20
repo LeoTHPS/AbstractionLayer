@@ -436,7 +436,7 @@ namespace AL::OS::Windows::DirectX
 		}
 
 		// @throw AL::Exception
-		Void Present(Bool vsync = False)
+		auto Present(Bool vsync = False)
 		{
 			AL_ASSERT(
 				IsCreated(),
@@ -453,13 +453,21 @@ namespace AL::OS::Windows::DirectX
 				0
 			);
 
-			if (FAILED(hResult) && (hResult != DXGI_ERROR_WAS_STILL_DRAWING))
+			if (FAILED(hResult))
 			{
+				switch (hResult)
+				{
+					case DXGI_STATUS_OCCLUDED:
+					case DXGI_ERROR_WAS_STILL_DRAWING:
+						return hResult;
+				}
 
 				throw Exception(
 					"Error presenting swap chain"
 				);
 			}
+
+			return hResult;
 		}
 	};
 }

@@ -19,6 +19,8 @@
 #include "AL/Hardware/Mouse.hpp"
 #include "AL/Hardware/Keyboard.hpp"
 
+#include "AL/Collections/Stack.hpp"
+
 #include <shellapi.h>
 
 #undef PostMessage
@@ -776,45 +778,46 @@ namespace AL::OS::Windows
 			}
 		};
 
-		Bool isOpen            = False;
-		Bool isCreated         = False;
-		Bool isCreating        = False;
-		Bool isClosing         = False;
-		Bool isContentLoaded   = False;
+		Bool                              isOpen            = False;
+		Bool                              isCreated         = False;
+		Bool                              isCreating        = False;
+		Bool                              isClosing         = False;
+		Bool                              isContentLoaded   = False;
 
-		Bool isClosable        = True;
-		Bool isResizable       = True;
-		Bool isMinimizable     = True;
-		Bool isMaximizable     = True;
-		Bool isFileDropEnabled = False;
-		Bool isPaintEnabled    = True;
+		Bool                              isClosable        = True;
+		Bool                              isResizable       = True;
+		Bool                              isMinimizable     = True;
+		Bool                              isMaximizable     = True;
+		Bool                              isFileDropEnabled = False;
+		Bool                              isPaintEnabled    = True;
 
-		Bool isMinimized       = False;
-		Bool isMaximized       = False;
-		Bool isDefaultPosition = True;
+		Bool                              isMinimized       = False;
+		Bool                              isMaximized       = False;
+		Bool                              isDefaultPosition = True;
 
-		::HWND                  hWindow;
-		::WNDCLASSEXA           windowClass;
+		::HWND                            hWindow;
+		::WNDCLASSEXA                     windowClass;
 
 		struct
 		{
 			WindowIcon Big;
 			WindowIcon Small;
-		}                       windowIcon;
-		String                  windowName;
-		String                  windowTitle;
-		WindowCursor            windowCursor;
-		WindowPosition          windowPosition;
-		WindowResolution        windowResolution;
-		WindowColor             windowBackgroundColor;
+		}                                 windowIcon;
+		String                            windowName;
+		String                            windowTitle;
+		WindowCursor                      windowCursor;
+		WindowPosition                    windowPosition;
+		WindowResolution                  windowResolution;
+		WindowColor                       windowBackgroundColor;
 
-		Clipboard               clipboard;
+		Collections::Stack<WindowCursors> cursors;
+		Clipboard                         clipboard;
 
-		Hardware::MouseState    mouseState;
-		Hardware::KeyboardState keyboardState;
+		Hardware::MouseState              mouseState;
+		Hardware::KeyboardState           keyboardState;
 
-		Hardware::MouseEvent    lastMouseEvent;
-		Hardware::KeyboardEvent lastKeyboardEvent;
+		Hardware::MouseEvent              lastMouseEvent;
+		Hardware::KeyboardEvent           lastKeyboardEvent;
 
 		Window(Window&&) = delete;
 		Window(const Window&) = delete;
@@ -863,6 +866,8 @@ namespace AL::OS::Windows
 				*this
 			)
 		{
+			cursors.Push(windowCursor.GetType());
+
 			windowClass.hIcon         = windowIcon.Big.GetHandle();
 			windowClass.hIconSm       = windowIcon.Small.GetHandle();
 			windowClass.hCursor       = windowCursor.GetHandle();
@@ -1345,6 +1350,33 @@ namespace AL::OS::Windows
 					);
 				}
 			}
+		}
+
+		// @throw AL::Exception
+		Void PushCursor(WindowCursors value)
+		{
+			SetCursor(value);
+
+			cursors.Push(value);
+		}
+		// @throw AL::Exception
+		Bool PopCursor()
+		{
+			WindowCursors cursor;
+
+			return PopCursor(cursor);
+		}
+		// @throw AL::Exception
+		Bool PopCursor(WindowCursors& value)
+		{
+			if (cursors.GetSize() == 1)
+				return False;
+
+			SetCursor(*(++cursors.begin()));
+
+			cursors.Pop(value);
+
+			return True;
 		}
 
 		Void EnablePaint(Bool set = True)
@@ -2668,9 +2700,9 @@ namespace AL::OS::Windows
 				}
 				break;
 
-				case WM_SETCURSOR:
-					::SetCursor(GetCursor().GetHandle());
-					return TRUE;
+				// case WM_SETCURSOR:
+				// 	::SetCursor(GetCursor().GetHandle());
+				// 	return TRUE;
 
 				case WM_SETTEXT:
 				{
