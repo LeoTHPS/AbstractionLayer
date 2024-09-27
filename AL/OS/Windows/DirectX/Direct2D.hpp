@@ -1011,7 +1011,7 @@ namespace AL::OS::Windows::DirectX
 			options.debugLevel = debugLevel.Value;
 #endif
 
-			typename Factory::Type* lpFactory;
+			Factory::Type* lpFactory;
 
 			if (FAILED(::D2D1CreateFactory(multithreaded ? ::D2D1_FACTORY_TYPE_MULTI_THREADED : ::D2D1_FACTORY_TYPE_SINGLE_THREADED, &lpFactory)))
 			{
@@ -1021,7 +1021,7 @@ namespace AL::OS::Windows::DirectX
 				);
 			}
 
-			typename DWFactory::Type* lpDWFactory;
+			DWFactory::Type* lpDWFactory;
 
 			if (FAILED(::DWriteCreateFactory(::DWRITE_FACTORY_TYPE_SHARED, __uuidof(typename DWFactory::Type), reinterpret_cast<::IUnknown**>(&lpDWFactory))))
 			{
@@ -1043,7 +1043,7 @@ namespace AL::OS::Windows::DirectX
 				);
 			}
 
-			typename WICFactory::Type* lpWICFactory;
+			WICFactory::Type* lpWICFactory;
 
 			if (FAILED(::CoCreateInstance(CLSID_WICImagingFactory, nullptr, ::CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&lpWICFactory))))
 			{
@@ -1118,7 +1118,7 @@ namespace AL::OS::Windows::DirectX
 				vsync ? ::D2D1_PRESENT_OPTIONS_NONE : ::D2D1_PRESENT_OPTIONS_IMMEDIATELY
 			);
 
-			typename HWNDTarget::Type* lpTarget;
+			HWNDTarget::Type* lpTarget;
 
 			if (FAILED(GetFactory()->CreateHwndRenderTarget(properties, hwndProperties, &lpTarget)))
 			{
@@ -1165,7 +1165,7 @@ namespace AL::OS::Windows::DirectX
 			);
 
 			::HRESULT hResult;
-			typename Target::Type* lpTarget;
+			Target::Type* lpTarget;
 
 			if (FAILED(hResult = GetFactory()->CreateDxgiSurfaceRenderTarget(lpSurface, properties, &lpTarget)))
 			{
@@ -1207,7 +1207,7 @@ namespace AL::OS::Windows::DirectX
 				"Direct2D target not created"
 			);
 
-			typename Layer::Type* lpLayer;
+			Layer::Type* lpLayer;
 
 			if (FAILED(GetTarget()->CreateLayer(&lpLayer)))
 			{
@@ -1220,39 +1220,6 @@ namespace AL::OS::Windows::DirectX
 			layer = lpLayer;
 		}
 
-		// @throw AL::Exception 
-		Void CreateSolidColorBrush(SolidColorBrush& brush, Drawing::Color color)
-		{
-			AL_ASSERT(
-				IsCreated(),
-				"Direct2D not created"
-			);
-
-			AL_ASSERT(
-				IsTargetCreated(),
-				"Direct2D target not created"
-			);
-
-			typename SolidColorBrush::Type* lpBrush;
-
-			if (FAILED(GetTarget()->CreateSolidColorBrush(
-				::D2D1::ColorF(
-					color.R / 255.0f,
-					color.G / 255.0f,
-					color.B / 255.0f,
-					color.A / 255.0f
-				),
-				&lpBrush
-			)))
-			{
-
-				throw Exception(
-					"Error creating SolidColorBrush"
-				);
-			}
-
-			brush = lpBrush;
-		}
 		// @throw AL::Exception
 		Void CreateBitmapBrush(BitmapBrush& brush, const Bitmap& bitmap, Float opacity = 1.0f, const Transform& transform = Transform::Identity())
 		{
@@ -1266,7 +1233,7 @@ namespace AL::OS::Windows::DirectX
 				"Direct2D target not created"
 			);
 
-			typename BitmapBrush::Type* lpBrush;
+			BitmapBrush::Type* lpBrush;
 
 			if (FAILED(GetTarget()->CreateBitmapBrush(
 				bitmap,
@@ -1281,6 +1248,39 @@ namespace AL::OS::Windows::DirectX
 
 				throw Exception(
 					"Error creating BitmapBrush"
+				);
+			}
+
+			brush = lpBrush;
+		}
+		// @throw AL::Exception 
+		Void CreateSolidColorBrush(SolidColorBrush& brush, Drawing::Color color)
+		{
+			AL_ASSERT(
+				IsCreated(),
+				"Direct2D not created"
+			);
+
+			AL_ASSERT(
+				IsTargetCreated(),
+				"Direct2D target not created"
+			);
+
+			SolidColorBrush::Type* lpBrush;
+
+			if (FAILED(GetTarget()->CreateSolidColorBrush(
+				::D2D1::ColorF(
+					color.R / 255.0f,
+					color.G / 255.0f,
+					color.B / 255.0f,
+					color.A / 255.0f
+				),
+				&lpBrush
+			)))
+			{
+
+				throw Exception(
+					"Error creating SolidColorBrush"
 				);
 			}
 
@@ -1324,7 +1324,7 @@ namespace AL::OS::Windows::DirectX
 				);
 			}
 
-			typename LinearGradientBrush::Type* lpBrush;
+			LinearGradientBrush::Type* lpBrush;
 
 			if (FAILED(GetTarget()->CreateLinearGradientBrush(
 				::D2D1::LinearGradientBrushProperties(
@@ -1654,7 +1654,7 @@ namespace AL::OS::Windows::DirectX
 				"Direct2D target not created"
 			);
 
-			typename TextFormat::Type* lpFormat;
+			TextFormat::Type* lpFormat;
 
 			if (FAILED(GetDWFactory()->CreateTextFormat(fontName.ToWString().GetCString(), nullptr, static_cast<::DWRITE_FONT_WEIGHT>(fontWeight), static_cast<::DWRITE_FONT_STYLE>(fontStyle), static_cast<::DWRITE_FONT_STRETCH>(fontStretch), fontSize, L"", &lpFormat)))
 			{
@@ -1691,7 +1691,7 @@ namespace AL::OS::Windows::DirectX
 				"Direct2D target not created"
 			);
 
-			typename TextLayout::Type* lpLayout;
+			TextLayout::Type* lpLayout;
 
 			if (FAILED(GetDWFactory()->CreateTextLayout(text.GetCString(), static_cast<::UINT32>(text.GetLength()), textFormat, width, height, &lpLayout)))
 			{
@@ -1718,7 +1718,7 @@ namespace AL::OS::Windows::DirectX
 				"Direct2D target not created"
 			);
 
-			typename TransformedGeometry::Type* lpGeomtry;
+			TransformedGeometry::Type* lpGeomtry;
 
 			if (FAILED(GetFactory()->CreateTransformedGeometry(sourceGeometry, transform, &lpGeomtry)))
 			{
@@ -1744,7 +1744,7 @@ namespace AL::OS::Windows::DirectX
 				"Direct2D target not created"
 			);
 
-			typename PathGeometry::Type* lpGeometry;
+			PathGeometry::Type* lpGeometry;
 
 			if (FAILED(GetFactory()->CreatePathGeometry(&lpGeometry)))
 			{
@@ -1769,7 +1769,7 @@ namespace AL::OS::Windows::DirectX
 				"Direct2D target not created"
 			);
 
-			typename EllipseGeometry::Type* lpGeometry;
+			EllipseGeometry::Type* lpGeometry;
 
 			if (FAILED(GetFactory()->CreateEllipseGeometry(
 				::D2D1::Ellipse(
@@ -1802,7 +1802,7 @@ namespace AL::OS::Windows::DirectX
 				"Direct2D target not created"
 			);
 
-			typename RectangleGeometry::Type* lpGeometry;
+			RectangleGeometry::Type* lpGeometry;
 
 			if (FAILED(GetFactory()->CreateRectangleGeometry(
 				::D2D1::RectF(
@@ -2384,7 +2384,7 @@ namespace AL::OS::Windows::DirectX
 				);
 			}
 
-			typename Bitmap::Type* lpBitmap;
+			Bitmap::Type* lpBitmap;
 
 			if (FAILED(GetTarget()->CreateBitmapFromWicBitmap(lpWICConverter, nullptr, &lpBitmap)))
 			{

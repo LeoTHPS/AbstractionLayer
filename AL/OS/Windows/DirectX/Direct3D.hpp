@@ -72,15 +72,20 @@ namespace AL::OS::Windows::DirectX
 	};
 
 	template<typename T, typename TReleaser = ResourceReleaser<T>>
-	using Direct3D11Resource = Resource<T, TReleaser>;
+	using Direct3DResource = Resource<T, TReleaser>;
+
+	typedef Direct3DResource<::ID3D11Texture1D>          Direct3DTexture1D;
+	typedef Direct3DResource<::ID3D11Texture2D>          Direct3DTexture2D;
+	typedef Direct3DResource<::ID3D11Texture3D>          Direct3DTexture3D;
+	typedef Direct3DResource<::ID3D11ShaderResourceView> Direct3DShaderResourceView;
 
 	class Direct3D
 	{
-		typedef Direct3D11Resource<ID3D11Device>           Device;
-		typedef Direct3D11Resource<ID3D11DeviceContext>    DeviceContext;
+		typedef Direct3DResource<::ID3D11Device>           Device;
+		typedef Direct3DResource<::ID3D11DeviceContext>    DeviceContext;
 
-		typedef Direct3D11Resource<IDXGISwapChain>         SwapChain;
-		typedef Direct3D11Resource<ID3D11RenderTargetView> TargetView;
+		typedef Direct3DResource<::IDXGISwapChain>         SwapChain;
+		typedef Direct3DResource<::ID3D11RenderTargetView> TargetView;
 
 		Device        device;
 		SwapChain     swapChain;
@@ -217,23 +222,32 @@ namespace AL::OS::Windows::DirectX
 					throw NotImplementedException();
 			}
 
-			msaaLevel = Math::Clamp<uint32>(
-				msaaLevel,
-				1,
-				D3D11_MAX_MULTISAMPLE_SAMPLE_COUNT
-			);
-
-			::DXGI_SWAP_CHAIN_DESC description = { };
-			description.BufferDesc.Width                   = 0;
-			description.BufferDesc.Height                  = 0;
-			description.BufferDesc.Format                  = ::DXGI_FORMAT_B8G8R8A8_UNORM;
-			description.BufferDesc.Scaling                 = ::DXGI_MODE_SCALING_UNSPECIFIED;
-			description.BufferDesc.ScanlineOrdering        = ::DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-			description.BufferDesc.RefreshRate.Numerator   = 0;
-			description.BufferDesc.RefreshRate.Denominator = 1;
-			description.SampleDesc.Count                   = static_cast<::UINT>(
-				msaaLevel
-			);
+			::DXGI_SWAP_CHAIN_DESC description =
+			{
+				.BufferDesc =
+				{
+					.Width       = 0,
+					.Height      = 0,
+					.RefreshRate =
+					{
+						.Numerator   = 0,
+						.Denominator = 1
+					},
+					.Format           = ::DXGI_FORMAT_B8G8R8A8_UNORM,
+					.ScanlineOrdering = ::DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED,
+					.Scaling          = ::DXGI_MODE_SCALING_UNSPECIFIED
+				},
+				.SampleDesc =
+				{
+					.Count = Math::Clamp<::UINT>(static_cast<::UINT>(msaaLevel), 1, D3D11_MAX_MULTISAMPLE_SAMPLE_COUNT)
+				},
+				.BufferUsage  = DXGI_USAGE_RENDER_TARGET_OUTPUT,
+				.BufferCount  = 1,
+				.OutputWindow = hWnd,
+				.Windowed     = TRUE,
+				.SwapEffect   = ::DXGI_SWAP_EFFECT_DISCARD,
+				.Flags        = ::DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH
+			};
 
 			switch (antiAliasing)
 			{
@@ -253,16 +267,9 @@ namespace AL::OS::Windows::DirectX
 					throw NotImplementedException();
 			}
 
-			//description.Flags        |= ::DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-			description.Windowed     = TRUE;
-			description.SwapEffect   = ::DXGI_SWAP_EFFECT_DISCARD;
-			description.BufferCount  = 1;
-			description.BufferUsage  = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-			description.OutputWindow = hWnd;
-
-			typename Device::Type*        lpDevice;
-			typename SwapChain::Type*     lpSwapChain;
-			typename DeviceContext::Type* lpDeviceContext;
+			Device::Type*        lpDevice;
+			SwapChain::Type*     lpSwapChain;
+			DeviceContext::Type* lpDeviceContext;
 
 			if (FAILED(::D3D11CreateDeviceAndSwapChain(nullptr, ::D3D_DRIVER_TYPE_HARDWARE, nullptr, flags.Value, &_featureLevel, 1, D3D11_SDK_VERSION, &description, &lpSwapChain, &lpDevice, nullptr, &lpDeviceContext)))
 			{
@@ -375,7 +382,7 @@ namespace AL::OS::Windows::DirectX
 				);
 			}
 
-			typename TargetView::Type* lpTargetView;
+			TargetView::Type* lpTargetView;
 
 			if (FAILED(GetDevice()->CreateRenderTargetView(lpTexture, nullptr, &lpTargetView)))
 			{
@@ -409,6 +416,91 @@ namespace AL::OS::Windows::DirectX
 
 				targetView.Release();
 			}
+		}
+
+		// @throw AL::Exception
+		Void CreateTexture2D(Direct3DTexture2D& texture, const Void* lpBuffer, uint32 width, uint32 height, ::DXGI_FORMAT format)
+		{
+			AL_ASSERT(
+				IsCreated(),
+				"Direct3D not created"
+			);
+
+			AL_ASSERT(
+				IsTargetCreated(),
+				"Direct3D target not created"
+			);
+
+			Direct3DTexture2D::Type* resource;
+			::D3D11_TEXTURE2D_DESC   description =
+			{
+				.Width      = width,
+				.Height     = height,
+				.MipLevels  = 1,
+				.ArraySize  = 1,
+				.Format     = format,
+				.SampleDesc =
+				{
+					.Count = 1
+				},
+				.Usage     = ::D3D11_USAGE_DEFAULT,
+				.BindFlags = ::D3D11_BIND_SHADER_RESOURCE
+			};
+			::D3D11_SUBRESOURCE_DATA resource_data =
+			{
+				.pSysMem          = lpBuffer,
+				.SysMemPitch      = width * 4,
+				.SysMemSlicePitch = 0
+			};
+
+			if (FAILED(GetDevice()->CreateTexture2D(&description, &resource_data, &resource)))
+			{
+
+				throw Exception(
+					"Error creating ID3D11Texture2D"
+				);
+			}
+
+			texture = resource;
+		}
+
+		// @throw AL::Exception
+		Void CreateShaderResourceView(Direct3DShaderResourceView& view, const Direct3DTexture2D& texture, ::DXGI_FORMAT format)
+		{
+			AL_ASSERT(
+				IsCreated(),
+				"Direct3D not created"
+			);
+
+			AL_ASSERT(
+				IsTargetCreated(),
+				"Direct3D target not created"
+			);
+
+			::D3D11_TEXTURE2D_DESC texture_description;
+			texture->GetDesc(&texture_description);
+
+			Direct3DShaderResourceView::Type* resource;
+			::D3D11_SHADER_RESOURCE_VIEW_DESC description =
+			{
+				.Format        = format,
+				.ViewDimension = ::D3D11_SRV_DIMENSION_TEXTURE2D,
+				.Texture2D =
+				{
+					.MostDetailedMip = 0,
+					.MipLevels       = texture_description.MipLevels
+				}
+			};
+
+			if (FAILED(GetDevice()->CreateShaderResourceView(texture, &description, &resource)))
+			{
+
+				throw Exception(
+					"Error creating ID3D11ShaderResourceView"
+				);
+			}
+
+			view = resource;
 		}
 
 		Void Clear(Drawing::Color color)
