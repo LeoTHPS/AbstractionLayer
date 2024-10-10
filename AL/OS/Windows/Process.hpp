@@ -1006,7 +1006,7 @@ namespace AL::OS::Windows
 				ProcessThread::Start(
 					thread,
 					process,
-					GetProcAddress(GetModuleHandleA("kernel32.dll"), "LoadLibraryA"),
+					reinterpret_cast<Void*>(::GetProcAddress(::GetModuleHandleA("kernel32.dll"), "LoadLibraryA")),
 					lpPath
 				);
 
