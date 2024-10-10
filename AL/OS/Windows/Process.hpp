@@ -759,11 +759,15 @@ namespace AL::OS::Windows
 	{
 		Bool     isOpen = False;
 
+		::HANDLE handle;
 		Process* lpProcess;
 
 		ProcessThread(const ProcessThread&) = delete;
 
 	public:
+		// @throw AL::Exception
+		static Void Start(ProcessThread& thread, Process& process, Void* address, Void* param = nullptr);
+
 		ProcessThread();
 
 		ProcessThread(ProcessThread&& processThread);
@@ -775,7 +779,10 @@ namespace AL::OS::Windows
 			return isOpen;
 		}
 
-		auto GetHandle() const;
+		auto GetHandle() const
+		{
+			return handle;
+		}
 
 		auto& GetProcess()
 		{
@@ -785,6 +792,9 @@ namespace AL::OS::Windows
 		{
 			return *lpProcess;
 		}
+
+		// @throw AL::Exception
+		Bool Join(TimeSpan maxWaitTime = TimeSpan::Infinite);
 
 		ProcessThread& operator = (ProcessThread&& processThread);
 
@@ -858,8 +868,36 @@ namespace AL::OS::Windows
 			}
 			else
 			{
-				// TODO: implement
-				throw NotImplementedException();
+				ProcessMemory memory;
+
+				if (!ProcessMemory::Open(memory, process, ProcessMemoryAccessModes::ReadWrite))
+					throw Exception("Access denied");
+
+				auto lpPath = memory.Allocate(
+					nullptr,
+					path.GetString().GetSize(),
+					ProcessMemoryAllocationTypes::Commit | ProcessMemoryAllocationTypes::Reserve,
+					ProcessMemoryProtections::Read_Write
+				);
+
+				memory.Write(
+					lpPath,
+					path.GetString().GetCString(),
+					path.GetString().GetSize()
+				);
+
+				ProcessThread thread;
+
+				ProcessThread::Start(
+					thread,
+					process,
+					GetProcAddress(GetModuleHandleA("kernel32.dll"), "LoadLibraryA"),
+					lpPath
+				);
+
+				thread.Join();
+
+				memory.Release(lpPath);
 			}
 
 			return True;
