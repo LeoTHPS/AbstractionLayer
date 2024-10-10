@@ -764,15 +764,53 @@ namespace AL::OS::Windows
 
 		ProcessThread(const ProcessThread&) = delete;
 
+		ProcessThread(Process& process, ::HANDLE handle)
+			: isOpen(True),
+			handle(handle),
+			lpProcess(&process)
+		{
+		}
+
 	public:
 		// @throw AL::Exception
-		static Void Start(ProcessThread& thread, Process& process, Void* address, Void* param = nullptr);
+		static Void Start(ProcessThread& thread, Process& process, Void* address, Void* param = nullptr)
+		{
+			::HANDLE hThread;
 
-		ProcessThread();
+			if ((hThread = ::CreateRemoteThread(process.GetHandle(), nullptr, 0, reinterpret_cast<::LPTHREAD_START_ROUTINE>(address), param, 0, nullptr)) == NULL)
+			{
 
-		ProcessThread(ProcessThread&& processThread);
+				throw SystemException(
+					"CreateRemoteThread"
+				);
+			}
 
-		virtual ~ProcessThread();
+			thread = ProcessThread(
+				process,
+				hThread
+			);
+		}
+
+		ProcessThread()
+		{
+		}
+
+		ProcessThread(ProcessThread&& processThread)
+			: isOpen(processThread.isOpen),
+			handle(processThread.handle),
+			lpProcess(processThread.lpProcess)
+		{
+			processThread.isOpen = False;
+		}
+
+		virtual ~ProcessThread()
+		{
+			if (IsOpen())
+			{
+
+				Close();
+			}
+		}
 
 		Bool IsOpen() const
 		{
@@ -794,11 +832,88 @@ namespace AL::OS::Windows
 		}
 
 		// @throw AL::Exception
-		Bool Join(TimeSpan maxWaitTime = TimeSpan::Infinite);
+		// @return AL::False if time elapsed and ProcessThread is still running
+		Bool Join(TimeSpan maxWaitTime = TimeSpan::Infinite)
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"ProcessThread not open"
+			);
 
-		ProcessThread& operator = (ProcessThread&& processThread);
+			switch (::WaitForSingleObject(GetHandle(), static_cast<::DWORD>(maxWaitTime.ToMilliseconds())))
+			{
+				case WAIT_FAILED:    throw SystemException("WaitForSingleObject");
+				case WAIT_TIMEOUT:   return False;
+				case WAIT_ABANDONED: throw Exception("Error calling 'WaitForSingleObject': WAIT_ABANDONED");
+			}
 
-		Bool operator == (const ProcessThread& processThread) const;
+			return True;
+		}
+
+		// @throw AL::Exception
+		Void Terminate(uint32 exitCode)
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"ProcessThread not open"
+			);
+
+			if (::TerminateThread(GetHandle(), static_cast<::DWORD>(exitCode)) == 0)
+			{
+
+				throw SystemException(
+					"TerminateThread"
+				);
+			}
+
+			Close();
+		}
+
+		Void Close()
+		{
+			if (IsOpen())
+			{
+				::CloseHandle(
+					GetHandle()
+				);
+
+				isOpen = False;
+			}
+		}
+
+		ProcessThread& operator = (ProcessThread&& processThread)
+		{
+			if (IsOpen())
+			{
+
+				Close();
+			}
+
+			isOpen = processThread.isOpen;
+			processThread.isOpen = False;
+
+			handle    = processThread.handle;
+			lpProcess = processThread.lpProcess;
+
+			return *this;
+		}
+
+		Bool operator == (const ProcessThread& processThread) const
+		{
+			if (IsOpen() != processThread.IsOpen())
+			{
+
+				return False;
+			}
+
+			if (GetHandle() != processThread.GetHandle())
+			{
+
+				return False;
+			}
+
+			return True;
+		}
 		Bool operator != (const ProcessThread& processThread) const
 		{
 			if (operator==(processThread))
