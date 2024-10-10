@@ -105,28 +105,6 @@ namespace AL::OS::Windows
 					"NativeThread already running"
 				);
 
-				auto function_detour = [](Void* _lpParam)
-				{
-					auto lpNativeThread = reinterpret_cast<NativeThread*>(
-						_lpParam
-					);
-
-					lpNativeThread->function();
-
-					lpNativeThread->isRunning = False;
-
-					if (lpNativeThread->IsDetatched())
-					{
-						::CloseHandle(
-							lpNativeThread->hThread
-						);
-
-						delete lpNativeThread;
-					}
-
-					return (DWORD)(0);
-				};
-
 				if (hThread != NULL)
 				{
 
@@ -135,7 +113,7 @@ namespace AL::OS::Windows
 					);
 				}
 
-				if ((hThread = ::CreateThread(nullptr, 0, function_detour, this, 0, nullptr)) == NULL)
+				if ((hThread = ::CreateThread(nullptr, 0, &Detour, this, 0, nullptr)) == NULL)
 				{
 
 					throw SystemException(
@@ -199,6 +177,29 @@ namespace AL::OS::Windows
 				}
 
 				return !IsRunning();
+			}
+
+		private:
+			static ::DWORD WINAPI Detour(::LPVOID lpThreadParameter)
+			{
+				auto lpNativeThread = reinterpret_cast<NativeThread*>(
+					lpThreadParameter
+				);
+
+				lpNativeThread->function();
+
+				lpNativeThread->isRunning = False;
+
+				if (lpNativeThread->IsDetatched())
+				{
+					::CloseHandle(
+						lpNativeThread->hThread
+					);
+
+					delete lpNativeThread;
+				}
+
+				return 0;
 			}
 		};
 
