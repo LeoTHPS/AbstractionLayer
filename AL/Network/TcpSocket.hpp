@@ -595,26 +595,6 @@ namespace AL::Network
 			remoteEP    = socket.GetRemoteEndPoint();
 			isConnected = True;
 #elif defined(AL_PLATFORM_LINUX) || defined(AL_PLATFORM_WINDOWS)
-			auto isBlocking = IsBlocking();
-
-			if (!isBlocking)
-			{
-				try
-				{
-					SetBlocking(
-						True
-					);
-				}
-				catch (Exception& exception)
-				{
-
-					throw Exception(
-						Move(exception),
-						"Error setting blocking state"
-					);
-				}
-			}
-
 			auto address = GetNativeSocketAddress(
 				ep
 			);
@@ -659,24 +639,6 @@ namespace AL::Network
 	#endif
 
 			isConnected = True;
-
-			if (!isBlocking)
-			{
-				try
-				{
-					SetBlocking(
-						False
-					);
-				}
-				catch (Exception& exception)
-				{
-
-					throw Exception(
-						Move(exception),
-						"Error setting blocking state"
-					);
-				}
-			}
 
 			try
 			{
