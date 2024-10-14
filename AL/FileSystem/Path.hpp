@@ -427,7 +427,7 @@ namespace AL::FileSystem
 			{
 				if (path[i] == '.')
 				{
-					fileNameEndIndex = i - 1;
+					fileNameEndIndex = i;
 
 					break;
 				}
