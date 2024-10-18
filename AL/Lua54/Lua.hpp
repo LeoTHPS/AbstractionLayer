@@ -123,6 +123,9 @@ namespace AL::Lua54
 			}
 		}
 
+		T Execute(TArgs ... args) const;
+		T ExecuteProtected(Bool& success, TArgs ... args) const;
+
 		operator Bool() const
 		{
 			if (lua == nullptr)
@@ -134,7 +137,19 @@ namespace AL::Lua54
 			return True;
 		}
 
-		T operator () (TArgs ... args) const;
+		T operator () (TArgs ... args) const
+		{
+			return Execute(
+				AL::Forward<TArgs>(args) ...
+			);
+		}
+		T operator () (Bool& success, TArgs ... args) const
+		{
+			return ExecuteProtected(
+				success,
+				AL::Forward<TArgs>(args) ...
+			);
+		}
 
 		Function& operator = (Function&& function)
 		{
@@ -391,6 +406,16 @@ namespace AL::Lua54
 						0
 					);
 				}
+				static constexpr Void ExecuteProtected(::lua_State* lua, Bool& success, T_ARGS ... args)
+				{
+					(Push<T_ARGS>(lua, Forward<T_ARGS>(args)), ...);
+
+					success = Extensions::pcall(
+						lua,
+						sizeof ...(T_ARGS),
+						0
+					);
+				}
 			};
 			template<typename T_RETURN, typename ... T_ARGS>
 			class Detour<T_RETURN(T_ARGS ...)>
@@ -411,6 +436,21 @@ namespace AL::Lua54
 						1
 					);
 				}
+				static constexpr T_RETURN ExecuteProtected(::lua_State* lua, Bool& success, T_ARGS ... args)
+				{
+					(Push<T_ARGS>(lua, Forward<T_ARGS>(args)), ...);
+
+					success = Extensions::pcall(
+						lua,
+						sizeof ...(T_ARGS),
+						1
+					);
+
+					return Peek<T_RETURN>(
+						lua,
+						1
+					);
+				}
 			};
 			template<typename ... T_RETURN, typename ... T_ARGS>
 			class Detour<Collections::Tuple<T_RETURN ...>(T_ARGS ...)>
@@ -420,6 +460,15 @@ namespace AL::Lua54
 				{
 					return Execute(
 						lua,
+						Forward<T_ARGS>(args) ...,
+						typename Make_Index_Sequence<sizeof ...(T_RETURN)>::Type {}
+					);
+				}
+				static constexpr Collections::Tuple<T_RETURN ...> ExecuteProtected(::lua_State* lua, Bool& success, T_ARGS ... args)
+				{
+					return ExecuteProtected(
+						lua,
+						success,
 						Forward<T_ARGS>(args) ...,
 						typename Make_Index_Sequence<sizeof ...(T_RETURN)>::Type {}
 					);
@@ -450,6 +499,21 @@ namespace AL::Lua54
 						Get<INDEXES>(lua) ...
 					);
 				}
+				template<size_t ... INDEXES>
+				static constexpr Collections::Tuple<T_RETURN ...> ExecuteProtected(::lua_State* lua, Bool& success, T_ARGS ... args, Index_Sequence<INDEXES ...>)
+				{
+					(Push<T_ARGS>(lua, Forward<T_ARGS>(args)), ...);
+
+					success = Extensions::pcall(
+						lua,
+						sizeof ...(T_ARGS),
+						sizeof ...(T_RETURN)
+					);
+
+					return Collections::Tuple<T_RETURN ...>(
+						Get<INDEXES>(lua) ...
+					);
+				}
 			};
 
 		public:
@@ -457,6 +521,14 @@ namespace AL::Lua54
 			{
 				return Detour<T(TArgs ...)>::Execute(
 					lua,
+					Forward<TArgs>(args) ...
+				);
+			}
+			static constexpr T ExecuteProtected(::lua_State* lua, Bool& success, TArgs ... args)
+			{
+				return Detour<T(TArgs ...)>::ExecuteProtected(
+					lua,
+					success,
 					Forward<TArgs>(args) ...
 				);
 			}
@@ -728,10 +800,6 @@ namespace AL::Lua54
 				);
 			}
 
-#if defined(AL_COMPILER_GNU)
-	#pragma GCC diagnostic push
-	#pragma GCC diagnostic ignored "-Wunused-function"
-#endif
 			static Bool             pcall(::lua_State* lua, size_t argCount, size_t returnCount)
 			{
 				switch (::lua_pcall(lua, static_cast<int>(argCount & Integer<int>::SignedCastMask), static_cast<int>(returnCount & Integer<int>::SignedCastMask), 0))
@@ -748,9 +816,6 @@ namespace AL::Lua54
 
 				return True;
 			}
-#if defined(AL_COMPILER_GNU)
-	#pragma GCC diagnostic pop
-#endif
 		};
 
 		template<typename T>
@@ -1135,6 +1200,57 @@ namespace AL::Lua54
 
 			return LuaFunction<F>::Execute(
 				GetHandle(),
+				Forward<TArgs>(args) ...
+			);
+		}
+
+		template<auto F, typename ... TArgs>
+		auto CallGlobalFunctionProtected(const String& name, Bool& success, TArgs ... args)
+		{
+			AL_ASSERT(
+				IsCreated(),
+				"Lua not created"
+			);
+
+			typedef decltype(F) T;
+
+			static_assert(
+				Is_CFunction<T>::Value || Is_LuaFunction<T>::Value,
+				"Type is not a function"
+			);
+
+			Extensions::getGlobal(
+				GetHandle(),
+				name
+			);
+
+			return LuaFunction<T>::ExecuteProtected(
+				GetHandle(),
+				success,
+				Forward<TArgs>(args) ...
+			);
+		}
+		template<typename F, typename ... TArgs>
+		auto CallGlobalFunctionProtected(const String& name, Bool& success, TArgs ... args)
+		{
+			AL_ASSERT(
+				IsCreated(),
+				"Lua not created"
+			);
+
+			static_assert(
+				Is_CFunction<F>::Value || Is_LuaFunction<F>::Value,
+				"Type is not a function"
+			);
+
+			Extensions::getGlobal(
+				GetHandle(),
+				name
+			);
+
+			return LuaFunction<F>::ExecuteProtected(
+				GetHandle(),
+				success,
 				Forward<TArgs>(args) ...
 			);
 		}
@@ -1540,7 +1656,7 @@ namespace AL::Lua54
 }
 
 template<typename T, typename ... TArgs>
-inline T AL::Lua54::Function<T(TArgs ...)>::operator () (TArgs ... args) const
+inline T AL::Lua54::Function<T(TArgs ...)>::Execute(TArgs ... args) const
 {
 	::lua_rawgeti(
 		lua,
@@ -1550,6 +1666,21 @@ inline T AL::Lua54::Function<T(TArgs ...)>::operator () (TArgs ... args) const
 
 	return Lua::LuaFunction<T(TArgs ...)>::Execute(
 		lua,
+		Forward<TArgs>(args) ...
+	);
+}
+template<typename T, typename ... TArgs>
+inline T AL::Lua54::Function<T(TArgs ...)>::ExecuteProtected(Bool& success, TArgs ... args) const
+{
+	::lua_rawgeti(
+		lua,
+		LUA_REGISTRYINDEX,
+		reference
+	);
+
+	return Lua::LuaFunction<T(TArgs ...)>::ExecuteProtected(
+		lua,
+		success,
 		Forward<TArgs>(args) ...
 	);
 }
