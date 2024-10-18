@@ -732,14 +732,21 @@ namespace AL::Lua54
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wunused-function"
 #endif
-			static Void             pcall(::lua_State* lua, size_t argCount, size_t returnCount)
+			static Bool             pcall(::lua_State* lua, size_t argCount, size_t returnCount)
 			{
-				::lua_pcall(
-					lua,
-					static_cast<int>(argCount & Integer<int>::SignedCastMask),
-					static_cast<int>(returnCount & Integer<int>::SignedCastMask),
-					0
-				);
+				switch (::lua_pcall(lua, static_cast<int>(argCount & Integer<int>::SignedCastMask), static_cast<int>(returnCount & Integer<int>::SignedCastMask), 0))
+				{
+					case 0:
+						break;
+
+					case LUA_ERRRUN:
+						return False;
+
+					default:
+						throw Exception(lua, "lua_pcall");
+				}
+
+				return True;
 			}
 #if defined(AL_COMPILER_GNU)
 	#pragma GCC diagnostic pop
