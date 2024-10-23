@@ -13,6 +13,16 @@
 
 extern "C"
 {
+	typedef struct _THREAD_BASIC_INFORMATION
+	{
+		NTSTATUS                ExitStatus;
+		PVOID                   TebBaseAddress;
+		CLIENT_ID               ClientId;
+		KAFFINITY               AffinityMask;
+		KPRIORITY               Priority;
+		KPRIORITY               BasePriority;
+	} THREAD_BASIC_INFORMATION, *PTHREAD_BASIC_INFORMATION;
+
 	NTSTATUS NTAPI RtlAdjustPrivilege(ULONG ulPrivilege, BOOLEAN bEnable, BOOLEAN bCurrentThread, PBOOLEAN pbOldValue);
 
 	NTSTATUS NTAPI NtQueryTimerResolution(PULONG pulMaximumResolution, PULONG pulMinimumResolution, PULONG pulCurrentResolution);
