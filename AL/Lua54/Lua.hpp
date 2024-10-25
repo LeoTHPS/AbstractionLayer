@@ -2,6 +2,7 @@
 #include "AL/Common.hpp"
 
 #include "AL/Collections/Tuple.hpp"
+#include "AL/Collections/Dictionary.hpp"
 
 #if !defined(AL_PLATFORM_PICO)
 	#include "AL/FileSystem/Path.hpp"
@@ -257,6 +258,20 @@ namespace AL::Lua54
 		All
 	};
 
+	template<typename T_KEY, typename T_VALUE>
+	using Table = Collections::Dictionary<T_KEY, T_VALUE>;
+
+	template<typename ... T>
+	using Tuple = Collections::Tuple<T ...>;
+
+	template<typename ... T>
+	class Object
+		: public Tuple<T ...>
+	{
+	public:
+		using Tuple<T ...>::Tuple;
+	};
+
 	class Lua
 	{
 		template<typename F>
@@ -283,34 +298,6 @@ namespace AL::Lua54
 		{
 			template<typename T>
 			class Detour;
-			template<typename T, typename ... T_ARGS>
-			class Detour<T(*)(T_ARGS ...)>
-			{
-			public:
-				static int Execute(::lua_State* lua)
-				{
-					return Execute(
-						lua,
-						typename Make_Index_Sequence<sizeof ...(T_ARGS)>::Type {}
-					);
-				}
-
-			private:
-				template<size_t ... INDEXES>
-				static int Execute(::lua_State* lua, Index_Sequence<INDEXES ...>)
-				{
-					auto value = F(
-						Get<INDEXES, T_ARGS ...>(lua) ...
-					);
-
-					Push<T>(
-						lua,
-						Forward<T>(value)
-					);
-
-					return 1;
-				}
-			};
 			template<typename ... T_ARGS>
 			class Detour<Void(*)(T_ARGS ...)>
 			{
@@ -334,33 +321,26 @@ namespace AL::Lua54
 					return 0;
 				}
 			};
-			template<typename ... T_RETURN, typename ... T_ARGS>
-			class Detour<Collections::Tuple<T_RETURN ...>(*)(T_ARGS ...)>
+			template<typename T, typename ... T_ARGS>
+			class Detour<T(*)(T_ARGS ...)>
 			{
 			public:
 				static int Execute(::lua_State* lua)
 				{
 					return Execute(
 						lua,
-						typename Make_Index_Sequence<sizeof ...(T_RETURN)>::Type {},
 						typename Make_Index_Sequence<sizeof ...(T_ARGS)>::Type {}
 					);
 				}
 
 			private:
-				template<size_t ... I_RETURN, size_t ... I_ARGS>
-				static int Execute(::lua_State* lua, Index_Sequence<I_RETURN ...>, Index_Sequence<I_ARGS ...>)
+				template<size_t ... INDEXES>
+				static int Execute(::lua_State* lua, Index_Sequence<INDEXES ...>)
 				{
-					auto value = F(
-						Get<I_ARGS, T_ARGS ...>(lua) ...
-					);
-
-					PushTuple<T_RETURN ...>(
+					return Push<T>(
 						lua,
-						value
+						F(Get<INDEXES, T_ARGS ...>(lua) ...)
 					);
-
-					return sizeof ...(T_RETURN);
 				}
 			};
 
@@ -428,90 +408,25 @@ namespace AL::Lua54
 					Extensions::call(
 						lua,
 						sizeof ...(T_ARGS),
-						1
+						Get_Stack_Size<T_RETURN>::Value
 					);
 
-					return Peek<T_RETURN>(
-						lua,
-						1
+					return Pop<T_RETURN>(
+						lua
 					);
 				}
 				static constexpr T_RETURN ExecuteProtected(::lua_State* lua, Bool& success, T_ARGS ... args)
 				{
 					(Push<T_ARGS>(lua, Forward<T_ARGS>(args)), ...);
 
-					success = Extensions::pcall(
+					Extensions::pcall(
 						lua,
 						sizeof ...(T_ARGS),
-						1
+						Get_Stack_Size<T_RETURN>::Value
 					);
 
-					return Peek<T_RETURN>(
-						lua,
-						1
-					);
-				}
-			};
-			template<typename ... T_RETURN, typename ... T_ARGS>
-			class Detour<Collections::Tuple<T_RETURN ...>(T_ARGS ...)>
-			{
-			public:
-				static constexpr Collections::Tuple<T_RETURN ...> Execute(::lua_State* lua, T_ARGS ... args)
-				{
-					return Execute(
-						lua,
-						Forward<T_ARGS>(args) ...,
-						typename Make_Index_Sequence<sizeof ...(T_RETURN)>::Type {}
-					);
-				}
-				static constexpr Collections::Tuple<T_RETURN ...> ExecuteProtected(::lua_State* lua, Bool& success, T_ARGS ... args)
-				{
-					return ExecuteProtected(
-						lua,
-						success,
-						Forward<T_ARGS>(args) ...,
-						typename Make_Index_Sequence<sizeof ...(T_RETURN)>::Type {}
-					);
-				}
-
-			private:
-				template<size_t INDEX>
-				static constexpr auto Get(::lua_State* lua)
-				{
-					return Peek<typename Get_Type_Sequence<INDEX, T_RETURN ...>::Type>(
-						lua,
-						1 + INDEX
-					);
-				}
-
-				template<size_t ... INDEXES>
-				static constexpr Collections::Tuple<T_RETURN ...> Execute(::lua_State* lua, T_ARGS ... args, Index_Sequence<INDEXES ...>)
-				{
-					(Push<T_ARGS>(lua, Forward<T_ARGS>(args)), ...);
-
-					Extensions::call(
-						lua,
-						sizeof ...(T_ARGS),
-						sizeof ...(T_RETURN)
-					);
-
-					return Collections::Tuple<T_RETURN ...>(
-						Get<INDEXES>(lua) ...
-					);
-				}
-				template<size_t ... INDEXES>
-				static constexpr Collections::Tuple<T_RETURN ...> ExecuteProtected(::lua_State* lua, Bool& success, T_ARGS ... args, Index_Sequence<INDEXES ...>)
-				{
-					(Push<T_ARGS>(lua, Forward<T_ARGS>(args)), ...);
-
-					success = Extensions::pcall(
-						lua,
-						sizeof ...(T_ARGS),
-						sizeof ...(T_RETURN)
-					);
-
-					return Collections::Tuple<T_RETURN ...>(
-						Get<INDEXES>(lua) ...
+					return Pop<T_RETURN>(
+						lua
 					);
 				}
 			};
@@ -544,6 +459,19 @@ namespace AL::Lua54
 			Extensions() = delete;
 
 		public:
+			enum class Types
+			{
+				Null          = LUA_TNIL,
+				Number        = LUA_TNUMBER,
+				Boolean       = LUA_TBOOLEAN,
+				String        = LUA_TSTRING,
+				Table         = LUA_TTABLE,
+				Function      = LUA_TFUNCTION,
+				UserData      = LUA_TUSERDATA,
+				Thread        = LUA_TTHREAD,
+				LightUserData = LUA_TLIGHTUSERDATA
+			};
+
 			static ::std::nullptr_t getnil(::lua_State* lua, size_t index)
 			{
 				return nullptr;
@@ -791,6 +719,61 @@ namespace AL::Lua54
 				);
 			}
 
+			static int              gettop(::lua_State* lua)
+			{
+				return ::lua_gettop(lua);
+			}
+
+			static Void             createtable(::lua_State* lua, size_t size, size_t other)
+			{
+				::lua_createtable(
+					lua,
+					static_cast<int>(size & Integer<int>::SignedCastMask),
+					static_cast<int>(other & Integer<int>::SignedCastMask)
+				);
+			}
+
+			static size_t           rawlen(::lua_State* lua, int index)
+			{
+				return ::lua_rawlen(
+					lua,
+					index
+				);
+			}
+
+			// @throw AL::Exception
+			static Types            rawgeti(::lua_State* lua, int index, lua_Integer key)
+			{
+				switch (::lua_rawgeti(lua, index, key))
+				{
+					case LUA_TNIL:           return Types::Null;
+					case LUA_TNUMBER:        return Types::Number;
+					case LUA_TBOOLEAN:       return Types::Boolean;
+					case LUA_TSTRING:        return Types::String;
+					case LUA_TTABLE:         return Types::Table;
+					case LUA_TFUNCTION:      return Types::Function;
+					case LUA_TUSERDATA:      return Types::UserData;
+					case LUA_TTHREAD:        return Types::Thread;
+					case LUA_TLIGHTUSERDATA: return Types::LightUserData;
+				}
+
+				throw OperationNotSupportedException();
+			}
+
+			static Void             rawseti(::lua_State* lua, int index, lua_Integer key)
+			{
+				::lua_rawseti(lua, index, key);
+			}
+
+			static Bool             rawequal(::lua_State* lua, int index1, int index2)
+			{
+				return ::lua_rawequal(
+					lua,
+					index1,
+					index2
+				) != 0;
+			}
+
 			static Void             call(::lua_State* lua, size_t argCount, size_t returnCount)
 			{
 				::lua_call(
@@ -816,6 +799,39 @@ namespace AL::Lua54
 
 				return True;
 			}
+		};
+
+		template<typename T>
+		struct Is_Tuple
+		{
+			static constexpr Bool Value = False;
+		};
+		template<typename ... T>
+		struct Is_Tuple<Tuple<T ...>>
+		{
+			static constexpr Bool Value = True;
+		};
+
+		template<typename T>
+		struct Is_Table
+		{
+			static constexpr Bool Value = False;
+		};
+		template<typename T_KEY, typename T_VALUE>
+		struct Is_Table<Table<T_KEY, T_VALUE>>
+		{
+			static constexpr Bool Value = True;
+		};
+
+		template<typename T>
+		struct Is_Object
+		{
+			static constexpr Bool Value = False;
+		};
+		template<typename ... T>
+		struct Is_Object<Object<T ...>>
+		{
+			static constexpr Bool Value = True;
 		};
 
 		template<typename T>
@@ -854,6 +870,9 @@ namespace AL::Lua54
 		struct Is_Type_Pushable
 		{
 			static constexpr Bool Value =
+				Is_Table<T>::Value ||
+				Is_Tuple<T>::Value ||
+				Is_Object<T>::Value ||
 				Is_Type<T, Bool>::Value ||
 				Is_Type<T, char>::Value ||
 				Is_Type<T, char*>::Value ||
@@ -871,6 +890,9 @@ namespace AL::Lua54
 		struct Is_Type_Peekable
 		{
 			static constexpr Bool Value =
+				Is_Table<T>::Value ||
+				Is_Tuple<T>::Value ||
+				Is_Object<T>::Value ||
 				Is_CFunction<T>::Value ||
 				Is_LuaFunction<T>::Value ||
 				Is_Type<T, ::std::nullptr_t>::Value ||
@@ -885,6 +907,54 @@ namespace AL::Lua54
 				Is_Enum_Or_Integer<T>::Value ||
 				Is_Pointer<T>::Value ||
 				Is_Reference<T>::Value;
+		};
+
+		template<typename T>
+		struct Get_Tuple_Size;
+		template<typename ... T>
+		struct Get_Tuple_Size<Tuple<T ...>>
+		{
+			static constexpr size_t Value = sizeof ...(T);
+		};
+
+		template<typename T>
+		struct Get_Stack_Size
+		{
+			static constexpr size_t Value = Conditional_Value<Is_Type<T, Void>::Value, size_t, 0, 1>::Value;
+		};
+		template<typename ... T>
+		struct Get_Stack_Size<Tuple<T ...>>
+		{
+			static constexpr size_t Value = sizeof ...(T);
+		};
+		template<typename T_KEY, typename T_VALUE>
+		struct Get_Stack_Size<Table<T_KEY, T_VALUE>>
+		{
+			static constexpr size_t Value = 1;
+		};
+
+		template<typename T>
+		struct Get_Object_Size;
+		template<typename ... T>
+		struct Get_Object_Size<Object<T ...>>
+		{
+			static constexpr size_t Value = sizeof ...(T);
+		};
+
+		template<typename T>
+		struct Get_Table_Key;
+		template<typename T_KEY, typename T_VALUE>
+		struct Get_Table_Key<Table<T_KEY, T_VALUE>>
+		{
+			typedef T_KEY Type;
+		};
+
+		template<typename T>
+		struct Get_Table_Value;
+		template<typename T_KEY, typename T_VALUE>
+		struct Get_Table_Value<Table<T_KEY, T_VALUE>>
+		{
+			typedef T_VALUE Type;
 		};
 
 		template<typename F>
@@ -945,6 +1015,11 @@ namespace AL::Lua54
 			return lua;
 		}
 
+		auto GetStackSize() const
+		{
+			return IsCreated() ? Extensions::gettop(GetHandle()) : 0;
+		}
+
 		// @throw AL::Exception
 		Void Create()
 		{
@@ -993,7 +1068,7 @@ namespace AL::Lua54
 				return Pop<T ...>(GetHandle());
 			else
 			{
-				Collections::Tuple<T ...> value;
+				Tuple<T ...> value;
 
 				Pop(
 					GetHandle(),
@@ -1029,7 +1104,7 @@ namespace AL::Lua54
 				return Peek<T ...>(GetHandle(), index);
 			else
 			{
-				Collections::Tuple<T ...> value;
+				Tuple<T ...> value;
 
 				Peek(
 					GetHandle(),
@@ -1287,6 +1362,37 @@ namespace AL::Lua54
 			);
 		}
 
+#if !defined(AL_PLATFORM_PICO)
+		// @throw AL::Exception
+		// @return AL::False if file does not exist
+		Bool RunFile(const String& path)
+		{
+			AL_ASSERT(
+				IsCreated(),
+				"Lua not created"
+			);
+
+			if (!FileSystem::Path::Exists(path))
+			{
+
+				return False;
+			}
+
+			if (!FileSystem::Path::IsFile(path))
+			{
+
+				return False;
+			}
+
+			Extensions::doFile(
+				GetHandle(),
+				path
+			);
+
+			return True;
+		}
+#endif
+
 		// @throw AL::Exception
 		// @return AL::False if not found
 		Bool LoadLibrary(Libraries library)
@@ -1347,37 +1453,6 @@ namespace AL::Lua54
 			return True;
 		}
 
-#if !defined(AL_PLATFORM_PICO)
-		// @throw AL::Exception
-		// @return AL::False if file does not exist
-		Bool RunFile(const String& path)
-		{
-			AL_ASSERT(
-				IsCreated(),
-				"Lua not created"
-			);
-
-			if (!FileSystem::Path::Exists(path))
-			{
-
-				return False;
-			}
-
-			if (!FileSystem::Path::IsFile(path))
-			{
-
-				return False;
-			}
-
-			Extensions::doFile(
-				GetHandle(),
-				path
-			);
-
-			return True;
-		}
-#endif
-
 	private:
 		// @throw AL::Exception
 		Void LoadLibrary(const Library& library)
@@ -1397,19 +1472,80 @@ namespace AL::Lua54
 
 	private:
 		template<typename T>
-		static Void Push(::lua_State* lua, T value)
+		static int Push(::lua_State* lua, T value)
 		{
 			static_assert(
 				Is_Type_Pushable<T>::Value,
 				"Type not supported"
 			);
 
-			if constexpr (Is_Type<T, Bool>::Value)
+			if constexpr (Is_Tuple<T>::Value)
+			{
+				return PushTuple(
+					lua,
+					value
+				);
+			}
+			else if constexpr (Is_Table<T>::Value)
+			{
+				typedef typename Get_Table_Key<T>::Type   T_KEY;
+				typedef typename Get_Table_Value<T>::Type T_VALUE;
+
+				Extensions::createtable(
+					lua,
+					value.GetSize(),
+					0
+				);
+
+				auto top = Extensions::gettop(
+					lua
+				);
+
+				for (auto& pair : value)
+				{
+					Push<T_KEY>(
+						lua,
+						Forward<T_KEY>(pair.Key)
+					);
+
+					Push<T_VALUE>(
+						lua,
+						Forward<T_VALUE>(pair.Value)
+					);
+
+					::lua_settable(
+						lua,
+						top
+					);
+				}
+
+				return 1;
+			}
+			else if constexpr (Is_Object<T>::Value)
+			{
+				Extensions::createtable(
+					lua,
+					Get_Object_Size<T>::Value,
+					0
+				);
+
+				PushObject(
+					lua,
+					Extensions::gettop(lua),
+					value,
+					typename Make_Index_Sequence<Get_Object_Size<T>::Value>::Type {}
+				);
+
+				return 1;
+			}
+			else if constexpr (Is_Type<T, Bool>::Value)
 			{
 				Extensions::pushboolean(
 					lua,
 					value
 				);
+
+				return 1;
 			}
 			else if constexpr (Is_Type<T, char>::Value)
 			{
@@ -1417,6 +1553,8 @@ namespace AL::Lua54
 					lua,
 					value
 				);
+
+				return 1;
 			}
 			else if constexpr (Is_Type<T, char*>::Value)
 			{
@@ -1424,6 +1562,8 @@ namespace AL::Lua54
 					lua,
 					value
 				);
+
+				return 1;
 			}
 			else if constexpr (Is_Type<T, const char*>::Value)
 			{
@@ -1431,6 +1571,8 @@ namespace AL::Lua54
 					lua,
 					value
 				);
+
+				return 1;
 			}
 			else if constexpr (Is_Type<T, String>::Value)
 			{
@@ -1438,6 +1580,8 @@ namespace AL::Lua54
 					lua,
 					value
 				);
+
+				return 1;
 			}
 			else if constexpr (Is_Type<T, String&>::Value)
 			{
@@ -1445,6 +1589,8 @@ namespace AL::Lua54
 					lua,
 					value
 				);
+
+				return 1;
 			}
 			else if constexpr (Is_Type<T, const String&>::Value)
 			{
@@ -1452,6 +1598,8 @@ namespace AL::Lua54
 					lua,
 					value
 				);
+
+				return 1;
 			}
 			else if constexpr (Is_Decimal<T>::Value)
 			{
@@ -1459,6 +1607,8 @@ namespace AL::Lua54
 					lua,
 					static_cast<::lua_Number>(value)
 				);
+
+				return 1;
 			}
 			else if constexpr (Is_Enum_Or_Integer<T>::Value)
 			{
@@ -1466,6 +1616,8 @@ namespace AL::Lua54
 					lua,
 					static_cast<::lua_Integer>(value)
 				);
+
+				return 1;
 			}
 			else if constexpr (Is_Pointer<T>::Value)
 			{
@@ -1483,6 +1635,8 @@ namespace AL::Lua54
 						const_cast<Void*>(static_cast<const Void*>(value))
 					);
 				}
+
+				return 1;
 			}
 			else if constexpr (Is_Reference<T>::Value)
 			{
@@ -1490,23 +1644,48 @@ namespace AL::Lua54
 					lua,
 					const_cast<Void*>(&value)
 				);
+
+				return 1;
 			}
+
+			return 0;
 		}
 
 		template<typename T>
 		static auto Pop(::lua_State* lua)
 		{
-			auto value = Peek<T>(
-				lua,
-				1
-			);
+			if constexpr (Is_Tuple<T>::Value)
+			{
+				T value;
 
-			Extensions::pop(
-				lua,
-				1
-			);
+				PopTuple(
+					lua,
+					value,
+					typename Make_Index_Sequence<Get_Tuple_Size<T>::Value>::Type {}
+				);
 
-			return value;
+				return value;
+			}
+			else if constexpr (Is_Table<T>::Value)
+			{
+				// TODO: implement
+			}
+			else if constexpr (Is_Object<T>::Value)
+			{
+				// TODO: implement
+			}
+			else
+			{
+				auto value = Peek<T>(
+					lua,
+					1
+				);
+
+				Extensions::pop(
+					lua,
+					1
+				);
+			}
 		}
 
 		template<typename T>
@@ -1517,7 +1696,27 @@ namespace AL::Lua54
 				"Type not supported"
 			);
 
-			if constexpr (Is_CFunction<T>::Value)
+			if constexpr (Is_Tuple<T>::Value)
+			{
+				T value;
+
+				PeekTuple(
+					lua,
+					index,
+					value
+				);
+
+				return value;
+			}
+			else if constexpr (Is_Table<T>::Value)
+			{
+				// TODO: implement
+			}
+			else if constexpr (Is_Object<T>::Value)
+			{
+				// TODO: implement
+			}
+			else if constexpr (Is_CFunction<T>::Value)
 			{
 				return typename CFunction_To_LuaFunction<T>::Type(
 					lua,
@@ -1613,44 +1812,58 @@ namespace AL::Lua54
 		}
 
 		template<typename ... T>
-		static constexpr Void PushTuple(::lua_State* lua, const Collections::Tuple<T ...>& value)
+		static constexpr int PushTuple(::lua_State* lua, const Tuple<T ...>& value)
 		{
-			PushTuple<T ...>(
+			return PushTuple<T ...>(
 				lua,
 				value,
 				typename Make_Index_Sequence<sizeof ...(T)>::Type {}
 			);
 		}
 		template<typename ... T, size_t ... INDEXES>
-		static constexpr Void PushTuple(::lua_State* lua, const Collections::Tuple<T ...>& value, Index_Sequence<INDEXES ...>)
+		static constexpr int PushTuple(::lua_State* lua, const Tuple<T ...>& value, Index_Sequence<INDEXES ...>)
 		{
-			(Push<T>(lua, value.template Get<INDEXES>()), ...);
+			return (Push<T>(lua, value.template Get<INDEXES>()) + ...);
 		}
 
 		template<size_t INDEX, typename ... T>
-		static constexpr Void PopTuple(::lua_State* lua, Collections::Tuple<T ...>& value)
+		static constexpr Void PopTuple(::lua_State* lua, Tuple<T ...>& value)
 		{
 			value.template Set<INDEX>(
 				Pop<typename Get_Type_Sequence<INDEX, T ...>::Type>(lua)
 			);
 		}
 		template<size_t ... INDEXES, typename ... T>
-		static constexpr Void PopTuple(::lua_State* lua, Collections::Tuple<T ...>& value, Index_Sequence<INDEXES ...>)
+		static constexpr Void PopTuple(::lua_State* lua, Tuple<T ...>& value, Index_Sequence<INDEXES ...>)
 		{
 			(PopTuple<INDEXES, T>(lua, value), ...);
 		}
 
-		template<size_t INDEX, typename ... T>
-		static constexpr Void PeekTuple(::lua_State* lua, size_t index, Collections::Tuple<T ...>& value)
+		template<typename ... T, size_t INDEX>
+		static constexpr Void PeekTuple(::lua_State* lua, size_t index, Tuple<T ...>& value)
 		{
 			value.template Set<INDEX>(
 				Peek<typename Get_Type_Sequence<INDEX, T ...>::Type>(lua, index + INDEX)
 			);
 		}
-		template<size_t ... INDEXES, typename ... T>
-		static constexpr Void PeekTuple(::lua_State* lua, size_t index, Collections::Tuple<T ...>& value, Index_Sequence<INDEXES ...>)
+		template<typename ... T, size_t ... INDEXES>
+		static constexpr Void PeekTuple(::lua_State* lua, size_t index, Tuple<T ...>& value, Index_Sequence<INDEXES ...>)
 		{
 			(PeekTuple<INDEXES, T>(lua, index, value), ...);
+		}
+
+		template<size_t INDEX, typename ... T>
+		static constexpr int PushObject(::lua_State* lua, int stack, const Object<T ...>& value)
+		{
+			Push(lua, value.template Get<INDEX>());
+			Extensions::rawseti(lua, stack, INDEX + 1);
+
+			return 1;
+		}
+		template<size_t ... INDEXES, typename ... T>
+		static constexpr int PushObject(::lua_State* lua, int stack, const Object<T ...>& value, Index_Sequence<INDEXES ...>)
+		{
+			return (PushObject<INDEXES>(lua, stack, value) + ...);
 		}
 	};
 }
