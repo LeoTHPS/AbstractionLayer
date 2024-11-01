@@ -349,7 +349,6 @@ namespace AL::OS::Windows
 		}
 
 		// @throw AL::Exception
-		template<typename ... TArgs>
 		static Void Read(String::Char& value)
 		{
 			AL_ASSERT(
