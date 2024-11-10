@@ -1059,7 +1059,7 @@ namespace AL::OS::Windows
 				if (uint32 threadExitCode; thread.GetExitCode(threadExitCode) && !threadExitCode)
 				{
 
-					throw SystemException(
+					throw Exception(
 						"Error calling 'LoadLibraryA' within process %lu",
 						process.GetId()
 					);
