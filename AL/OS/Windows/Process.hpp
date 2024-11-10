@@ -822,6 +822,48 @@ namespace AL::OS::Windows
 			return handle;
 		}
 
+		// @throw AL::Exception
+		Bool IsRunning() const
+		{
+			::DWORD exitCode;
+
+			if (!::GetExitCodeThread(GetHandle(), &exitCode))
+			{
+
+				throw SystemException(
+					"GetExitCodeThread"
+				);
+			}
+
+			return exitCode == STILL_ACTIVE;
+		}
+
+		// @throw AL::Exception
+		Bool GetExitCode(uint32& value) const
+		{
+			::DWORD exitCode;
+
+			if (!::GetExitCodeThread(GetHandle(), &exitCode))
+			{
+
+				throw SystemException(
+					"GetExitCodeThread"
+				);
+			}
+
+			if (exitCode == STILL_ACTIVE)
+			{
+
+				return False;
+			}
+
+			value = static_cast<uint32>(
+				exitCode
+			);
+
+			return True;
+		}
+
 		auto& GetProcess()
 		{
 			return *lpProcess;
@@ -1013,6 +1055,15 @@ namespace AL::OS::Windows
 				thread.Join();
 
 				memory.Release(lpPath);
+
+				if (uint32 threadExitCode; thread.GetExitCode(threadExitCode) && !threadExitCode)
+				{
+
+					throw SystemException(
+						"Error calling 'LoadLibraryA' within process %lu",
+						process.GetId()
+					);
+				}
 			}
 
 			return True;
