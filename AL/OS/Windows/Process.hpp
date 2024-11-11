@@ -1037,6 +1037,7 @@ namespace AL::OS::Windows
 					ProcessMemoryProtections::Read_Write
 				);
 
+#if defined(AL_ARCH_X86)
 				Void* lpCodeCave;
 				uint8 codeCaveBuffer[] =
 				{
@@ -1053,6 +1054,7 @@ namespace AL::OS::Windows
 
 				*reinterpret_cast<size_t*>(&codeCaveBuffer[7])  = reinterpret_cast<size_t>(&::LoadLibraryA);
 				*reinterpret_cast<size_t*>(&codeCaveBuffer[14]) = reinterpret_cast<size_t>(&::GetLastError);
+#endif
 
 				try
 				{
@@ -1062,12 +1064,14 @@ namespace AL::OS::Windows
 						path.GetString().GetSize()
 					);
 
+#if defined(AL_ARCH_X86)
 					lpCodeCave = memory.Allocate(
 						nullptr,
 						sizeof(codeCaveBuffer),
 						ProcessMemoryAllocationTypes::Commit | ProcessMemoryAllocationTypes::Reserve,
 						ProcessMemoryProtections::Execute_Read_Write
 					);
+#endif
 				}
 				catch (Exception&)
 				{
@@ -1080,16 +1084,22 @@ namespace AL::OS::Windows
 
 				try
 				{
+#if defined(AL_ARCH_X86)
 					memory.Write(
 						lpCodeCave,
 						&codeCaveBuffer[0],
 						sizeof(codeCaveBuffer)
 					);
+#endif
 
 					ProcessThread::Start(
 						thread,
 						process,
+#if defined(AL_ARCH_X86)
 						lpCodeCave,
+#else
+						reinterpret_cast<Void*>(::GetProcAddress(::GetModuleHandleA("kernel32.dll"), "LoadLibraryA")),
+#endif
 						lpPath
 					);
 
@@ -1098,15 +1108,23 @@ namespace AL::OS::Windows
 				catch (Exception&)
 				{
 					memory.Release(lpPath);
+#if defined(AL_ARCH_X86)
 					memory.Release(lpCodeCave);
+#endif
 
 					throw;
 				}
 
 				memory.Release(lpPath);
+#if defined(AL_ARCH_X86)
 				memory.Release(lpCodeCave);
+#endif
 
+#if defined(AL_ARCH_X86)
 				if (uint32 threadExitCode; thread.GetExitCode(threadExitCode) && threadExitCode)
+#else
+				if (uint32 threadExitCode; thread.GetExitCode(threadExitCode) && !threadExitCode)
+#endif
 				{
 
 					throw SystemException(
