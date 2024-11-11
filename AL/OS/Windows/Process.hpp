@@ -1037,31 +1037,81 @@ namespace AL::OS::Windows
 					ProcessMemoryProtections::Read_Write
 				);
 
-				memory.Write(
-					lpPath,
-					path.GetString().GetCString(),
-					path.GetString().GetSize()
-				);
+				Void* lpCodeCave;
+				uint8 codeCaveBuffer[] =
+				{
+					/* 0  */ 0x55,                         // push ebp
+					/* 1  */ 0x89, 0xE5,                   // mov ebp, esp
+					/* 3  */ 0xFF, 0x75, 0x08,             // push DWORD PTR [ebp+8]
+					/* 6  */ 0xB8, 0x00, 0x00, 0x00, 0x00, // mov eax, LoadLibraryA
+					/* 11 */ 0xFF, 0xD0,                   // call eax
+					/* 13 */ 0xB8, 0x00, 0x00, 0x00, 0x00, // mov eax, GetLastError
+					/* 18 */ 0xFF, 0xD0,                   // call eax
+					/* 20 */ 0x5D,                         // pop ebp
+					/* 21 */ 0xC2, 0x04, 0x00              // ret 4
+				};
+
+				*reinterpret_cast<size_t*>(&codeCaveBuffer[7])  = reinterpret_cast<size_t>(&::LoadLibraryA);
+				*reinterpret_cast<size_t*>(&codeCaveBuffer[14]) = reinterpret_cast<size_t>(&::GetLastError);
+
+				try
+				{
+					memory.Write(
+						lpPath,
+						path.GetString().GetCString(),
+						path.GetString().GetSize()
+					);
+
+					lpCodeCave = memory.Allocate(
+						nullptr,
+						sizeof(codeCaveBuffer),
+						ProcessMemoryAllocationTypes::Commit | ProcessMemoryAllocationTypes::Reserve,
+						ProcessMemoryProtections::Execute_Read_Write
+					);
+				}
+				catch (Exception&)
+				{
+					memory.Release(lpPath);
+
+					throw;
+				}
 
 				ProcessThread thread;
 
-				ProcessThread::Start(
-					thread,
-					process,
-					reinterpret_cast<Void*>(::GetProcAddress(::GetModuleHandleA("kernel32.dll"), "LoadLibraryA")),
-					lpPath
-				);
+				try
+				{
+					memory.Write(
+						lpCodeCave,
+						&codeCaveBuffer[0],
+						sizeof(codeCaveBuffer)
+					);
 
-				thread.Join();
+					ProcessThread::Start(
+						thread,
+						process,
+						lpCodeCave,
+						lpPath
+					);
+
+					thread.Join();
+				}
+				catch (Exception&)
+				{
+					memory.Release(lpPath);
+					memory.Release(lpCodeCave);
+
+					throw;
+				}
 
 				memory.Release(lpPath);
+				memory.Release(lpCodeCave);
 
-				if (uint32 threadExitCode; thread.GetExitCode(threadExitCode) && !threadExitCode)
+				if (uint32 threadExitCode; thread.GetExitCode(threadExitCode) && threadExitCode)
 				{
 
-					throw Exception(
-						"Error calling 'LoadLibraryA' within process %lu",
-						process.GetId()
+					throw SystemException(
+						"LoadLibraryA",
+						threadExitCode
 					);
 				}
 			}
