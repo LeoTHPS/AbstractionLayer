@@ -109,10 +109,15 @@ namespace AL::FileSystem
 			if (!buffer.EndsWith('/') && !buffer.EndsWith('\\') &&
 				!String_StartsWith(chunk, '/') && !String_StartsWith(chunk, '\\'))
 			{
-
+#if defined(AL_PLATFORM_WINDOWS)
+				buffer.Append(
+					'\\'
+				);
+#else
 				buffer.Append(
 					'/'
 				);
+#endif
 			}
 
 			buffer.Append(
