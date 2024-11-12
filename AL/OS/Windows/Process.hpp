@@ -1043,19 +1043,19 @@ namespace AL::OS::Windows
 				{
 					/* 0  */ 0x55,                         // push ebp
 					/* 1  */ 0x89, 0xE5,                   // mov ebp, esp
-					/* 3  */ 0x68, 0x00, 0x11, 0x00, 0x00, // push LOAD_LIBRARY_SEARCH_DEFAULT_DIRS | LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR
-					/* 8  */ 0x6A, 0x00,                   // push 0
-					/* 10 */ 0xFF, 0x75, 0x08,             // push DWORD PTR [ebp+8] ; lpPath
-					/* 13 */ 0xB8, 0x00, 0x00, 0x00, 0x00, // mov eax, LoadLibraryExA
-					/* 18 */ 0xFF, 0xD0,                   // call eax
-					/* 20 */ 0xB8, 0x00, 0x00, 0x00, 0x00, // mov eax, GetLastError
-					/* 25 */ 0xFF, 0xD0,                   // call eax
-					/* 27 */ 0x5D,                         // pop ebp
-					/* 28 */ 0xC3                          // ret
+					/* 3  */ 0x6A, 0x08,                   // push LOAD_WITH_ALTERED_SEARCH_PATH
+					/* 5  */ 0x6A, 0x00,                   // push 0
+					/* 7  */ 0xFF, 0x75, 0x08,             // push DWORD PTR [ebp+8] ; lpPath
+					/* 10 */ 0xB8, 0x00, 0x00, 0x00, 0x00, // mov eax, LoadLibraryExA
+					/* 15 */ 0xFF, 0xD0,                   // call eax
+					/* 17 */ 0xB8, 0x00, 0x00, 0x00, 0x00, // mov eax, GetLastError
+					/* 22 */ 0xFF, 0xD0,                   // call eax
+					/* 24 */ 0x5D,                         // pop ebp
+					/* 25 */ 0xC2, 0x04, 0x00              // ret 4
 				};
 
-				*reinterpret_cast<size_t*>(&codeCaveBuffer[14]) = reinterpret_cast<size_t>(&::LoadLibraryExA);
-				*reinterpret_cast<size_t*>(&codeCaveBuffer[21]) = reinterpret_cast<size_t>(&::GetLastError);
+				*reinterpret_cast<size_t*>(&codeCaveBuffer[11]) = reinterpret_cast<size_t>(&::LoadLibraryExA);
+				*reinterpret_cast<size_t*>(&codeCaveBuffer[18]) = reinterpret_cast<size_t>(&::GetLastError);
 #elif defined(AL_ARCH_X86_64)
 				// TODO: implement code cave
 #endif
