@@ -1132,7 +1132,11 @@ namespace AL::OS::Windows
 				{
 
 					throw SystemException(
-						"LoadLibraryA",
+#if defined(AL_ARCH_X86)
+						"LoadLibraryExA",
+#else
+						"LoadLibraryA"
+#endif
 						threadExitCode
 					);
 				}
