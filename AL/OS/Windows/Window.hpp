@@ -788,7 +788,9 @@ namespace AL::OS::Windows
 		Bool                              isResizable       = True;
 		Bool                              isMinimizable     = True;
 		Bool                              isMaximizable     = True;
+		Bool                              isBorderEnabled   = True;
 		Bool                              isFileDropEnabled = False;
+		Bool                              isTitleBarEnabled = True;
 		Bool                              isPaintEnabled    = True;
 
 		Bool                              isMinimized       = False;
@@ -948,9 +950,19 @@ namespace AL::OS::Windows
 			return isMaximizable;
 		}
 
+		Bool IsBorderEnabled() const
+		{
+			return isBorderEnabled;
+		}
+
 		Bool IsFileDropEnabled() const
 		{
 			return isFileDropEnabled;
+		}
+
+		Bool IsTitleBarEnabled() const
+		{
+			return isTitleBarEnabled;
 		}
 
 		auto& GetName() const
@@ -1402,6 +1414,22 @@ namespace AL::OS::Windows
 		}
 
 		// @throw AL::Exception
+		Void EnableBorder(Bool set = True)
+		{
+			if (IsCreated() || isCreating)
+			{
+				SetWindowLongPtr(
+					GetHandle(),
+					GWL_STYLE,
+					set ? WS_BORDER : ~WS_BORDER,
+					set
+				);
+			}
+
+			isBorderEnabled = set;
+		}
+
+		// @throw AL::Exception
 		Void EnableResize(Bool set = True)
 		{
 			if (IsCreated() || isCreating)
@@ -1461,6 +1489,22 @@ namespace AL::OS::Windows
 			}
 
 			isFileDropEnabled = set;
+		}
+
+		// @throw AL::Exception
+		Void EnableTitleBar(Bool set = True)
+		{
+			if (IsCreated() || isCreating)
+			{
+				SetWindowLongPtr(
+					GetHandle(),
+					GWL_STYLE,
+					set ? (WS_CAPTION | WS_SYSMENU) : ~(WS_CAPTION | WS_SYSMENU),
+					set
+				);
+			}
+
+			isTitleBarEnabled = set;
 		}
 
 		// @throw AL::Exception
@@ -1818,6 +1862,10 @@ namespace AL::OS::Windows
 					IsClosable()
 				);
 
+				EnableBorder(
+					IsBorderEnabled()
+				);
+
 				EnableResize(
 					IsResizable()
 				);
@@ -1832,6 +1880,10 @@ namespace AL::OS::Windows
 
 				EnableFileDrop(
 					IsFileDropEnabled()
+				);
+
+				EnableTitleBar(
+					IsTitleBarEnabled()
 				);
 
 				Minimize(
@@ -2614,6 +2666,7 @@ namespace AL::OS::Windows
 						case SIZE_MAXIMIZED:
 						{
 							isMaximized = True;
+							isMinimized = False;
 
 							auto width = static_cast<typename WindowResolution::Type>(
 								LOWORD(lParam)
