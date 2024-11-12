@@ -1056,6 +1056,8 @@ namespace AL::OS::Windows
 
 				*reinterpret_cast<size_t*>(&codeCaveBuffer[14]) = reinterpret_cast<size_t>(&::LoadLibraryExA);
 				*reinterpret_cast<size_t*>(&codeCaveBuffer[21]) = reinterpret_cast<size_t>(&::GetLastError);
+#elif defined(AL_ARCH_X86_64)
+				// TODO: implement code cave
 #endif
 
 				try
