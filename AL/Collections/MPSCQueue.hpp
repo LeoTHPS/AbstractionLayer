@@ -89,11 +89,7 @@ namespace AL::Collections
 
 		virtual size_t GetSize() const override
 		{
-			auto size = this->size.load(
-				::std::memory_order_acq_rel
-			);
-
-			return size;
+			return this->size;
 		}
 
 		virtual size_t GetCapacity() const override
