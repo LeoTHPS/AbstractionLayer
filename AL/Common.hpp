@@ -247,8 +247,9 @@
 	#include <time.h> // timespec/timespec_get
 	#include <unistd.h> // usleep
 #elif defined(AL_PLATFORM_WINDOWS)
-	#define VC_EXTRALEAN
-	#define WIN32_LEAN_AND_MEAN
+	#define VC_EXTRALEAN        
+	#define WIN32_LEAN_AND_MEAN 
+	#define WINAPI_FAMILY       WINAPI_FAMILY_DESKTOP_APP
 
 	#include <winapifamily.h>
 
@@ -281,8 +282,6 @@
 			#define WINVER       _WIN32_WINNT_WIN10
 			#define _WIN32_WINNT _WIN32_WINNT_WIN10
 		#endif
-
-		#define WINAPI_FAMILY    WINAPI_FAMILY_DESKTOP_APP
 	#endif
 
 	#include <Windows.h>
