@@ -1229,6 +1229,23 @@ namespace AL::Lua54
 				name
 			);
 		}
+		Void SetGlobalFunction(const String& name, ::lua_CFunction value)
+		{
+			AL_ASSERT(
+				IsCreated(),
+				"Lua not created"
+			);
+
+			Extensions::pushcfunction(
+				GetHandle(),
+				value
+			);
+
+			Extensions::setGlobal(
+				GetHandle(),
+				name
+			);
+		}
 
 		template<auto F, typename ... TArgs>
 		auto CallGlobalFunction(const String& name, TArgs ... args)
