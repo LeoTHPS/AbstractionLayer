@@ -1219,27 +1219,20 @@ namespace AL::Lua54
 				"Use SetGlobal instead"
 			);
 
-			Extensions::pushcfunction(
-				GetHandle(),
-				&CFunction<F>::Execute
-			);
-
-			Extensions::setGlobal(
-				GetHandle(),
-				name
-			);
-		}
-		Void SetGlobalFunction(const String& name, ::lua_CFunction value)
-		{
-			AL_ASSERT(
-				IsCreated(),
-				"Lua not created"
-			);
-
-			Extensions::pushcfunction(
-				GetHandle(),
-				value
-			);
+			if constexpr (Is_Type<T, ::lua_CFunction>::Value)
+			{
+				Extensions::pushcfunction(
+					GetHandle(),
+					F
+				);
+			}
+			else
+			{
+				Extensions::pushcfunction(
+					GetHandle(),
+					&CFunction<F>::Execute
+				);
+			}
 
 			Extensions::setGlobal(
 				GetHandle(),
