@@ -29,6 +29,7 @@ namespace AL::OS::Windows
 	struct ProcessStartInfo
 	{
 		String             Path;
+		uint32             Flags; // TODO: add strong enum
 		ProcessCommandLine CommandLine;
 		String             WorkingDirectory;
 	};
@@ -158,7 +159,7 @@ namespace AL::OS::Windows
 
 			::PROCESS_INFORMATION info = { 0 };
 
-			if (!::CreateProcessA(startInfo.Path.GetCString(), const_cast<::LPSTR>(startInfo.CommandLine.GetCString()), nullptr, nullptr, FALSE, 0, nullptr, startInfo.WorkingDirectory.GetCString(), &startup, &info))
+			if (!::CreateProcessA(startInfo.Path.GetCString(), const_cast<::LPSTR>(startInfo.CommandLine.GetCString()), nullptr, nullptr, FALSE, static_cast<::DWORD>(startInfo.Flags), nullptr, startInfo.WorkingDirectory.GetCString(), &startup, &info))
 			{
 
 				throw SystemException(
