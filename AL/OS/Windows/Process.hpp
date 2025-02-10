@@ -26,6 +26,10 @@ namespace AL::OS::Windows
 	typedef int32  ProcessExitCode;
 	typedef String ProcessCommandLine;
 
+	class ProcessMemory;
+	class ProcessThread;
+	class ProcessLibrary;
+
 	struct ProcessStartInfo
 	{
 		String             Path;
@@ -146,48 +150,22 @@ namespace AL::OS::Windows
 		}
 
 		// @throw AL::Exception
-		static Void OpenCurrent(Process& process);
+		static Void OpenCurrent(Process& process)
+		{
+			if (!Open(process, ::GetCurrentProcessId()))
+			{
+
+				throw Exception(
+					"The current process could not be found"
+				);
+			}
+		}
 
 		// @throw AL::Exception
-		static Void Create(Process& process, const ProcessStartInfo& startInfo)
-		{
-			::STARTUPINFOA startup = { 0 };
-			startup.cb         = sizeof(::STARTUPINFOA);
-			startup.hStdError  = GetStdHandle(STD_ERROR_HANDLE);
-			startup.hStdInput  = GetStdHandle(STD_INPUT_HANDLE);
-			startup.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+		static Void Create(Process& process, const ProcessStartInfo& startInfo);
 
-			::PROCESS_INFORMATION info = { 0 };
-
-			if (!::CreateProcessA(startInfo.Path.GetCString(), const_cast<::LPSTR>(startInfo.CommandLine.GetCString()), nullptr, nullptr, FALSE, static_cast<::DWORD>(startInfo.Flags), nullptr, startInfo.WorkingDirectory.GetCString(), &startup, &info))
-			{
-
-				throw SystemException(
-					"CreateProcessA"
-				);
-			}
-
-			::CloseHandle(
-				info.hThread
-			);
-
-			if (::WaitForInputIdle(info.hProcess, INFINITE) == WAIT_FAILED)
-			{
-				::CloseHandle(
-					info.hProcess
-				);
-
-				throw SystemException(
-					"WaitForInputIdle"
-				);
-			}
-
-			process = Process(
-				info.dwProcessId,
-				info.hProcess,
-				False
-			);
-		}
+		// @throw AL::Exception
+		static Void CreateAndOpenThread(Process& process, ProcessThread& thread, const ProcessStartInfo& startInfo);
 
 		// @throw AL::Exception
 		static Void Enumerate(const ProcessEnumCallback& callback)
@@ -758,6 +736,8 @@ namespace AL::OS::Windows
 
 	class ProcessThread
 	{
+		friend Void Process::CreateAndOpenThread(Process& process, ProcessThread& thread, const ProcessStartInfo& startInfo);
+
 		Bool     isOpen = False;
 
 		::HANDLE handle;
@@ -818,17 +798,12 @@ namespace AL::OS::Windows
 			return isOpen;
 		}
 
-		auto GetHandle() const
-		{
-			return handle;
-		}
-
 		// @throw AL::Exception
 		Bool IsRunning() const
 		{
 			::DWORD exitCode;
 
-			if (!::GetExitCodeThread(GetHandle(), &exitCode))
+			if (!::GetExitCodeThread(handle, &exitCode))
 			{
 
 				throw SystemException(
@@ -837,6 +812,20 @@ namespace AL::OS::Windows
 			}
 
 			return exitCode == STILL_ACTIVE;
+		}
+
+		auto GetHandle() const
+		{
+			return handle;
+		}
+
+		auto& GetProcess()
+		{
+			return *lpProcess;
+		}
+		auto& GetProcess() const
+		{
+			return *lpProcess;
 		}
 
 		// @throw AL::Exception
@@ -865,15 +854,6 @@ namespace AL::OS::Windows
 			return True;
 		}
 
-		auto& GetProcess()
-		{
-			return *lpProcess;
-		}
-		auto& GetProcess() const
-		{
-			return *lpProcess;
-		}
-
 		// @throw AL::Exception
 		// @return AL::False if time elapsed and ProcessThread is still running
 		Bool Join(TimeSpan maxWaitTime = TimeSpan::Infinite)
@@ -891,6 +871,40 @@ namespace AL::OS::Windows
 			}
 
 			return True;
+		}
+
+		// @throw AL::Exception
+		Void Resume()
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"ProcessThread not open"
+			);
+
+			if (::ResumeThread(GetHandle()) == static_cast<::DWORD>(-1))
+			{
+
+				throw SystemException(
+					"ResumeThread"
+				);
+			}
+		}
+
+		// @throw AL::Exception
+		Void Suspend()
+		{
+			AL_ASSERT(
+				IsOpen(),
+				"ProcessThread not open"
+			);
+
+			if (::SuspendThread(GetHandle()) == static_cast<::DWORD>(-1))
+			{
+
+				throw SystemException(
+					"SuspendThread"
+				);
+			}
 		}
 
 		// @throw AL::Exception
@@ -1381,13 +1395,54 @@ namespace AL::OS::Windows
 }
 
 // @throw AL::Exception
-inline AL::Void AL::OS::Windows::Process::OpenCurrent(Process& process)
+inline AL::Void AL::OS::Windows::Process::Create(Process& process, const ProcessStartInfo& startInfo)
 {
-	if (!Open(process, GetCurrentProcessId()))
+	ProcessThread thread;
+
+	CreateAndOpenThread(process, thread, startInfo);
+}
+
+// @throw AL::Exception
+inline AL::Void AL::OS::Windows::Process::CreateAndOpenThread(Process& process, ProcessThread& thread, const ProcessStartInfo& startInfo)
+{
+	::STARTUPINFOA startup = { 0 };
+	startup.cb         = sizeof(::STARTUPINFOA);
+	startup.hStdError  = GetStdHandle(STD_ERROR_HANDLE);
+	startup.hStdInput  = GetStdHandle(STD_INPUT_HANDLE);
+	startup.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	::PROCESS_INFORMATION info = { 0 };
+
+	if (!::CreateProcessA(startInfo.Path.GetCString(), const_cast<::LPSTR>(startInfo.CommandLine.GetCString()), nullptr, nullptr, FALSE, static_cast<::DWORD>(startInfo.Flags), nullptr, startInfo.WorkingDirectory.GetCString(), &startup, &info))
 	{
 
-		throw Exception(
-			"The current process could not be found"
+		throw SystemException(
+			"CreateProcessA"
 		);
 	}
+
+	if ((startInfo.Flags & CREATE_SUSPENDED) != CREATE_SUSPENDED)
+	{
+		if (::WaitForInputIdle(info.hProcess, INFINITE) == WAIT_FAILED)
+		{
+			::CloseHandle(
+				info.hProcess
+			);
+
+			throw SystemException(
+				"WaitForInputIdle"
+			);
+		}
+	}
+
+	thread = ProcessThread(
+		process,
+		info.hThread
+	);
+
+	process = Process(
+		info.dwProcessId,
+		info.hProcess,
+		False
+	);
 }
